@@ -6,22 +6,13 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { Toaster } from "sonner";
 
 import type { Route } from "./+types/root";
+import { ThemeProvider, useTheme } from "./core/theme/ThemeProvider";
 import "./app.css";
 
-export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-];
+export const links: Route.LinksFunction = () => [];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -41,8 +32,39 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AppContent() {
+  const { theme } = useTheme();
+  /* TODO: Standalone custome CSS file for toast? */
+  /* TODO: Popconfirm to replace browser native confirm. */
+  return (
+    <>
+      <Outlet />
+      <Toaster
+        theme={theme}
+        position="bottom-right"
+        expand={false}
+        richColors
+        closeButton
+        duration={4000}
+        toastOptions={{
+          style: {
+            background: 'var(--bg)',
+            color: 'var(--text)',
+            border: '1px solid var(--border)',
+            borderRadius: '2px'
+          },
+        }}
+      />
+    </>
+  );
+}
+
 export default function App() {
-  return <Outlet />;
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

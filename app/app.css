@@ -1,15 +1,380 @@
 @import "tailwindcss";
 
+/* Nunito Sans font-face declarations */
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('/fonts/Nunito_Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('/fonts/Nunito_Sans/NunitoSans-Italic-VariableFont_YTLC,opsz,wdth,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+}
+
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+  --font-sans: "Nunito Sans", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --bg-brand: var(--bg-brand);
+  --text-brand: var(--text-brand);
+  --text-brand-muted: var(--text-brand-muted);
+  --text-brand-hover: var(--text-brand-hover);
+
+
+  /* Extend Tailwind with custom theme colors */
+  --bg-dark: var(--bg-dark);
+  --bg: var(--bg);
+  --bg-light: var(--bg-light);
+
+  --text: var(--text);
+  --text-muted: var(--text-muted);
+  --text-disabled: var(--text-disabled);
+
+  --primary: var(--primary);
+  --secondary: var(--secondary);
+
+  --text-button: var(--text-button);
+
+  --danger: var(--danger);
+  --warning: var(--warning);
+  --success: var(--success);
+  --info: var(--info);
+
+  --border: var(--border);
+  --border-muted: var(--border-muted);
+
+  --highlight: var(--highlight);
+
+  --gradient: var(--gradient);
+  --gradient-hover: var(--gradient-hover);
+
+  --shadow: var(--shadow);
+  --shadow-hover: var(--shadow-hover);
+
+  --tag-blue: var(--tag-blue);
+  --tag-green: var(--tag-green);
+  --tag-orange: var(--tag-orange);
+  --tag-red: var(--tag-red);
+  --tag-purple: var(--tag-purple);
+
+  --tag-bg-blue: var(--tag-bg-blue);
+  --tag-bg-green: var(--tag-bg-green);
+  --tag-bg-orange: var(--tag-bg-orange);
+  --tag-bg-red: var(--tag-bg-red);
+  --tag-bg-purple: var(--tag-bg-purple);
+
+  /* Typography - Font Sizes */
+  --font-size-xs: var(--font-size-xs);
+  --font-size-sm: var(--font-size-sm);
+  --font-size-base: var(--font-size-base);
+  --font-size-lg: var(--font-size-lg);
+  --font-size-xl: var(--font-size-xl);
+  --font-size-2xl: var(--font-size-2xl);
+  --font-size-3xl: var(--font-size-3xl);
+  --font-size-4xl: var(--font-size-4xl);
+  --font-size-5xl: var(--font-size-5xl);
+  --font-size-6xl: var(--font-size-6xl);
+
+  /* Typography - Line Heights */
+  --line-height-none: var(--line-height-none);
+  --line-height-tight: var(--line-height-tight);
+  --line-height-snug: var(--line-height-snug);
+  --line-height-normal: var(--line-height-normal);
+  --line-height-relaxed: var(--line-height-relaxed);
+  --line-height-loose: var(--line-height-loose);
+
+  /* Typography - Font Weights */
+  --font-weight-light: var(--font-weight-light);
+  --font-weight-normal: var(--font-weight-normal);
+  --font-weight-medium: var(--font-weight-medium);
+  --font-weight-semibold: var(--font-weight-semibold);
+  --font-weight-bold: var(--font-weight-bold);
+  --font-weight-extrabold: var(--font-weight-extrabold);
+
+  /* Typography - Letter Spacing */
+  --letter-spacing-tighter: var(--letter-spacing-tighter);
+  --letter-spacing-tight: var(--letter-spacing-tight);
+  --letter-spacing-normal: var(--letter-spacing-normal);
+  --letter-spacing-wide: var(--letter-spacing-wide);
+  --letter-spacing-wider: var(--letter-spacing-wider);
+  --letter-spacing-widest: var(--letter-spacing-widest);
+
+}
+
+/* Theme Variables - Light Mode (Default) */
+:root {
+  --bg-brand: oklch(.22 0.05 262);
+  --bg-brand-hover: oklch(38.024% 0.15934 261.641);
+  --text-brand: oklch(0.9952 0.0235 106.82);
+  --text-brand-muted: oklch(0.4 0.01 213);
+  --text-brand-selected: oklch(72.948% 0.10378 214.881);
+  --text-brand-hover: oklch(0.4 0.01 213);
+
+  --bg-dark: oklch(0.92 0.005 213);
+  --bg: oklch(0.96 0.005 213);
+  --bg-light: oklch(1 0.005 213);
+
+  --text: oklch(0.15 0.01 213);
+  --text-muted: oklch(0.4 0.01 213);
+  --text-disabled: oklch(.55 0.01 213);
+
+  --primary: oklch(0.4 0.1 213);
+  --secondary: oklch(0.4 0.1 33);
+
+  --text-button: oklch(0.92 0.005 213);
+
+  --danger: oklch(48.481% 0.11561 32.532);
+  --warning: oklch(0.5 0.05 100);
+  --success: oklch(0.5 0.05 160);
+  --info: oklch(0.5 0.05 260);
+
+  --border: oklch(0.6 0.01 213);
+  --border-muted: oklch(0.7 0.01 213);
+
+ --highlight: oklch(0.76 0.1 33);
+
+  --gradient: linear-gradient(0deg, var (--color-bg) 95%, var (var(--color-bg-light)));
+  --gradient-hover: linear-gradient(0deg, var (--color-bg), var (var(--color-bg-light)));
+
+  --shadow: 0px 1px 1px hsla(0, 0%, 0%, 0.07), 0px 2px 2px hsla(0, 0%, 0%, 0.15);
+  --shadow-hover: 0px 2px 2px hsla(0, 0%, 0%, 0.07), 0px 4px 4px hsla(0, 0%, 0%, 0.15);
+
+  --tag-blue: oklch(0.5044 0.2095 260.97);
+  --tag-green: oklch(0.6154 0.1912 139.42);
+  --tag-orange: oklch(0.6396 0.1596 53.28);
+  --tag-red: oklch(0.5434 0.2132 25.86);
+  --tag-purple: oklch(59.516% 0.24402 307.905);
+
+  --tag-bg-blue: oklch(0.96 0.021 241.35);
+  --tag-bg-green: oklch(0.9884 0.0254 128.75);
+  --tag-bg-orange: oklch(0.9778 0.0239 85.79);
+  --tag-bg-red: oklch(0.9689 0.0152 22.39);
+  --tag-bg-purple: oklch(0.9665 0.022 312.19);
+
+  /* Spacing */
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Border Radius */
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Typography Scale */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 30px;
+  --font-size-5xl: 36px;
+  --font-size-6xl: 48px;
+
+  /* Line Heights */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Letter Spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+
+  /* Typography Presets - Headings */
+  --typography-h1-size: var(--font-size-5xl);
+  --typography-h1-line-height: var(--line-height-tight);
+  --typography-h1-weight: var(--font-weight-bold);
+  --typography-h1-letter-spacing: var(--letter-spacing-tight);
+
+  --typography-h2-size: var(--font-size-4xl);
+  --typography-h2-line-height: var(--line-height-tight);
+  --typography-h2-weight: var(--font-weight-bold);
+  --typography-h2-letter-spacing: var(--letter-spacing-tight);
+
+  --typography-h3-size: var(--font-size-3xl);
+  --typography-h3-line-height: var(--line-height-snug);
+  --typography-h3-weight: var(--font-weight-semibold);
+  --typography-h3-letter-spacing: var(--letter-spacing-normal);
+
+  --typography-h4-size: var(--font-size-2xl);
+  --typography-h4-line-height: var(--line-height-snug);
+  --typography-h4-weight: var(--font-weight-semibold);
+  --typography-h4-letter-spacing: var(--letter-spacing-normal);
+
+  --typography-h5-size: var(--font-size-xl);
+  --typography-h5-line-height: var(--line-height-normal);
+  --typography-h5-weight: var(--font-weight-medium);
+  --typography-h5-letter-spacing: var(--letter-spacing-normal);
+
+  --typography-h6-size: var(--font-size-lg);
+  --typography-h6-line-height: var(--line-height-normal);
+  --typography-h6-weight: var(--font-weight-medium);
+  --typography-h6-letter-spacing: var(--letter-spacing-normal);
+
+  /* Typography Presets - Body */
+  --typography-body-lg-size: var(--font-size-lg);
+  --typography-body-lg-line-height: var(--line-height-relaxed);
+  --typography-body-lg-weight: var(--font-weight-normal);
+  --typography-body-lg-letter-spacing: var(--letter-spacing-normal);
+
+  --typography-body-base-size: var(--font-size-base);
+  --typography-body-base-line-height: var(--line-height-normal);
+  --typography-body-base-weight: var(--font-weight-normal);
+  --typography-body-base-letter-spacing: var(--letter-spacing-normal);
+
+  --typography-body-sm-size: var(--font-size-sm);
+  --typography-body-sm-line-height: var(--line-height-normal);
+  --typography-body-sm-weight: var(--font-weight-normal);
+  --typography-body-sm-letter-spacing: var(--letter-spacing-normal);
+
+  /* Typography Presets - UI Elements */
+  --typography-label-size: var(--font-size-sm);
+  --typography-label-line-height: var(--line-height-normal);
+  --typography-label-weight: var(--font-weight-medium);
+  --typography-label-letter-spacing: var(--letter-spacing-normal);
+
+  --typography-caption-size: var(--font-size-xs);
+  --typography-caption-line-height: var(--line-height-normal);
+  --typography-caption-weight: var(--font-weight-normal);
+  --typography-caption-letter-spacing: var(--letter-spacing-normal);
+
+  --typography-overline-size: var(--font-size-xs);
+  --typography-overline-line-height: var(--line-height-normal);
+  --typography-overline-weight: var(--font-weight-semibold);
+  --typography-overline-letter-spacing: var(--letter-spacing-wider);
+
+  --typography-button-size: var(--font-size-base);
+  --typography-button-line-height: var(--line-height-normal);
+  --typography-button-weight: var(--font-weight-medium);
+  --typography-button-letter-spacing: var(--letter-spacing-normal);
+
+  /* Typography Presets - Display */
+  --typography-display-lg-size: var(--font-size-6xl);
+  --typography-display-lg-line-height: var(--line-height-none);
+  --typography-display-lg-weight: var(--font-weight-extrabold);
+  --typography-display-lg-letter-spacing: var(--letter-spacing-tighter);
+
+  --typography-display-md-size: var(--font-size-5xl);
+  --typography-display-md-line-height: var(--line-height-tight);
+  --typography-display-md-weight: var(--font-weight-bold);
+  --typography-display-md-letter-spacing: var(--letter-spacing-tight);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Theme Variables - Dark Mode */
+[data-theme="dark"] {
+  --bg-brand: oklch(.22 0.05 262);
+  --bg-brand-hover: oklch(38.024% 0.15934 261.641);
+  --text-brand: oklch(0.9952 0.0235 106.82);
+  --text-brand-muted: oklch(0.4 0.01 213);
+  --text-brand-selected: oklch(72.948% 0.10378 214.881);
+  --text-brand-hover: oklch(0.4 0.01 213);
+
+  --bg-dark: oklch(0.1 0.005 213);
+  --bg: oklch(0.15 0.005 213);
+  --bg-light: oklch(0.2 0.005 213);
+
+  --text: oklch(0.96 0.01 213);
+  --text-muted: oklch(0.76 0.01 213);
+  --text-disabled: oklch(.55 0.01 213);
+
+  --primary: oklch(0.76 0.1 213);
+  --secondary: oklch(0.76 0.1 33);
+
+  --text-button: oklch(0.1 0.005 213);
+
+  --danger: oklch(0.7 0.05 30);
+  --warning: oklch(0.7 0.05 100);
+  --success: oklch(0.7 0.05 160);
+  --info: oklch(0.7 0.05 260);
+
+  --border: oklch(0.4 0.01 213);
+  --border-muted: oklch(0.3 0.01 213);
+
+  --highlight: oklch(0.4 0.1 33);
+
+  --gradient: linear-gradient(0deg, var (--bg) 95%, var (var(--bg-light)));
+  --gradient-hover: linear-gradient(0deg, var (--bg), var (var(--bg-light)));
+
+  --shadow: 0px 1px 1px hsla(0, 4%, 80%, 0.07), 0px 2px 2px hsla(0, 0%, 85%, 0.15);
+  --shadow-hover: 0px 2px 2px hsla(0, 0%, 50%, 0.07), 0px 4px 4px hsla(0, 0%, 50%, 0.15);
+
+  --tag-blue: oklch(0.5044 0.2095 260.97);
+  --tag-green: oklch(0.6154 0.1912 139.42);
+  --tag-orange: oklch(0.6396 0.1596 53.28);
+  --tag-red: oklch(0.5434 0.2132 25.86);
+  --tag-purple: oklch(59.516% 0.24402 307.905);
+
+  --tag-bg-blue: oklch(0.96 0.021 241.35);
+  --tag-bg-green: oklch(0.9884 0.0254 128.75);
+  --tag-bg-orange: oklch(0.9778 0.0239 85.79);
+  --tag-bg-red: oklch(0.9689 0.0152 22.39);
+  --tag-bg-purple: oklch(0.9665 0.022 312.19);
+
+  /* Typography adjustments for dark mode - slightly increased letter spacing for better readability */
+  --letter-spacing-normal: 0.01em;
+  --letter-spacing-wide: 0.035em;
+  --letter-spacing-wider: 0.06em;
 }
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  background-color: var(--bg-dark);
+  color: var(--text-muted);
+}
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
+/* Modal animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--transition-base) ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in var(--transition-base) ease-out;
 }
