@@ -76,7 +76,7 @@ export function clearAllStorage(): void {
  */
 function deserializeDates<T extends Record<string, any>>(obj: T): T {
   const dateFields = ['createdAt', 'updatedAt'];
-  const result = { ...obj };
+  const result = { ...obj } as any;
 
   dateFields.forEach((field) => {
     if (result[field] && typeof result[field] === 'string') {
@@ -84,5 +84,47 @@ function deserializeDates<T extends Record<string, any>>(obj: T): T {
     }
   });
 
-  return result;
+  return result as T;
+}
+
+/**
+ * Validate and repair diagram data structure
+ * Ensures critical arrays exist to prevent runtime errors
+ */
+function validateDiagram(diagram: any): any {
+  return {
+    ...diagram,
+    // Ensure shapes array exists
+    shapes: Array.isArray(diagram.shapes) ? diagram.shapes : [],
+    // Ensure connectors array exists
+    connectors: Array.isArray(diagram.connectors) ? diagram.connectors : [],
+    // Note: viewport is no longer part of the Diagram entity
+    // It's managed by CanvasInstanceStore as ephemeral UI state
+  };
+}
+
+/**
+ * Get diagrams from storage with validation
+ * This specialized function ensures all diagrams have required arrays
+ */
+export function getDiagramsFromStorage(): any[] {
+  if (!isBrowser) {
+    return [];
+  }
+
+  const storageKey = STORAGE_PREFIX + 'diagrams';
+  const data = localStorage.getItem(storageKey);
+
+  if (!data) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(data);
+    // Deserialize dates and validate structure
+    return parsed.map((item: any) => validateDiagram(deserializeDates(item)));
+  } catch (error) {
+    console.error(`Error parsing ${storageKey} from localStorage:`, error);
+    return [];
+  }
 }

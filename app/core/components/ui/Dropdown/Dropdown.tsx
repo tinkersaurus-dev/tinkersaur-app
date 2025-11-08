@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface DropdownMenuItem {
@@ -15,12 +15,15 @@ export interface DropdownMenuProps {
 }
 
 export interface DropdownProps {
-  children: ReactNode;
+  children?: ReactNode;
   menu: DropdownMenuProps;
   placement?: 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight';
-  trigger?: 'click' | 'hover';
+  trigger?: 'click' | 'hover' | 'contextMenu';
   className?: string;
   style?: CSSProperties;
+  isOpen?: boolean;
+  onClose?: () => void;
+  position?: { x: number; y: number };
 }
 
 export function Dropdown({
@@ -30,15 +33,24 @@ export function Dropdown({
   trigger = 'click',
   className = '',
   style,
+  isOpen: controlledIsOpen,
+  onClose,
+  position: contextMenuPosition,
 }: DropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isControlled = controlledIsOpen !== undefined;
+  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
   const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Calculate menu position
-  const updatePosition = useCallback(() => {
-    if (!triggerRef.current) return;
+  // Calculate menu position - use useMemo to compute immediately, not in useEffect
+  const position = useMemo(() => {
+    // For context menus, use provided position
+    if (trigger === 'contextMenu' && contextMenuPosition) {
+      return { top: contextMenuPosition.y, left: contextMenuPosition.x };
+    }
+
+    if (!triggerRef.current) return { top: 0, left: 0 };
 
     const rect = triggerRef.current.getBoundingClientRect();
     let top = 0;
@@ -63,59 +75,81 @@ export function Dropdown({
         break;
     }
 
-    setPosition({ top, left });
-  }, [placement]);
+    return { top, left };
+  }, [placement, trigger, contextMenuPosition, isOpen]);
+
+  // Helper to close menu
+  const closeMenu = useCallback(() => {
+    if (isControlled && onClose) {
+      onClose();
+    } else {
+      setInternalIsOpen(false);
+    }
+  }, [isControlled, onClose]);
 
   // Handle click outside to close menu
   useEffect(() => {
     if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
+      // For context menus, only check if click is outside the menu itself
+      if (trigger === 'contextMenu') {
+        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+          closeMenu();
+        }
+        return;
+      }
+
+      // For regular dropdowns, check both menu and trigger
       if (
         menuRef.current &&
         !menuRef.current.contains(event.target as Node) &&
         triggerRef.current &&
         !triggerRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        closeMenu();
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-
-  // Update position when opened
-  useEffect(() => {
-    if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      updatePosition();
-    }
-  }, [isOpen, updatePosition]);
+  }, [isOpen, closeMenu, trigger]);
 
   const handleTriggerClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (trigger === 'click') {
-      setIsOpen(!isOpen);
+      if (isControlled && onClose) {
+        if (isOpen) {
+          onClose();
+        }
+      } else {
+        setInternalIsOpen(!isOpen);
+      }
     }
   };
 
   const handleTriggerMouseEnter = () => {
     if (trigger === 'hover') {
-      setIsOpen(true);
+      if (!isControlled) {
+        setInternalIsOpen(true);
+      }
     }
   };
 
   const handleTriggerMouseLeave = () => {
     if (trigger === 'hover') {
-      setTimeout(() => setIsOpen(false), 200);
+      setTimeout(() => {
+        if (!isControlled) {
+          setInternalIsOpen(false);
+        }
+      }, 200);
     }
   };
 
   const handleMenuItemClick = (item: DropdownMenuItem) => {
     if (!item.disabled && item.onClick) {
       item.onClick();
-      setIsOpen(false);
+      closeMenu();
     }
   };
 
@@ -136,16 +170,18 @@ export function Dropdown({
 
   return (
     <>
-      <div
-        ref={triggerRef}
-        onClick={handleTriggerClick}
-        onMouseEnter={handleTriggerMouseEnter}
-        onMouseLeave={handleTriggerMouseLeave}
-        className={className}
-        style={{ display: 'inline-block', ...style }}
-      >
-        {children}
-      </div>
+      {trigger !== 'contextMenu' && children && (
+        <div
+          ref={triggerRef}
+          onClick={handleTriggerClick}
+          onMouseEnter={handleTriggerMouseEnter}
+          onMouseLeave={handleTriggerMouseLeave}
+          className={className}
+          style={{ display: 'inline-block', ...style }}
+        >
+          {children}
+        </div>
+      )}
 
       {isOpen &&
         createPortal(
@@ -170,9 +206,9 @@ export function Dropdown({
               }
 
               const itemClasses = [
-                'px-4',
-                'py-2',
-                'text-sm',
+                'px-2',
+                'py-1',
+                'text-xs',
                 'transition-colors',
                 item.disabled
                   ? 'text-[var(--text-disabled)] cursor-not-allowed'

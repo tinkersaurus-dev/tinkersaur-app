@@ -8,6 +8,8 @@ import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import type { FolderUIState } from '../models/Folder';
 import type { DesignContentType } from '~/core/entities/design-studio';
+import { canvasInstanceRegistry } from './content/canvasInstanceRegistry';
+import { commandManager } from '~/core/commands/CommandManager';
 
 export interface DesignTab {
   id: string;
@@ -110,6 +112,14 @@ export const useDesignStudioUIStore = create<DesignStudioUIStore>((set, get) => 
     const tabIndex = activeTabs.findIndex((tab) => tab.id === tabId);
 
     if (tabIndex === -1) return;
+
+    const closedTab = activeTabs[tabIndex];
+
+    // Clean up canvas instance store when closing a diagram tab
+    if (closedTab.type === 'diagram' && closedTab.contentId) {
+      canvasInstanceRegistry.releaseStore(closedTab.contentId);
+      commandManager.clearScope(closedTab.contentId);
+    }
 
     const newTabs = activeTabs.filter((tab) => tab.id !== tabId);
 

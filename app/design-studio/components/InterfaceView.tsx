@@ -11,9 +11,17 @@ interface InterfaceViewProps {
 }
 
 export function InterfaceView({ interfaceId }: InterfaceViewProps) {
-  const iface = useInterface(interfaceId);
+  const { interfaceItem, loading } = useInterface(interfaceId);
 
-  if (!iface) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
+        Loading interface...
+      </div>
+    );
+  }
+
+  if (!interfaceItem) {
     return <Empty description="Interface not found" className='bg-[var(--bg)]'/>;
   }
 
@@ -22,7 +30,7 @@ export function InterfaceView({ interfaceId }: InterfaceViewProps) {
       <Card
         title={
           <div>
-            {iface.name} <Tag color="purple">{iface.fidelity} fidelity</Tag>
+            {interfaceItem.name} <Tag color="purple">{interfaceItem.fidelity} fidelity</Tag>
           </div>
         }
       >

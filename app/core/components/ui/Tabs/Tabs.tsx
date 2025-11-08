@@ -120,7 +120,7 @@ export function Tabs({
 
   // Tab item styles based on type and state
   const getTabItemStyles = (isActive: boolean, disabled?: boolean) => {
-    const base = 'flex items-center gap-2 px-3 py-1 cursor-pointer transition-all relative';
+    const base = 'text-xs flex items-center gap-2 px-3 py-1 cursor-pointer transition-all relative';
     const focus = 'focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-1';
 
     if (disabled) {

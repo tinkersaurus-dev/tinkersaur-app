@@ -160,7 +160,7 @@ export default function SolutionDetailPage() {
         }
         actions={
           <HStack gap="sm">
-            <Button variant="secondary" icon={<MdDesignServices />} onClick={handleOpenDesignStudio}>
+            <Button variant="default" icon={<MdDesignServices />} onClick={handleOpenDesignStudio}>
               Open Design Studio
             </Button>
             <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>

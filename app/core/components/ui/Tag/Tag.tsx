@@ -18,8 +18,8 @@ export function Tag({
   className = '',
   ...props
 }: TagProps) {
-  // Base styles - using typography tokens
-  const baseStyles = 'inline-flex items-center px-2 py-0.5 text-[var(--typography-caption-size)] leading-[var(--typography-caption-line-height)] font-[var(--typography-caption-weight)] rounded-sm';
+  // Base styles
+  const baseStyles = 'inline-flex items-center px-2 py-0.5 text-xs leading-normal font-normal rounded-sm';
 
   // Color styles - using color-specific backgrounds and text
   const colorStyles: Record<TagColor, string> = {

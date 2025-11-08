@@ -109,7 +109,7 @@ function FormItem({
 
   const labelClassName = `
     text-[var(--text)]
-    text-[var(--font-size-base)]
+    text-base
     font-medium
     ${layout === 'horizontal' ? 'w-32 pt-2' : ''}
   `.trim();
@@ -130,12 +130,12 @@ function FormItem({
           <div className="flex-1">
             {children({ field, error: error?.message })}
             {error && (
-              <div className="text-[var(--danger)] text-[var(--font-size-sm)] mt-1">
+              <div className="text-[var(--danger)] text-sm mt-1">
                 {error.message}
               </div>
             )}
             {!error && help && (
-              <div className="text-[var(--text-muted)] text-[var(--font-size-sm)] mt-1">
+              <div className="text-[var(--text-muted)] text-sm mt-1">
                 {help}
               </div>
             )}

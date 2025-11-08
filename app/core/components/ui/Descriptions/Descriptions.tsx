@@ -54,7 +54,7 @@ function cn(...classes: (string | boolean | undefined)[]) {
 export function Descriptions({
   title,
   bordered = false,
-  size = 'medium',
+  size = 'small',
   column = 3,
   layout = 'horizontal',
   colon = true,
@@ -85,9 +85,9 @@ export function Descriptions({
 
   // Size-based padding classes
   const sizeMap = {
-    small: 'py-2 px-3',
-    medium: 'py-3 px-4',
-    large: 'py-4 px-6',
+    small: 'py-1.5 px-2',
+    medium: 'py-2 px-3',
+    large: 'py-3 px-4',
   };
 
   const cellPadding = sizeMap[size];
@@ -130,7 +130,7 @@ export function Descriptions({
         <div
           className={cn(
             cellPadding,
-            'bg-[var(--bg)] border-b border-[var(--border-muted)] font-semibold text-[var(--text)]'
+            'text-xs bg-[var(--bg)] border-b border-[var(--border-muted)] font-semibold text-[var(--text)]'
           )}
         >
           {title}
@@ -156,7 +156,7 @@ export function Descriptions({
                         <th
                           className={cn(
                             cellPadding,
-                            'text-left font-medium text-[var(--text)] bg-[var(--bg-muted)]',
+                            'text-xs text-left font-medium text-[var(--text)] bg-[var(--bg-muted)]',
                             bordered && 'border-b border-r border-[var(--border-muted)]'
                           )}
                           style={{ ...labelStyle, ...item.labelStyle }}
@@ -168,7 +168,7 @@ export function Descriptions({
                           colSpan={contentColSpan}
                           className={cn(
                             cellPadding,
-                            'text-[var(--text)] bg-[var(--bg-light)]',
+                            'text-xs text-[var(--text)] bg-[var(--bg-light)]',
                             bordered && 'border-b border-r border-[var(--border-muted)]'
                           )}
                           style={{ ...contentStyle, ...item.contentStyle }}
@@ -193,7 +193,7 @@ export function Descriptions({
                           colSpan={itemSpan}
                           className={cn(
                             cellPadding,
-                            'text-left font-medium text-[var(--text)] bg-[var(--bg-muted)]',
+                            'text-xs text-left font-medium text-[var(--text)] bg-[var(--bg-muted)]',
                             bordered && 'border-b border-r border-[var(--border-muted)]'
                           )}
                           style={{ ...labelStyle, ...item.labelStyle }}
@@ -213,7 +213,7 @@ export function Descriptions({
                           colSpan={itemSpan}
                           className={cn(
                             cellPadding,
-                            'text-[var(--text)] bg-[var(--bg-light)]',
+                            'text-xs text-[var(--text)] bg-[var(--bg-light)]',
                             bordered && 'border-b border-r border-[var(--border-muted)]'
                           )}
                           style={{ ...contentStyle, ...item.contentStyle }}

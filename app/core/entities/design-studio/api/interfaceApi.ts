@@ -15,14 +15,6 @@ class InterfaceApi {
   }
 
   /**
-   * Get all interfaces
-   */
-  async listAll(): Promise<Interface[]> {
-    await simulateDelay();
-    return getFromStorage<Interface>(STORAGE_KEY);
-  }
-
-  /**
    * Get a single interface by ID
    */
   async get(id: string): Promise<Interface | null> {

@@ -1,44 +1,41 @@
 /**
  * DiagramView Component
- * Placeholder for diagram content (canvas will be built later)
+ *
+ * Renders the canvas for editing a diagram.
+ * Each diagram gets its own isolated canvas instance.
  */
 
-import { Card, Tag, Empty } from '~/core/components/ui';
+import { Empty } from '~/core/components/ui';
 import { useDiagram } from '../hooks';
+import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
+import { Canvas } from './canvas/Canvas';
 
 interface DiagramViewProps {
   diagramId: string;
 }
 
 export function DiagramView({ diagramId }: DiagramViewProps) {
-  const diagram = useDiagram(diagramId);
+  const { diagram, loading } = useDiagram(diagramId);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
+        Loading diagram...
+      </div>
+    );
+  }
 
   if (!diagram) {
-    return <Empty description="Diagram not found" className='bg-[var(--bg)]'/>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Empty description="Diagram not found" className="bg-[var(--bg)]" />
+      </div>
+    );
   }
 
   return (
-    <div className='bg-[var(--bg)]' style={{ padding: '24px' }}>
-      <Card
-        title={
-          <div>
-            {diagram.name} <Tag color="blue">{diagram.type}</Tag>
-          </div>
-        }
-      >
-        <Empty
-          description={
-            <div>
-              <p>Canvas Component Coming Soon</p>
-              <p style={{ color: '#999', fontSize: '12px' }}>
-                This is where the interactive diagram canvas will be displayed
-              </p>
-            </div>
-          }
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          style={{ padding: '60px 0' }}
-        />
-      </Card>
+    <div className="w-full h-full bg-[var(--bg)]">
+      <Canvas diagramId={diagramId} />
     </div>
   );
 }

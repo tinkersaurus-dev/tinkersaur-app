@@ -101,9 +101,9 @@ export function Modal({
   `.trim();
 
   const titleStyles = `
-    text-[var(--typography-h5-size)]
-    leading-[var(--typography-h5-line-height)]
-    font-[var(--typography-h5-weight)]
+    text-xl
+    leading-normal
+    font-medium
     text-[var(--text)]
   `.trim();
 
@@ -133,9 +133,9 @@ export function Modal({
   const buttonBaseStyles = `
     px-4 h-10
     rounded-sm
-    text-[var(--typography-button-size)]
-    leading-[var(--typography-button-line-height)]
-    font-[var(--typography-button-weight)]
+    text-base
+    leading-normal
+    font-medium
     transition-all duration-[var(--transition-base)]
     cursor-pointer
     disabled:opacity-50 disabled:cursor-not-allowed

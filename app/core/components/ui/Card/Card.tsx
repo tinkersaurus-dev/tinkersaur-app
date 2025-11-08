@@ -59,7 +59,7 @@ export function Card({
     >
       {title && (
         <div className={cardTitleClassName}>
-          <div className="text-[var(--typography-h6-size)] leading-[var(--typography-h6-line-height)] font-[var(--typography-h6-weight)] text-[var(--text)]">
+          <div className="text-lg leading-normal font-medium text-[var(--text)]">
             {title}
           </div>
         </div>

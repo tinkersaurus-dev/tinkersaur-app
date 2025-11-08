@@ -7,3 +7,5 @@ export { PageHeader } from './PageHeader';
 export { PageContent } from './PageContent';
 export { Tree } from './ui/Tree';
 export type { TreeNodeData } from './ui/Tree';
+export { Dropdown } from './ui/Dropdown';
+export type { DropdownMenuItem, DropdownMenuProps, DropdownProps } from './ui/Dropdown';

@@ -1,5 +1,5 @@
 /**
- * CRUD hooks - Combines entity store with UI store for common CRUD operations
+ * CRUD hooks - Provides common CRUD operations for entity management
  */
 
 import { useCallback } from 'react';
@@ -14,7 +14,6 @@ import {
   type Change,
   type Requirement,
 } from '~/core/entities/product-management';
-import { useSolutionManagementUIStore } from '../store/solutionManagementUIStore';
 
 /**
  * Solution CRUD operations
@@ -24,33 +23,26 @@ export function useSolutionCRUD() {
   const updateSolution = useSolutionManagementEntityStore((state) => state.updateSolution);
   const deleteSolution = useSolutionManagementEntityStore((state) => state.deleteSolution);
 
-  const closeModal = useSolutionManagementUIStore((state) => state.closeModal);
-  const setEditingSolution = useSolutionManagementUIStore((state) => state.setEditingSolution);
-
   const handleCreate = useCallback(
     async (data: CreateSolutionDto) => {
       const solution = await createSolution(data);
-      closeModal('addSolution');
       return solution;
     },
-    [createSolution, closeModal]
+    [createSolution]
   );
 
   const handleUpdate = useCallback(
     async (id: string, updates: Partial<Solution>) => {
       await updateSolution(id, updates);
-      closeModal('editSolution');
-      setEditingSolution(null);
     },
-    [updateSolution, closeModal, setEditingSolution]
+    [updateSolution]
   );
 
   const handleDelete = useCallback(
     async (id: string) => {
       await deleteSolution(id);
-      closeModal('deleteSolution');
     },
-    [deleteSolution, closeModal]
+    [deleteSolution]
   );
 
   return { handleCreate, handleUpdate, handleDelete };
@@ -64,33 +56,26 @@ export function useFeatureCRUD() {
   const updateFeature = useSolutionManagementEntityStore((state) => state.updateFeature);
   const deleteFeature = useSolutionManagementEntityStore((state) => state.deleteFeature);
 
-  const closeModal = useSolutionManagementUIStore((state) => state.closeModal);
-  const setEditingFeature = useSolutionManagementUIStore((state) => state.setEditingFeature);
-
   const handleCreate = useCallback(
     async (data: CreateFeatureDto) => {
       const feature = await createFeature(data);
-      closeModal('addFeature');
       return feature;
     },
-    [createFeature, closeModal]
+    [createFeature]
   );
 
   const handleUpdate = useCallback(
     async (id: string, updates: Partial<Feature>) => {
       await updateFeature(id, updates);
-      closeModal('editFeature');
-      setEditingFeature(null);
     },
-    [updateFeature, closeModal, setEditingFeature]
+    [updateFeature]
   );
 
   const handleDelete = useCallback(
     async (id: string) => {
       await deleteFeature(id);
-      closeModal('deleteFeature');
     },
-    [deleteFeature, closeModal]
+    [deleteFeature]
   );
 
   return { handleCreate, handleUpdate, handleDelete };
@@ -104,33 +89,26 @@ export function useChangeCRUD() {
   const updateChange = useSolutionManagementEntityStore((state) => state.updateChange);
   const deleteChange = useSolutionManagementEntityStore((state) => state.deleteChange);
 
-  const closeModal = useSolutionManagementUIStore((state) => state.closeModal);
-  const setEditingChange = useSolutionManagementUIStore((state) => state.setEditingChange);
-
   const handleCreate = useCallback(
     async (data: CreateChangeDto) => {
       const change = await createChange(data);
-      closeModal('addChange');
       return change;
     },
-    [createChange, closeModal]
+    [createChange]
   );
 
   const handleUpdate = useCallback(
     async (id: string, updates: Partial<Change>) => {
       await updateChange(id, updates);
-      closeModal('editChange');
-      setEditingChange(null);
     },
-    [updateChange, closeModal, setEditingChange]
+    [updateChange]
   );
 
   const handleDelete = useCallback(
     async (id: string) => {
       await deleteChange(id);
-      closeModal('deleteChange');
     },
-    [deleteChange, closeModal]
+    [deleteChange]
   );
 
   return { handleCreate, handleUpdate, handleDelete };
@@ -144,35 +122,26 @@ export function useRequirementCRUD() {
   const updateRequirement = useSolutionManagementEntityStore((state) => state.updateRequirement);
   const deleteRequirement = useSolutionManagementEntityStore((state) => state.deleteRequirement);
 
-  const closeModal = useSolutionManagementUIStore((state) => state.closeModal);
-  const setEditingRequirement = useSolutionManagementUIStore(
-    (state) => state.setEditingRequirement
-  );
-
   const handleCreate = useCallback(
     async (data: CreateRequirementDto) => {
       const requirement = await createRequirement(data);
-      closeModal('addRequirement');
       return requirement;
     },
-    [createRequirement, closeModal]
+    [createRequirement]
   );
 
   const handleUpdate = useCallback(
     async (id: string, updates: Partial<Requirement>) => {
       await updateRequirement(id, updates);
-      closeModal('editRequirement');
-      setEditingRequirement(null);
     },
-    [updateRequirement, closeModal, setEditingRequirement]
+    [updateRequirement]
   );
 
   const handleDelete = useCallback(
     async (id: string) => {
       await deleteRequirement(id);
-      closeModal('deleteRequirement');
     },
-    [deleteRequirement, closeModal]
+    [deleteRequirement]
   );
 
   return { handleCreate, handleUpdate, handleDelete };

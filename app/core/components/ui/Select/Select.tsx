@@ -116,9 +116,9 @@ export function Select({
 
   // Size styles
   const sizeStyles = {
-    small: 'h-8 text-[var(--font-size-sm)] px-2',
-    medium: 'h-10 text-[var(--font-size-base)] px-3',
-    large: 'h-12 text-[var(--font-size-lg)] px-4',
+    small: 'h-8 text-sm px-2',
+    medium: 'h-10 text-base px-3',
+    large: 'h-12 text-lg px-4',
   };
 
   const baseStyles = `
@@ -148,7 +148,7 @@ export function Select({
 
   const optionStyles = (optionDisabled?: boolean, isSelected?: boolean) => `
     px-3 py-2
-    text-[var(--font-size-base)]
+    text-base
     cursor-pointer
     transition-colors duration-[var(--transition-fast)]
     ${optionDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--bg-dark)]'}
@@ -196,12 +196,12 @@ export function Select({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search..."
-                    className="w-full h-8 px-2 text-[var(--font-size-sm)] bg-[var(--bg)] border border-[var(--border)] rounded-[var(--radius-md)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)] focus:ring-opacity-20"
+                    className="w-full h-8 px-2 text-sm bg-[var(--bg)] border border-[var(--border)] rounded-[var(--radius-md)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)] focus:ring-opacity-20"
                   />
                 </div>
               )}
               {filteredOptions.length === 0 ? (
-                <div className="px-3 py-2 text-[var(--text-muted)] text-[var(--font-size-sm)] text-center">
+                <div className="px-3 py-2 text-[var(--text-muted)] text-sm text-center">
                   No options found
                 </div>
               ) : (

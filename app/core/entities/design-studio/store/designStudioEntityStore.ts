@@ -8,30 +8,38 @@ import type {
   CreateInterfaceDto,
   Document,
   CreateDocumentDto,
+  CreateShapeDTO,
+  Shape,
 } from '../types';
 import { designWorkApi, diagramApi, interfaceApi, documentApi, initializeMockData } from '../api';
+import { commandManager } from '~/core/commands/CommandManager';
+import { AddShapeCommand } from '~/core/commands/canvas/AddShapeCommand';
+import { DeleteShapeCommand } from '~/core/commands/canvas/DeleteShapeCommand';
+import { MoveShapeCommand } from '~/core/commands/canvas/MoveShapeCommand';
+import { MoveEntitiesCommand } from '~/core/commands/canvas/MoveEntitiesCommand';
+import { canvasInstanceRegistry } from '~/design-studio/store/content/canvasInstanceRegistry';
 
 interface DesignStudioEntityStore {
-  // Entity state
+  // Entity state - now using Records for lazy loading
   designWorks: DesignWork[];
-  diagrams: Diagram[];
-  interfaces: Interface[];
-  documents: Document[];
+  diagrams: Record<string, Diagram>; // Indexed by diagram ID (includes shapes, connectors, viewport)
+  interfaces: Record<string, Interface>; // Indexed by interface ID
+  documents: Record<string, Document>; // Indexed by document ID
 
   // Loading states (per-entity)
   loading: {
     designWorks: boolean;
-    diagrams: boolean;
-    interfaces: boolean;
-    documents: boolean;
+    diagrams: Record<string, boolean>; // Per-diagram loading state
+    interfaces: Record<string, boolean>; // Per-interface loading state
+    documents: Record<string, boolean>; // Per-document loading state
   };
 
   // Error states (per-entity)
   errors: {
     designWorks: Error | null;
-    diagrams: Error | null;
-    interfaces: Error | null;
-    documents: Error | null;
+    diagrams: Record<string, Error | null>; // Per-diagram error state
+    interfaces: Record<string, Error | null>; // Per-interface error state
+    documents: Record<string, Error | null>; // Per-document error state
   };
 
   // DesignWork actions
@@ -40,23 +48,37 @@ interface DesignStudioEntityStore {
   updateDesignWork: (id: string, updates: Partial<DesignWork>) => Promise<void>;
   deleteDesignWork: (id: string) => Promise<void>;
 
-  // Diagram actions
-  fetchDiagrams: (solutionId: string) => Promise<void>;
+  // Diagram actions - now lazy loaded per-item
+  fetchDiagram: (id: string) => Promise<void>;
   createDiagram: (data: CreateDiagramDto) => Promise<Diagram>;
   updateDiagram: (id: string, updates: Partial<Diagram>) => Promise<void>;
   deleteDiagram: (id: string) => Promise<void>;
 
-  // Interface actions
-  fetchInterfaces: (solutionId: string) => Promise<void>;
+  // Interface actions - now lazy loaded per-item
+  fetchInterface: (id: string) => Promise<void>;
   createInterface: (data: CreateInterfaceDto) => Promise<Interface>;
   updateInterface: (id: string, updates: Partial<Interface>) => Promise<void>;
   deleteInterface: (id: string) => Promise<void>;
 
-  // Document actions
-  fetchDocuments: (solutionId: string) => Promise<void>;
+  // Document actions - now lazy loaded per-item
+  fetchDocument: (id: string) => Promise<void>;
   createDocument: (data: CreateDocumentDto) => Promise<Document>;
   updateDocument: (id: string, updates: Partial<Document>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
+
+  // Shape manipulation actions (work with diagram.shapes[])
+  addShape: (diagramId: string, shape: CreateShapeDTO) => Promise<void>;
+  updateShape: (diagramId: string, shapeId: string, updates: Partial<Shape>) => Promise<void>;
+  updateShapes: (diagramId: string, updates: Array<{ shapeId: string; updates: Partial<Shape> }>) => Promise<void>;
+  deleteShape: (diagramId: string, shapeId: string) => Promise<void>;
+
+  // Internal shape actions (used by commands, not wrapped)
+  _internalAddShape: (diagramId: string, shape: CreateShapeDTO) => Promise<Diagram>;
+  _internalUpdateShape: (diagramId: string, shapeId: string, updates: Partial<Shape>) => Promise<Diagram | null>;
+  _internalUpdateShapes: (diagramId: string, updates: Array<{ shapeId: string; updates: Partial<Shape> }>) => Promise<Diagram | null>;
+  _internalDeleteShape: (diagramId: string, shapeId: string) => Promise<Diagram | null>;
+  _internalRestoreShape: (diagramId: string, shape: Shape) => Promise<Diagram>;
+  _internalGetShape: (diagramId: string, shapeId: string) => Promise<Shape | null>;
 
   // Utility actions
   initializeData: () => void;
@@ -68,22 +90,22 @@ initializeMockData();
 export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, get) => ({
   // Initial state
   designWorks: [],
-  diagrams: [],
-  interfaces: [],
-  documents: [],
+  diagrams: {},
+  interfaces: {},
+  documents: {},
 
   loading: {
     designWorks: false,
-    diagrams: false,
-    interfaces: false,
-    documents: false,
+    diagrams: {},
+    interfaces: {},
+    documents: {},
   },
 
   errors: {
     designWorks: null,
-    diagrams: null,
-    interfaces: null,
-    documents: null,
+    diagrams: {},
+    interfaces: {},
+    documents: {},
   },
 
   // DesignWork actions
@@ -175,6 +197,20 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
         await designWorkApi.delete(childId);
       }
 
+      // Collect all diagram IDs that will be deleted and clear their command histories
+      const allDiagramIds: string[] = [];
+      for (const designWorkId of allIdsToDelete) {
+        const designWork = get().designWorks.find(dw => dw.id === designWorkId);
+        if (designWork) {
+          designWork.diagrams.forEach(ref => allDiagramIds.push(ref.id));
+        }
+      }
+
+      // Clear command histories for all diagrams before deletion
+      allDiagramIds.forEach(diagramId => {
+        commandManager.clearScope(diagramId);
+      });
+
       // Delete all related content
       for (const designWorkId of allIdsToDelete) {
         await diagramApi.deleteByDesignWorkId(designWorkId);
@@ -182,14 +218,29 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
         await documentApi.deleteByDesignWorkId(designWorkId);
       }
 
-      // Update local state
-      set((state) => ({
-        designWorks: state.designWorks.filter((dw) => !allIdsToDelete.includes(dw.id)),
-        diagrams: state.diagrams.filter((d) => !allIdsToDelete.includes(d.designWorkId)),
-        interfaces: state.interfaces.filter((i) => !allIdsToDelete.includes(i.designWorkId)),
-        documents: state.documents.filter((d) => !allIdsToDelete.includes(d.designWorkId)),
-        loading: { ...state.loading, designWorks: false },
-      }));
+      // Update local state - filter designWorks array and clean up content Records
+      set((state) => {
+        const newDiagrams = { ...state.diagrams };
+        const newInterfaces = { ...state.interfaces };
+        const newDocuments = { ...state.documents };
+
+        // Get the design work to access its content refs
+        const designWork = state.designWorks.find((dw) => dw.id === id);
+        if (designWork) {
+          // Remove all content items referenced by this design work
+          designWork.diagrams.forEach((ref) => delete newDiagrams[ref.id]);
+          designWork.interfaces.forEach((ref) => delete newInterfaces[ref.id]);
+          designWork.documents.forEach((ref) => delete newDocuments[ref.id]);
+        }
+
+        return {
+          designWorks: state.designWorks.filter((dw) => !allIdsToDelete.includes(dw.id)),
+          diagrams: newDiagrams,
+          interfaces: newInterfaces,
+          documents: newDocuments,
+          loading: { ...state.loading, designWorks: false },
+        };
+      });
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete design work');
       set((state) => ({
@@ -200,53 +251,135 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
     }
   },
 
-  // Diagram actions
-  fetchDiagrams: async (solutionId: string) => {
+  // Diagram actions - lazy load individual diagrams
+  fetchDiagram: async (id: string) => {
+    // Skip if already loaded
+    if (get().diagrams[id]) {
+      return;
+    }
+
     set((state) => ({
-      loading: { ...state.loading, diagrams: true },
-      errors: { ...state.errors, diagrams: null },
+      loading: {
+        ...state.loading,
+        diagrams: { ...state.loading.diagrams, [id]: true },
+      },
+      errors: {
+        ...state.errors,
+        diagrams: { ...state.errors.diagrams, [id]: null },
+      },
     }));
 
     try {
-      // Fetch all diagrams and filter by solution's design works
-      const allDiagrams = await diagramApi.listAll();
-      const designWorkIds = get().designWorks
-        .filter((dw) => dw.solutionId === solutionId)
-        .map((dw) => dw.id);
-      const diagrams = allDiagrams.filter((d) => designWorkIds.includes(d.designWorkId));
-
-      set((state) => ({
-        diagrams,
-        loading: { ...state.loading, diagrams: false },
-      }));
+      const diagram = await diagramApi.get(id);
+      if (diagram) {
+        set((state) => ({
+          diagrams: {
+            ...state.diagrams,
+            [id]: diagram,
+          },
+          loading: {
+            ...state.loading,
+            diagrams: { ...state.loading.diagrams, [id]: false },
+          },
+        }));
+      } else {
+        // Diagram not found - still need to set loading to false
+        set((state) => ({
+          loading: {
+            ...state.loading,
+            diagrams: { ...state.loading.diagrams, [id]: false },
+          },
+        }));
+      }
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to fetch diagrams');
+      const err = error instanceof Error ? error : new Error('Failed to fetch diagram');
       set((state) => ({
-        loading: { ...state.loading, diagrams: false },
-        errors: { ...state.errors, diagrams: err },
+        loading: {
+          ...state.loading,
+          diagrams: { ...state.loading.diagrams, [id]: false },
+        },
+        errors: {
+          ...state.errors,
+          diagrams: { ...state.errors.diagrams, [id]: err },
+        },
       }));
-      console.error('Failed to load diagrams:', err);
+      console.error('Failed to load diagram:', err);
     }
   },
 
   createDiagram: async (data: CreateDiagramDto) => {
     set((state) => ({
-      loading: { ...state.loading, diagrams: true },
-      errors: { ...state.errors, diagrams: null },
+      loading: {
+        ...state.loading,
+        diagrams: { ...state.loading.diagrams, creating: true },
+      },
+      errors: {
+        ...state.errors,
+        diagrams: { ...state.errors.diagrams, creating: null },
+      },
     }));
 
     try {
       const diagram = await diagramApi.create(data);
+
+      // Find parent DesignWork and add diagram reference
+      const parentDesignWork = get().designWorks.find(dw => dw.id === data.designWorkId);
+      if (!parentDesignWork) {
+        throw new Error(`DesignWork ${data.designWorkId} not found`);
+      }
+
+      // Calculate next order across all content types
+      const allOrders = [
+        ...parentDesignWork.diagrams.map(d => d.order),
+        ...parentDesignWork.interfaces.map(i => i.order),
+        ...parentDesignWork.documents.map(d => d.order),
+      ];
+      const nextOrder = allOrders.length > 0 ? Math.max(...allOrders) + 1 : 0;
+
+      // Create diagram reference
+      const diagramRef = {
+        id: diagram.id,
+        name: diagram.name,
+        type: diagram.type,
+        order: nextOrder,
+      };
+
+      // Update parent DesignWork with the new diagram reference
+      const updatedDesignWork = {
+        ...parentDesignWork,
+        diagrams: [...parentDesignWork.diagrams, diagramRef],
+      };
+
+      // Persist updated DesignWork to storage FIRST to avoid race conditions
+      await designWorkApi.update(updatedDesignWork.id, updatedDesignWork);
+
+      // Then update store with both diagram and updated DesignWork
       set((state) => ({
-        diagrams: [...state.diagrams, diagram],
-        loading: { ...state.loading, diagrams: false },
+        diagrams: {
+          ...state.diagrams,
+          [diagram.id]: diagram,
+        },
+        designWorks: state.designWorks.map(dw =>
+          dw.id === data.designWorkId ? updatedDesignWork : dw
+        ),
+        loading: {
+          ...state.loading,
+          diagrams: { ...state.loading.diagrams, creating: false },
+        },
       }));
+
       return diagram;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to create diagram');
       set((state) => ({
-        loading: { ...state.loading, diagrams: false },
-        errors: { ...state.errors, diagrams: err },
+        loading: {
+          ...state.loading,
+          diagrams: { ...state.loading.diagrams, creating: false },
+        },
+        errors: {
+          ...state.errors,
+          diagrams: { ...state.errors.diagrams, creating: err },
+        },
       }));
       throw error;
     }
@@ -254,23 +387,41 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
   updateDiagram: async (id: string, updates: Partial<Diagram>) => {
     set((state) => ({
-      loading: { ...state.loading, diagrams: true },
-      errors: { ...state.errors, diagrams: null },
+      loading: {
+        ...state.loading,
+        diagrams: { ...state.loading.diagrams, [id]: true },
+      },
+      errors: {
+        ...state.errors,
+        diagrams: { ...state.errors.diagrams, [id]: null },
+      },
     }));
 
     try {
       const updated = await diagramApi.update(id, updates);
       if (updated) {
         set((state) => ({
-          diagrams: state.diagrams.map((d) => (d.id === id ? updated : d)),
-          loading: { ...state.loading, diagrams: false },
+          diagrams: {
+            ...state.diagrams,
+            [id]: updated,
+          },
+          loading: {
+            ...state.loading,
+            diagrams: { ...state.loading.diagrams, [id]: false },
+          },
         }));
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to update diagram');
       set((state) => ({
-        loading: { ...state.loading, diagrams: false },
-        errors: { ...state.errors, diagrams: err },
+        loading: {
+          ...state.loading,
+          diagrams: { ...state.loading.diagrams, [id]: false },
+        },
+        errors: {
+          ...state.errors,
+          diagrams: { ...state.errors.diagrams, [id]: err },
+        },
       }));
       throw error;
     }
@@ -278,73 +429,212 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
   deleteDiagram: async (id: string) => {
     set((state) => ({
-      loading: { ...state.loading, diagrams: true },
-      errors: { ...state.errors, diagrams: null },
+      loading: {
+        ...state.loading,
+        diagrams: { ...state.loading.diagrams, [id]: true },
+      },
+      errors: {
+        ...state.errors,
+        diagrams: { ...state.errors.diagrams, [id]: null },
+      },
     }));
 
     try {
       await diagramApi.delete(id);
-      set((state) => ({
-        diagrams: state.diagrams.filter((d) => d.id !== id),
-        loading: { ...state.loading, diagrams: false },
-      }));
+
+      // Clear command history for this diagram
+      commandManager.clearScope(id);
+
+      // Find and update the parent DesignWork to remove the diagram reference
+      const parentDesignWork = get().designWorks.find(dw =>
+        dw.diagrams.some(d => d.id === id)
+      );
+
+      set((state) => {
+        const newDiagrams = { ...state.diagrams };
+        const newLoadingDiagrams = { ...state.loading.diagrams };
+        const newErrorsDiagrams = { ...state.errors.diagrams };
+
+        delete newDiagrams[id];
+        delete newLoadingDiagrams[id];
+        delete newErrorsDiagrams[id];
+
+        // Update designWorks to remove the diagram reference
+        const updatedDesignWorks = parentDesignWork
+          ? state.designWorks.map(dw =>
+              dw.id === parentDesignWork.id
+                ? { ...dw, diagrams: dw.diagrams.filter(d => d.id !== id) }
+                : dw
+            )
+          : state.designWorks;
+
+        return {
+          diagrams: newDiagrams,
+          designWorks: updatedDesignWorks,
+          loading: {
+            ...state.loading,
+            diagrams: newLoadingDiagrams,
+          },
+          errors: {
+            ...state.errors,
+            diagrams: newErrorsDiagrams,
+          },
+        };
+      });
+
+      // Persist updated DesignWork to storage
+      if (parentDesignWork) {
+        const updatedDesignWork = {
+          ...parentDesignWork,
+          diagrams: parentDesignWork.diagrams.filter(d => d.id !== id),
+        };
+        await designWorkApi.update(updatedDesignWork.id, updatedDesignWork);
+      }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete diagram');
       set((state) => ({
-        loading: { ...state.loading, diagrams: false },
-        errors: { ...state.errors, diagrams: err },
+        loading: {
+          ...state.loading,
+          diagrams: { ...state.loading.diagrams, [id]: false },
+        },
+        errors: {
+          ...state.errors,
+          diagrams: { ...state.errors.diagrams, [id]: err },
+        },
       }));
       throw error;
     }
   },
 
-  // Interface actions
-  fetchInterfaces: async (solutionId: string) => {
+  // Interface actions - lazy load individual interfaces
+  fetchInterface: async (id: string) => {
+    // Skip if already loaded
+    if (get().interfaces[id]) {
+      return;
+    }
+
     set((state) => ({
-      loading: { ...state.loading, interfaces: true },
-      errors: { ...state.errors, interfaces: null },
+      loading: {
+        ...state.loading,
+        interfaces: { ...state.loading.interfaces, [id]: true },
+      },
+      errors: {
+        ...state.errors,
+        interfaces: { ...state.errors.interfaces, [id]: null },
+      },
     }));
 
     try {
-      // Fetch all interfaces and filter by solution's design works
-      const allInterfaces = await interfaceApi.listAll();
-      const designWorkIds = get().designWorks
-        .filter((dw) => dw.solutionId === solutionId)
-        .map((dw) => dw.id);
-      const interfaces = allInterfaces.filter((i) => designWorkIds.includes(i.designWorkId));
-
-      set((state) => ({
-        interfaces,
-        loading: { ...state.loading, interfaces: false },
-      }));
+      const interfaceItem = await interfaceApi.get(id);
+      if (interfaceItem) {
+        set((state) => ({
+          interfaces: {
+            ...state.interfaces,
+            [id]: interfaceItem,
+          },
+          loading: {
+            ...state.loading,
+            interfaces: { ...state.loading.interfaces, [id]: false },
+          },
+        }));
+      } else {
+        // Interface not found - still need to set loading to false
+        set((state) => ({
+          loading: {
+            ...state.loading,
+            interfaces: { ...state.loading.interfaces, [id]: false },
+          },
+        }));
+      }
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to fetch interfaces');
+      const err = error instanceof Error ? error : new Error('Failed to fetch interface');
       set((state) => ({
-        loading: { ...state.loading, interfaces: false },
-        errors: { ...state.errors, interfaces: err },
+        loading: {
+          ...state.loading,
+          interfaces: { ...state.loading.interfaces, [id]: false },
+        },
+        errors: {
+          ...state.errors,
+          interfaces: { ...state.errors.interfaces, [id]: err },
+        },
       }));
-      console.error('Failed to load interfaces:', err);
+      console.error('Failed to load interface:', err);
     }
   },
 
   createInterface: async (data: CreateInterfaceDto) => {
     set((state) => ({
-      loading: { ...state.loading, interfaces: true },
-      errors: { ...state.errors, interfaces: null },
+      loading: {
+        ...state.loading,
+        interfaces: { ...state.loading.interfaces, creating: true },
+      },
+      errors: {
+        ...state.errors,
+        interfaces: { ...state.errors.interfaces, creating: null },
+      },
     }));
 
     try {
       const interfaceItem = await interfaceApi.create(data);
+
+      // Find parent DesignWork and add interface reference
+      const parentDesignWork = get().designWorks.find(dw => dw.id === data.designWorkId);
+      if (!parentDesignWork) {
+        throw new Error(`DesignWork ${data.designWorkId} not found`);
+      }
+
+      // Calculate next order across all content types
+      const allOrders = [
+        ...parentDesignWork.diagrams.map(d => d.order),
+        ...parentDesignWork.interfaces.map(i => i.order),
+        ...parentDesignWork.documents.map(d => d.order),
+      ];
+      const nextOrder = allOrders.length > 0 ? Math.max(...allOrders) + 1 : 0;
+
+      // Create interface reference
+      const interfaceRef = {
+        id: interfaceItem.id,
+        name: interfaceItem.name,
+        fidelity: interfaceItem.fidelity,
+        order: nextOrder,
+      };
+
+      // Update parent DesignWork with the new interface reference
+      const updatedDesignWork = {
+        ...parentDesignWork,
+        interfaces: [...parentDesignWork.interfaces, interfaceRef],
+      };
+
+      // Persist updated DesignWork to storage FIRST to avoid race conditions
+      await designWorkApi.update(updatedDesignWork.id, updatedDesignWork);
+
+      // Then update store with both interface and updated DesignWork
       set((state) => ({
-        interfaces: [...state.interfaces, interfaceItem],
-        loading: { ...state.loading, interfaces: false },
+        interfaces: {
+          ...state.interfaces,
+          [interfaceItem.id]: interfaceItem,
+        },
+        designWorks: state.designWorks.map(dw =>
+          dw.id === data.designWorkId ? updatedDesignWork : dw
+        ),
+        loading: {
+          ...state.loading,
+          interfaces: { ...state.loading.interfaces, creating: false },
+        },
       }));
+
       return interfaceItem;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to create interface');
       set((state) => ({
-        loading: { ...state.loading, interfaces: false },
-        errors: { ...state.errors, interfaces: err },
+        loading: {
+          ...state.loading,
+          interfaces: { ...state.loading.interfaces, creating: false },
+        },
+        errors: {
+          ...state.errors,
+          interfaces: { ...state.errors.interfaces, creating: err },
+        },
       }));
       throw error;
     }
@@ -352,23 +642,41 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
   updateInterface: async (id: string, updates: Partial<Interface>) => {
     set((state) => ({
-      loading: { ...state.loading, interfaces: true },
-      errors: { ...state.errors, interfaces: null },
+      loading: {
+        ...state.loading,
+        interfaces: { ...state.loading.interfaces, [id]: true },
+      },
+      errors: {
+        ...state.errors,
+        interfaces: { ...state.errors.interfaces, [id]: null },
+      },
     }));
 
     try {
       const updated = await interfaceApi.update(id, updates);
       if (updated) {
         set((state) => ({
-          interfaces: state.interfaces.map((i) => (i.id === id ? updated : i)),
-          loading: { ...state.loading, interfaces: false },
+          interfaces: {
+            ...state.interfaces,
+            [id]: updated,
+          },
+          loading: {
+            ...state.loading,
+            interfaces: { ...state.loading.interfaces, [id]: false },
+          },
         }));
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to update interface');
       set((state) => ({
-        loading: { ...state.loading, interfaces: false },
-        errors: { ...state.errors, interfaces: err },
+        loading: {
+          ...state.loading,
+          interfaces: { ...state.loading.interfaces, [id]: false },
+        },
+        errors: {
+          ...state.errors,
+          interfaces: { ...state.errors.interfaces, [id]: err },
+        },
       }));
       throw error;
     }
@@ -376,73 +684,208 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
   deleteInterface: async (id: string) => {
     set((state) => ({
-      loading: { ...state.loading, interfaces: true },
-      errors: { ...state.errors, interfaces: null },
+      loading: {
+        ...state.loading,
+        interfaces: { ...state.loading.interfaces, [id]: true },
+      },
+      errors: {
+        ...state.errors,
+        interfaces: { ...state.errors.interfaces, [id]: null },
+      },
     }));
 
     try {
       await interfaceApi.delete(id);
-      set((state) => ({
-        interfaces: state.interfaces.filter((i) => i.id !== id),
-        loading: { ...state.loading, interfaces: false },
-      }));
+
+      // Find and update the parent DesignWork to remove the interface reference
+      const parentDesignWork = get().designWorks.find(dw =>
+        dw.interfaces.some(i => i.id === id)
+      );
+
+      set((state) => {
+        const newInterfaces = { ...state.interfaces };
+        const newLoadingInterfaces = { ...state.loading.interfaces };
+        const newErrorsInterfaces = { ...state.errors.interfaces };
+
+        delete newInterfaces[id];
+        delete newLoadingInterfaces[id];
+        delete newErrorsInterfaces[id];
+
+        // Update designWorks to remove the interface reference
+        const updatedDesignWorks = parentDesignWork
+          ? state.designWorks.map(dw =>
+              dw.id === parentDesignWork.id
+                ? { ...dw, interfaces: dw.interfaces.filter(i => i.id !== id) }
+                : dw
+            )
+          : state.designWorks;
+
+        return {
+          interfaces: newInterfaces,
+          designWorks: updatedDesignWorks,
+          loading: {
+            ...state.loading,
+            interfaces: newLoadingInterfaces,
+          },
+          errors: {
+            ...state.errors,
+            interfaces: newErrorsInterfaces,
+          },
+        };
+      });
+
+      // Persist updated DesignWork to storage
+      if (parentDesignWork) {
+        const updatedDesignWork = {
+          ...parentDesignWork,
+          interfaces: parentDesignWork.interfaces.filter(i => i.id !== id),
+        };
+        await designWorkApi.update(updatedDesignWork.id, updatedDesignWork);
+      }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete interface');
       set((state) => ({
-        loading: { ...state.loading, interfaces: false },
-        errors: { ...state.errors, interfaces: err },
+        loading: {
+          ...state.loading,
+          interfaces: { ...state.loading.interfaces, [id]: false },
+        },
+        errors: {
+          ...state.errors,
+          interfaces: { ...state.errors.interfaces, [id]: err },
+        },
       }));
       throw error;
     }
   },
 
-  // Document actions
-  fetchDocuments: async (solutionId: string) => {
+  // Document actions - lazy load individual documents
+  fetchDocument: async (id: string) => {
+    // Skip if already loaded
+    if (get().documents[id]) {
+      return;
+    }
+
     set((state) => ({
-      loading: { ...state.loading, documents: true },
-      errors: { ...state.errors, documents: null },
+      loading: {
+        ...state.loading,
+        documents: { ...state.loading.documents, [id]: true },
+      },
+      errors: {
+        ...state.errors,
+        documents: { ...state.errors.documents, [id]: null },
+      },
     }));
 
     try {
-      // Fetch all documents and filter by solution's design works
-      const allDocuments = await documentApi.listAll();
-      const designWorkIds = get().designWorks
-        .filter((dw) => dw.solutionId === solutionId)
-        .map((dw) => dw.id);
-      const documents = allDocuments.filter((d) => designWorkIds.includes(d.designWorkId));
-
-      set((state) => ({
-        documents,
-        loading: { ...state.loading, documents: false },
-      }));
+      const document = await documentApi.get(id);
+      if (document) {
+        set((state) => ({
+          documents: {
+            ...state.documents,
+            [id]: document,
+          },
+          loading: {
+            ...state.loading,
+            documents: { ...state.loading.documents, [id]: false },
+          },
+        }));
+      } else {
+        // Document not found - still need to set loading to false
+        set((state) => ({
+          loading: {
+            ...state.loading,
+            documents: { ...state.loading.documents, [id]: false },
+          },
+        }));
+      }
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to fetch documents');
+      const err = error instanceof Error ? error : new Error('Failed to fetch document');
       set((state) => ({
-        loading: { ...state.loading, documents: false },
-        errors: { ...state.errors, documents: err },
+        loading: {
+          ...state.loading,
+          documents: { ...state.loading.documents, [id]: false },
+        },
+        errors: {
+          ...state.errors,
+          documents: { ...state.errors.documents, [id]: err },
+        },
       }));
-      console.error('Failed to load documents:', err);
+      console.error('Failed to load document:', err);
     }
   },
 
   createDocument: async (data: CreateDocumentDto) => {
     set((state) => ({
-      loading: { ...state.loading, documents: true },
-      errors: { ...state.errors, documents: null },
+      loading: {
+        ...state.loading,
+        documents: { ...state.loading.documents, creating: true },
+      },
+      errors: {
+        ...state.errors,
+        documents: { ...state.errors.documents, creating: null },
+      },
     }));
 
     try {
       const document = await documentApi.create(data);
+
+      // Find parent DesignWork and add document reference
+      const parentDesignWork = get().designWorks.find(dw => dw.id === data.designWorkId);
+      if (!parentDesignWork) {
+        throw new Error(`DesignWork ${data.designWorkId} not found`);
+      }
+
+      // Calculate next order across all content types
+      const allOrders = [
+        ...parentDesignWork.diagrams.map(d => d.order),
+        ...parentDesignWork.interfaces.map(i => i.order),
+        ...parentDesignWork.documents.map(d => d.order),
+      ];
+      const nextOrder = allOrders.length > 0 ? Math.max(...allOrders) + 1 : 0;
+
+      // Create document reference
+      const documentRef = {
+        id: document.id,
+        name: document.name,
+        order: nextOrder,
+      };
+
+      // Update parent DesignWork with the new document reference
+      const updatedDesignWork = {
+        ...parentDesignWork,
+        documents: [...parentDesignWork.documents, documentRef],
+      };
+
+      // Persist updated DesignWork to storage FIRST to avoid race conditions
+      await designWorkApi.update(updatedDesignWork.id, updatedDesignWork);
+
+      // Then update store with both document and updated DesignWork
       set((state) => ({
-        documents: [...state.documents, document],
-        loading: { ...state.loading, documents: false },
+        documents: {
+          ...state.documents,
+          [document.id]: document,
+        },
+        designWorks: state.designWorks.map(dw =>
+          dw.id === data.designWorkId ? updatedDesignWork : dw
+        ),
+        loading: {
+          ...state.loading,
+          documents: { ...state.loading.documents, creating: false },
+        },
       }));
+
       return document;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to create document');
       set((state) => ({
-        loading: { ...state.loading, documents: false },
-        errors: { ...state.errors, documents: err },
+        loading: {
+          ...state.loading,
+          documents: { ...state.loading.documents, creating: false },
+        },
+        errors: {
+          ...state.errors,
+          documents: { ...state.errors.documents, creating: err },
+        },
       }));
       throw error;
     }
@@ -450,23 +893,41 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
   updateDocument: async (id: string, updates: Partial<Document>) => {
     set((state) => ({
-      loading: { ...state.loading, documents: true },
-      errors: { ...state.errors, documents: null },
+      loading: {
+        ...state.loading,
+        documents: { ...state.loading.documents, [id]: true },
+      },
+      errors: {
+        ...state.errors,
+        documents: { ...state.errors.documents, [id]: null },
+      },
     }));
 
     try {
       const updated = await documentApi.update(id, updates);
       if (updated) {
         set((state) => ({
-          documents: state.documents.map((d) => (d.id === id ? updated : d)),
-          loading: { ...state.loading, documents: false },
+          documents: {
+            ...state.documents,
+            [id]: updated,
+          },
+          loading: {
+            ...state.loading,
+            documents: { ...state.loading.documents, [id]: false },
+          },
         }));
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to update document');
       set((state) => ({
-        loading: { ...state.loading, documents: false },
-        errors: { ...state.errors, documents: err },
+        loading: {
+          ...state.loading,
+          documents: { ...state.loading.documents, [id]: false },
+        },
+        errors: {
+          ...state.errors,
+          documents: { ...state.errors.documents, [id]: err },
+        },
       }));
       throw error;
     }
@@ -474,24 +935,322 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
   deleteDocument: async (id: string) => {
     set((state) => ({
-      loading: { ...state.loading, documents: true },
-      errors: { ...state.errors, documents: null },
+      loading: {
+        ...state.loading,
+        documents: { ...state.loading.documents, [id]: true },
+      },
+      errors: {
+        ...state.errors,
+        documents: { ...state.errors.documents, [id]: null },
+      },
     }));
 
     try {
       await documentApi.delete(id);
-      set((state) => ({
-        documents: state.documents.filter((d) => d.id !== id),
-        loading: { ...state.loading, documents: false },
-      }));
+
+      // Find and update the parent DesignWork to remove the document reference
+      const parentDesignWork = get().designWorks.find(dw =>
+        dw.documents.some(d => d.id === id)
+      );
+
+      set((state) => {
+        const newDocuments = { ...state.documents };
+        const newLoadingDocuments = { ...state.loading.documents };
+        const newErrorsDocuments = { ...state.errors.documents };
+
+        delete newDocuments[id];
+        delete newLoadingDocuments[id];
+        delete newErrorsDocuments[id];
+
+        // Update designWorks to remove the document reference
+        const updatedDesignWorks = parentDesignWork
+          ? state.designWorks.map(dw =>
+              dw.id === parentDesignWork.id
+                ? { ...dw, documents: dw.documents.filter(d => d.id !== id) }
+                : dw
+            )
+          : state.designWorks;
+
+        return {
+          documents: newDocuments,
+          designWorks: updatedDesignWorks,
+          loading: {
+            ...state.loading,
+            documents: newLoadingDocuments,
+          },
+          errors: {
+            ...state.errors,
+            documents: newErrorsDocuments,
+          },
+        };
+      });
+
+      // Persist updated DesignWork to storage
+      if (parentDesignWork) {
+        const updatedDesignWork = {
+          ...parentDesignWork,
+          documents: parentDesignWork.documents.filter(d => d.id !== id),
+        };
+        await designWorkApi.update(updatedDesignWork.id, updatedDesignWork);
+      }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete document');
       set((state) => ({
-        loading: { ...state.loading, documents: false },
-        errors: { ...state.errors, documents: err },
+        loading: {
+          ...state.loading,
+          documents: { ...state.loading.documents, [id]: false },
+        },
+        errors: {
+          ...state.errors,
+          documents: { ...state.errors.documents, [id]: err },
+        },
       }));
       throw error;
     }
+  },
+
+  // Shape actions - diagrams now contain their shapes directly
+  // No separate fetchCanvasContent needed - shapes are loaded with the diagram via fetchDiagram
+
+  addShape: async (diagramId: string, shape: CreateShapeDTO) => {
+    try {
+      // Create and execute command
+      const command = new AddShapeCommand(
+        diagramId,
+        shape,
+        get()._internalAddShape,
+        get()._internalDeleteShape
+      );
+      await commandManager.execute(command, diagramId);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to add shape');
+      set((state) => ({
+        errors: {
+          ...state.errors,
+          diagrams: { ...state.errors.diagrams, [diagramId]: err },
+        },
+      }));
+      throw error;
+    }
+  },
+
+  _internalAddShape: async (diagramId: string, shape: CreateShapeDTO) => {
+    const updatedDiagram = await diagramApi.addShape(diagramId, shape);
+
+    if (!updatedDiagram) {
+      throw new Error(`Diagram ${diagramId} not found`);
+    }
+
+    set((state) => ({
+      diagrams: {
+        ...state.diagrams,
+        [diagramId]: updatedDiagram,
+      },
+    }));
+
+    return updatedDiagram;
+  },
+
+  updateShape: async (diagramId: string, shapeId: string, updates: Partial<Shape>) => {
+    try {
+      // Get the current shape to capture before state
+      const currentShape = await get()._internalGetShape(diagramId, shapeId);
+      if (!currentShape) {
+        throw new Error(`Shape ${shapeId} not found`);
+      }
+
+      // Extract only the properties that are being updated
+      const beforeState: Partial<Shape> = {};
+      const afterState: Partial<Shape> = {};
+
+      Object.keys(updates).forEach((key) => {
+        const typedKey = key as keyof Shape;
+        beforeState[typedKey] = currentShape[typedKey] as any;
+        afterState[typedKey] = updates[typedKey] as any;
+      });
+
+      // Only position updates are currently supported
+      const isPositionOnly =
+        Object.keys(updates).length === 2 &&
+        'x' in updates &&
+        'y' in updates;
+
+      if (!isPositionOnly) {
+        throw new Error('Only position updates (x, y) are currently supported');
+      }
+
+      // Get the canvas instance to access local state updater
+      const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
+      const updateLocalShape = canvasInstance.getState().updateLocalShape;
+
+      const command = new MoveShapeCommand(
+        diagramId,
+        shapeId,
+        { x: currentShape.x, y: currentShape.y },
+        { x: updates.x!, y: updates.y! },
+        get()._internalUpdateShape,
+        updateLocalShape // Pass local state updater for undo/redo coordination
+      );
+      await commandManager.execute(command, diagramId);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to update shape');
+      set((state) => ({
+        errors: {
+          ...state.errors,
+          diagrams: { ...state.errors.diagrams, [diagramId]: err },
+        },
+      }));
+      throw error;
+    }
+  },
+
+  updateShapes: async (diagramId: string, updates: Array<{ shapeId: string; updates: Partial<Shape> }>) => {
+    try {
+      // Get canvas instance for local state updates
+      const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
+      const updateLocalShape = canvasInstance.getState().updateLocalShape;
+
+      // Build array of moves with before/after positions
+      const moves = await Promise.all(
+        updates.map(async ({ shapeId, updates: shapeUpdates }) => {
+          const currentShape = await get()._internalGetShape(diagramId, shapeId);
+          if (!currentShape) {
+            throw new Error(`Shape ${shapeId} not found`);
+          }
+
+          // Only position updates are currently supported
+          const isPositionOnly =
+            Object.keys(shapeUpdates).length === 2 &&
+            'x' in shapeUpdates &&
+            'y' in shapeUpdates;
+
+          if (!isPositionOnly) {
+            throw new Error('Only position updates (x, y) are currently supported');
+          }
+
+          return {
+            shapeId,
+            fromPosition: { x: currentShape.x, y: currentShape.y },
+            toPosition: { x: shapeUpdates.x!, y: shapeUpdates.y! },
+          };
+        })
+      );
+
+      // Create ONE MoveEntitiesCommand with batched update function
+      const command = new MoveEntitiesCommand(
+        diagramId,
+        moves,
+        get()._internalUpdateShapes,
+        updateLocalShape
+      );
+
+      // Execute the single command (one API call, one state update)
+      await commandManager.execute(command, diagramId);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to update shapes');
+      set((state) => ({
+        errors: {
+          ...state.errors,
+          diagrams: { ...state.errors.diagrams, [diagramId]: err },
+        },
+      }));
+      throw error;
+    }
+  },
+
+  _internalUpdateShape: async (diagramId: string, shapeId: string, updates: Partial<Shape>) => {
+    const updatedDiagram = await diagramApi.updateShape(diagramId, shapeId, updates);
+
+    if (updatedDiagram) {
+      set((state) => ({
+        diagrams: {
+          ...state.diagrams,
+          [diagramId]: updatedDiagram,
+        },
+      }));
+    }
+
+    return updatedDiagram;
+  },
+
+  _internalUpdateShapes: async (diagramId: string, updates: Array<{ shapeId: string; updates: Partial<Shape> }>) => {
+    const updatedDiagram = await diagramApi.updateShapes(diagramId, updates);
+
+    if (updatedDiagram) {
+      set((state) => ({
+        diagrams: {
+          ...state.diagrams,
+          [diagramId]: updatedDiagram,
+        },
+      }));
+    }
+
+    return updatedDiagram;
+  },
+
+  deleteShape: async (diagramId: string, shapeId: string) => {
+    try {
+      // Create and execute command
+      const command = new DeleteShapeCommand(
+        diagramId,
+        shapeId,
+        get()._internalGetShape,
+        get()._internalDeleteShape,
+        get()._internalRestoreShape
+      );
+      await commandManager.execute(command, diagramId);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to delete shape');
+      set((state) => ({
+        errors: {
+          ...state.errors,
+          diagrams: { ...state.errors.diagrams, [diagramId]: err },
+        },
+      }));
+      throw error;
+    }
+  },
+
+  _internalDeleteShape: async (diagramId: string, shapeId: string) => {
+    const updatedDiagram = await diagramApi.deleteShape(diagramId, shapeId);
+
+    if (updatedDiagram) {
+      set((state) => ({
+        diagrams: {
+          ...state.diagrams,
+          [diagramId]: updatedDiagram,
+        },
+      }));
+    }
+
+    return updatedDiagram;
+  },
+
+  _internalRestoreShape: async (diagramId: string, shape: Shape) => {
+    const updatedDiagram = await diagramApi.restoreShape(diagramId, shape);
+
+    if (!updatedDiagram) {
+      throw new Error(`Diagram ${diagramId} not found`);
+    }
+
+    set((state) => ({
+      diagrams: {
+        ...state.diagrams,
+        [diagramId]: updatedDiagram,
+      },
+    }));
+
+    return updatedDiagram;
+  },
+
+  _internalGetShape: async (diagramId: string, shapeId: string) => {
+    const diagram = get().diagrams[diagramId];
+    if (!diagram) {
+      return null;
+    }
+
+    const shape = diagram.shapes.find((s) => s.id === shapeId);
+    return shape ?? null;
   },
 
   // Utility actions

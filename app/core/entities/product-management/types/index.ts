@@ -3,6 +3,7 @@
  * Centralized export for all solution management domain types and schemas
  */
 
+
 // Solution
 export type { Solution, SolutionType, CreateSolutionDto, UpdateSolutionDto } from './Solution';
 export { SolutionSchema, SolutionTypeSchema, CreateSolutionSchema, UpdateSolutionSchema } from './Solution';

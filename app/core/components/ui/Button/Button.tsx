@@ -31,11 +31,11 @@ export function Button({
   // Base styles
   const baseStyles = 'inline-flex items-center justify-center gap-2 transition-all duration-base rounded-sm focus:outline-none focus:ring-2 focus:ring-offset-2';
 
-  // Size styles - using typography tokens
+  // Size styles
   const sizeStyles = {
-    small: 'px-3 py-1.5 text-[var(--font-size-sm)] leading-[var(--line-height-normal)] font-[var(--font-weight-medium)] h-6',
-    medium: 'px-4 py-1.5 text-[var(--typography-button-size)] leading-[var(--typography-button-line-height)] font-[var(--typography-button-weight)] h-8',
-    large: 'px-6 py-2 text-[var(--font-size-lg)] leading-[var(--line-height-normal)] font-[var(--font-weight-medium)] h-10',
+    small: 'px-3 py-1.5 text-sm leading-normal font-medium h-6',
+    medium: 'px-4 py-1.5 text-base leading-normal font-medium h-8',
+    large: 'px-6 py-2 text-lg leading-normal font-medium h-10',
   };
 
   // Variant styles

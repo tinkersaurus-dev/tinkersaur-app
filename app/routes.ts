@@ -2,7 +2,6 @@ import { type RouteConfig, index, route } from "@react-router/dev/routes";
 
 export default [
   index("routes/home.tsx"),
-  route("demo", "routes/demo.tsx"),
 
   // Solution Management routes
   route("solutions", "product-management/routes/solutions-list.tsx"),

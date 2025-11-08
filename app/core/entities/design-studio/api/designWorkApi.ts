@@ -24,24 +24,6 @@ class DesignWorkApi {
   }
 
   /**
-   * Get child design works (nested folders)
-   */
-  async getChildren(parentDesignWorkId: string): Promise<DesignWork[]> {
-    await simulateDelay();
-    const designWorks = getFromStorage<DesignWork>(STORAGE_KEY);
-    return designWorks.filter((dw) => dw.parentDesignWorkId === parentDesignWorkId);
-  }
-
-  /**
-   * Get root design works (top-level folders with no parent)
-   */
-  async getRoots(solutionId: string): Promise<DesignWork[]> {
-    await simulateDelay();
-    const designWorks = getFromStorage<DesignWork>(STORAGE_KEY);
-    return designWorks.filter((dw) => dw.solutionId === solutionId && !dw.parentDesignWorkId);
-  }
-
-  /**
    * Create a new design work
    */
   async create(data: CreateDesignWorkDto): Promise<DesignWork> {

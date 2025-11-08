@@ -22,6 +22,7 @@ interface TreeNodeProps {
   expandedKeys: Set<string>;
   onToggleExpand: (key: string) => void;
   onDoubleClick?: (key: string) => void;
+  onContextMenu?: (event: React.MouseEvent, key: string) => void;
 }
 
 export function TreeNode({
@@ -31,6 +32,7 @@ export function TreeNode({
   expandedKeys,
   onToggleExpand,
   onDoubleClick,
+  onContextMenu,
 }: TreeNodeProps) {
   const [hovered, setHovered] = useState(false);
   const hasChildren = node.children && node.children.length > 0;
@@ -45,6 +47,13 @@ export function TreeNode({
   const handleDoubleClick = () => {
     if (onDoubleClick) {
       onDoubleClick(node.key);
+    }
+  };
+
+  const handleContextMenu = (event: React.MouseEvent) => {
+    if (onContextMenu) {
+      event.preventDefault();
+      onContextMenu(event, node.key);
     }
   };
 
@@ -67,6 +76,7 @@ export function TreeNode({
         onMouseLeave={() => setHovered(false)}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
       >
         {/* Expand/collapse icon */}
         <span
@@ -131,6 +141,7 @@ export function TreeNode({
               expandedKeys={expandedKeys}
               onToggleExpand={onToggleExpand}
               onDoubleClick={onDoubleClick}
+              onContextMenu={onContextMenu}
             />
           ))}
         </div>

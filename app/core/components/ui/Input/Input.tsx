@@ -25,11 +25,11 @@ export function Input({
   // Base styles
   const baseStyles = 'w-full border rounded-sm transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)]';
 
-  // Size styles - using typography tokens
+  // Size styles
   const sizeStyles = {
-    small: 'px-2 py-1 text-[var(--font-size-sm)] leading-[var(--line-height-normal)] h-6',
-    medium: 'px-3 py-1.5 text-[var(--typography-body-base-size)] leading-[var(--typography-body-base-line-height)] h-9',
-    large: 'px-4 py-2 text-[var(--font-size-lg)] leading-[var(--line-height-normal)] h-11',
+    small: 'px-2 py-1 text-sm leading-normal h-6',
+    medium: 'px-3 py-1.5 text-base leading-normal h-9',
+    large: 'px-4 py-2 text-lg leading-normal h-11',
   };
 
   // State styles
@@ -71,11 +71,11 @@ function TextArea({
   // Base styles
   const baseStyles = 'w-full border rounded-sm transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)] resize-y';
 
-  // Size styles (affects padding and text size, not height - that's controlled by rows) - using typography tokens
+  // Size styles (affects padding and text size, not height - that's controlled by rows)
   const sizeStyles = {
-    small: 'px-2 py-1 text-[var(--font-size-sm)] leading-[var(--line-height-normal)]',
-    medium: 'px-3 py-1.5 text-[var(--typography-body-base-size)] leading-[var(--typography-body-base-line-height)]',
-    large: 'px-4 py-2 text-[var(--font-size-lg)] leading-[var(--line-height-normal)]',
+    small: 'px-2 py-1 text-sm leading-normal',
+    medium: 'px-3 py-1.5 text-base leading-normal',
+    large: 'px-4 py-2 text-lg leading-normal',
   };
 
   // State styles

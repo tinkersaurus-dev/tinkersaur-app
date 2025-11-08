@@ -49,5 +49,29 @@ export {
   type UpdateDocumentDto,
 } from './Document';
 
+// Shape
+export {
+  PointSchema,
+  SizeSchema,
+  ShapeSchema,
+  CreateShapeSchema,
+  UpdateShapeSchema,
+  type Point,
+  type Size,
+  type Shape,
+  type CreateShapeDTO,
+  type UpdateShapeDTO,
+} from './Shape';
+
+// Connector
+export {
+  ConnectorSchema,
+  CreateConnectorSchema,
+  UpdateConnectorSchema,
+  type Connector,
+  type CreateConnectorDTO,
+  type UpdateConnectorDTO,
+} from './Connector';
+
 // Re-export common type for content type identification
 export type DesignContentType = 'diagram' | 'interface' | 'document';

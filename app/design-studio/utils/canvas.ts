@@ -1,0 +1,290 @@
+/**
+ * Canvas Utility Functions
+ *
+ * Helper functions for canvas coordinate transformations,
+ * zoom constraints, and other canvas-related calculations.
+ */
+
+/**
+ * Convert screen coordinates to canvas coordinates
+ *
+ * Takes mouse/pointer coordinates in screen space and converts them
+ * to canvas space, accounting for zoom and pan transformations.
+ *
+ * @param screenX - X coordinate in screen space (pixels)
+ * @param screenY - Y coordinate in screen space (pixels)
+ * @param zoom - Current zoom level (1 = 100%)
+ * @param panX - Current pan offset X
+ * @param panY - Current pan offset Y
+ * @returns Canvas coordinates { x, y }
+ *
+ * @example
+ * ```ts
+ * const { x, y } = screenToCanvas(event.clientX, event.clientY, 2, 100, 50);
+ * // If mouse is at screen (300, 200) with 2x zoom and pan (100, 50):
+ * // Canvas position = ((300 - 100) / 2, (200 - 50) / 2) = (100, 75)
+ * ```
+ */
+export function screenToCanvas(
+  screenX: number,
+  screenY: number,
+  zoom: number,
+  panX: number,
+  panY: number
+): { x: number; y: number } {
+  return {
+    x: (screenX - panX) / zoom,
+    y: (screenY - panY) / zoom,
+  };
+}
+
+/**
+ * Convert canvas coordinates to screen coordinates
+ *
+ * Takes coordinates in canvas space and converts them to screen space,
+ * accounting for zoom and pan transformations.
+ *
+ * @param canvasX - X coordinate in canvas space
+ * @param canvasY - Y coordinate in canvas space
+ * @param zoom - Current zoom level (1 = 100%)
+ * @param panX - Current pan offset X
+ * @param panY - Current pan offset Y
+ * @returns Screen coordinates { x, y }
+ */
+export function canvasToScreen(
+  canvasX: number,
+  canvasY: number,
+  zoom: number,
+  panX: number,
+  panY: number
+): { x: number; y: number } {
+  return {
+    x: canvasX * zoom + panX,
+    y: canvasY * zoom + panY,
+  };
+}
+
+/**
+ * Constrain zoom level to valid range
+ *
+ * Ensures zoom stays between 0.1x (10%) and 5x (500%).
+ *
+ * @param zoom - Desired zoom level
+ * @returns Constrained zoom level
+ */
+export function constrainZoom(zoom: number): number {
+  return Math.max(0.1, Math.min(5, zoom));
+}
+
+/**
+ * Calculate new zoom level from wheel delta
+ *
+ * Converts mouse wheel delta to a smooth zoom change.
+ * Negative delta = zoom in, positive delta = zoom out.
+ *
+ * @param currentZoom - Current zoom level
+ * @param deltaY - Wheel event deltaY value
+ * @param sensitivity - Zoom sensitivity multiplier (default: 0.001)
+ * @returns New constrained zoom level
+ */
+export function calculateZoomFromWheel(
+  currentZoom: number,
+  deltaY: number,
+  sensitivity: number = 0.001
+): number {
+  const zoomDelta = 1 + deltaY * -sensitivity;
+  const newZoom = currentZoom * zoomDelta;
+  return constrainZoom(newZoom);
+}
+
+/**
+ * Calculate zoom to point (cursor position)
+ *
+ * When zooming, adjust pan so that the cursor position stays fixed.
+ * This creates a "zoom to cursor" effect.
+ *
+ * @param cursorX - Cursor X in screen space
+ * @param cursorY - Cursor Y in screen space
+ * @param oldZoom - Previous zoom level
+ * @param newZoom - New zoom level
+ * @param oldPanX - Previous pan X
+ * @param oldPanY - Previous pan Y
+ * @returns New pan offsets { panX, panY }
+ *
+ * @example
+ * ```ts
+ * // User scrolls at cursor position (400, 300)
+ * // Zoom changes from 1x to 1.2x
+ * const { panX, panY } = calculateZoomToPoint(400, 300, 1, 1.2, 0, 0);
+ * // Returns adjusted pan so point under cursor stays fixed
+ * ```
+ */
+export function calculateZoomToPoint(
+  cursorX: number,
+  cursorY: number,
+  oldZoom: number,
+  newZoom: number,
+  oldPanX: number,
+  oldPanY: number
+): { panX: number; panY: number } {
+  // Calculate canvas point under cursor before zoom
+  const canvasX = (cursorX - oldPanX) / oldZoom;
+  const canvasY = (cursorY - oldPanY) / oldZoom;
+
+  // Calculate new pan to keep that canvas point under cursor after zoom
+  const newPanX = cursorX - canvasX * newZoom;
+  const newPanY = cursorY - canvasY * newZoom;
+
+  return {
+    panX: newPanX,
+    panY: newPanY,
+  };
+}
+
+/**
+ * Calculate bounding box for multiple points
+ *
+ * @param points - Array of points
+ * @returns Bounding box { minX, minY, maxX, maxY, width, height }
+ */
+export function calculateBoundingBox(points: Array<{ x: number; y: number }>) {
+  if (points.length === 0) {
+    return { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 };
+  }
+
+  const minX = Math.min(...points.map((p) => p.x));
+  const minY = Math.min(...points.map((p) => p.y));
+  const maxX = Math.max(...points.map((p) => p.x));
+  const maxY = Math.max(...points.map((p) => p.y));
+
+  return {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
+
+/**
+ * Normalize rectangle coordinates
+ *
+ * Takes rectangle defined by two points (e.g., drag start/end) and returns
+ * normalized left/right/top/bottom coordinates, handling drag in any direction.
+ *
+ * @param startX - Rectangle start X coordinate
+ * @param startY - Rectangle start Y coordinate
+ * @param endX - Rectangle end X coordinate
+ * @param endY - Rectangle end Y coordinate
+ * @returns Normalized rectangle { left, right, top, bottom }
+ *
+ * @example
+ * ```ts
+ * // User drags from (100, 100) to (50, 150)
+ * const rect = normalizeRectangle(100, 100, 50, 150);
+ * // Returns { left: 50, right: 100, top: 100, bottom: 150 }
+ * ```
+ */
+export function normalizeRectangle(
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number
+): { left: number; right: number; top: number; bottom: number } {
+  return {
+    left: Math.min(startX, endX),
+    right: Math.max(startX, endX),
+    top: Math.min(startY, endY),
+    bottom: Math.max(startY, endY),
+  };
+}
+
+/**
+ * Get bounding box coordinates for a shape
+ *
+ * Extracts left, right, top, bottom coordinates from a shape object.
+ *
+ * @param shape - Shape with x, y, width, height properties
+ * @returns Shape bounds { left, right, top, bottom }
+ *
+ * @example
+ * ```ts
+ * const shape = { x: 100, y: 50, width: 200, height: 150 };
+ * const bounds = getShapeBounds(shape);
+ * // Returns { left: 100, right: 300, top: 50, bottom: 200 }
+ * ```
+ */
+export function getShapeBounds(shape: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}): { left: number; right: number; top: number; bottom: number } {
+  return {
+    left: shape.x,
+    right: shape.x + shape.width,
+    top: shape.y,
+    bottom: shape.y + shape.height,
+  };
+}
+
+/**
+ * Test if two axis-aligned bounding boxes (AABBs) intersect
+ *
+ * Uses the separating axis theorem for AABBs. Two rectangles intersect
+ * if they overlap on both the X and Y axes.
+ *
+ * @param rect1 - First rectangle { left, right, top, bottom }
+ * @param rect2 - Second rectangle { left, right, top, bottom }
+ * @returns true if rectangles intersect, false otherwise
+ *
+ * @example
+ * ```ts
+ * const box1 = { left: 0, right: 100, top: 0, bottom: 100 };
+ * const box2 = { left: 50, right: 150, top: 50, bottom: 150 };
+ * rectanglesIntersect(box1, box2); // true - they overlap
+ *
+ * const box3 = { left: 200, right: 300, top: 200, bottom: 300 };
+ * rectanglesIntersect(box1, box3); // false - separated
+ * ```
+ */
+export function rectanglesIntersect(
+  rect1: { left: number; right: number; top: number; bottom: number },
+  rect2: { left: number; right: number; top: number; bottom: number }
+): boolean {
+  // Rectangles DON'T intersect if one is completely outside the other
+  // Negate this to get intersection test
+  return !(
+    rect1.right < rect2.left ||
+    rect1.left > rect2.right ||
+    rect1.bottom < rect2.top ||
+    rect1.top > rect2.bottom
+  );
+}
+
+/**
+ * Calculate Euclidean distance between two points
+ *
+ * Uses the Pythagorean theorem to compute the straight-line distance
+ * between two points in 2D space.
+ *
+ * @param point1 - First point { x, y }
+ * @param point2 - Second point { x, y }
+ * @returns Distance between points
+ *
+ * @example
+ * ```ts
+ * const p1 = { x: 0, y: 0 };
+ * const p2 = { x: 3, y: 4 };
+ * distance(p1, p2); // 5 (3-4-5 triangle)
+ * ```
+ */
+export function distance(
+  point1: { x: number; y: number },
+  point2: { x: number; y: number }
+): number {
+  const dx = point2.x - point1.x;
+  const dy = point2.y - point1.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}

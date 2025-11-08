@@ -8,14 +8,14 @@
 // DesignWork hooks
 export { useDesignWorks, useChildDesignWorks, useRootDesignWorks, useDesignWork } from './useDesignWorks';
 
-// Diagram hooks
-export { useDiagrams, useDiagramsByDesignWork, useDiagram } from './useDiagrams';
+// Diagram hooks - now lazy loaded
+export { useDiagram } from './useDiagrams';
 
-// Interface hooks
-export { useInterfaces, useInterfacesByDesignWork, useInterface } from './useInterfaces';
+// Interface hooks - now lazy loaded
+export { useInterface } from './useInterfaces';
 
-// Document hooks
-export { useDocuments, useDocumentsByDesignWork, useDocument } from './useDocuments';
+// Document hooks - now lazy loaded
+export { useDocument } from './useDocuments';
 
 // CRUD operations hook
 export { useDesignStudioCRUD } from './useDesignStudioCRUD';

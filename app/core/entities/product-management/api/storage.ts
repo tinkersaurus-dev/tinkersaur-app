@@ -78,7 +78,7 @@ export function clearAllStorage(): void {
  */
 function deserializeDates<T extends Record<string, any>>(obj: T): T {
   const dateFields = ['createdAt', 'updatedAt', 'lockedAt'];
-  const result = { ...obj };
+  const result = { ...obj } as any;
 
   dateFields.forEach((field) => {
     if (result[field] && typeof result[field] === 'string') {
@@ -86,7 +86,7 @@ function deserializeDates<T extends Record<string, any>>(obj: T): T {
     }
   });
 
-  return result;
+  return result as T;
 }
 
 /**

@@ -15,14 +15,6 @@ class DocumentApi {
   }
 
   /**
-   * Get all documents
-   */
-  async listAll(): Promise<Document[]> {
-    await simulateDelay();
-    return getFromStorage<Document>(STORAGE_KEY);
-  }
-
-  /**
    * Get a single document by ID
    */
   async get(id: string): Promise<Document | null> {
