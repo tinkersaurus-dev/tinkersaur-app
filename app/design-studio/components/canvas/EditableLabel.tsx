@@ -87,7 +87,7 @@ export function EditableLabel({
 
   // Structural styles for edit mode (non-visual, functional)
   const editStructuralStyle: React.CSSProperties = {
-    width: '100%',
+    //width: '100%',
     resize: 'none',
     fontSize: `${fontSize}px`,
     fontFamily: 'inherit',
@@ -101,7 +101,7 @@ export function EditableLabel({
     fontSize: `${fontSize}px`,
     textAlign: 'center',
     overflow: 'hidden',
-    width: '100%',
+    //width: '100%',
     height: '100%',
     display: '-webkit-box',
     WebkitLineClamp: 4,
@@ -121,7 +121,7 @@ export function EditableLabel({
       onDoubleClick={handleDoubleClick}
       className={className}
       style={{
-        width: '100%',
+        //width: '100%',
         //height: '100%',
         display: 'flex',
         alignItems: 'center',
@@ -132,7 +132,7 @@ export function EditableLabel({
       {isEditing ? (
         <div
           style={{
-            width: '100%',
+            //width: '100%',
             //height: '100%',
             display: 'flex',
             alignItems: 'center',

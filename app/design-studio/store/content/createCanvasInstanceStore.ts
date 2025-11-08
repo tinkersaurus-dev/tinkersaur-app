@@ -47,6 +47,9 @@ export interface CanvasInstanceState {
   editingEntityType: 'shape' | 'connector' | null;
   editingOriginalLabel: string | undefined;
 
+  // Grid snapping
+  gridSnappingEnabled: boolean;
+
   // Content initialization
   initializeContent: (shapes: Shape[], connectors: Connector[]) => void;
 
@@ -79,6 +82,7 @@ export interface CanvasInstanceState {
   closeContextMenu: () => void;
   setEditingEntity: (id: string, type: 'shape' | 'connector', originalLabel: string | undefined) => void;
   clearEditingEntity: () => void;
+  setGridSnappingEnabled: (enabled: boolean) => void;
   reset: () => void;
 }
 
@@ -109,6 +113,7 @@ export function createCanvasInstanceStore(diagramId: string) {
     editingEntityId: null,
     editingEntityType: null,
     editingOriginalLabel: undefined,
+    gridSnappingEnabled: false,
 
     // Content initialization - load from entity store
     initializeContent: (shapes, connectors) =>
@@ -261,6 +266,12 @@ export function createCanvasInstanceStore(diagramId: string) {
         editingOriginalLabel: undefined,
       }),
 
+    // Grid snapping actions
+    setGridSnappingEnabled: (enabled) =>
+      set({
+        gridSnappingEnabled: enabled,
+      }),
+
     // Reset to initial state
     reset: () =>
       set({
@@ -281,6 +292,7 @@ export function createCanvasInstanceStore(diagramId: string) {
         editingEntityId: null,
         editingEntityType: null,
         editingOriginalLabel: undefined,
+        gridSnappingEnabled: false,
       }),
   }));
 }

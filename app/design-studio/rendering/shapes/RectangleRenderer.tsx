@@ -81,6 +81,8 @@ export function RectangleRenderer({
         justifyContent: 'center',
         padding: `${padding}px`,
         boxSizing: 'border-box',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
       }}
     >
       {/* Render editable label */}

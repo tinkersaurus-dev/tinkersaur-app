@@ -20,6 +20,16 @@ import { ConnectorRenderer } from '../../rendering/connectors/ConnectorRenderer'
 import type { ConnectorRenderContext } from '../../rendering/connectors/types';
 import { ContextMenu } from './ContextMenu';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import CanvasToolbar from '../toolbar/CanvasToolbar';
+import type { ToolbarButton } from '../toolbar/CanvasToolbar';
+import { TbGridDots } from 'react-icons/tb';
+
+/**
+ * Snap a coordinate to the nearest grid point
+ */
+function snapToGrid(value: number, gridSize: number = 10): number {
+  return Math.round(value / gridSize) * gridSize;
+}
 
 // Extend HTMLDivElement to include custom properties for context menu
 interface CanvasContainerElement extends HTMLDivElement {
@@ -100,6 +110,7 @@ export function Canvas({ diagramId }: CanvasProps) {
   const hoveredConnectorId = canvasInstance((state) => state.hoveredConnectorId);
   const isContextMenuOpen = canvasInstance((state) => state.isContextMenuOpen);
   const contextMenuPosition = canvasInstance((state) => state.contextMenuPosition);
+  const gridSnappingEnabled = canvasInstance((state) => state.gridSnappingEnabled);
 
   // Get LOCAL editing state (ephemeral, not persisted until commit)
   const localShapes = canvasInstance((state) => state.localShapes);
@@ -124,6 +135,7 @@ export function Canvas({ diagramId }: CanvasProps) {
   const updateLocalConnector = canvasInstance((state) => state.updateLocalConnector);
   const setEditingEntity = canvasInstance((state) => state.setEditingEntity);
   const clearEditingEntity = canvasInstance((state) => state.clearEditingEntity);
+  const setGridSnappingEnabled = canvasInstance((state) => state.setGridSnappingEnabled);
 
   // Get persisted canvas data from entity store (for initialization only)
   const { diagram, loading } = useDiagram(diagramId);
@@ -301,9 +313,18 @@ export function Canvas({ diagramId }: CanvasProps) {
       // Build batch update map for performance
       const updates = new Map<string, Partial<typeof shapes[0]>>();
       shapesStartPositionsRef.current.forEach((startPos, shapeId) => {
+        let newX = startPos.x + deltaX;
+        let newY = startPos.y + deltaY;
+
+        // Apply grid snapping if enabled
+        if (gridSnappingEnabled) {
+          newX = snapToGrid(newX);
+          newY = snapToGrid(newY);
+        }
+
         updates.set(shapeId, {
-          x: startPos.x + deltaX,
-          y: startPos.y + deltaY,
+          x: newX,
+          y: newY,
         });
       });
 
@@ -329,7 +350,7 @@ export function Canvas({ diagramId }: CanvasProps) {
         prev ? { ...prev, endX: screenX, endY: screenY } : null
       );
     }
-  }, [zoom, panX, panY, setViewport, selectionBox, updateLocalShapes, drawingConnector, isPanning]);
+  }, [zoom, panX, panY, setViewport, selectionBox, updateLocalShapes, drawingConnector, isPanning, gridSnappingEnabled]);
 
   // Handle mouse up for panning, dragging, and selection box
   const handleMouseUp = useCallback(
@@ -351,14 +372,18 @@ export function Canvas({ diagramId }: CanvasProps) {
         // Create composite command for undo/redo if there was any drag
         if (dragDelta && (dragDelta.x !== 0 || dragDelta.y !== 0) && updateShapes) {
           // Batch all shape updates into a single composite command
+          // Use the actual positions from localShapes (which may have been snapped)
           const shapeUpdates = Array.from(shapesStartPositionsRef.current.entries()).map(
-            ([shapeId, startPos]) => ({
-              shapeId,
-              updates: {
-                x: startPos.x + dragDelta.x,
-                y: startPos.y + dragDelta.y,
-              },
-            })
+            ([shapeId, startPos]) => {
+              const currentShape = localShapes.find(s => s.id === shapeId);
+              return {
+                shapeId,
+                updates: {
+                  x: currentShape?.x ?? startPos.x + dragDelta.x,
+                  y: currentShape?.y ?? startPos.y + dragDelta.y,
+                },
+              };
+            }
           );
           updateShapes(shapeUpdates);
         }
@@ -465,7 +490,7 @@ export function Canvas({ diagramId }: CanvasProps) {
         setSelectionBox(null);
       }
     },
-    [selectionBox, panX, panY, zoom, shapes, connectors, clearSelection, setSelection, dragDelta, updateShapes, isPanning, drawingConnector]
+    [selectionBox, panX, panY, zoom, shapes, connectors, clearSelection, setSelection, dragDelta, updateShapes, isPanning, drawingConnector, localShapes]
   );
 
   // Handle shape mouse down for selection and drag initialization
@@ -792,6 +817,20 @@ export function Canvas({ diagramId }: CanvasProps) {
     delete container._contextClickPos;
   }, [addShape]);
 
+  // Configure toolbar buttons
+  const toolbarButtons: ToolbarButton[] = useMemo(
+    () => [
+      {
+        id: 'grid-snap',
+        icon: <TbGridDots size={16} />,
+        onClick: () => setGridSnappingEnabled(!gridSnappingEnabled),
+        tooltip: gridSnappingEnabled ? 'Disable grid snapping' : 'Enable grid snapping (10px)',
+        active: gridSnappingEnabled,
+      },
+    ],
+    [gridSnappingEnabled, setGridSnappingEnabled]
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
@@ -809,9 +848,12 @@ export function Canvas({ diagramId }: CanvasProps) {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onContextMenu={handleContextMenu}
+      onDragStart={(e) => e.preventDefault()}
       style={{
         touchAction: 'none',
         cursor: isPanning ? 'grabbing' : 'default',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
       }}
     >
       {/* Grid Layer (screen space, no transform) */}
@@ -993,6 +1035,9 @@ export function Canvas({ diagramId }: CanvasProps) {
           }}
         />
       )}
+
+      {/* Canvas Toolbar */}
+      <CanvasToolbar placement="bottom" buttons={toolbarButtons} />
 
       {/* Debug info (optional - can be removed) */}
       <div className="absolute bottom-2 right-2 text-xs text-[var(--text-muted)] bg-[var(--bg)] px-2 py-1 rounded border border-[var(--border-muted)]">

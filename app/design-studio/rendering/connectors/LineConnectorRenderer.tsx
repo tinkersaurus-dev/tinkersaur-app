@@ -2,6 +2,7 @@ import React from 'react';
 import type { ConnectorRendererProps } from './types';
 import type { ConnectionPointDirection } from '~/core/entities/design-studio/types/Connector';
 import { EditableLabel } from '../../components/canvas/EditableLabel';
+import { getPathMidpoint, type Point } from '../../utils/pathUtils';
 
 /**
  * LineConnectorRenderer
@@ -44,13 +45,16 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   );
 
   // Calculate the path based on routing style
-  const pathData = getPathData(
+  const { pathData, pathPoints } = getPathData(
     start,
     end,
     sourceDirection,
     targetDirection,
     connector.style
   );
+
+  // Calculate the actual midpoint along the path for label positioning
+  const labelPosition = getPathMidpoint(pathPoints);
 
   // Zoom-compensated stroke width (2px at 100% zoom)
   const strokeWidth = 2 / context.zoom;
@@ -108,27 +112,29 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
 
       {/* Editable label in foreignObject */}
       <foreignObject
-        x={(start.x + end.x) / 2 - 50}
-        y={(start.y + end.y) / 2 - 20}
+        x={labelPosition.x - 50}
+        y={labelPosition.y - 30}
         width={100}
-        height={40}
+        height={60}
         style={{ overflow: 'visible' }}
       >
-        <EditableLabel
-          label={connector.label}
-          isEditing={isEditing}
-          zoom={context.zoom}
-          onStartEdit={() => onDoubleClick?.(connector.id)}
-          onLabelChange={(newLabel) => onLabelChange?.(connector.id, 'connector', newLabel)}
-          onFinishEdit={() => onFinishEditing?.()}
-          fontSize={12}
-          style={{
-            color: 'var(--canvas-label-display-text:)',
-            pointerEvents: isEditing ? 'auto' : 'none',
-            background: strokeColor,
-            borderRadius: '5px',
-          }}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <EditableLabel
+            label={connector.label}
+            isEditing={isEditing}
+            zoom={context.zoom}
+            onStartEdit={() => onDoubleClick?.(connector.id)}
+            onLabelChange={(newLabel) => onLabelChange?.(connector.id, 'connector', newLabel)}
+            onFinishEdit={() => onFinishEditing?.()}
+            fontSize={12}
+            style={{
+              color: 'var(--canvas-label-display-text:)',
+              pointerEvents: isEditing ? 'auto' : 'none',
+              background: strokeColor,
+              borderRadius: '5px',
+            }}
+          />
+        </div>
       </foreignObject>
     </g>
   );
@@ -136,6 +142,7 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
 
 /**
  * Generate path data based on routing style
+ * Returns both the SVG path string and the array of points that make up the path
  */
 function getPathData(
   start: { x: number; y: number },
@@ -143,10 +150,13 @@ function getPathData(
   startDirection: ConnectionPointDirection,
   endDirection: ConnectionPointDirection,
   style: 'straight' | 'orthogonal' | 'curved'
-): string {
+): { pathData: string; pathPoints: Point[] } {
   switch (style) {
     case 'straight':
-      return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+      return {
+        pathData: `M ${start.x} ${start.y} L ${end.x} ${end.y}`,
+        pathPoints: [start, end],
+      };
 
     case 'curved':
       return getCurvedPath(start, end, startDirection, endDirection);
@@ -159,13 +169,14 @@ function getPathData(
 
 /**
  * Generate curved (Bezier) path
+ * For curved paths, we approximate the path with sample points along the Bezier curve
  */
 function getCurvedPath(
   start: { x: number; y: number },
   end: { x: number; y: number },
   startDirection: ConnectionPointDirection,
   endDirection: ConnectionPointDirection
-): string {
+): { pathData: string; pathPoints: Point[] } {
   const offset = 50; // Control point offset distance
 
   // Calculate control point based on direction
@@ -188,7 +199,28 @@ function getCurvedPath(
   const c1 = getControlOffset(start, startDirection);
   const c2 = getControlOffset(end, endDirection);
 
-  return `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`;
+  const pathData = `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`;
+
+  // Sample points along the Bezier curve for label positioning
+  // We use 10 samples to approximate the curve
+  const pathPoints: Point[] = [];
+  const samples = 10;
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples;
+    // Cubic Bezier formula: B(t) = (1-t)³P0 + 3(1-t)²tP1 + 3(1-t)t²P2 + t³P3
+    const mt = 1 - t;
+    const mt2 = mt * mt;
+    const mt3 = mt2 * mt;
+    const t2 = t * t;
+    const t3 = t2 * t;
+
+    pathPoints.push({
+      x: mt3 * start.x + 3 * mt2 * t * c1.x + 3 * mt * t2 * c2.x + t3 * end.x,
+      y: mt3 * start.y + 3 * mt2 * t * c1.y + 3 * mt * t2 * c2.y + t3 * end.y,
+    });
+  }
+
+  return { pathData, pathPoints };
 }
 
 /**
@@ -203,8 +235,8 @@ function getOrthogonalPath(
   end: { x: number; y: number },
   startDirection: ConnectionPointDirection,
   endDirection: ConnectionPointDirection
-): string {
-  const path: { x: number; y: number }[] = [start];
+): { pathData: string; pathPoints: Point[] } {
+  const pathPoints: Point[] = [start];
 
   // Determine if anchors are vertical (N/S) or horizontal (E/W)
   const isStartVertical = startDirection === 'N' || startDirection === 'S';
@@ -213,25 +245,27 @@ function getOrthogonalPath(
   if (isStartVertical && isEndVertical) {
     // Both anchors are vertical (N/S): go vertical, then horizontal, then vertical
     const midY = (start.y + end.y) / 2;
-    path.push({ x: start.x, y: midY });
-    path.push({ x: end.x, y: midY });
+    pathPoints.push({ x: start.x, y: midY });
+    pathPoints.push({ x: end.x, y: midY });
   } else if (!isStartVertical && !isEndVertical) {
     // Both anchors are horizontal (E/W): go horizontal, then vertical, then horizontal
     const midX = (start.x + end.x) / 2;
-    path.push({ x: midX, y: start.y });
-    path.push({ x: midX, y: end.y });
+    pathPoints.push({ x: midX, y: start.y });
+    pathPoints.push({ x: midX, y: end.y });
   } else if (isStartVertical && !isEndVertical) {
     // Start is vertical, end is horizontal: go vertical then horizontal
-    path.push({ x: start.x, y: end.y });
+    pathPoints.push({ x: start.x, y: end.y });
   } else {
     // Start is horizontal, end is vertical: go horizontal then vertical
-    path.push({ x: end.x, y: start.y });
+    pathPoints.push({ x: end.x, y: start.y });
   }
 
-  path.push(end);
+  pathPoints.push(end);
 
   // Build SVG path string
-  return path.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  const pathData = pathPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+  return { pathData, pathPoints };
 }
 
 /**
