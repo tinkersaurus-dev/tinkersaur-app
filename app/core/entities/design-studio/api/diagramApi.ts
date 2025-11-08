@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { Diagram, CreateDiagramDto, UpdateDiagramDto } from '../types';
 import type { CreateShapeDTO, Shape } from '../types/Shape';
+import type { CreateConnectorDTO, Connector } from '../types/Connector';
 import { getDiagramsFromStorage, saveToStorage, simulateDelay } from './storage';
 
 const STORAGE_KEY = 'diagrams';
@@ -271,6 +272,164 @@ class DiagramApi {
 
     // Add the shape with its preserved ID
     diagrams[index].shapes.push(shape);
+    diagrams[index].updatedAt = new Date();
+
+    saveToStorage(STORAGE_KEY, diagrams);
+    return diagrams[index];
+  }
+
+  // ============================================
+  // Connector manipulation methods
+  // ============================================
+
+  /**
+   * Add a connector to a diagram
+   */
+  async addConnector(diagramId: string, connectorData: CreateConnectorDTO): Promise<Diagram | null> {
+    await simulateDelay();
+
+    const diagrams = getDiagramsFromStorage();
+    const index = diagrams.findIndex((d: Diagram) => d.id === diagramId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    const connector: Connector = {
+      id: uuidv4(),
+      ...connectorData,
+      zIndex: connectorData.zIndex ?? 0,
+    };
+
+    // Defensive: Initialize connectors array if undefined (handles corrupted data)
+    if (!diagrams[index].connectors) {
+      diagrams[index].connectors = [];
+    }
+
+    diagrams[index].connectors.push(connector);
+    diagrams[index].updatedAt = new Date();
+
+    saveToStorage(STORAGE_KEY, diagrams);
+    return diagrams[index];
+  }
+
+  /**
+   * Update a connector in a diagram
+   */
+  async updateConnector(
+    diagramId: string,
+    connectorId: string,
+    updates: Partial<Connector>
+  ): Promise<Diagram | null> {
+    await simulateDelay();
+
+    const diagrams = getDiagramsFromStorage();
+    const diagramIndex = diagrams.findIndex((d: Diagram) => d.id === diagramId);
+
+    if (diagramIndex === -1) {
+      return null;
+    }
+
+    // Defensive: Initialize connectors array if undefined (handles corrupted data)
+    if (!diagrams[diagramIndex].connectors) {
+      diagrams[diagramIndex].connectors = [];
+    }
+
+    const connectorIndex = diagrams[diagramIndex].connectors.findIndex(
+      (c: Connector) => c.id === connectorId
+    );
+
+    if (connectorIndex === -1) {
+      return null;
+    }
+
+    diagrams[diagramIndex].connectors[connectorIndex] = {
+      ...diagrams[diagramIndex].connectors[connectorIndex],
+      ...updates,
+      id: connectorId, // Ensure ID doesn't change
+    };
+
+    diagrams[diagramIndex].updatedAt = new Date();
+
+    saveToStorage(STORAGE_KEY, diagrams);
+    return diagrams[diagramIndex];
+  }
+
+  /**
+   * Delete a connector from a diagram
+   */
+  async deleteConnector(diagramId: string, connectorId: string): Promise<Diagram | null> {
+    await simulateDelay();
+
+    const diagrams = getDiagramsFromStorage();
+    const index = diagrams.findIndex((d: Diagram) => d.id === diagramId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    // Defensive: Initialize connectors array if undefined (handles corrupted data)
+    if (!diagrams[index].connectors) {
+      diagrams[index].connectors = [];
+    }
+
+    diagrams[index].connectors = diagrams[index].connectors.filter(
+      (c: Connector) => c.id !== connectorId
+    );
+    diagrams[index].updatedAt = new Date();
+
+    saveToStorage(STORAGE_KEY, diagrams);
+    return diagrams[index];
+  }
+
+  /**
+   * Restore a connector with its original ID (used for undo operations)
+   */
+  async restoreConnector(diagramId: string, connector: Connector): Promise<Diagram | null> {
+    await simulateDelay();
+
+    const diagrams = getDiagramsFromStorage();
+    const index = diagrams.findIndex((d: Diagram) => d.id === diagramId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    // Defensive: Initialize connectors array if undefined (handles corrupted data)
+    if (!diagrams[index].connectors) {
+      diagrams[index].connectors = [];
+    }
+
+    // Add the connector with its preserved ID
+    diagrams[index].connectors.push(connector);
+    diagrams[index].updatedAt = new Date();
+
+    saveToStorage(STORAGE_KEY, diagrams);
+    return diagrams[index];
+  }
+
+  /**
+   * Delete connectors connected to a specific shape (used when deleting shapes)
+   */
+  async deleteConnectorsByShapeId(diagramId: string, shapeId: string): Promise<Diagram | null> {
+    await simulateDelay();
+
+    const diagrams = getDiagramsFromStorage();
+    const index = diagrams.findIndex((d: Diagram) => d.id === diagramId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    // Defensive: Initialize connectors array if undefined
+    if (!diagrams[index].connectors) {
+      diagrams[index].connectors = [];
+    }
+
+    // Remove connectors that are connected to this shape
+    diagrams[index].connectors = diagrams[index].connectors.filter(
+      (c: Connector) => c.sourceShapeId !== shapeId && c.targetShapeId !== shapeId
+    );
     diagrams[index].updatedAt = new Date();
 
     saveToStorage(STORAGE_KEY, diagrams);

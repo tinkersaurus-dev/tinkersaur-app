@@ -12,6 +12,7 @@ import type { Route } from "./+types/root";
 import { ThemeProvider, useTheme } from "./core/theme/ThemeProvider";
 import "./app.css";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const links: Route.LinksFunction = () => [];
 
 export function Layout({ children }: { children: React.ReactNode }) {

@@ -3,7 +3,7 @@
  * Editable markdown document with live preview
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Empty } from '~/core/components/ui';
 import { useDocument } from '../hooks';
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
@@ -16,15 +16,19 @@ interface DocumentViewProps {
 export function DocumentView({ documentId }: DocumentViewProps) {
   const { document, loading } = useDocument(documentId);
   const updateDocument = useDesignStudioEntityStore((state) => state.updateDocument);
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
-  const hasLoadedRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   // Track if we've successfully loaded the document at least once
   useEffect(() => {
-    if (document && !loading) {
-      hasLoadedRef.current = true;
+    if (document && !loading && !hasLoaded) {
+      // Use requestAnimationFrame to defer state update
+      const frameId = requestAnimationFrame(() => {
+        setHasLoaded(true);
+      });
+      return () => cancelAnimationFrame(frameId);
     }
-  }, [document, loading]);
+  }, [document, loading, hasLoaded]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -36,7 +40,7 @@ export function DocumentView({ documentId }: DocumentViewProps) {
   }, []);
 
   // Only show loading for initial load, not for updates
-  if (loading && !hasLoadedRef.current) {
+  if (loading && !hasLoaded) {
     return (
       <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
         Loading document...

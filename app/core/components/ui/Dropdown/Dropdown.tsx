@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface DropdownMenuItem {
@@ -42,41 +42,51 @@ export function Dropdown({
   const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
   const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
 
-  // Calculate menu position - use useMemo to compute immediately, not in useEffect
-  const position = useMemo(() => {
-    // For context menus, use provided position
-    if (trigger === 'contextMenu' && contextMenuPosition) {
-      return { top: contextMenuPosition.y, left: contextMenuPosition.x };
-    }
+  // Calculate menu position when menu opens or position dependencies change
+  useEffect(() => {
+    if (!isOpen) return;
 
-    if (!triggerRef.current) return { top: 0, left: 0 };
+    // Use requestAnimationFrame to defer state update until after render
+    const frameId = requestAnimationFrame(() => {
+      let newPosition = { top: 0, left: 0 };
 
-    const rect = triggerRef.current.getBoundingClientRect();
-    let top = 0;
-    let left = 0;
+      // For context menus, use provided position
+      if (trigger === 'contextMenu' && contextMenuPosition) {
+        newPosition = { top: contextMenuPosition.y, left: contextMenuPosition.x };
+      } else if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        let top = 0;
+        let left = 0;
 
-    switch (placement) {
-      case 'bottomLeft':
-        top = rect.bottom + 4;
-        left = rect.left;
-        break;
-      case 'bottomRight':
-        top = rect.bottom + 4;
-        left = rect.right;
-        break;
-      case 'topLeft':
-        top = rect.top - 4;
-        left = rect.left;
-        break;
-      case 'topRight':
-        top = rect.top - 4;
-        left = rect.right;
-        break;
-    }
+        switch (placement) {
+          case 'bottomLeft':
+            top = rect.bottom + 4;
+            left = rect.left;
+            break;
+          case 'bottomRight':
+            top = rect.bottom + 4;
+            left = rect.right;
+            break;
+          case 'topLeft':
+            top = rect.top - 4;
+            left = rect.left;
+            break;
+          case 'topRight':
+            top = rect.top - 4;
+            left = rect.right;
+            break;
+        }
 
-    return { top, left };
-  }, [placement, trigger, contextMenuPosition, isOpen]);
+        newPosition = { top, left };
+      }
+
+      setPosition(newPosition);
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [isOpen, placement, trigger, contextMenuPosition]);
 
   // Helper to close menu
   const closeMenu = useCallback(() => {

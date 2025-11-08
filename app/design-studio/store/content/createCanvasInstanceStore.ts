@@ -35,10 +35,17 @@ export interface CanvasInstanceState {
   // Interaction state
   selectedShapeIds: string[];
   hoveredShapeId: string | null;
+  selectedConnectorIds: string[];
+  hoveredConnectorId: string | null;
   activeTool: 'select' | 'pan';
   isDragging: boolean;
   isContextMenuOpen: boolean;
   contextMenuPosition: { x: number; y: number } | null;
+
+  // Label editing state
+  editingEntityId: string | null;
+  editingEntityType: 'shape' | 'connector' | null;
+  editingOriginalLabel: string | undefined;
 
   // Content initialization
   initializeContent: (shapes: Shape[], connectors: Connector[]) => void;
@@ -62,11 +69,16 @@ export interface CanvasInstanceState {
   setViewport: (zoom: number, panX: number, panY: number) => void;
   setSelectedShapes: (shapeIds: string[]) => void;
   setHoveredShapeId: (shapeId: string | null) => void;
+  setSelectedConnectors: (connectorIds: string[]) => void;
+  setSelection: (shapeIds: string[], connectorIds: string[]) => void;
+  setHoveredConnectorId: (connectorId: string | null) => void;
   setTool: (tool: 'select' | 'pan') => void;
   clearSelection: () => void;
   setIsDragging: (dragging: boolean) => void;
   openContextMenu: (x: number, y: number) => void;
   closeContextMenu: () => void;
+  setEditingEntity: (id: string, type: 'shape' | 'connector', originalLabel: string | undefined) => void;
+  clearEditingEntity: () => void;
   reset: () => void;
 }
 
@@ -88,10 +100,15 @@ export function createCanvasInstanceStore(diagramId: string) {
     viewportPanY: 0,
     selectedShapeIds: [],
     hoveredShapeId: null,
+    selectedConnectorIds: [],
+    hoveredConnectorId: null,
     activeTool: 'pan',
     isDragging: false,
     isContextMenuOpen: false,
     contextMenuPosition: null,
+    editingEntityId: null,
+    editingEntityType: null,
+    editingOriginalLabel: undefined,
 
     // Content initialization - load from entity store
     initializeContent: (shapes, connectors) =>
@@ -168,17 +185,40 @@ export function createCanvasInstanceStore(diagramId: string) {
     setSelectedShapes: (shapeIds) =>
       set({
         selectedShapeIds: shapeIds,
+        selectedConnectorIds: [], // Clear connector selection when selecting shapes
+      }),
+
+    setSelectedConnectors: (connectorIds) =>
+      set({
+        selectedConnectorIds: connectorIds,
+        selectedShapeIds: [], // Clear shape selection when selecting connectors
+      }),
+
+    // New action for setting both shapes and connectors (used by selection box)
+    setSelection: (shapeIds: string[], connectorIds: string[]) =>
+      set({
+        selectedShapeIds: shapeIds,
+        selectedConnectorIds: connectorIds,
       }),
 
     clearSelection: () =>
       set({
         selectedShapeIds: [],
+        selectedConnectorIds: [],
+        editingEntityId: null,
+        editingEntityType: null,
+        editingOriginalLabel: undefined,
       }),
 
     // Hover actions
     setHoveredShapeId: (shapeId) =>
       set({
         hoveredShapeId: shapeId,
+      }),
+
+    setHoveredConnectorId: (connectorId) =>
+      set({
+        hoveredConnectorId: connectorId,
       }),
 
     // Tool actions
@@ -206,6 +246,21 @@ export function createCanvasInstanceStore(diagramId: string) {
         contextMenuPosition: null,
       }),
 
+    // Label editing actions
+    setEditingEntity: (id, type, originalLabel) =>
+      set({
+        editingEntityId: id,
+        editingEntityType: type,
+        editingOriginalLabel: originalLabel,
+      }),
+
+    clearEditingEntity: () =>
+      set({
+        editingEntityId: null,
+        editingEntityType: null,
+        editingOriginalLabel: undefined,
+      }),
+
     // Reset to initial state
     reset: () =>
       set({
@@ -217,10 +272,15 @@ export function createCanvasInstanceStore(diagramId: string) {
         viewportPanY: 0,
         selectedShapeIds: [],
         hoveredShapeId: null,
+        selectedConnectorIds: [],
+        hoveredConnectorId: null,
         activeTool: 'pan',
         isDragging: false,
         isContextMenuOpen: false,
         contextMenuPosition: null,
+        editingEntityId: null,
+        editingEntityType: null,
+        editingOriginalLabel: undefined,
       }),
   }));
 }

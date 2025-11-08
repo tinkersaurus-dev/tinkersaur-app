@@ -138,6 +138,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
   };
 
   // Memoize tree data to avoid rebuilding on every render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const treeData = useMemo(() => buildTreeData(), [designWorks, solutionId]);
 
   const handleDoubleClick = (key: string) => {
@@ -268,6 +269,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         },
         {
           key: 'divider-1',
+          label: '',
           type: 'divider',
         },
         {

@@ -36,7 +36,7 @@ export function getFromStorage<T>(key: string): T[] {
   try {
     const parsed = JSON.parse(data);
     // Deserialize dates
-    return parsed.map((item: any) => deserializeDates(item));
+    return parsed.map((item: T) => deserializeDates(item));
   } catch (error) {
     console.error(`Error parsing ${storageKey} from localStorage:`, error);
     return [];
@@ -76,13 +76,13 @@ export function clearAllStorage(): void {
 /**
  * Deserialize date strings back to Date objects
  */
-function deserializeDates<T extends Record<string, any>>(obj: T): T {
+function deserializeDates<T extends Record<string, unknown>>(obj: T): T {
   const dateFields = ['createdAt', 'updatedAt', 'lockedAt'];
-  const result = { ...obj } as any;
+  const result = { ...obj } as Record<string, unknown>;
 
   dateFields.forEach((field) => {
     if (result[field] && typeof result[field] === 'string') {
-      result[field] = new Date(result[field]);
+      result[field] = new Date(result[field] as string);
     }
   });
 

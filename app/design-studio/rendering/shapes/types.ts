@@ -1,4 +1,5 @@
 import type { Shape } from '~/core/entities/design-studio';
+import type { ConnectionPointDirection } from '~/core/entities/design-studio/types/Connector';
 
 /**
  * Shape Renderer Types
@@ -36,10 +37,28 @@ export interface ShapeRendererProps {
   /** Rendering context */
   context: RenderContext;
 
+  /** Whether this shape is being edited */
+  isEditing?: boolean;
+
   /** Optional event handlers */
   onMouseDown?: (e: React.MouseEvent, shapeId: string) => void;
   onMouseEnter?: (e: React.MouseEvent, shapeId: string) => void;
   onMouseLeave?: (e: React.MouseEvent, shapeId: string) => void;
+  onDoubleClick?: (shapeId: string) => void;
+  onLabelChange?: (entityId: string, entityType: 'shape' | 'connector', newLabel: string) => void;
+  onFinishEditing?: () => void;
+
+  /** Connection point event handlers (for creating connectors) */
+  onConnectionPointMouseDown?: (
+    pointId: string,
+    direction: ConnectionPointDirection,
+    e: React.MouseEvent
+  ) => void;
+  onConnectionPointMouseUp?: (
+    pointId: string,
+    direction: ConnectionPointDirection,
+    e: React.MouseEvent
+  ) => void;
 }
 
 /**

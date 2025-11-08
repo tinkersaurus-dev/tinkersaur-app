@@ -53,6 +53,7 @@ export function ShapeRenderer(props: ShapeRendererProps) {
  * Allows dynamic registration of shape renderers.
  * Useful for plugins or lazy-loaded shape types.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function registerShapeRenderer(type: string, renderer: ShapeRendererComponent) {
   shapeRenderers[type] = renderer;
 }
@@ -60,6 +61,7 @@ export function registerShapeRenderer(type: string, renderer: ShapeRendererCompo
 /**
  * Check if a shape type has a registered renderer
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function hasShapeRenderer(type: string): boolean {
   return type in shapeRenderers;
 }

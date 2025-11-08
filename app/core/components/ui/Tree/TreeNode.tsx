@@ -3,7 +3,6 @@
  * Recursive tree node with expand/collapse and custom indentation
  */
 
-import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { FiChevronRight, FiChevronDown } from 'react-icons/fi';
 
@@ -34,7 +33,6 @@ export function TreeNode({
   onDoubleClick,
   onContextMenu,
 }: TreeNodeProps) {
-  const [hovered, setHovered] = useState(false);
   const hasChildren = node.children && node.children.length > 0;
   const isExpanded = expandedKeys.has(node.key);
 
@@ -72,8 +70,6 @@ export function TreeNode({
           overflow: 'hidden',
           minWidth: 0,
         }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}

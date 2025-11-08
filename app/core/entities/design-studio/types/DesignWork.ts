@@ -21,7 +21,7 @@ import { z } from 'zod';
 export const DiagramRefSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(200),
-  type: z.enum(['bpmn', 'sequence', 'class', 'component', 'deployment', 'flowchart']),
+  type: z.enum(['bpmn', 'dataflow', 'sequence', 'class', 'component', 'deployment', 'flowchart']),
   order: z.number().int().nonnegative(),
 });
 

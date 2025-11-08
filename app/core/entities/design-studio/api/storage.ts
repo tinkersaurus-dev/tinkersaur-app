@@ -2,6 +2,8 @@
  * localStorage utilities for mock API persistence
  */
 
+import type { Diagram } from '../types/Diagram';
+
 const STORAGE_PREFIX = 'tinkersaur_ds_';
 
 /**
@@ -34,7 +36,7 @@ export function getFromStorage<T>(key: string): T[] {
   try {
     const parsed = JSON.parse(data);
     // Deserialize dates
-    return parsed.map((item: any) => deserializeDates(item));
+    return parsed.map((item: T) => deserializeDates(item));
   } catch (error) {
     console.error(`Error parsing ${storageKey} from localStorage:`, error);
     return [];
@@ -74,13 +76,13 @@ export function clearAllStorage(): void {
 /**
  * Deserialize date strings back to Date objects
  */
-function deserializeDates<T extends Record<string, any>>(obj: T): T {
+function deserializeDates<T extends Record<string, unknown>>(obj: T): T {
   const dateFields = ['createdAt', 'updatedAt'];
-  const result = { ...obj } as any;
+  const result = { ...obj } as Record<string, unknown>;
 
   dateFields.forEach((field) => {
     if (result[field] && typeof result[field] === 'string') {
-      result[field] = new Date(result[field]);
+      result[field] = new Date(result[field] as string);
     }
   });
 
@@ -91,9 +93,9 @@ function deserializeDates<T extends Record<string, any>>(obj: T): T {
  * Validate and repair diagram data structure
  * Ensures critical arrays exist to prevent runtime errors
  */
-function validateDiagram(diagram: any): any {
+function validateDiagram(diagram: Partial<Diagram>): Diagram {
   return {
-    ...diagram,
+    ...(diagram as Diagram),
     // Ensure shapes array exists
     shapes: Array.isArray(diagram.shapes) ? diagram.shapes : [],
     // Ensure connectors array exists
@@ -107,7 +109,7 @@ function validateDiagram(diagram: any): any {
  * Get diagrams from storage with validation
  * This specialized function ensures all diagrams have required arrays
  */
-export function getDiagramsFromStorage(): any[] {
+export function getDiagramsFromStorage(): Diagram[] {
   if (!isBrowser) {
     return [];
   }
@@ -122,7 +124,7 @@ export function getDiagramsFromStorage(): any[] {
   try {
     const parsed = JSON.parse(data);
     // Deserialize dates and validate structure
-    return parsed.map((item: any) => validateDiagram(deserializeDates(item)));
+    return parsed.map((item: Partial<Diagram>) => validateDiagram(deserializeDates(item)));
   } catch (error) {
     console.error(`Error parsing ${storageKey} from localStorage:`, error);
     return [];

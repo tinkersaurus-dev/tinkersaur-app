@@ -95,7 +95,7 @@ export function DocumentEditor({
     <div className="flex flex-col w-full" style={{ height }}>
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 bg-[var(--surface)] border-b border-[var(--border)]">
-        <div className="text-sm font-medium text-[var(--text-secondary)]">
+        <div className="text-xs font-medium text-[var(--text)]">
           Markdown Editor
         </div>
         <div className="flex gap-1">
@@ -135,7 +135,7 @@ export function DocumentEditor({
               className="w-[50px] bg-[var(--surface)] border-r border-[var(--border)] overflow-hidden text-right pr-2 pt-3 select-none"
               style={{
                 fontFamily: 'monospace',
-                fontSize: '14px',
+                fontSize: '12px',
                 lineHeight: '1.5',
                 color: 'var(--text-tertiary)',
                 scrollbarWidth: 'none',
@@ -163,10 +163,10 @@ export function DocumentEditor({
                 onScroll={handleScroll}
                 onKeyDown={handleKeyDown}
                 placeholder="Start writing your markdown here..."
-                className="w-full h-full p-3 border-0 outline-none resize-none bg-[var(--bg)] text-[var(--text)]"
+                className="w-full h-full p-3 border-0 outline-none resize-none bg-[var(--bg-light)] text-[var(--text)]"
                 style={{
                   fontFamily: 'monospace',
-                  fontSize: '14px',
+                  fontSize: '12px',
                   lineHeight: '1.5',
                 }}
               />

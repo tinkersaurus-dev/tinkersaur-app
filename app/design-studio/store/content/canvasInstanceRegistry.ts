@@ -60,7 +60,7 @@ class CanvasInstanceRegistry {
    * Clear all stores (useful for testing or logout)
    */
   clearAll(): void {
-    console.log('[CanvasRegistry] Clearing all stores');
+    console.warn('[CanvasRegistry] Clearing all stores');
     this.stores.clear();
   }
 }

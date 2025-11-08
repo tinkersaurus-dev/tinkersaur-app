@@ -7,7 +7,6 @@
 
 import { Empty } from '~/core/components/ui';
 import { useDiagram } from '../hooks';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
 import { Canvas } from './canvas/Canvas';
 
 interface DiagramViewProps {

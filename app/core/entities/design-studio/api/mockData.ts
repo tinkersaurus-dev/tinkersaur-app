@@ -16,7 +16,7 @@ export function initializeMockData(): void {
   // Check schema version - if it doesn't match, clear and reinitialize
   const currentVersion = localStorage.getItem('design-studio-schema-version');
   if (currentVersion !== SCHEMA_VERSION) {
-    console.log('Schema version mismatch, reinitializing mock data...');
+    console.warn('Schema version mismatch, reinitializing mock data...');
     // Clear old data
     localStorage.removeItem('designWorks');
     localStorage.removeItem('diagrams');

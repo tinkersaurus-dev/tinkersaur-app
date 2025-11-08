@@ -288,3 +288,144 @@ export function distance(
   const dy = point2.y - point1.y;
   return Math.sqrt(dx * dx + dy * dy);
 }
+
+/**
+ * Get bounding box for a connector
+ *
+ * Calculates the bounding rectangle that encompasses the entire connector path.
+ * This is used for selection box intersection testing.
+ *
+ * @param connector - The connector object
+ * @param sourceShape - The source shape the connector originates from
+ * @param targetShape - The target shape the connector connects to
+ * @returns Connector bounds { left, right, top, bottom }
+ *
+ * @example
+ * ```ts
+ * const connector = { style: 'orthogonal', ... };
+ * const bounds = getConnectorBounds(connector, sourceShape, targetShape);
+ * // Returns bounding box that encompasses the entire connector path
+ * ```
+ */
+export function getConnectorBounds(
+  connector: {
+    style: 'straight' | 'orthogonal' | 'curved';
+    sourceConnectionPoint?: 'N' | 'S' | 'E' | 'W';
+    targetConnectionPoint?: 'N' | 'S' | 'E' | 'W';
+  },
+  sourceShape: { x: number; y: number; width: number; height: number },
+  targetShape: { x: number; y: number; width: number; height: number }
+): { left: number; right: number; top: number; bottom: number } {
+  // Calculate connection points (same logic as LineConnectorRenderer)
+  const { start, end } = findOptimalConnectionPoints(sourceShape, targetShape);
+
+  // For straight and curved connectors, we can use a simple bounding box
+  // For orthogonal, we need to account for the path segments
+  if (connector.style === 'straight' || connector.style === 'curved') {
+    return {
+      left: Math.min(start.x, end.x),
+      right: Math.max(start.x, end.x),
+      top: Math.min(start.y, end.y),
+      bottom: Math.max(start.y, end.y),
+    };
+  }
+
+  // For orthogonal routing, calculate the path points and get their bounds
+  const pathPoints = getOrthogonalPathPoints(start, end);
+  const bounds = calculateBoundingBox(pathPoints);
+
+  return {
+    left: bounds.minX,
+    right: bounds.maxX,
+    top: bounds.minY,
+    bottom: bounds.maxY,
+  };
+}
+
+/**
+ * Find the optimal pair of connection points between two shapes
+ * (Simplified version from LineConnectorRenderer for utility use)
+ */
+function findOptimalConnectionPoints(
+  sourceShape: { x: number; y: number; width: number; height: number },
+  targetShape: { x: number; y: number; width: number; height: number }
+): {
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+  sourceDirection: 'N' | 'S' | 'E' | 'W';
+  targetDirection: 'N' | 'S' | 'E' | 'W';
+} {
+  const DIRECTIONS: Array<'N' | 'S' | 'E' | 'W'> = ['N', 'S', 'E', 'W'];
+
+  let minDistance = Infinity;
+  let bestSourceDir: 'N' | 'S' | 'E' | 'W' = 'E';
+  let bestTargetDir: 'N' | 'S' | 'E' | 'W' = 'W';
+  let bestStart = { x: 0, y: 0 };
+  let bestEnd = { x: 0, y: 0 };
+
+  for (const sourceDir of DIRECTIONS) {
+    const sourcePos = calcConnectionPoint(sourceShape, sourceDir);
+
+    for (const targetDir of DIRECTIONS) {
+      const targetPos = calcConnectionPoint(targetShape, targetDir);
+
+      const dist = Math.hypot(targetPos.x - sourcePos.x, targetPos.y - sourcePos.y);
+
+      if (dist < minDistance) {
+        minDistance = dist;
+        bestSourceDir = sourceDir;
+        bestTargetDir = targetDir;
+        bestStart = sourcePos;
+        bestEnd = targetPos;
+      }
+    }
+  }
+
+  return {
+    start: bestStart,
+    end: bestEnd,
+    sourceDirection: bestSourceDir,
+    targetDirection: bestTargetDir,
+  };
+}
+
+/**
+ * Calculate connection point position on a shape
+ */
+function calcConnectionPoint(
+  shape: { x: number; y: number; width: number; height: number },
+  direction: 'N' | 'S' | 'E' | 'W'
+): { x: number; y: number } {
+  const { x, y, width, height } = shape;
+  switch (direction) {
+    case 'N':
+      return { x: x + width / 2, y };
+    case 'S':
+      return { x: x + width / 2, y: y + height };
+    case 'E':
+      return { x: x + width, y: y + height / 2 };
+    case 'W':
+      return { x, y: y + height / 2 };
+  }
+}
+
+/**
+ * Get orthogonal path points for bounding box calculation
+ */
+function getOrthogonalPathPoints(
+  start: { x: number; y: number },
+  end: { x: number; y: number }
+): Array<{ x: number; y: number }> {
+  const path: Array<{ x: number; y: number }> = [start];
+
+  // Simple orthogonal routing: go horizontal then vertical, or vice versa
+  // This is a simplified version - just need the bounding points
+  const midX = (start.x + end.x) / 2;
+
+  // Add intermediate points that would be in an orthogonal path
+  path.push({ x: midX, y: start.y });
+  path.push({ x: midX, y: end.y });
+  path.push(end);
+
+  return path;
+}

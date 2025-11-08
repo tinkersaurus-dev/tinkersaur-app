@@ -17,3 +17,5 @@ export { CompositeCommand } from './CompositeCommand';
 export { AddShapeCommand } from './canvas/AddShapeCommand';
 export { DeleteShapeCommand } from './canvas/DeleteShapeCommand';
 export { MoveShapeCommand } from './canvas/MoveShapeCommand';
+export { UpdateShapeLabelCommand } from './canvas/UpdateShapeLabelCommand';
+export { UpdateConnectorLabelCommand } from './canvas/UpdateConnectorLabelCommand';

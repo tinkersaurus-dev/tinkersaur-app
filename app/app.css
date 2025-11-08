@@ -67,6 +67,35 @@
   --tag-bg-red: var(--tag-bg-red);
   --tag-bg-purple: var(--tag-bg-purple);
 
+  /* Canvas Elements */
+  --canvas-shape-border-default: var(--canvas-shape-border-default);
+  --canvas-shape-border-hover: var(--canvas-shape-border-hover);
+  --canvas-shape-border-selected: var(--canvas-shape-border-selected);
+  --canvas-shape-fill-default: var(--canvas-shape-fill-default);
+  --canvas-shape-fill-hover: var(--canvas-shape-fill-hover);
+  --canvas-shape-fill-selected: var(--canvas-shape-fill-selected);
+  --canvas-shape-text: var(--canvas-shape-text);
+
+  --canvas-connector-stroke-default: var(--canvas-connector-stroke-default);
+  --canvas-connector-stroke-hover: var(--canvas-connector-stroke-hover);
+  --canvas-connector-stroke-selected: var(--canvas-connector-stroke-selected);
+
+  --canvas-label-editing-fill: var(--canvas-label-editing-fill);
+  --canvas-label-editing-border: var(--canvas-label-editing-border);
+  --canvas-label-editing-text: var(--canvas-label-editing-text);
+
+  --canvas-label-display-fill: var(--canvas-label-display-fill);
+  --canvas-label-display-border: var(--canvas-label-display-border);
+  --canvas-label-display-text: var(--canvas-label-display-text);
+
+  --canvas-connection-point-fill: var(--canvas-connection-point-fill);
+  --canvas-connection-point-border: var(--canvas-connection-point-border);
+
+  --canvas-selection-box-border: var(--canvas-selection-box-border);
+  --canvas-selection-box-bg: var(--canvas-selection-box-bg);
+
+  --canvas-preview-stroke: var(--canvas-preview-stroke);
+
 }
 
 /* Theme Variables - Light Mode (Default) */
@@ -135,6 +164,35 @@
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Canvas Elements */
+  --canvas-shape-border-default: oklch(0.6 0.01 213);
+  --canvas-shape-border-hover: oklch(0.4 0.1 33);
+  --canvas-shape-border-selected: oklch(0.4 0.1 213);
+  --canvas-shape-fill-default: oklch(0.96 0.005 213);
+  --canvas-shape-fill-hover: oklch(1 0.005 213);
+  --canvas-shape-fill-selected: oklch(0.96 0.005 213);
+  --canvas-shape-text: oklch(0.15 0.01 213);
+
+  --canvas-connector-stroke-default: oklch(0.7342 0.1655 60.62);
+  --canvas-connector-stroke-hover: oklch(0.4 0.01 213);
+  --canvas-connector-stroke-selected: oklch(0.4 0.1 213);
+
+  --canvas-label-editing-fill: oklch(1 0.005 213);
+  --canvas-label-editing-border: oklch(0.4 0.1 213);
+  --canvas-label-editing-text: oklch(0.15 0.01 213);
+
+  --canvas-label-display-fill: transparent;
+  --canvas-label-display-border: transparent;
+  --canvas-label-display-text: oklch(0.15 0.01 213);
+
+  --canvas-connection-point-fill: oklch(0.4 0.1 213);
+  --canvas-connection-point-border: oklch(1 0.005 213);
+
+  --canvas-selection-box-border: oklch(0.4 0.1 213);
+  --canvas-selection-box-bg: oklch(0.4 0.1 213 / 0.1);
+
+  --canvas-preview-stroke: oklch(0.4 0.1 213);
 }
 
 /* Theme Variables - Dark Mode */
@@ -186,6 +244,35 @@
   --tag-bg-orange: oklch(0.9778 0.0239 85.79);
   --tag-bg-red: oklch(0.9689 0.0152 22.39);
   --tag-bg-purple: oklch(0.9665 0.022 312.19);
+
+  /* Canvas Elements */
+  --canvas-shape-border-default: oklch(0.4 0.01 213);
+  --canvas-shape-border-hover: oklch(0.76 0.1 33);
+  --canvas-shape-border-selected: oklch(0.76 0.1 213);
+  --canvas-shape-fill-default: oklch(0.15 0.005 213);
+  --canvas-shape-fill-hover: oklch(0.2 0.005 213);
+  --canvas-shape-fill-selected: oklch(0.15 0.005 213);
+  --canvas-shape-text: oklch(0.96 0.01 213);
+
+  --canvas-connector-stroke-default: oklch(0.96 0.01 213);
+  --canvas-connector-stroke-hover: oklch(0.76 0.01 213);
+  --canvas-connector-stroke-selected: oklch(0.76 0.1 213);
+
+  --canvas-label-editing-fill: oklch(0.2 0.005 213);
+  --canvas-label-editing-border: oklch(0.76 0.1 213);
+  --canvas-label-editing-text: oklch(0% 0 0);
+
+  --canvas-label-display-fill: transparent;
+  --canvas-label-display-border: transparent;
+  --canvas-label-display-text: oklch(0% 0 0);
+
+  --canvas-connection-point-fill: oklch(0.76 0.1 213);
+  --canvas-connection-point-border: oklch(0.2 0.005 213);
+
+  --canvas-selection-box-border: oklch(0.76 0.1 213);
+  --canvas-selection-box-bg: oklch(0.76 0.1 213 / 0.1);
+
+  --canvas-preview-stroke: oklch(0.76 0.1 213);
 }
 
 html,

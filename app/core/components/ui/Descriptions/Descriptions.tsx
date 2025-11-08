@@ -144,7 +144,7 @@ export function Descriptions({
               // Horizontal: label and content side by side
               return (
                 <tr key={rowIndex}>
-                  {row.map((item, itemIndex) => {
+                  {row.map((item, _itemIndex) => {
                     const itemSpan = item.span || 1;
                     // In horizontal layout, each logical column has 2 table columns (label + content)
                     // So if item spans N columns, the content cell should span N*2 - 1
@@ -185,7 +185,7 @@ export function Descriptions({
               return (
                 <>
                   <tr key={`labels-${rowIndex}`}>
-                    {row.map((item, itemIndex) => {
+                    {row.map((item, _itemIndex) => {
                       const itemSpan = item.span || 1;
                       return (
                         <th
@@ -205,7 +205,7 @@ export function Descriptions({
                     })}
                   </tr>
                   <tr key={`contents-${rowIndex}`}>
-                    {row.map((item, itemIndex) => {
+                    {row.map((item, _itemIndex) => {
                       const itemSpan = item.span || 1;
                       return (
                         <td

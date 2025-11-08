@@ -1,10 +1,11 @@
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
 import type { Shape, CreateShapeDTO } from '~/core/entities/design-studio';
+import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
 
 /**
  * Hook for diagram CRUD operations
  *
- * Provides actions to manipulate shapes within a diagram.
+ * Provides actions to manipulate shapes and connectors within a diagram.
  * Use in combination with useDiagram for data access.
  */
 export function useDiagramCRUD(diagramId: string | undefined) {
@@ -13,6 +14,10 @@ export function useDiagramCRUD(diagramId: string | undefined) {
   const updateShapeAction = useDesignStudioEntityStore((state) => state.updateShape);
   const updateShapesAction = useDesignStudioEntityStore((state) => state.updateShapes);
   const deleteShapeAction = useDesignStudioEntityStore((state) => state.deleteShape);
+
+  // Connector manipulation actions from store
+  const addConnectorAction = useDesignStudioEntityStore((state) => state.addConnector);
+  const deleteConnectorAction = useDesignStudioEntityStore((state) => state.deleteConnector);
 
   // Wrapper functions that bind the diagram ID
   const addShape = diagramId
@@ -28,10 +33,19 @@ export function useDiagramCRUD(diagramId: string | undefined) {
     ? (shapeId: string) => deleteShapeAction(diagramId, shapeId)
     : undefined;
 
+  const addConnector = diagramId
+    ? (connector: CreateConnectorDTO) => addConnectorAction(diagramId, connector)
+    : undefined;
+  const deleteConnector = diagramId
+    ? (connectorId: string) => deleteConnectorAction(diagramId, connectorId)
+    : undefined;
+
   return {
     addShape,
     updateShape,
     updateShapes,
     deleteShape,
+    addConnector,
+    deleteConnector,
   };
 }

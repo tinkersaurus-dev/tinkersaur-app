@@ -39,7 +39,7 @@ function isInputField(element: Element | null): boolean {
  * - Windows/Linux: Ctrl+Z (undo), Ctrl+Shift+Z or Ctrl+Y (redo)
  */
 export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) {
-  const { scope, enabled = true } = options;
+  const { scope = 'global', enabled = true } = options;
   const { undo, redo, canUndo, canRedo } = useCommandStore();
 
   useEffect(() => {
