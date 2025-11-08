@@ -15,6 +15,7 @@ export interface ButtonProps {
   children?: ReactNode;
   type?: 'button' | 'submit' | 'reset';
   className?: string;
+  title?: string;
 }
 
 export function Button({
@@ -27,6 +28,7 @@ export function Button({
   children,
   type = 'button',
   className = '',
+  title,
 }: ButtonProps) {
   // Base styles
   const baseStyles = 'inline-flex items-center justify-center gap-2 transition-all duration-base rounded-sm focus:outline-none focus:ring-2 focus:ring-offset-2';
@@ -77,6 +79,7 @@ export function Button({
       className={buttonClassName}
       onClick={handleClick}
       disabled={disabled || loading}
+      title={title}
     >
       {loading && (
         <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />

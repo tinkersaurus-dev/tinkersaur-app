@@ -1090,8 +1090,8 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
       Object.keys(updates).forEach((key) => {
         const typedKey = key as keyof Shape;
-        beforeState[typedKey] = currentShape[typedKey];
-        afterState[typedKey] = updates[typedKey];
+        (beforeState as Record<string, unknown>)[typedKey] = currentShape[typedKey];
+        (afterState as Record<string, unknown>)[typedKey] = updates[typedKey];
       });
 
       // Only position updates are currently supported

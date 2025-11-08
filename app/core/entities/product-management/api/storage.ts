@@ -21,7 +21,7 @@ export async function simulateDelay(ms: number = 100): Promise<void> {
 /**
  * Get data from localStorage
  */
-export function getFromStorage<T>(key: string): T[] {
+export function getFromStorage<T extends Record<string, unknown>>(key: string): T[] {
   if (!isBrowser) {
     return [];
   }
