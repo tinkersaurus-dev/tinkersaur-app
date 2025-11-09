@@ -19,7 +19,8 @@ export type Size = z.infer<typeof SizeSchema>;
 // Shape entity - represents a shape on the canvas
 export const ShapeSchema = z.object({
   id: z.string(),
-  type: z.string(), // 'rectangle', 'circle', 'text', etc.
+  type: z.string(), // 'rectangle', 'circle', 'bpmn-task', etc.
+  subtype: z.string().optional(), // Optional subtype for categorization (e.g., 'user', 'service', 'script' for bpmn-task)
   x: z.number(),
   y: z.number(),
   width: z.number(),

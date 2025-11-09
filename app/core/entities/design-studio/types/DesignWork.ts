@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { DiagramTypeSchema } from './Diagram';
+import { InterfaceFidelitySchema } from './Interface';
 
 /**
  * Design Work domain model
@@ -21,7 +23,7 @@ import { z } from 'zod';
 export const DiagramRefSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(200),
-  type: z.enum(['bpmn', 'dataflow', 'sequence', 'class', 'component', 'deployment', 'flowchart']),
+  type: DiagramTypeSchema,
   order: z.number().int().nonnegative(),
 });
 
@@ -31,7 +33,7 @@ export type DiagramRef = z.infer<typeof DiagramRefSchema>;
 export const InterfaceRefSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(200),
-  fidelity: z.enum(['low', 'medium', 'high']),
+  fidelity: InterfaceFidelitySchema,
   order: z.number().int().nonnegative(),
 });
 

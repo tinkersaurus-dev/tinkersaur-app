@@ -29,22 +29,3 @@ export function ConnectorRenderer(props: ConnectorRendererProps) {
 
   return <Renderer {...props} />;
 }
-
-/**
- * Register a new connector renderer
- *
- * Allows dynamic registration of connector renderers.
- * Useful for plugins or lazy-loaded connector types.
- */
-// eslint-disable-next-line react-refresh/only-export-components
-export function registerConnectorRenderer(type: string, renderer: ConnectorRendererComponent) {
-  connectorRenderers[type] = renderer;
-}
-
-/**
- * Check if a connector type has a registered renderer
- */
-// eslint-disable-next-line react-refresh/only-export-components
-export function hasConnectorRenderer(type: string): boolean {
-  return type in connectorRenderers;
-}

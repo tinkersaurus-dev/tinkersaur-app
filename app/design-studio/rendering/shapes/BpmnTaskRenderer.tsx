@@ -1,20 +1,16 @@
+/**
+ * BPMN Task Renderer
+ *
+ * Renders BPMN task shapes as rounded rectangles with subtype-specific icons.
+ * Supports subtypes: user, service, script
+ */
+
+import { FaUser, FaCog, FaCode } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/EditableLabel';
 
-/**
- * Rectangle Shape Renderer
- *
- * Renders a rectangle shape as an HTML div element with React.
- *
- * Features:
- * - HTML div-based rendering (not SVG)
- * - Zoom-compensated borders, text, and border radius
- * - State-based styling (selected/hovered)
- * - Connection points (shown on hover)
- * - Inline styles for dynamic zoom compensation
- */
-export function RectangleRenderer({
+export function BpmnTaskRenderer({
   shape,
   context,
   isEditing = false,
@@ -27,13 +23,13 @@ export function RectangleRenderer({
   onConnectionPointMouseDown,
   onConnectionPointMouseUp,
 }: ShapeRendererProps): React.ReactElement {
-  const { x, y, width, height } = shape;
+  const { x, y, width, height, subtype } = shape;
   const { isSelected, isHovered, zoom } = context;
 
-  // Calculate zoom-compensated values to maintain consistent visual appearance
+  // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
-  const borderRadius = 2 / zoom;
-  const padding = 4 / zoom;
+  const borderRadius = 4 / zoom; // More rounded for BPMN tasks
+  const padding = 8 / zoom;
 
   // Determine border color based on state
   let borderColor = 'var(--border)';
@@ -44,13 +40,15 @@ export function RectangleRenderer({
     borderColor = 'var(--secondary)';
   }
 
-  // Determine background color based on state
+  // Determine background color
   let backgroundColor = 'var(--bg)';
   if (isSelected) {
     backgroundColor = 'var(--bg)';
   } else if (isHovered) {
     backgroundColor = 'var(--bg-light)';
   }
+
+  const iconSize = Math.max(8, 12 / zoom);
 
   return (
     <div
@@ -68,15 +66,14 @@ export function RectangleRenderer({
         top: `${y}px`,
         width: `${width}px`,
         height: `${height}px`,
-        zIndex: 1, // Shapes below connectors
-        // Use outline instead of border to avoid box-sizing issues
-        // Outline doesn't affect layout or positioning context
+        zIndex: 1,
         outline: `${borderWidth}px solid ${borderColor}`,
-        outlineOffset: `-${borderWidth}px`, // Draw outline inside the box
+        outlineOffset: `-${borderWidth}px`,
         borderRadius: `${borderRadius}px`,
         backgroundColor,
         cursor: isSelected ? 'move' : 'pointer',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: `${padding}px`,
@@ -85,7 +82,57 @@ export function RectangleRenderer({
         WebkitUserSelect: 'none',
       }}
     >
-      {/* Render editable label */}
+      {/* Task icon in top-left corner */}
+      {subtype === 'user' && (
+        <div
+          style={{
+            position: 'absolute',
+            top: `${4 / zoom}px`,
+            left: `${4 / zoom}px`,
+            color: 'var(--text-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <FaUser size={iconSize} />
+        </div>
+      )}
+      {subtype === 'service' && (
+        <div
+          style={{
+            position: 'absolute',
+            top: `${4 / zoom}px`,
+            left: `${4 / zoom}px`,
+            color: 'var(--text-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <FaCog size={iconSize} />
+        </div>
+      )}
+      {subtype === 'script' && (
+        <div
+          style={{
+            position: 'absolute',
+            top: `${4 / zoom}px`,
+            left: `${4 / zoom}px`,
+            color: 'var(--text-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <FaCode size={iconSize} />
+        </div>
+      )}
+
+      {/* Editable label */}
       <EditableLabel
         label={shape.label}
         isEditing={isEditing}
@@ -96,10 +143,11 @@ export function RectangleRenderer({
         style={{
           color: 'var(--text)',
           pointerEvents: isEditing ? 'auto' : 'none',
+          textAlign: 'center',
         }}
       />
 
-      {/* Render connection points when hovered */}
+      {/* Connection points when hovered */}
       {isHovered && onConnectionPointMouseDown && onConnectionPointMouseUp && (
         <>
           <ConnectionPointRenderer

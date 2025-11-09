@@ -1,5 +1,8 @@
 import type { ShapeRendererProps, ShapeRendererComponent } from './types';
 import { RectangleRenderer } from './RectangleRenderer';
+import { BpmnTaskRenderer } from './BpmnTaskRenderer';
+import { BpmnEventRenderer } from './BpmnEventRenderer';
+import { BpmnGatewayRenderer } from './BpmnGatewayRenderer';
 
 /**
  * Shape Renderer Registry
@@ -10,6 +13,10 @@ import { RectangleRenderer } from './RectangleRenderer';
 
 const shapeRenderers: Record<string, ShapeRendererComponent> = {
   rectangle: RectangleRenderer,
+  // BPMN shape renderers
+  'bpmn-task': BpmnTaskRenderer,
+  'bpmn-event': BpmnEventRenderer,
+  'bpmn-gateway': BpmnGatewayRenderer,
   // Future shape types can be added here:
   // circle: CircleRenderer,
   // ellipse: EllipseRenderer,
@@ -45,23 +52,4 @@ export function ShapeRenderer(props: ShapeRendererProps) {
   }
 
   return <Renderer {...props} />;
-}
-
-/**
- * Register a new shape renderer
- *
- * Allows dynamic registration of shape renderers.
- * Useful for plugins or lazy-loaded shape types.
- */
-// eslint-disable-next-line react-refresh/only-export-components
-export function registerShapeRenderer(type: string, renderer: ShapeRendererComponent) {
-  shapeRenderers[type] = renderer;
-}
-
-/**
- * Check if a shape type has a registered renderer
- */
-// eslint-disable-next-line react-refresh/only-export-components
-export function hasShapeRenderer(type: string): boolean {
-  return type in shapeRenderers;
 }

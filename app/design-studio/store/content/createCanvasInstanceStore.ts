@@ -25,7 +25,6 @@ export interface CanvasInstanceState {
   // Local editing state (ephemeral working copy)
   localShapes: Shape[];
   localConnectors: Connector[];
-  hasUnsavedChanges: boolean;
 
   // Viewport state (ephemeral - never persisted)
   viewportZoom: number;
@@ -37,8 +36,6 @@ export interface CanvasInstanceState {
   hoveredShapeId: string | null;
   selectedConnectorIds: string[];
   hoveredConnectorId: string | null;
-  activeTool: 'select' | 'pan';
-  isDragging: boolean;
   isContextMenuOpen: boolean;
   contextMenuPosition: { x: number; y: number } | null;
 
@@ -64,10 +61,6 @@ export interface CanvasInstanceState {
   addLocalConnector: (connector: Connector) => void;
   removeLocalConnector: (connectorId: string) => void;
 
-  // Dirty state management
-  markDirty: () => void;
-  markClean: () => void;
-
   // Viewport actions
   setViewport: (zoom: number, panX: number, panY: number) => void;
   setSelectedShapes: (shapeIds: string[]) => void;
@@ -75,9 +68,7 @@ export interface CanvasInstanceState {
   setSelectedConnectors: (connectorIds: string[]) => void;
   setSelection: (shapeIds: string[], connectorIds: string[]) => void;
   setHoveredConnectorId: (connectorId: string | null) => void;
-  setTool: (tool: 'select' | 'pan') => void;
   clearSelection: () => void;
-  setIsDragging: (dragging: boolean) => void;
   openContextMenu: (x: number, y: number) => void;
   closeContextMenu: () => void;
   setEditingEntity: (id: string, type: 'shape' | 'connector', originalLabel: string | undefined) => void;
@@ -98,7 +89,6 @@ export function createCanvasInstanceStore(diagramId: string) {
     diagramId,
     localShapes: [],
     localConnectors: [],
-    hasUnsavedChanges: false,
     viewportZoom: 1,
     viewportPanX: 0,
     viewportPanY: 0,
@@ -106,8 +96,6 @@ export function createCanvasInstanceStore(diagramId: string) {
     hoveredShapeId: null,
     selectedConnectorIds: [],
     hoveredConnectorId: null,
-    activeTool: 'pan',
-    isDragging: false,
     isContextMenuOpen: false,
     contextMenuPosition: null,
     editingEntityId: null,
@@ -120,7 +108,6 @@ export function createCanvasInstanceStore(diagramId: string) {
       set({
         localShapes: shapes,
         localConnectors: connectors,
-        hasUnsavedChanges: false,
       }),
 
     // Local shape operations (ephemeral, not persisted)
@@ -129,7 +116,6 @@ export function createCanvasInstanceStore(diagramId: string) {
         localShapes: state.localShapes.map((shape) =>
           shape.id === shapeId ? { ...shape, ...updates } : shape
         ),
-        hasUnsavedChanges: true,
       })),
 
     updateLocalShapes: (updates) =>
@@ -138,19 +124,16 @@ export function createCanvasInstanceStore(diagramId: string) {
           const shapeUpdates = updates.get(shape.id);
           return shapeUpdates ? { ...shape, ...shapeUpdates } : shape;
         }),
-        hasUnsavedChanges: true,
       })),
 
     addLocalShape: (shape) =>
       set((state) => ({
         localShapes: [...state.localShapes, shape],
-        hasUnsavedChanges: true,
       })),
 
     removeLocalShape: (shapeId) =>
       set((state) => ({
         localShapes: state.localShapes.filter((shape) => shape.id !== shapeId),
-        hasUnsavedChanges: true,
       })),
 
     // Local connector operations
@@ -159,24 +142,17 @@ export function createCanvasInstanceStore(diagramId: string) {
         localConnectors: state.localConnectors.map((connector) =>
           connector.id === connectorId ? { ...connector, ...updates } : connector
         ),
-        hasUnsavedChanges: true,
       })),
 
     addLocalConnector: (connector) =>
       set((state) => ({
         localConnectors: [...state.localConnectors, connector],
-        hasUnsavedChanges: true,
       })),
 
     removeLocalConnector: (connectorId) =>
       set((state) => ({
         localConnectors: state.localConnectors.filter((c) => c.id !== connectorId),
-        hasUnsavedChanges: true,
       })),
-
-    // Dirty state management
-    markDirty: () => set({ hasUnsavedChanges: true }),
-    markClean: () => set({ hasUnsavedChanges: false }),
 
     // Viewport actions
     setViewport: (zoom, panX, panY) =>
@@ -226,18 +202,6 @@ export function createCanvasInstanceStore(diagramId: string) {
         hoveredConnectorId: connectorId,
       }),
 
-    // Tool actions
-    setTool: (tool) =>
-      set({
-        activeTool: tool,
-      }),
-
-    // Drag state
-    setIsDragging: (dragging) =>
-      set({
-        isDragging: dragging,
-      }),
-
     // Context menu actions
     openContextMenu: (x, y) =>
       set({
@@ -277,7 +241,6 @@ export function createCanvasInstanceStore(diagramId: string) {
       set({
         localShapes: [],
         localConnectors: [],
-        hasUnsavedChanges: false,
         viewportZoom: 1,
         viewportPanX: 0,
         viewportPanY: 0,
@@ -285,8 +248,6 @@ export function createCanvasInstanceStore(diagramId: string) {
         hoveredShapeId: null,
         selectedConnectorIds: [],
         hoveredConnectorId: null,
-        activeTool: 'pan',
-        isDragging: false,
         isContextMenuOpen: false,
         contextMenuPosition: null,
         editingEntityId: null,

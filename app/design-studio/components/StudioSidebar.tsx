@@ -11,8 +11,9 @@ import { Tree, Dropdown } from '~/core/components';
 import type { TreeNodeData, DropdownMenuItem } from '~/core/components';
 import { Button } from '~/core/components/ui/Button';
 import { useDesignStudioUIStore } from '../store';
-import { useDesignStudioEntityStore, type DesignContentType } from '~/core/entities/design-studio';
+import { useDesignStudioEntityStore, type DesignContentType, type DiagramType } from '~/core/entities/design-studio';
 import { useDesignStudioCRUD } from '../hooks/useDesignStudioCRUD';
+import { CreateDiagramModal } from './CreateDiagramModal';
 
 interface StudioSidebarProps {
   solutionId: string;
@@ -44,6 +45,18 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     y: number;
     nodeKey: string;
   } | null>(null);
+
+  // Create diagram modal state
+  const [createDiagramModalOpen, setCreateDiagramModalOpen] = useState(false);
+  const [selectedDesignWorkId, setSelectedDesignWorkId] = useState<string>();
+
+  // Wrapper for createDiagram that matches the modal's expected signature
+  const handleCreateDiagram = useCallback(
+    async (data: { designWorkId: string; name: string; type: DiagramType }) => {
+      await createDiagram(data);
+    },
+    [createDiagram]
+  );
 
   // Handle creating a new folder at root level
   const handleAddFolder = useCallback(async () => {
@@ -234,12 +247,9 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         {
           key: 'add-diagram',
           label: 'Add Diagram',
-          onClick: async () => {
-            await createDiagram({
-              designWorkId: id,
-              name: 'New Diagram',
-              type: 'bpmn',
-            });
+          onClick: () => {
+            setSelectedDesignWorkId(id);
+            setCreateDiagramModalOpen(true);
             closeContextMenu();
           },
         },
@@ -315,7 +325,6 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     }
   }, [
     contextMenu,
-    createDiagram,
     createDocument,
     createInterface,
     deleteDiagram,
@@ -356,6 +365,13 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
           menu={{ items: getContextMenuItems() }}
         />
       )}
+
+      <CreateDiagramModal
+        open={createDiagramModalOpen}
+        designWorkId={selectedDesignWorkId}
+        onClose={() => setCreateDiagramModalOpen(false)}
+        onCreate={handleCreateDiagram}
+      />
     </div>
   );
 }

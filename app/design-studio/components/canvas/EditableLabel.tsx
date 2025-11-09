@@ -4,7 +4,6 @@ import './EditableLabel.css';
 export interface EditableLabelProps {
   label: string | undefined;
   isEditing: boolean;
-  zoom: number;
   onStartEdit: () => void;
   onLabelChange: (newLabel: string) => void;
   onFinishEdit: () => void;
@@ -18,7 +17,6 @@ export interface EditableLabelProps {
 export function EditableLabel({
   label,
   isEditing,
-  zoom: _zoom,
   onStartEdit,
   onLabelChange,
   onFinishEdit,
@@ -87,7 +85,6 @@ export function EditableLabel({
 
   // Structural styles for edit mode (non-visual, functional)
   const editStructuralStyle: React.CSSProperties = {
-    //width: '100%',
     resize: 'none',
     fontSize: `${fontSize}px`,
     fontFamily: 'inherit',
@@ -101,7 +98,6 @@ export function EditableLabel({
     fontSize: `${fontSize}px`,
     textAlign: 'center',
     overflow: 'hidden',
-    //width: '100%',
     height: '100%',
     display: '-webkit-box',
     WebkitLineClamp: 4,
@@ -121,8 +117,6 @@ export function EditableLabel({
       onDoubleClick={handleDoubleClick}
       className={className}
       style={{
-        //width: '100%',
-        //height: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -132,8 +126,6 @@ export function EditableLabel({
       {isEditing ? (
         <div
           style={{
-            //width: '100%',
-            //height: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

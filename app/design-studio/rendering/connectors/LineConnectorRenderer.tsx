@@ -3,6 +3,7 @@ import type { ConnectorRendererProps } from './types';
 import type { ConnectionPointDirection } from '~/core/entities/design-studio/types/Connector';
 import { EditableLabel } from '../../components/canvas/EditableLabel';
 import { getPathMidpoint, type Point } from '../../utils/pathUtils';
+import { findOptimalConnectionPoints } from '../../utils/canvas';
 
 /**
  * LineConnectorRenderer
@@ -122,7 +123,6 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
           <EditableLabel
             label={connector.label}
             isEditing={isEditing}
-            zoom={context.zoom}
             onStartEdit={() => onDoubleClick?.(connector.id)}
             onLabelChange={(newLabel) => onLabelChange?.(connector.id, 'connector', newLabel)}
             onFinishEdit={() => onFinishEditing?.()}
@@ -345,75 +345,3 @@ function getArrowMarker(
   }
 }
 
-/**
- * Standard connection point directions (N, S, E, W)
- */
-const STANDARD_DIRECTIONS: ConnectionPointDirection[] = ['N', 'S', 'E', 'W'];
-
-/**
- * Calculate connection point position for a simplified shape interface
- */
-function calcConnectionPoint(
-  shape: { x: number; y: number; width: number; height: number },
-  direction: ConnectionPointDirection
-): { x: number; y: number } {
-  const { x, y, width, height } = shape;
-  switch (direction) {
-    case 'N':
-      return { x: x + width / 2, y };
-    case 'S':
-      return { x: x + width / 2, y: y + height };
-    case 'E':
-      return { x: x + width, y: y + height / 2 };
-    case 'W':
-      return { x, y: y + height / 2 };
-  }
-}
-
-/**
- * Find the optimal pair of connection points between two shapes
- * This calculates the shortest distance between all possible connection point pairs
- * and returns the best match, ensuring connectors always connect optimally
- */
-function findOptimalConnectionPoints(
-  sourceShape: { x: number; y: number; width: number; height: number },
-  targetShape: { x: number; y: number; width: number; height: number }
-): {
-  sourceDirection: ConnectionPointDirection;
-  targetDirection: ConnectionPointDirection;
-  start: { x: number; y: number };
-  end: { x: number; y: number };
-} {
-  let minDistance = Infinity;
-  let bestSourceDir: ConnectionPointDirection = 'E';
-  let bestTargetDir: ConnectionPointDirection = 'W';
-  let bestStart = { x: 0, y: 0 };
-  let bestEnd = { x: 0, y: 0 };
-
-  // Check all combinations of connection points
-  for (const sourceDir of STANDARD_DIRECTIONS) {
-    const sourcePos = calcConnectionPoint(sourceShape, sourceDir);
-
-    for (const targetDir of STANDARD_DIRECTIONS) {
-      const targetPos = calcConnectionPoint(targetShape, targetDir);
-
-      // Calculate Euclidean distance
-      const distance = Math.hypot(targetPos.x - sourcePos.x, targetPos.y - sourcePos.y);
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        bestSourceDir = sourceDir;
-        bestTargetDir = targetDir;
-        bestStart = sourcePos;
-        bestEnd = targetPos;
-      }
-    }
-  }
-
-  return {
-    sourceDirection: bestSourceDir,
-    targetDirection: bestTargetDir,
-    start: bestStart,
-    end: bestEnd,
-  };
-}

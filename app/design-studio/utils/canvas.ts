@@ -6,6 +6,17 @@
  */
 
 /**
+ * Snap a coordinate to the nearest grid point
+ *
+ * @param value - The coordinate value to snap
+ * @param gridSize - The grid size to snap to (default: 10)
+ * @returns The snapped coordinate value
+ */
+export function snapToGrid(value: number, gridSize: number = 10): number {
+  return Math.round(value / gridSize) * gridSize;
+}
+
+/**
  * Convert screen coordinates to canvas coordinates
  *
  * Takes mouse/pointer coordinates in screen space and converts them
@@ -344,16 +355,22 @@ export function getConnectorBounds(
 
 /**
  * Find the optimal pair of connection points between two shapes
- * (Simplified version from LineConnectorRenderer for utility use)
+ *
+ * This calculates the shortest distance between all possible connection point pairs
+ * and returns the best match, ensuring connectors always connect optimally.
+ *
+ * @param sourceShape - The source shape to connect from
+ * @param targetShape - The target shape to connect to
+ * @returns Object containing optimal connection directions and start/end points
  */
-function findOptimalConnectionPoints(
+export function findOptimalConnectionPoints(
   sourceShape: { x: number; y: number; width: number; height: number },
   targetShape: { x: number; y: number; width: number; height: number }
 ): {
-  start: { x: number; y: number };
-  end: { x: number; y: number };
   sourceDirection: 'N' | 'S' | 'E' | 'W';
   targetDirection: 'N' | 'S' | 'E' | 'W';
+  start: { x: number; y: number };
+  end: { x: number; y: number };
 } {
   const DIRECTIONS: Array<'N' | 'S' | 'E' | 'W'> = ['N', 'S', 'E', 'W'];
 
@@ -382,10 +399,10 @@ function findOptimalConnectionPoints(
   }
 
   return {
-    start: bestStart,
-    end: bestEnd,
     sourceDirection: bestSourceDir,
     targetDirection: bestTargetDir,
+    start: bestStart,
+    end: bestEnd,
   };
 }
 
