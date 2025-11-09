@@ -1,5 +1,5 @@
 import type { Shape } from '~/core/entities/design-studio';
-import type { ConnectionPointDirection } from '~/core/entities/design-studio/types/Connector';
+import type { ConnectionPoint } from '~/design-studio/utils/connectionPoints';
 
 /**
  * Shape Renderer Types
@@ -49,25 +49,22 @@ export interface ShapeRendererProps {
   onFinishEditing?: () => void;
 
   /** Connection point event handlers (for creating connectors) */
-  onConnectionPointMouseDown?: (
-    pointId: string,
-    direction: ConnectionPointDirection,
-    e: React.MouseEvent
-  ) => void;
-  onConnectionPointMouseUp?: (
-    pointId: string,
-    direction: ConnectionPointDirection,
-    e: React.MouseEvent
-  ) => void;
+  onConnectionPointMouseDown?: (connectionPointId: string, e: React.MouseEvent) => void;
+  onConnectionPointMouseUp?: (connectionPointId: string, e: React.MouseEvent) => void;
+
+  /** Connection points defined by this shape */
+  getConnectionPoints?: () => ConnectionPoint[];
 
   /** Class shape editing callbacks */
   onClassStereotypeChange?: (shapeId: string, stereotype: string | undefined) => void;
   onClassAddAttribute?: (shapeId: string) => void;
   onClassDeleteAttribute?: (shapeId: string, attributeIndex: number) => void;
   onClassUpdateAttribute?: (shapeId: string, attributeIndex: number, newValue: string) => void;
+  onClassUpdateAttributeLocal?: (shapeId: string, attributeIndex: number, newValue: string) => void;
   onClassAddMethod?: (shapeId: string) => void;
   onClassDeleteMethod?: (shapeId: string, methodIndex: number) => void;
   onClassUpdateMethod?: (shapeId: string, methodIndex: number, newValue: string) => void;
+  onClassUpdateMethodLocal?: (shapeId: string, methodIndex: number, newValue: string) => void;
 }
 
 /**

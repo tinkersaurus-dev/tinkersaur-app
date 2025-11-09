@@ -1,5 +1,6 @@
 import type { Shape } from '~/core/entities/design-studio/types';
 import type { DrawingConnector } from '../../hooks/useConnectorDrawing';
+import { getConnectionPointsForShape, calculateAbsolutePosition } from '../../utils/connectionPoints';
 
 interface ConnectorDrawingPreviewProps {
   drawingConnector: DrawingConnector;
@@ -14,27 +15,21 @@ export function ConnectorDrawingPreview({ drawingConnector, shapes, zoom }: Conn
   const fromShape = shapes.find((s) => s.id === drawingConnector.fromShapeId);
   if (!fromShape) return null;
 
-  // Calculate start position from shape and direction
-  let startX = fromShape.x;
-  let startY = fromShape.y;
-  switch (drawingConnector.fromDirection) {
-    case 'N':
-      startX += fromShape.width / 2;
-      startY += 0;
-      break;
-    case 'S':
-      startX += fromShape.width / 2;
-      startY += fromShape.height;
-      break;
-    case 'E':
-      startX += fromShape.width;
-      startY += fromShape.height / 2;
-      break;
-    case 'W':
-      startX += 0;
-      startY += fromShape.height / 2;
-      break;
-  }
+  // Get connection points for the shape
+  const connectionPoints = getConnectionPointsForShape(fromShape.type);
+
+  // Parse the connection point ID from the full ID (format: "{shapeId}-{connectionPointId}")
+  const parts = drawingConnector.fromConnectionPointId.split('-');
+  const connectionPointId = parts[parts.length - 1];
+
+  // Find the connection point
+  const connectionPoint = connectionPoints.find((cp) => cp.id === connectionPointId);
+  if (!connectionPoint) return null;
+
+  // Calculate the absolute position
+  const startPos = calculateAbsolutePosition(connectionPoint, fromShape);
+  const startX = startPos.x;
+  const startY = startPos.y;
 
   const strokeWidth = 2 / zoom;
 

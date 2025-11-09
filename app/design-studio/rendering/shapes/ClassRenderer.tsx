@@ -14,6 +14,7 @@ import { EditableLabel } from '../../components/canvas/EditableLabel';
 import { ShapeDropdown } from '../../components/canvas/ShapeDropdown';
 import { ClassItemEditor } from '../../components/canvas/ClassItemEditor';
 import { ShapeWrapper } from './ShapeWrapper';
+import { CLASS_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 
 const STEREOTYPE_OPTIONS = [
   { value: 'interface', label: '<<interface>>' },
@@ -23,6 +24,8 @@ const STEREOTYPE_OPTIONS = [
   { value: 'controller', label: '<<controller>>' },
   { value: 'repository', label: '<<repository>>' },
 ];
+
+
 
 export function ClassRenderer({
   shape,
@@ -40,12 +43,23 @@ export function ClassRenderer({
   onClassAddAttribute,
   onClassDeleteAttribute,
   onClassUpdateAttribute,
+  onClassUpdateAttributeLocal,
   onClassAddMethod,
   onClassDeleteMethod,
   onClassUpdateMethod,
+  onClassUpdateMethodLocal,
 }: ShapeRendererProps): React.ReactElement {
   const { width, height } = shape;
   const { isSelected, isHovered, zoom } = context;
+
+  // Wrap connection point handlers to prepend shape ID
+  const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
+    onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
+  };
+
+  const handleConnectionPointMouseUp = (connectionPointId: string, e: React.MouseEvent) => {
+    onConnectionPointMouseUp?.(`${shape.id}-${connectionPointId}`, e);
+  };
 
   // Parse class shape data
   const classData = (shape.data || {}) as unknown as ClassShapeData;
@@ -53,9 +67,11 @@ export function ClassRenderer({
   const attributes = classData.attributes || [];
   const methods = classData.methods || [];
 
-  // Track which attribute/method is being edited
+  // Track which attribute/method is being edited and their original values
   const [editingAttribute, setEditingAttribute] = useState<number | null>(null);
+  const [editingAttributeOriginal, setEditingAttributeOriginal] = useState<string>('');
   const [editingMethod, setEditingMethod] = useState<number | null>(null);
+  const [editingMethodOriginal, setEditingMethodOriginal] = useState<string>('');
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
@@ -181,12 +197,21 @@ export function ClassRenderer({
               key={index}
               value={attr}
               isEditing={editingAttribute === index}
-              onStartEdit={() => setEditingAttribute(index)}
+              onStartEdit={() => {
+                setEditingAttribute(index);
+                setEditingAttributeOriginal(attr);
+              }}
               onChange={(newValue) => {
-                onClassUpdateAttribute?.(shape.id, index, newValue);
+                // Update local state only (no database save)
+                onClassUpdateAttributeLocal?.(shape.id, index, newValue);
               }}
               onFinishEdit={() => {
+                // Save to database only when editing finishes
+                if (editingAttribute !== null && attributes[editingAttribute] !== editingAttributeOriginal) {
+                  onClassUpdateAttribute?.(shape.id, editingAttribute, attributes[editingAttribute]);
+                }
                 setEditingAttribute(null);
+                setEditingAttributeOriginal('');
               }}
               onDelete={() => {
                 onClassDeleteAttribute?.(shape.id, index);
@@ -254,12 +279,21 @@ export function ClassRenderer({
               key={index}
               value={method}
               isEditing={editingMethod === index}
-              onStartEdit={() => setEditingMethod(index)}
+              onStartEdit={() => {
+                setEditingMethod(index);
+                setEditingMethodOriginal(method);
+              }}
               onChange={(newValue) => {
-                onClassUpdateMethod?.(shape.id, index, newValue);
+                // Update local state only (no database save)
+                onClassUpdateMethodLocal?.(shape.id, index, newValue);
               }}
               onFinishEdit={() => {
+                // Save to database only when editing finishes
+                if (editingMethod !== null && methods[editingMethod] !== editingMethodOriginal) {
+                  onClassUpdateMethod?.(shape.id, editingMethod, methods[editingMethod]);
+                }
                 setEditingMethod(null);
+                setEditingMethodOriginal('');
               }}
               onDelete={() => {
                 onClassDeleteMethod?.(shape.id, index);
@@ -302,28 +336,20 @@ export function ClassRenderer({
       </div>
 
       {/* Connection points when hovered */}
-      {isHovered && onConnectionPointMouseDown && onConnectionPointMouseUp && (
-        <>
+      {isHovered &&
+        onConnectionPointMouseDown &&
+        onConnectionPointMouseUp &&
+        CLASS_CONNECTION_POINTS.map((connectionPoint) => (
           <ConnectionPointRenderer
-            pointId={`${shape.id}-E`}
-            direction="E"
+            key={connectionPoint.id}
+            connectionPoint={connectionPoint}
             shapeWidth={width}
             shapeHeight={height}
             zoom={zoom}
-            onMouseDown={onConnectionPointMouseDown}
-            onMouseUp={onConnectionPointMouseUp}
+            onMouseDown={handleConnectionPointMouseDown}
+            onMouseUp={handleConnectionPointMouseUp}
           />
-          <ConnectionPointRenderer
-            pointId={`${shape.id}-W`}
-            direction="W"
-            shapeWidth={width}
-            shapeHeight={height}
-            zoom={zoom}
-            onMouseDown={onConnectionPointMouseDown}
-            onMouseUp={onConnectionPointMouseUp}
-          />
-        </>
-      )}
+        ))}
     </ShapeWrapper>
   );
 }

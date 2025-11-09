@@ -1,5 +1,6 @@
 import { canvasInstanceRegistry } from './canvasInstanceRegistry';
 import type { CanvasInstanceStore } from './createCanvasInstanceStore';
+import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 
 /**
  * Use Canvas Instance Hook
@@ -10,12 +11,13 @@ import type { CanvasInstanceStore } from './createCanvasInstanceStore';
  * This ensures complete isolation between multiple open canvases.
  *
  * @param diagramId - The ID of the diagram
+ * @param diagramType - The type of diagram (for initializing default connector type)
  * @returns The Zustand store instance for this diagram
  *
  * @example
  * ```tsx
- * function Canvas({ diagramId }: { diagramId: string }) {
- *   const canvasInstance = useCanvasInstance(diagramId);
+ * function Canvas({ diagramId, diagramType }: { diagramId: string, diagramType: DiagramType }) {
+ *   const canvasInstance = useCanvasInstance(diagramId, diagramType);
  *
  *   const zoom = canvasInstance((state) => state.viewportZoom);
  *   const setViewport = canvasInstance((state) => state.setViewport);
@@ -28,7 +30,7 @@ import type { CanvasInstanceStore } from './createCanvasInstanceStore';
  * }
  * ```
  */
-export function useCanvasInstance(diagramId: string): CanvasInstanceStore {
+export function useCanvasInstance(diagramId: string, diagramType?: DiagramType): CanvasInstanceStore {
   // Get or create the store for this diagram from the registry
-  return canvasInstanceRegistry.getStore(diagramId);
+  return canvasInstanceRegistry.getStore(diagramId, diagramType);
 }

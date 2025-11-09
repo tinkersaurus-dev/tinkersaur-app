@@ -19,6 +19,8 @@ import { GridBackground } from './GridBackground';
 import { ContextMenu } from './ContextMenu';
 import { BpmnToolsetPopover } from './BpmnToolsetPopover';
 import { ClassToolsetPopover } from './ClassToolsetPopover';
+import { ConnectorToolsetPopover } from './ConnectorToolsetPopover';
+import { ConnectorContextMenu } from './ConnectorContextMenu';
 import { CanvasDebugInfo } from './CanvasDebugInfo';
 import { ConnectorDrawingPreview } from './ConnectorDrawingPreview';
 import { CanvasShapesList } from './CanvasShapesList';
@@ -26,9 +28,20 @@ import { CanvasConnectorsList } from './CanvasConnectorsList';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import CanvasToolbar from '../toolbar/CanvasToolbar';
 import type { ToolbarButton } from '../toolbar/CanvasToolbar';
-import { TbGridDots } from 'react-icons/tb';
+import { TbGridDots, TbArrowRight } from 'react-icons/tb';
 import type { Tool as BpmnTool } from '../../config/bpmn-tools';
 import type { Tool as ClassTool } from '../../config/class-tools';
+import {
+  allBpmnConnectorTools,
+  getBpmnConnectorToolByType,
+  type ConnectorTool,
+} from '../../config/bpmn-connectors';
+import {
+  allClassConnectorTools,
+  getClassConnectorToolByType,
+} from '../../config/class-connectors';
+import type { Diagram } from '~/core/entities/design-studio/types';
+import type { Connector } from '~/core/entities/design-studio/types/Connector';
 
 /**
  * Canvas Component
@@ -61,8 +74,11 @@ export function Canvas({ diagramId }: CanvasProps) {
   // Track if local state has been initialized from entity store
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Get persisted canvas data from entity store (need diagram type early for store initialization)
+  const { diagram, loading } = useDiagram(diagramId);
+
   // Get isolated instance store for THIS diagram
-  const canvasInstance = useCanvasInstance(diagramId);
+  const canvasInstance = useCanvasInstance(diagramId, diagram?.type);
 
   // Get instance-specific state
   const zoom = canvasInstance((state) => state.viewportZoom);
@@ -103,9 +119,19 @@ export function Canvas({ diagramId }: CanvasProps) {
   const setEditingEntity = canvasInstance((state) => state.setEditingEntity);
   const clearEditingEntity = canvasInstance((state) => state.clearEditingEntity);
   const setGridSnappingEnabled = canvasInstance((state) => state.setGridSnappingEnabled);
+  const activeConnectorType = canvasInstance((state) => state.activeConnectorType);
+  const setActiveConnectorType = canvasInstance((state) => state.setActiveConnectorType);
 
-  // Get persisted canvas data from entity store (for initialization only)
-  const { diagram, loading } = useDiagram(diagramId);
+  // Local state for connector toolbar popover
+  const [isConnectorPopoverOpen, setIsConnectorPopoverOpen] = useState(false);
+  const [connectorPopoverPosition, setConnectorPopoverPosition] = useState<{ x: number; y: number } | null>(null);
+
+  // Local state for connector context menu (right-click on connector)
+  const [isConnectorContextMenuOpen, setIsConnectorContextMenuOpen] = useState(false);
+  const [connectorContextMenuPosition, setConnectorContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [rightClickedConnectorId, setRightClickedConnectorId] = useState<string | null>(null);
+
+  // Get CRUD operations for this diagram
   const { addShape, updateShapes, addConnector, deleteConnector, deleteShape } = useDiagramCRUD(diagramId);
   const updateShape = useDesignStudioEntityStore((state) => state._internalUpdateShape);
   const updateShapeLabel = useDesignStudioEntityStore((state) => state.updateShapeLabel);
@@ -175,9 +201,11 @@ export function Canvas({ diagramId }: CanvasProps) {
     addAttribute,
     deleteAttribute,
     updateAttribute,
+    updateAttributeLocal,
     addMethod,
     deleteMethod,
     updateMethod,
+    updateMethodLocal,
   } = useClassShapeEditing({
     diagramId,
     updateShape,
@@ -223,6 +251,16 @@ export function Canvas({ diagramId }: CanvasProps) {
     setSelection,
   });
 
+  // Helper function to get connector config based on diagram type
+  const getConnectorConfig = useCallback((connectorType: string) => {
+    if (diagram?.type === 'bpmn') {
+      return getBpmnConnectorToolByType(connectorType);
+    } else if (diagram?.type === 'class') {
+      return getClassConnectorToolByType(connectorType);
+    }
+    return undefined;
+  }, [diagram?.type]);
+
   const {
     drawingConnector,
     startDrawingConnector,
@@ -235,6 +273,8 @@ export function Canvas({ diagramId }: CanvasProps) {
     panX,
     panY,
     addConnector: addConnector || (async () => {}),
+    activeConnectorType,
+    getConnectorConfig,
   });
 
   const { handleContextMenu, handleAddRectangle } = useCanvasContextMenu({
@@ -496,7 +536,16 @@ export function Canvas({ diagramId }: CanvasProps) {
     (e: React.MouseEvent, connectorId: string) => {
       e.stopPropagation();
 
-      // Only handle left mouse button
+      // Handle right-click for context menu
+      if (e.button === 2) {
+        e.preventDefault();
+        setRightClickedConnectorId(connectorId);
+        setConnectorContextMenuPosition({ x: e.clientX, y: e.clientY });
+        setIsConnectorContextMenuOpen(true);
+        return;
+      }
+
+      // Only handle left mouse button for selection
       if (e.button !== 0) return;
 
       // Check for multi-select modifiers (Shift, Ctrl, or Cmd on Mac)
@@ -538,19 +587,116 @@ export function Canvas({ diagramId }: CanvasProps) {
     [setHoveredConnectorId]
   );
 
+  // Get available connector tools based on diagram type
+  const availableConnectorTools = useMemo(() => {
+    if (diagram?.type === 'bpmn') {
+      return allBpmnConnectorTools;
+    } else if (diagram?.type === 'class') {
+      return allClassConnectorTools;
+    }
+    return [];
+  }, [diagram?.type]);
+
+  // Get active connector tool icon
+  const activeConnectorIcon = useMemo(() => {
+    const activeConnector = getConnectorConfig(activeConnectorType);
+    if (activeConnector) {
+      const Icon = activeConnector.icon;
+      return <Icon size={16} />;
+    }
+    return <TbArrowRight size={16} />;
+  }, [activeConnectorType, getConnectorConfig]);
+
+  // Handle connector toolbar button click
+  const handleConnectorToolbarClick = useCallback(() => {
+    // Position the popover at the bottom of the screen (where the toolbar is)
+    // We can't get the button position without the event, so we'll position it centered at the bottom
+    setConnectorPopoverPosition({
+      x: window.innerWidth / 2 - 100, // Center approximately (popover is about 200px wide)
+      y: window.innerHeight - 100, // Near bottom where toolbar is
+    });
+    setIsConnectorPopoverOpen(true);
+  }, []);
+
+  // Handle closing connector popover
+  const handleCloseConnectorPopover = useCallback(() => {
+    setIsConnectorPopoverOpen(false);
+  }, []);
+
+  // Handle closing connector context menu
+  const handleCloseConnectorContextMenu = useCallback(() => {
+    setIsConnectorContextMenuOpen(false);
+    setRightClickedConnectorId(null);
+  }, []);
+
+  // Handle connector selection from popover (for toolbar)
+  const handleConnectorSelect = useCallback((connectorTool: ConnectorTool) => {
+    setActiveConnectorType(connectorTool.connectorType);
+  }, [setActiveConnectorType]);
+
+  // Handle connector type change from context menu (for existing connectors)
+  const handleConnectorTypeChange = useCallback(async (connectorTool: ConnectorTool) => {
+    if (!rightClickedConnectorId) return;
+
+    // Import the command dynamically to avoid circular dependencies
+    const { ChangeConnectorTypeCommand } = await import('~/core/commands/canvas/ChangeConnectorTypeCommand');
+
+    // Get the connector store functions
+    const updateConnectorFn = useDesignStudioEntityStore.getState()._internalUpdateConnector;
+    const getConnectorFn = (diagramId: string, connectorId: string) => {
+      const diagram = useDesignStudioEntityStore.getState().diagrams[diagramId];
+      return diagram?.connectors.find((c: Connector) => c.id === connectorId) || null;
+    };
+
+    // Create the update data based on the connector tool config
+    const updateData = {
+      id: rightClickedConnectorId,
+      type: connectorTool.connectorType,
+      style: connectorTool.style,
+      markerStart: connectorTool.markerStart,
+      markerEnd: connectorTool.markerEnd,
+      lineType: connectorTool.lineType,
+      arrowType: connectorTool.markerEnd, // For backwards compatibility
+    };
+
+    // Create and execute the command
+    const command: Command = new ChangeConnectorTypeCommand(
+      diagramId,
+      rightClickedConnectorId,
+      updateData,
+      updateConnectorFn,
+      getConnectorFn,
+      updateLocalConnector // Pass local state updater for immediate visual feedback
+    );
+
+    await commandManager.execute(command, diagramId);
+  }, [rightClickedConnectorId, diagramId, updateLocalConnector]);
+
   // Configure toolbar buttons
-  const toolbarButtons: ToolbarButton[] = useMemo(
-    () => [
-      {
-        id: 'grid-snap',
-        icon: <TbGridDots size={16} />,
-        onClick: () => setGridSnappingEnabled(!gridSnappingEnabled),
-        tooltip: gridSnappingEnabled ? 'Disable grid snapping' : 'Enable grid snapping (10px)',
-        active: gridSnappingEnabled,
-      },
-    ],
-    [gridSnappingEnabled, setGridSnappingEnabled]
-  );
+  const toolbarButtons: ToolbarButton[] = useMemo(() => {
+    const buttons: ToolbarButton[] = [];
+
+    // Only show connector button for BPMN and Class diagrams
+    if (diagram?.type === 'bpmn' || diagram?.type === 'class') {
+      buttons.push({
+        id: 'connector-type',
+        icon: activeConnectorIcon,
+        onClick: handleConnectorToolbarClick,
+        tooltip: 'Select connector type',
+        active: false,
+      });
+    }
+
+    buttons.push({
+      id: 'grid-snap',
+      icon: <TbGridDots size={16} />,
+      onClick: () => setGridSnappingEnabled(!gridSnappingEnabled),
+      tooltip: gridSnappingEnabled ? 'Disable grid snapping' : 'Enable grid snapping (10px)',
+      active: gridSnappingEnabled,
+    });
+
+    return buttons;
+  }, [diagram?.type, activeConnectorIcon, handleConnectorToolbarClick, gridSnappingEnabled, setGridSnappingEnabled]);
 
   if (loading) {
     return (
@@ -614,9 +760,11 @@ export function Canvas({ diagramId }: CanvasProps) {
           onClassAddAttribute={addAttribute}
           onClassDeleteAttribute={deleteAttribute}
           onClassUpdateAttribute={updateAttribute}
+          onClassUpdateAttributeLocal={updateAttributeLocal}
           onClassAddMethod={addMethod}
           onClassDeleteMethod={deleteMethod}
           onClassUpdateMethod={updateMethod}
+          onClassUpdateMethodLocal={updateMethodLocal}
         />
 
         {/* Render all connectors */}
@@ -698,6 +846,32 @@ export function Canvas({ diagramId }: CanvasProps) {
 
       {/* Canvas Toolbar */}
       <CanvasToolbar placement="bottom" buttons={toolbarButtons} />
+
+      {/* Connector Toolset Popover */}
+      {isConnectorPopoverOpen && connectorPopoverPosition && (
+        <ConnectorToolsetPopover
+          x={connectorPopoverPosition.x}
+          y={connectorPopoverPosition.y}
+          isOpen={isConnectorPopoverOpen}
+          onClose={handleCloseConnectorPopover}
+          onConnectorSelect={handleConnectorSelect}
+          connectorTools={availableConnectorTools}
+          activeConnectorType={activeConnectorType}
+        />
+      )}
+
+      {/* Connector Context Menu (right-click on connector) */}
+      {isConnectorContextMenuOpen && connectorContextMenuPosition && rightClickedConnectorId && (
+        <ConnectorContextMenu
+          x={connectorContextMenuPosition.x}
+          y={connectorContextMenuPosition.y}
+          isOpen={isConnectorContextMenuOpen}
+          onClose={handleCloseConnectorContextMenu}
+          onConnectorTypeChange={handleConnectorTypeChange}
+          connectorTools={availableConnectorTools}
+          currentConnectorType={connectors.find(c => c.id === rightClickedConnectorId)?.type}
+        />
+      )}
 
       {/* Debug info (optional - can be removed) */}
       <CanvasDebugInfo diagramId={diagramId} zoom={zoom} shapesCount={shapes.length} />

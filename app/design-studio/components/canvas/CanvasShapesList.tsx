@@ -15,16 +15,18 @@ interface CanvasShapesListProps {
   onDoubleClick: (shapeId: string) => void;
   onLabelChange: (entityId: string, entityType: 'shape' | 'connector', newLabel: string) => void;
   onFinishEditing: () => void;
-  onConnectionPointMouseDown: (pointId: string, direction: 'N' | 'S' | 'E' | 'W', e: React.MouseEvent) => void;
-  onConnectionPointMouseUp: (pointId: string, direction: 'N' | 'S' | 'E' | 'W', e: React.MouseEvent) => Promise<void>;
+  onConnectionPointMouseDown: (connectionPointId: string, e: React.MouseEvent) => void;
+  onConnectionPointMouseUp: (connectionPointId: string, e: React.MouseEvent) => Promise<void>;
   // Class shape editing callbacks
   onClassStereotypeChange?: (shapeId: string, stereotype: string | undefined) => void;
   onClassAddAttribute?: (shapeId: string) => void;
   onClassDeleteAttribute?: (shapeId: string, attributeIndex: number) => void;
   onClassUpdateAttribute?: (shapeId: string, attributeIndex: number, newValue: string) => void;
+  onClassUpdateAttributeLocal?: (shapeId: string, attributeIndex: number, newValue: string) => void;
   onClassAddMethod?: (shapeId: string) => void;
   onClassDeleteMethod?: (shapeId: string, methodIndex: number) => void;
   onClassUpdateMethod?: (shapeId: string, methodIndex: number, newValue: string) => void;
+  onClassUpdateMethodLocal?: (shapeId: string, methodIndex: number, newValue: string) => void;
 }
 
 /**
@@ -49,9 +51,11 @@ export function CanvasShapesList({
   onClassAddAttribute,
   onClassDeleteAttribute,
   onClassUpdateAttribute,
+  onClassUpdateAttributeLocal,
   onClassAddMethod,
   onClassDeleteMethod,
   onClassUpdateMethod,
+  onClassUpdateMethodLocal,
 }: CanvasShapesListProps) {
   return (
     <>
@@ -83,9 +87,11 @@ export function CanvasShapesList({
             onClassAddAttribute={onClassAddAttribute}
             onClassDeleteAttribute={onClassDeleteAttribute}
             onClassUpdateAttribute={onClassUpdateAttribute}
+            onClassUpdateAttributeLocal={onClassUpdateAttributeLocal}
             onClassAddMethod={onClassAddMethod}
             onClassDeleteMethod={onClassDeleteMethod}
             onClassUpdateMethod={onClassUpdateMethod}
+            onClassUpdateMethodLocal={onClassUpdateMethodLocal}
           />
         );
       })}

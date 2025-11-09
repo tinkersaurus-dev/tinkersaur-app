@@ -47,6 +47,9 @@ export interface CanvasInstanceState {
   // Grid snapping
   gridSnappingEnabled: boolean;
 
+  // Active connector type (ephemeral - for new connectors being drawn)
+  activeConnectorType: string;
+
   // Content initialization
   initializeContent: (shapes: Shape[], connectors: Connector[]) => void;
 
@@ -74,6 +77,7 @@ export interface CanvasInstanceState {
   setEditingEntity: (id: string, type: 'shape' | 'connector', originalLabel: string | undefined) => void;
   clearEditingEntity: () => void;
   setGridSnappingEnabled: (enabled: boolean) => void;
+  setActiveConnectorType: (connectorType: string) => void;
   reset: () => void;
 }
 
@@ -83,7 +87,7 @@ export interface CanvasInstanceState {
  * This ensures complete isolation between multiple open canvases.
  * Each call creates an independent store with its own state.
  */
-export function createCanvasInstanceStore(diagramId: string) {
+export function createCanvasInstanceStore(diagramId: string, initialConnectorType = 'sequence-flow') {
   return create<CanvasInstanceState>((set) => ({
     // Initial state
     diagramId,
@@ -102,6 +106,7 @@ export function createCanvasInstanceStore(diagramId: string) {
     editingEntityType: null,
     editingOriginalLabel: undefined,
     gridSnappingEnabled: false,
+    activeConnectorType: initialConnectorType,
 
     // Content initialization - load from entity store
     initializeContent: (shapes, connectors) =>
@@ -236,6 +241,12 @@ export function createCanvasInstanceStore(diagramId: string) {
         gridSnappingEnabled: enabled,
       }),
 
+    // Active connector type actions
+    setActiveConnectorType: (connectorType) =>
+      set({
+        activeConnectorType: connectorType,
+      }),
+
     // Reset to initial state
     reset: () =>
       set({
@@ -254,6 +265,7 @@ export function createCanvasInstanceStore(diagramId: string) {
         editingEntityType: null,
         editingOriginalLabel: undefined,
         gridSnappingEnabled: false,
+        activeConnectorType: initialConnectorType,
       }),
   }));
 }

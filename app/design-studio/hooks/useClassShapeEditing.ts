@@ -101,7 +101,7 @@ export function useClassShapeEditing({
   );
 
   /**
-   * Update an existing attribute
+   * Update an existing attribute (persists to database)
    */
   const updateAttribute = useCallback(
     async (shapeId: string, attributeIndex: number, newValue: string) => {
@@ -128,6 +128,33 @@ export function useClassShapeEditing({
       await executeCommand(command);
     },
     [diagramId, updateShape, getShape, updateLocalShape, executeCommand]
+  );
+
+  /**
+   * Update attribute locally only (does NOT persist to database)
+   * Used during typing to avoid saving on every keystroke
+   */
+  const updateAttributeLocal = useCallback(
+    (shapeId: string, attributeIndex: number, newValue: string) => {
+      const shape = getShape(shapeId);
+      if (!shape) return;
+
+      const currentData = (shape.data || {}) as unknown as ClassShapeData;
+      const attributes = currentData.attributes || [];
+
+      const newAttributes = [...attributes];
+      newAttributes[attributeIndex] = newValue;
+
+      const newData: ClassShapeData = {
+        ...currentData,
+        attributes: newAttributes,
+      };
+
+      updateLocalShape?.(shapeId, {
+        data: newData as unknown as Record<string, unknown>,
+      });
+    },
+    [getShape, updateLocalShape]
   );
 
   /**
@@ -169,7 +196,7 @@ export function useClassShapeEditing({
   );
 
   /**
-   * Update an existing method
+   * Update an existing method (persists to database)
    */
   const updateMethod = useCallback(
     async (shapeId: string, methodIndex: number, newValue: string) => {
@@ -198,13 +225,42 @@ export function useClassShapeEditing({
     [diagramId, updateShape, getShape, updateLocalShape, executeCommand]
   );
 
+  /**
+   * Update method locally only (does NOT persist to database)
+   * Used during typing to avoid saving on every keystroke
+   */
+  const updateMethodLocal = useCallback(
+    (shapeId: string, methodIndex: number, newValue: string) => {
+      const shape = getShape(shapeId);
+      if (!shape) return;
+
+      const currentData = (shape.data || {}) as unknown as ClassShapeData;
+      const methods = currentData.methods || [];
+
+      const newMethods = [...methods];
+      newMethods[methodIndex] = newValue;
+
+      const newData: ClassShapeData = {
+        ...currentData,
+        methods: newMethods,
+      };
+
+      updateLocalShape?.(shapeId, {
+        data: newData as unknown as Record<string, unknown>,
+      });
+    },
+    [getShape, updateLocalShape]
+  );
+
   return {
     updateStereotype,
     addAttribute,
     deleteAttribute,
     updateAttribute,
+    updateAttributeLocal,
     addMethod,
     deleteMethod,
     updateMethod,
+    updateMethodLocal,
   };
 }

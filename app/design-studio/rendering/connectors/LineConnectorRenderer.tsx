@@ -1,9 +1,12 @@
 import React from 'react';
 import type { ConnectorRendererProps } from './types';
-import type { ConnectionPointDirection } from '~/core/entities/design-studio/types/Connector';
 import { EditableLabel } from '../../components/canvas/EditableLabel';
 import { getPathMidpoint, type Point } from '../../utils/pathUtils';
 import { findOptimalConnectionPoints } from '../../utils/canvas';
+import { getConnectionPointsForShape } from '../../utils/connectionPoints';
+
+// Connection point direction for routing
+type ConnectionPointDirection = 'N' | 'S' | 'E' | 'W';
 
 /**
  * LineConnectorRenderer
@@ -38,9 +41,14 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   }
 
   // DYNAMIC CONNECTION POINT SELECTION
-  // Instead of using stored connection points, we calculate the closest pair
-  // This ensures connectors always connect optimally even when shapes move
+  // Get connection points from shapes based on their type
+  const sourceConnectionPoints = getConnectionPointsForShape(sourceShape.type);
+  const targetConnectionPoints = getConnectionPointsForShape(targetShape.type);
+
+  // Calculate the closest pair to ensure connectors always connect optimally
   const { sourceDirection, targetDirection, start, end } = findOptimalConnectionPoints(
+    sourceConnectionPoints,
+    targetConnectionPoints,
     sourceShape,
     targetShape
   );
@@ -70,17 +78,19 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   // Line style
   const strokeDasharray = getStrokeDasharray(connector.lineType, strokeWidth);
 
-  // Arrow head marker ID
-  const markerId = `arrow-${connector.id}`;
+  // Marker IDs - use new markerStart/markerEnd if available, fallback to arrowType for backwards compatibility
+  const markerStartType = connector.markerStart || 'none';
+  const markerEndType = connector.markerEnd || connector.arrowType || 'arrow';
+  const markerStartId = `marker-start-${connector.id}`;
+  const markerEndId = `marker-end-${connector.id}`;
 
   return (
     <g>
-      {/* Define arrow head marker if needed */}
-      {connector.arrowType !== 'none' && (
-        <defs>
-          {getArrowMarker(markerId, connector.arrowType, strokeColor, strokeWidth)}
-        </defs>
-      )}
+      {/* Define markers if needed */}
+      <defs>
+        {markerStartType !== 'none' && getMarker(markerStartId, markerStartType, strokeColor, strokeWidth)}
+        {markerEndType !== 'none' && getMarker(markerEndId, markerEndType, strokeColor, strokeWidth)}
+      </defs>
 
       {/* Invisible wider path for easier clicking */}
       <path
@@ -107,7 +117,8 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
-        markerEnd={connector.arrowType !== 'none' ? `url(#${markerId})` : undefined}
+        markerStart={markerStartType !== 'none' ? `url(#${markerStartId})` : undefined}
+        markerEnd={markerEndType !== 'none' ? `url(#${markerEndId})` : undefined}
         pointerEvents="none"
       />
 
@@ -284,17 +295,17 @@ function getStrokeDasharray(lineType: string, strokeWidth: number): string | und
 }
 
 /**
- * Generate arrow marker SVG element
+ * Generate marker SVG element (arrow heads, diamonds, etc.)
  */
-function getArrowMarker(
+function getMarker(
   id: string,
-  arrowType: string,
+  markerType: string,
   color: string,
   strokeWidth: number
 ): React.ReactNode {
   const markerSize = 8;
 
-  switch (arrowType) {
+  switch (markerType) {
     case 'arrow':
       return (
         <marker
@@ -307,6 +318,22 @@ function getArrowMarker(
           orient="auto-start-reverse"
         >
           <path d="M 0 0 L 10 5 L 0 10 z" fill={color} />
+        </marker>
+      );
+
+    case 'triangle':
+      // Hollow triangle (for inheritance/generalization)
+      return (
+        <marker
+          id={id}
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth={markerSize}
+          markerHeight={markerSize}
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="white" stroke={color} strokeWidth={strokeWidth} />
         </marker>
       );
 
@@ -326,6 +353,7 @@ function getArrowMarker(
       );
 
     case 'diamond':
+      // Hollow diamond (for aggregation)
       return (
         <marker
           id={id}
@@ -336,7 +364,39 @@ function getArrowMarker(
           markerHeight={markerSize}
           orient="auto"
         >
-          <path d="M 5 0 L 10 5 L 5 10 L 0 5 z" fill="none" stroke={color} strokeWidth={strokeWidth} />
+          <path d="M 5 0 L 10 5 L 5 10 L 0 5 z" fill="white" stroke={color} strokeWidth={strokeWidth} />
+        </marker>
+      );
+
+    case 'filled-diamond':
+      // Filled diamond (for composition)
+      return (
+        <marker
+          id={id}
+          viewBox="0 0 10 10"
+          refX="5"
+          refY="5"
+          markerWidth={markerSize}
+          markerHeight={markerSize}
+          orient="auto"
+        >
+          <path d="M 5 0 L 10 5 L 5 10 L 0 5 z" fill={color} />
+        </marker>
+      );
+
+    case 'filled-triangle':
+      // Filled triangle (same as arrow, for consistency)
+      return (
+        <marker
+          id={id}
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth={markerSize}
+          markerHeight={markerSize}
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill={color} />
         </marker>
       );
 

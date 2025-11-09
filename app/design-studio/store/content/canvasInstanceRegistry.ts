@@ -1,4 +1,7 @@
 import { createCanvasInstanceStore, type CanvasInstanceStore } from './createCanvasInstanceStore';
+import { defaultBpmnConnectorType } from '~/design-studio/config/bpmn-connectors';
+import { defaultClassConnectorType } from '~/design-studio/config/class-connectors';
+import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 
 /**
  * Canvas Instance Registry
@@ -22,9 +25,17 @@ class CanvasInstanceRegistry {
    * If a store already exists for this diagramId, return the existing one.
    * Otherwise, create a new store instance.
    */
-  getStore(diagramId: string): CanvasInstanceStore {
+  getStore(diagramId: string, diagramType?: DiagramType): CanvasInstanceStore {
     if (!this.stores.has(diagramId)) {
-      const store = createCanvasInstanceStore(diagramId);
+      // Determine default connector type based on diagram type
+      let initialConnectorType = 'sequence-flow'; // fallback default
+      if (diagramType === 'bpmn') {
+        initialConnectorType = defaultBpmnConnectorType;
+      } else if (diagramType === 'class') {
+        initialConnectorType = defaultClassConnectorType;
+      }
+
+      const store = createCanvasInstanceStore(diagramId, initialConnectorType);
       this.stores.set(diagramId, store);
     }
 

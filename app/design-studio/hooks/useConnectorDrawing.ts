@@ -2,10 +2,11 @@ import { useState } from 'react';
 import type { RefObject } from 'react';
 import { screenToCanvas } from '../utils/canvas';
 import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
+import type { ConnectorTool } from '../config/bpmn-connectors';
 
 export interface DrawingConnector {
   fromShapeId: string;
-  fromDirection: 'N' | 'S' | 'E' | 'W';
+  fromConnectionPointId: string;
   currentX: number;
   currentY: number;
 }
@@ -16,14 +17,16 @@ interface UseConnectorDrawingProps {
   panX: number;
   panY: number;
   addConnector: (connector: CreateConnectorDTO) => Promise<void>;
+  activeConnectorType: string;
+  getConnectorConfig: (connectorType: string) => ConnectorTool | undefined;
 }
 
 interface UseConnectorDrawingReturn {
   drawingConnector: DrawingConnector | null;
   setDrawingConnector: (connector: DrawingConnector | null) => void;
-  startDrawingConnector: (pointId: string, direction: 'N' | 'S' | 'E' | 'W', e: React.MouseEvent) => void;
+  startDrawingConnector: (connectionPointId: string, e: React.MouseEvent) => void;
   updateDrawingConnector: (screenX: number, screenY: number) => void;
-  finishDrawingConnector: (pointId: string, direction: 'N' | 'S' | 'E' | 'W', e: React.MouseEvent) => Promise<void>;
+  finishDrawingConnector: (connectionPointId: string, e: React.MouseEvent) => Promise<void>;
   cancelDrawingConnector: () => void;
 }
 
@@ -36,17 +39,21 @@ export function useConnectorDrawing({
   panX,
   panY,
   addConnector,
+  activeConnectorType,
+  getConnectorConfig,
 }: UseConnectorDrawingProps): UseConnectorDrawingReturn {
   const [drawingConnector, setDrawingConnector] = useState<DrawingConnector | null>(null);
 
-  const startDrawingConnector = (pointId: string, direction: 'N' | 'S' | 'E' | 'W', e: React.MouseEvent) => {
+  const startDrawingConnector = (connectionPointId: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
     const container = containerRef.current;
     if (!container) return;
 
-    // Parse shape ID from point ID (format: "{shapeId}-{direction}")
-    const shapeId = pointId.split('-').slice(0, -1).join('-');
+    // Parse shape ID from connection point ID (format: "{shapeId}-{connectionPointId}")
+    // For now, we'll assume the last part after the last dash is the connection point ID
+    const parts = connectionPointId.split('-');
+    const shapeId = parts.slice(0, -1).join('-');
 
     // Get current mouse position in canvas coordinates
     const rect = container.getBoundingClientRect();
@@ -57,7 +64,7 @@ export function useConnectorDrawing({
     // Start drawing connector
     setDrawingConnector({
       fromShapeId: shapeId,
-      fromDirection: direction,
+      fromConnectionPointId: connectionPointId,
       currentX: canvasX,
       currentY: canvasY,
     });
@@ -73,13 +80,14 @@ export function useConnectorDrawing({
     );
   };
 
-  const finishDrawingConnector = async (pointId: string, direction: 'N' | 'S' | 'E' | 'W', e: React.MouseEvent) => {
+  const finishDrawingConnector = async (connectionPointId: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
     if (!drawingConnector) return;
 
-    // Parse shape ID from point ID
-    const toShapeId = pointId.split('-').slice(0, -1).join('-');
+    // Parse shape ID from connection point ID
+    const parts = connectionPointId.split('-');
+    const toShapeId = parts.slice(0, -1).join('-');
 
     // Don't allow connecting to the same shape
     if (toShapeId === drawingConnector.fromShapeId) {
@@ -87,17 +95,29 @@ export function useConnectorDrawing({
       return;
     }
 
+    // Get the config for the active connector type
+    const connectorConfig = getConnectorConfig(activeConnectorType);
+
+    // Fallback to defaults if config not found
+    const type = connectorConfig?.connectorType || 'line';
+    const style = connectorConfig?.style || 'orthogonal';
+    const markerStart = connectorConfig?.markerStart || 'none';
+    const markerEnd = connectorConfig?.markerEnd || 'arrow';
+    const lineType = connectorConfig?.lineType || 'solid';
+
     // Create connector via command (with undo/redo support)
     // NOTE: We omit sourceConnectionPoint and targetConnectionPoint
     // The renderer will dynamically calculate the closest connection points
     await addConnector({
-      type: 'line',
+      type,
       sourceShapeId: drawingConnector.fromShapeId,
       targetShapeId: toShapeId,
       // Connection points are omitted - they'll be calculated dynamically
-      style: 'orthogonal',
-      arrowType: 'arrow',
-      lineType: 'solid',
+      style,
+      arrowType: markerEnd, // Keep for backwards compatibility
+      markerStart,
+      markerEnd,
+      lineType,
       zIndex: 0,
     });
 

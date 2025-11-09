@@ -9,6 +9,7 @@ import { FaTimes, FaCircle, FaPlus } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/EditableLabel';
+import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 
 export function BpmnGatewayRenderer({
   shape,
@@ -25,6 +26,15 @@ export function BpmnGatewayRenderer({
 }: ShapeRendererProps): React.ReactElement {
   const { x, y, width, height, subtype } = shape;
   const { isSelected, isHovered, zoom } = context;
+
+  // Wrap connection point handlers to prepend shape ID
+  const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
+    onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
+  };
+
+  const handleConnectionPointMouseUp = (connectionPointId: string, e: React.MouseEvent) => {
+    onConnectionPointMouseUp?.(`${shape.id}-${connectionPointId}`, e);
+  };
 
   // Gateways are diamonds (squares rotated 45 degrees)
   // The width/height represent the DIAGONAL span, so we need to divide by √2
@@ -189,46 +199,20 @@ export function BpmnGatewayRenderer({
       )}
 
       {/* Connection points when hovered (placed at actual N/S/E/W of the bounding box) */}
-      {isHovered && onConnectionPointMouseDown && onConnectionPointMouseUp && (
-        <>
+      {isHovered &&
+        onConnectionPointMouseDown &&
+        onConnectionPointMouseUp &&
+        STANDARD_RECTANGLE_CONNECTION_POINTS.map((connectionPoint) => (
           <ConnectionPointRenderer
-            pointId={`${shape.id}-N`}
-            direction="N"
+            key={connectionPoint.id}
+            connectionPoint={connectionPoint}
             shapeWidth={desiredDiagonal}
             shapeHeight={desiredDiagonal}
             zoom={zoom}
-            onMouseDown={onConnectionPointMouseDown}
-            onMouseUp={onConnectionPointMouseUp}
+            onMouseDown={handleConnectionPointMouseDown}
+            onMouseUp={handleConnectionPointMouseUp}
           />
-          <ConnectionPointRenderer
-            pointId={`${shape.id}-S`}
-            direction="S"
-            shapeWidth={desiredDiagonal}
-            shapeHeight={desiredDiagonal}
-            zoom={zoom}
-            onMouseDown={onConnectionPointMouseDown}
-            onMouseUp={onConnectionPointMouseUp}
-          />
-          <ConnectionPointRenderer
-            pointId={`${shape.id}-E`}
-            direction="E"
-            shapeWidth={desiredDiagonal}
-            shapeHeight={desiredDiagonal}
-            zoom={zoom}
-            onMouseDown={onConnectionPointMouseDown}
-            onMouseUp={onConnectionPointMouseUp}
-          />
-          <ConnectionPointRenderer
-            pointId={`${shape.id}-W`}
-            direction="W"
-            shapeWidth={desiredDiagonal}
-            shapeHeight={desiredDiagonal}
-            zoom={zoom}
-            onMouseDown={onConnectionPointMouseDown}
-            onMouseUp={onConnectionPointMouseUp}
-          />
-        </>
-      )}
+        ))}
     </div>
   );
 }

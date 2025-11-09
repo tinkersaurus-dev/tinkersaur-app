@@ -5,6 +5,8 @@
  * zoom constraints, and other canvas-related calculations.
  */
 
+import { getConnectionPointsForShape } from './connectionPoints';
+
 /**
  * Snap a coordinate to the nearest grid point
  *
@@ -321,14 +323,23 @@ export function distance(
 export function getConnectorBounds(
   connector: {
     style: 'straight' | 'orthogonal' | 'curved';
-    sourceConnectionPoint?: 'N' | 'S' | 'E' | 'W';
-    targetConnectionPoint?: 'N' | 'S' | 'E' | 'W';
+    sourceConnectionPoint?: string;
+    targetConnectionPoint?: string;
   },
-  sourceShape: { x: number; y: number; width: number; height: number },
-  targetShape: { x: number; y: number; width: number; height: number }
+  sourceShape: { x: number; y: number; width: number; height: number; type: string },
+  targetShape: { x: number; y: number; width: number; height: number; type: string }
 ): { left: number; right: number; top: number; bottom: number } {
+  // Get connection points from shapes
+  const sourceConnectionPoints = getConnectionPointsForShape(sourceShape.type);
+  const targetConnectionPoints = getConnectionPointsForShape(targetShape.type);
+
   // Calculate connection points (same logic as LineConnectorRenderer)
-  const { start, end } = findOptimalConnectionPoints(sourceShape, targetShape);
+  const { start, end } = findOptimalConnectionPoints(
+    sourceConnectionPoints,
+    targetConnectionPoints,
+    sourceShape,
+    targetShape
+  );
 
   // For straight and curved connectors, we can use a simple bounding box
   // For orthogonal, we need to account for the path segments
@@ -359,39 +370,57 @@ export function getConnectorBounds(
  * This calculates the shortest distance between all possible connection point pairs
  * and returns the best match, ensuring connectors always connect optimally.
  *
- * @param sourceShape - The source shape to connect from
- * @param targetShape - The target shape to connect to
- * @returns Object containing optimal connection directions and start/end points
+ * @param sourceConnectionPoints - Available connection points on the source shape
+ * @param targetConnectionPoints - Available connection points on the target shape
+ * @param sourceBounds - The source shape bounds
+ * @param targetBounds - The target shape bounds
+ * @returns Object containing optimal connection point IDs, directions, and start/end positions
  */
 export function findOptimalConnectionPoints(
-  sourceShape: { x: number; y: number; width: number; height: number },
-  targetShape: { x: number; y: number; width: number; height: number }
+  sourceConnectionPoints: Array<{
+    id: string;
+    position: { x: number; y: number };
+    direction: 'N' | 'S' | 'E' | 'W';
+  }>,
+  targetConnectionPoints: Array<{
+    id: string;
+    position: { x: number; y: number };
+    direction: 'N' | 'S' | 'E' | 'W';
+  }>,
+  sourceBounds: { x: number; y: number; width: number; height: number },
+  targetBounds: { x: number; y: number; width: number; height: number }
 ): {
+  sourceConnectionPointId: string;
+  targetConnectionPointId: string;
   sourceDirection: 'N' | 'S' | 'E' | 'W';
   targetDirection: 'N' | 'S' | 'E' | 'W';
   start: { x: number; y: number };
   end: { x: number; y: number };
 } {
-  const DIRECTIONS: Array<'N' | 'S' | 'E' | 'W'> = ['N', 'S', 'E', 'W'];
-
   let minDistance = Infinity;
-  let bestSourceDir: 'N' | 'S' | 'E' | 'W' = 'E';
-  let bestTargetDir: 'N' | 'S' | 'E' | 'W' = 'W';
+  let bestSourcePoint = sourceConnectionPoints[0];
+  let bestTargetPoint = targetConnectionPoints[0];
   let bestStart = { x: 0, y: 0 };
   let bestEnd = { x: 0, y: 0 };
 
-  for (const sourceDir of DIRECTIONS) {
-    const sourcePos = calcConnectionPoint(sourceShape, sourceDir);
+  for (const sourcePoint of sourceConnectionPoints) {
+    const sourcePos = {
+      x: sourceBounds.x + sourcePoint.position.x * sourceBounds.width,
+      y: sourceBounds.y + sourcePoint.position.y * sourceBounds.height,
+    };
 
-    for (const targetDir of DIRECTIONS) {
-      const targetPos = calcConnectionPoint(targetShape, targetDir);
+    for (const targetPoint of targetConnectionPoints) {
+      const targetPos = {
+        x: targetBounds.x + targetPoint.position.x * targetBounds.width,
+        y: targetBounds.y + targetPoint.position.y * targetBounds.height,
+      };
 
       const dist = Math.hypot(targetPos.x - sourcePos.x, targetPos.y - sourcePos.y);
 
       if (dist < minDistance) {
         minDistance = dist;
-        bestSourceDir = sourceDir;
-        bestTargetDir = targetDir;
+        bestSourcePoint = sourcePoint;
+        bestTargetPoint = targetPoint;
         bestStart = sourcePos;
         bestEnd = targetPos;
       }
@@ -399,32 +428,15 @@ export function findOptimalConnectionPoints(
   }
 
   return {
-    sourceDirection: bestSourceDir,
-    targetDirection: bestTargetDir,
+    sourceConnectionPointId: bestSourcePoint.id,
+    targetConnectionPointId: bestTargetPoint.id,
+    sourceDirection: bestSourcePoint.direction,
+    targetDirection: bestTargetPoint.direction,
     start: bestStart,
     end: bestEnd,
   };
 }
 
-/**
- * Calculate connection point position on a shape
- */
-function calcConnectionPoint(
-  shape: { x: number; y: number; width: number; height: number },
-  direction: 'N' | 'S' | 'E' | 'W'
-): { x: number; y: number } {
-  const { x, y, width, height } = shape;
-  switch (direction) {
-    case 'N':
-      return { x: x + width / 2, y };
-    case 'S':
-      return { x: x + width / 2, y: y + height };
-    case 'E':
-      return { x: x + width, y: y + height / 2 };
-    case 'W':
-      return { x, y: y + height / 2 };
-  }
-}
 
 /**
  * Get orthogonal path points for bounding box calculation

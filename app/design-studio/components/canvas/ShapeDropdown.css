@@ -1,6 +1,6 @@
 .shape-dropdown {
-  background: var(--canvas-label-editing-fill, #fff);
-  border: 1px solid var(--canvas-label-editing-border, #ddd);
+  background: var(--bg);
+  border: none;
   border-radius: 2px;
   padding: 2px 4px;
   cursor: pointer;
