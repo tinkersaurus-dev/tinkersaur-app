@@ -98,6 +98,10 @@ interface DesignStudioEntityStore {
   _internalRestoreConnector: (diagramId: string, connector: Connector) => Promise<Diagram | null>;
   _internalGetConnector: (diagramId: string, connectorId: string) => Promise<Connector | null>;
 
+  // Batch connector actions (used by commands for atomic operations)
+  _internalDeleteConnectorsBatch: (diagramId: string, connectorIds: string[]) => Promise<Diagram | null>;
+  _internalRestoreConnectorsBatch: (diagramId: string, connectors: Connector[]) => Promise<Diagram | null>;
+
   // Utility actions
   initializeData: () => void;
 }
@@ -1249,13 +1253,16 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
   deleteShape: async (diagramId: string, shapeId: string) => {
     try {
-      // Create and execute command
+      // Create and execute command with batch connector deletion support
       const command = new DeleteShapeCommand(
         diagramId,
         shapeId,
         get()._internalGetShape,
         get()._internalDeleteShape,
-        get()._internalRestoreShape
+        get()._internalRestoreShape,
+        (id: string) => get().diagrams[id] ?? null,
+        get()._internalDeleteConnectorsBatch,
+        get()._internalRestoreConnectorsBatch
       );
       await commandManager.execute(command, diagramId);
     } catch (error) {
@@ -1280,6 +1287,10 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
           [diagramId]: updatedDiagram,
         },
       }));
+
+      // Update canvas instance local state
+      const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
+      canvasInstance.getState().removeLocalShape(shapeId);
     }
 
     return updatedDiagram;
@@ -1298,6 +1309,10 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
         [diagramId]: updatedDiagram,
       },
     }));
+
+    // Update canvas instance local state
+    const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
+    canvasInstance.getState().addLocalShape(shape);
 
     return updatedDiagram;
   },
@@ -1479,6 +1494,58 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
     const connector = diagram.connectors.find((c) => c.id === connectorId);
     return connector ?? null;
+  },
+
+  _internalDeleteConnectorsBatch: async (diagramId: string, connectorIds: string[]) => {
+    if (connectorIds.length === 0) {
+      return get().diagrams[diagramId] ?? null;
+    }
+
+    const updatedDiagram = await diagramApi.deleteConnectorsByIds(diagramId, connectorIds);
+
+    if (updatedDiagram) {
+      set((state) => ({
+        diagrams: {
+          ...state.diagrams,
+          [diagramId]: updatedDiagram,
+        },
+      }));
+
+      // Update canvas instance local state - remove all connectors at once
+      const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
+      connectorIds.forEach((connectorId) => {
+        canvasInstance.getState().removeLocalConnector(connectorId);
+      });
+    }
+
+    return updatedDiagram;
+  },
+
+  _internalRestoreConnectorsBatch: async (diagramId: string, connectors: Connector[]) => {
+    if (connectors.length === 0) {
+      return get().diagrams[diagramId] ?? null;
+    }
+
+    const updatedDiagram = await diagramApi.restoreConnectors(diagramId, connectors);
+
+    if (!updatedDiagram) {
+      throw new Error(`Diagram ${diagramId} not found`);
+    }
+
+    set((state) => ({
+      diagrams: {
+        ...state.diagrams,
+        [diagramId]: updatedDiagram,
+      },
+    }));
+
+    // Update canvas instance local state - add all connectors at once
+    const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
+    connectors.forEach((connector) => {
+      canvasInstance.getState().addLocalConnector(connector);
+    });
+
+    return updatedDiagram;
   },
 
   // Utility actions

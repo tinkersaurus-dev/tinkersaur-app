@@ -436,6 +436,62 @@ class DiagramApi {
     return diagrams[index];
   }
 
+  /**
+   * Delete multiple connectors by their IDs in a single operation
+   * Used for batch deletion to ensure atomic operations
+   */
+  async deleteConnectorsByIds(diagramId: string, connectorIds: string[]): Promise<Diagram | null> {
+    await simulateDelay();
+
+    const diagrams = getDiagramsFromStorage();
+    const index = diagrams.findIndex((d: Diagram) => d.id === diagramId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    // Defensive: Initialize connectors array if undefined
+    if (!diagrams[index].connectors) {
+      diagrams[index].connectors = [];
+    }
+
+    // Remove all connectors with matching IDs
+    diagrams[index].connectors = diagrams[index].connectors.filter(
+      (c: Connector) => !connectorIds.includes(c.id)
+    );
+    diagrams[index].updatedAt = new Date();
+
+    saveToStorage(STORAGE_KEY, diagrams);
+    return diagrams[index];
+  }
+
+  /**
+   * Restore multiple connectors at once in a single operation
+   * Used for batch restore to ensure atomic operations during undo
+   */
+  async restoreConnectors(diagramId: string, connectors: Connector[]): Promise<Diagram | null> {
+    await simulateDelay();
+
+    const diagrams = getDiagramsFromStorage();
+    const index = diagrams.findIndex((d: Diagram) => d.id === diagramId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    // Defensive: Initialize connectors array if undefined
+    if (!diagrams[index].connectors) {
+      diagrams[index].connectors = [];
+    }
+
+    // Add all connectors with their preserved IDs
+    diagrams[index].connectors.push(...connectors);
+    diagrams[index].updatedAt = new Date();
+
+    saveToStorage(STORAGE_KEY, diagrams);
+    return diagrams[index];
+  }
+
 }
 
 export const diagramApi = new DiagramApi();

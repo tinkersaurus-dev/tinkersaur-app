@@ -42,6 +42,7 @@ export function Dropdown({
   const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
   const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   // Calculate menu position when menu opens or position dependencies change
@@ -140,6 +141,11 @@ export function Dropdown({
 
   const handleTriggerMouseEnter = () => {
     if (trigger === 'hover') {
+      // Clear any pending timeout
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+        hoverTimeoutRef.current = null;
+      }
       if (!isControlled) {
         setInternalIsOpen(true);
       }
@@ -148,13 +154,27 @@ export function Dropdown({
 
   const handleTriggerMouseLeave = () => {
     if (trigger === 'hover') {
-      setTimeout(() => {
+      // Clear any existing timeout before setting a new one
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+      hoverTimeoutRef.current = setTimeout(() => {
         if (!isControlled) {
           setInternalIsOpen(false);
         }
+        hoverTimeoutRef.current = null;
       }, 200);
     }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleMenuItemClick = (item: DropdownMenuItem) => {
     if (!item.disabled && item.onClick) {

@@ -147,12 +147,14 @@ export function EditableLabel({
           />
         </div>
       ) : (
-        <div
-          className={displayClassName}
-          style={displayStyle}
-        >
-          {label || ''}
-        </div>
+        label && (
+          <div
+            className={displayClassName}
+            style={displayStyle}
+          >
+            {label}
+          </div>
+        )
       )}
     </div>
   );

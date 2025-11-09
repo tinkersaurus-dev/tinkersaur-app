@@ -101,7 +101,7 @@ export function Canvas({ diagramId }: CanvasProps) {
 
   // Get persisted canvas data from entity store (for initialization only)
   const { diagram, loading } = useDiagram(diagramId);
-  const { addShape, updateShapes, addConnector, deleteConnector } = useDiagramCRUD(diagramId);
+  const { addShape, updateShapes, addConnector, deleteConnector, deleteShape } = useDiagramCRUD(diagramId);
   const updateShapeLabel = useDesignStudioEntityStore((state) => state.updateShapeLabel);
   const updateConnectorLabel = useDesignStudioEntityStore((state) => state.updateConnectorLabel);
   const entityShapes = useMemo(() => diagram?.shapes || [], [diagram?.shapes]);
@@ -248,8 +248,11 @@ export function Canvas({ diagramId }: CanvasProps) {
 
   useCanvasKeyboardHandlers({
     selectedConnectorIds,
+    selectedShapeIds,
     deleteConnector,
+    deleteShape,
     setSelectedConnectors,
+    setSelectedShapes,
   });
 
   // Handle mouse down for panning and selection

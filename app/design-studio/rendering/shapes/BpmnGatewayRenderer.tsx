@@ -27,7 +27,13 @@ export function BpmnGatewayRenderer({
   const { isSelected, isHovered, zoom } = context;
 
   // Gateways are diamonds (squares rotated 45 degrees)
-  const size = Math.min(width, height);
+  // The width/height represent the DIAGONAL span, so we need to divide by √2
+  // to get the actual square size before rotation
+  const desiredDiagonal = Math.min(width, height);
+  const innerSquareSize = desiredDiagonal / Math.sqrt(2);
+
+  // Calculate offset to center the smaller rotated square within the bounding box
+  const offset = (desiredDiagonal - innerSquareSize) / 2;
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
@@ -65,8 +71,8 @@ export function BpmnGatewayRenderer({
         position: 'absolute',
         left: `${x}px`,
         top: `${y}px`,
-        width: `${size}px`,
-        height: `${size}px`,
+        width: `${desiredDiagonal}px`,
+        height: `${desiredDiagonal}px`,
         zIndex: 1,
         cursor: isSelected ? 'move' : 'pointer',
         userSelect: 'none',
@@ -77,8 +83,10 @@ export function BpmnGatewayRenderer({
       <div
         style={{
           position: 'absolute',
-          width: '100%',
-          height: '100%',
+          left: `${offset}px`,
+          top: `${offset}px`,
+          width: `${innerSquareSize}px`,
+          height: `${innerSquareSize}px`,
           backgroundColor,
           transform: 'rotate(45deg)',
           transformOrigin: 'center',
@@ -139,7 +147,7 @@ export function BpmnGatewayRenderer({
         <div
           style={{
             position: 'absolute',
-            top: `${size + 4 / zoom}px`,
+            top: `${desiredDiagonal + 4 / zoom}px`,
             left: '50%',
             transform: 'translateX(-50%)',
             fontSize: `${10 / zoom}px`,
@@ -158,10 +166,10 @@ export function BpmnGatewayRenderer({
         <div
           style={{
             position: 'absolute',
-            top: `${size + 4 / zoom}px`,
+            top: `${desiredDiagonal + 4 / zoom}px`,
             left: '50%',
             transform: 'translateX(-50%)',
-            minWidth: `${size}px`,
+            minWidth: `${desiredDiagonal}px`,
           }}
         >
           <EditableLabel
@@ -186,8 +194,8 @@ export function BpmnGatewayRenderer({
           <ConnectionPointRenderer
             pointId={`${shape.id}-N`}
             direction="N"
-            shapeWidth={size}
-            shapeHeight={size}
+            shapeWidth={desiredDiagonal}
+            shapeHeight={desiredDiagonal}
             zoom={zoom}
             onMouseDown={onConnectionPointMouseDown}
             onMouseUp={onConnectionPointMouseUp}
@@ -195,8 +203,8 @@ export function BpmnGatewayRenderer({
           <ConnectionPointRenderer
             pointId={`${shape.id}-S`}
             direction="S"
-            shapeWidth={size}
-            shapeHeight={size}
+            shapeWidth={desiredDiagonal}
+            shapeHeight={desiredDiagonal}
             zoom={zoom}
             onMouseDown={onConnectionPointMouseDown}
             onMouseUp={onConnectionPointMouseUp}
@@ -204,8 +212,8 @@ export function BpmnGatewayRenderer({
           <ConnectionPointRenderer
             pointId={`${shape.id}-E`}
             direction="E"
-            shapeWidth={size}
-            shapeHeight={size}
+            shapeWidth={desiredDiagonal}
+            shapeHeight={desiredDiagonal}
             zoom={zoom}
             onMouseDown={onConnectionPointMouseDown}
             onMouseUp={onConnectionPointMouseUp}
@@ -213,8 +221,8 @@ export function BpmnGatewayRenderer({
           <ConnectionPointRenderer
             pointId={`${shape.id}-W`}
             direction="W"
-            shapeWidth={size}
-            shapeHeight={size}
+            shapeWidth={desiredDiagonal}
+            shapeHeight={desiredDiagonal}
             zoom={zoom}
             onMouseDown={onConnectionPointMouseDown}
             onMouseUp={onConnectionPointMouseUp}

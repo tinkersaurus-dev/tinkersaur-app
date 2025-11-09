@@ -39,6 +39,7 @@ export function DocumentEditor({
 }: DocumentEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const tabTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Use local state for immediate UI feedback
   const [content, setContentState] = useState(initialContent);
@@ -78,14 +79,29 @@ export function DocumentEditor({
       const newContent = content.substring(0, start) + '  ' + content.substring(end);
       handleContentChange(newContent);
 
+      // Clear any existing timeout before setting a new one
+      if (tabTimeoutRef.current) {
+        clearTimeout(tabTimeoutRef.current);
+      }
+
       // Restore cursor position after React updates
-      setTimeout(() => {
+      tabTimeoutRef.current = setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + 2;
         }
+        tabTimeoutRef.current = null;
       }, 0);
     }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tabTimeoutRef.current) {
+        clearTimeout(tabTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const lineNumbers = getLineNumbers(content);
   const showEditor = viewMode === 'edit' || viewMode === 'split';
