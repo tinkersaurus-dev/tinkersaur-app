@@ -31,6 +31,8 @@ export const ShapeSchema = z.object({
   // Optional hierarchy support for complex diagrams
   parentId: z.string().optional(),
   children: z.array(z.string()).optional(),
+  // Optional type-specific data (e.g., for class diagrams: stereotype, attributes, methods)
+  data: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type Shape = z.infer<typeof ShapeSchema>;
@@ -41,3 +43,25 @@ export type CreateShapeDTO = z.infer<typeof CreateShapeSchema>;
 
 export const UpdateShapeSchema = ShapeSchema.partial().required({ id: true });
 export type UpdateShapeDTO = z.infer<typeof UpdateShapeSchema>;
+
+// Type-specific shape data types
+
+// Class diagram shape data
+export interface ClassShapeData {
+  stereotype?: string; // UML stereotype (e.g., 'interface', 'abstract', 'entity')
+  attributes: string[]; // Array of attribute strings (e.g., '+ name: string')
+  methods: string[]; // Array of method strings (e.g., '+ getName(): string')
+}
+
+// Type guard for class shape data
+export function isClassShapeData(data: unknown): data is ClassShapeData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    (d.stereotype === undefined || typeof d.stereotype === 'string') &&
+    Array.isArray(d.attributes) &&
+    d.attributes.every((attr) => typeof attr === 'string') &&
+    Array.isArray(d.methods) &&
+    d.methods.every((method) => typeof method === 'string')
+  );
+}

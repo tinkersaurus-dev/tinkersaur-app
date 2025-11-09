@@ -59,6 +59,15 @@ export interface ShapeRendererProps {
     direction: ConnectionPointDirection,
     e: React.MouseEvent
   ) => void;
+
+  /** Class shape editing callbacks */
+  onClassStereotypeChange?: (shapeId: string, stereotype: string | undefined) => void;
+  onClassAddAttribute?: (shapeId: string) => void;
+  onClassDeleteAttribute?: (shapeId: string, attributeIndex: number) => void;
+  onClassUpdateAttribute?: (shapeId: string, attributeIndex: number, newValue: string) => void;
+  onClassAddMethod?: (shapeId: string) => void;
+  onClassDeleteMethod?: (shapeId: string, methodIndex: number) => void;
+  onClassUpdateMethod?: (shapeId: string, methodIndex: number, newValue: string) => void;
 }
 
 /**

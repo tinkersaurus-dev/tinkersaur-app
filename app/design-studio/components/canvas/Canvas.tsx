@@ -11,10 +11,14 @@ import { useConnectorDrawing } from '../../hooks/useConnectorDrawing';
 import { useCanvasContextMenu } from '../../hooks/useCanvasContextMenu';
 import { useShapeDragging } from '../../hooks/useShapeDragging';
 import { useCanvasKeyboardHandlers } from '../../hooks/useCanvasKeyboardHandlers';
+import { useClassShapeEditing } from '../../hooks/useClassShapeEditing';
+import { commandManager } from '~/core/commands/CommandManager';
+import type { Command } from '~/core/commands/command.types';
 import { screenToCanvas } from '../../utils/canvas';
 import { GridBackground } from './GridBackground';
 import { ContextMenu } from './ContextMenu';
 import { BpmnToolsetPopover } from './BpmnToolsetPopover';
+import { ClassToolsetPopover } from './ClassToolsetPopover';
 import { CanvasDebugInfo } from './CanvasDebugInfo';
 import { ConnectorDrawingPreview } from './ConnectorDrawingPreview';
 import { CanvasShapesList } from './CanvasShapesList';
@@ -23,7 +27,8 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import CanvasToolbar from '../toolbar/CanvasToolbar';
 import type { ToolbarButton } from '../toolbar/CanvasToolbar';
 import { TbGridDots } from 'react-icons/tb';
-import type { Tool } from '../../config/bpmn-tools';
+import type { Tool as BpmnTool } from '../../config/bpmn-tools';
+import type { Tool as ClassTool } from '../../config/class-tools';
 
 /**
  * Canvas Component
@@ -102,6 +107,7 @@ export function Canvas({ diagramId }: CanvasProps) {
   // Get persisted canvas data from entity store (for initialization only)
   const { diagram, loading } = useDiagram(diagramId);
   const { addShape, updateShapes, addConnector, deleteConnector, deleteShape } = useDiagramCRUD(diagramId);
+  const updateShape = useDesignStudioEntityStore((state) => state._internalUpdateShape);
   const updateShapeLabel = useDesignStudioEntityStore((state) => state.updateShapeLabel);
   const updateConnectorLabel = useDesignStudioEntityStore((state) => state.updateConnectorLabel);
   const entityShapes = useMemo(() => diagram?.shapes || [], [diagram?.shapes]);
@@ -145,6 +151,39 @@ export function Canvas({ diagramId }: CanvasProps) {
     updateShapeLabel,
     updateConnectorLabel,
     diagramId,
+  });
+
+  // Helper function to get a shape by ID from local shapes
+  const getShape = useCallback(
+    (shapeId: string) => {
+      return localShapes.find((s) => s.id === shapeId);
+    },
+    [localShapes]
+  );
+
+  // Helper function to execute commands
+  const executeCommand = useCallback(
+    async (command: Command) => {
+      await commandManager.execute(command, diagramId);
+    },
+    [diagramId]
+  );
+
+  // Class shape editing hook
+  const {
+    updateStereotype,
+    addAttribute,
+    deleteAttribute,
+    updateAttribute,
+    addMethod,
+    deleteMethod,
+    updateMethod,
+  } = useClassShapeEditing({
+    diagramId,
+    updateShape,
+    getShape,
+    updateLocalShape,
+    executeCommand,
   });
 
   // Initialize local content from entity store ONCE on mount
@@ -209,7 +248,7 @@ export function Canvas({ diagramId }: CanvasProps) {
   });
 
   // Handle BPMN tool selection
-  const handleBpmnToolSelect = useCallback(async (tool: Tool, canvasX: number, canvasY: number) => {
+  const handleBpmnToolSelect = useCallback(async (tool: BpmnTool, canvasX: number, canvasY: number) => {
     if (!addShape) return;
 
     // Create shape from tool at the clicked position
@@ -223,6 +262,25 @@ export function Canvas({ diagramId }: CanvasProps) {
       label: tool.name,
       zIndex: 0,
       locked: false,
+    });
+  }, [addShape]);
+
+  // Handle Class tool selection
+  const handleClassToolSelect = useCallback(async (tool: ClassTool, canvasX: number, canvasY: number) => {
+    if (!addShape) return;
+
+    // Create shape from tool at the clicked position with initial data
+    await addShape({
+      type: tool.shapeType,
+      subtype: tool.shapeSubtype,
+      x: canvasX - tool.defaultSize.width / 2,
+      y: canvasY - tool.defaultSize.height / 2,
+      width: tool.defaultSize.width,
+      height: tool.defaultSize.height,
+      label: tool.name,
+      zIndex: 0,
+      locked: false,
+      data: tool.initialData,
     });
   }, [addShape]);
 
@@ -552,6 +610,13 @@ export function Canvas({ diagramId }: CanvasProps) {
           onFinishEditing={handleFinishEditing}
           onConnectionPointMouseDown={startDrawingConnector}
           onConnectionPointMouseUp={finishDrawingConnector}
+          onClassStereotypeChange={updateStereotype}
+          onClassAddAttribute={addAttribute}
+          onClassDeleteAttribute={deleteAttribute}
+          onClassUpdateAttribute={updateAttribute}
+          onClassAddMethod={addMethod}
+          onClassDeleteMethod={deleteMethod}
+          onClassUpdateMethod={updateMethod}
         />
 
         {/* Render all connectors */}
@@ -594,7 +659,19 @@ export function Canvas({ diagramId }: CanvasProps) {
           drawingConnector={drawingConnector}
         />
       )}
-      {isContextMenuOpen && contextMenuPosition && (!contextMenuCanvasPos || diagram?.type !== 'bpmn') && (
+      {isContextMenuOpen && contextMenuPosition && contextMenuCanvasPos && diagram?.type === 'class' && (
+        <ClassToolsetPopover
+          x={contextMenuPosition.x}
+          y={contextMenuPosition.y}
+          canvasX={contextMenuCanvasPos.canvasX}
+          canvasY={contextMenuCanvasPos.canvasY}
+          isOpen={isContextMenuOpen}
+          onClose={closeContextMenu}
+          onToolSelect={handleClassToolSelect}
+          drawingConnector={drawingConnector}
+        />
+      )}
+      {isContextMenuOpen && contextMenuPosition && (!contextMenuCanvasPos || (diagram?.type !== 'bpmn' && diagram?.type !== 'class')) && (
         <ContextMenu
           x={contextMenuPosition.x}
           y={contextMenuPosition.y}

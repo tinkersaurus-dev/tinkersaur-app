@@ -1,0 +1,31 @@
+.class-item-editor {
+  user-select: none;
+}
+
+.class-item-editor:hover .class-item-delete {
+  opacity: 1;
+}
+
+.class-item-input {
+  font-family: inherit;
+  color: var(--canvas-label-color, #000);
+}
+
+.class-item-input:focus {
+  border-color: var(--canvas-label-editing-border-focus, #0066cc) !important;
+}
+
+.class-item-text {
+  color: var(--canvas-label-color, #000);
+}
+
+.class-item-delete {
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: var(--canvas-label-color, #000);
+}
+
+.class-item-delete:hover {
+  background: var(--canvas-label-editing-border-hover, #eee) !important;
+  border-color: var(--canvas-label-editing-border-focus, #0066cc) !important;
+}

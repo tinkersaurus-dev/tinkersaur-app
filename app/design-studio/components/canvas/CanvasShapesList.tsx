@@ -17,6 +17,14 @@ interface CanvasShapesListProps {
   onFinishEditing: () => void;
   onConnectionPointMouseDown: (pointId: string, direction: 'N' | 'S' | 'E' | 'W', e: React.MouseEvent) => void;
   onConnectionPointMouseUp: (pointId: string, direction: 'N' | 'S' | 'E' | 'W', e: React.MouseEvent) => Promise<void>;
+  // Class shape editing callbacks
+  onClassStereotypeChange?: (shapeId: string, stereotype: string | undefined) => void;
+  onClassAddAttribute?: (shapeId: string) => void;
+  onClassDeleteAttribute?: (shapeId: string, attributeIndex: number) => void;
+  onClassUpdateAttribute?: (shapeId: string, attributeIndex: number, newValue: string) => void;
+  onClassAddMethod?: (shapeId: string) => void;
+  onClassDeleteMethod?: (shapeId: string, methodIndex: number) => void;
+  onClassUpdateMethod?: (shapeId: string, methodIndex: number, newValue: string) => void;
 }
 
 /**
@@ -37,6 +45,13 @@ export function CanvasShapesList({
   onFinishEditing,
   onConnectionPointMouseDown,
   onConnectionPointMouseUp,
+  onClassStereotypeChange,
+  onClassAddAttribute,
+  onClassDeleteAttribute,
+  onClassUpdateAttribute,
+  onClassAddMethod,
+  onClassDeleteMethod,
+  onClassUpdateMethod,
 }: CanvasShapesListProps) {
   return (
     <>
@@ -64,6 +79,13 @@ export function CanvasShapesList({
             onFinishEditing={onFinishEditing}
             onConnectionPointMouseDown={onConnectionPointMouseDown}
             onConnectionPointMouseUp={onConnectionPointMouseUp}
+            onClassStereotypeChange={onClassStereotypeChange}
+            onClassAddAttribute={onClassAddAttribute}
+            onClassDeleteAttribute={onClassDeleteAttribute}
+            onClassUpdateAttribute={onClassUpdateAttribute}
+            onClassAddMethod={onClassAddMethod}
+            onClassDeleteMethod={onClassDeleteMethod}
+            onClassUpdateMethod={onClassUpdateMethod}
           />
         );
       })}

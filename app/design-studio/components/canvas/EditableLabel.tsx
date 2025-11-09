@@ -125,6 +125,7 @@ export function EditableLabel({
     >
       {isEditing ? (
         <div
+          data-interactive="true"
           style={{
             display: 'flex',
             alignItems: 'center',

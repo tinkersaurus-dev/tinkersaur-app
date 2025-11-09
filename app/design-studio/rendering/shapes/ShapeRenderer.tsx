@@ -3,6 +3,7 @@ import { RectangleRenderer } from './RectangleRenderer';
 import { BpmnTaskRenderer } from './BpmnTaskRenderer';
 import { BpmnEventRenderer } from './BpmnEventRenderer';
 import { BpmnGatewayRenderer } from './BpmnGatewayRenderer';
+import { ClassRenderer } from './ClassRenderer';
 
 /**
  * Shape Renderer Registry
@@ -17,6 +18,8 @@ const shapeRenderers: Record<string, ShapeRendererComponent> = {
   'bpmn-task': BpmnTaskRenderer,
   'bpmn-event': BpmnEventRenderer,
   'bpmn-gateway': BpmnGatewayRenderer,
+  // Class diagram shape renderers
+  class: ClassRenderer,
   // Future shape types can be added here:
   // circle: CircleRenderer,
   // ellipse: EllipseRenderer,
