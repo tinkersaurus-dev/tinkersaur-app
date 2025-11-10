@@ -1,6 +1,7 @@
 import type { Command } from '../command.types';
 import type { Shape, ClassShapeData } from '../../entities/design-studio/types/Shape';
 import type { Diagram } from '../../entities/design-studio/types';
+import { calculateClassHeight } from '~/design-studio/utils/classHeightCalculator';
 
 export class DeleteClassMethodCommand implements Command {
   public readonly description: string;
@@ -41,12 +42,16 @@ export class DeleteClassMethodCommand implements Command {
       methods: methods.filter((_, index) => index !== this.methodIndex),
     };
 
+    const newHeight = calculateClassHeight(newData);
+
     await this.updateShapeFn(this.diagramId, this.shapeId, {
       data: newData as unknown as Record<string, unknown>,
+      height: newHeight,
     });
 
     this.updateLocalShapeFn?.(this.shapeId, {
       data: newData as unknown as Record<string, unknown>,
+      height: newHeight,
     });
   }
 
@@ -68,12 +73,16 @@ export class DeleteClassMethodCommand implements Command {
       methods: newMethods,
     };
 
+    const newHeight = calculateClassHeight(newData);
+
     await this.updateShapeFn(this.diagramId, this.shapeId, {
       data: newData as unknown as Record<string, unknown>,
+      height: newHeight,
     });
 
     this.updateLocalShapeFn?.(this.shapeId, {
       data: newData as unknown as Record<string, unknown>,
+      height: newHeight,
     });
   }
 }

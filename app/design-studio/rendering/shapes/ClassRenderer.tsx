@@ -75,11 +75,10 @@ export function ClassRenderer({
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
-  const borderRadius = 2 / zoom;
-  const padding = 8 / zoom;
-  const fontSize = 12 / zoom;
-  const itemFontSize = 11 / zoom;
-  const lineHeight = 20 / zoom;
+  const borderRadius = 2;
+  const padding = 8;
+  const fontSize = 12;
+  const itemFontSize = 11;
 
   // Determine border color based on state
   let borderColor = 'var(--border)';
@@ -98,6 +97,8 @@ export function ClassRenderer({
     backgroundColor = 'var(--bg-light)';
   }
 
+  const addButtonWidth = Math.min(32, 16 * zoom)
+
   return (
     <ShapeWrapper
       shape={shape}
@@ -108,6 +109,7 @@ export function ClassRenderer({
       borderWidth={borderWidth}
       backgroundColor={backgroundColor}
       borderRadius={borderRadius}
+      hoverPadding={30}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -125,7 +127,7 @@ export function ClassRenderer({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: `${lineHeight}px`,
+          //minHeight: `${lineHeight}px`,
         }}
       >
         <ShapeDropdown
@@ -151,7 +153,7 @@ export function ClassRenderer({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: `${lineHeight}px`,
+          //minHeight: `${lineHeight}px`,
         }}
       >
         <EditableLabel
@@ -175,7 +177,7 @@ export function ClassRenderer({
         style={{
           padding: `${padding / 2}px 0`,
           borderBottom: `${1 / zoom}px solid var(--border)`,
-          minHeight: `${lineHeight}px`,
+          //minHeight: `${lineHeight}px`,
           position: 'relative',
         }}
       >
@@ -184,7 +186,7 @@ export function ClassRenderer({
             style={{
               padding: `${padding / 2}px ${padding}px`,
               color: 'var(--text-muted)',
-              fontSize: `${itemFontSize}px`,
+              fontSize: itemFontSize,
               fontStyle: 'italic',
               textAlign: 'center',
             }}
@@ -223,6 +225,8 @@ export function ClassRenderer({
           ))
         )}
 
+        
+
         {/* Add attribute button */}
         {isHovered && (
           <button
@@ -232,23 +236,20 @@ export function ClassRenderer({
             }}
             style={{
               position: 'absolute',
-              right: `${4 / zoom}px`,
-              bottom: `${4 / zoom}px`,
-              width: `${20 / zoom}px`,
-              height: `${20 / zoom}px`,
-              border: `${1 / zoom}px solid var(--border)`,
-              borderRadius: `${2 / zoom}px`,
-              background: 'var(--bg)',
+              right: `${addButtonWidth / -1}px`,
+              bottom: `0px`,
+              width: `${addButtonWidth}px`,
+              borderRadius: `2px`,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: `${10 / zoom}px`,
+              fontSize: `10px`,
               color: 'var(--primary)',
             }}
             title="Add attribute"
           >
-            <FaPlus size={10 / zoom} />
+            <FaPlus />
           </button>
         )}
       </div>
@@ -257,7 +258,7 @@ export function ClassRenderer({
       <div
         style={{
           padding: `${padding / 2}px 0`,
-          minHeight: `${lineHeight}px`,
+          //minHeight: `${lineHeight}px`,
           position: 'relative',
         }}
       >
@@ -314,23 +315,20 @@ export function ClassRenderer({
             }}
             style={{
               position: 'absolute',
-              right: `${4 / zoom}px`,
-              bottom: `${4 / zoom}px`,
-              width: `${20 / zoom}px`,
-              height: `${20 / zoom}px`,
-              border: `${1 / zoom}px solid var(--border)`,
-              borderRadius: `${2 / zoom}px`,
-              background: 'var(--bg)',
+              right: `${addButtonWidth / -1}px`,
+              bottom: `0px`,
+              width: `${addButtonWidth}px`,
+              borderRadius: `2px`,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: `${10 / zoom}px`,
+              fontSize: `10px`,
               color: 'var(--primary)',
             }}
             title="Add method"
           >
-            <FaPlus size={10 / zoom} />
+            <FaPlus />
           </button>
         )}
       </div>

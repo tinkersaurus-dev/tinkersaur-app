@@ -40,7 +40,6 @@ import {
   allClassConnectorTools,
   getClassConnectorToolByType,
 } from '../../config/class-connectors';
-import type { Diagram } from '~/core/entities/design-studio/types';
 import type { Connector } from '~/core/entities/design-studio/types/Connector';
 
 /**

@@ -1,5 +1,6 @@
 import { useRef, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
 import './ClassItemEditor.css';
+import { LuTrash2 } from "react-icons/lu";
 
 export interface ClassItemEditorProps {
   value: string;
@@ -70,7 +71,7 @@ export function ClassItemEditor({
         display: 'flex',
         alignItems: 'center',
         gap: `${4 / zoom}px`,
-        padding: `${2 / zoom}px ${4 / zoom}px`,
+        padding: `4px 8px`,
         position: 'relative',
       }}
       onDoubleClick={handleDoubleClick}
@@ -85,11 +86,11 @@ export function ClassItemEditor({
           onBlur={handleBlur}
           className="class-item-input"
           style={{
-            fontSize: `${fontSize / zoom}px`,
+            fontSize: fontSize,
             width: '100%',
             border: `${1 / zoom}px solid var(--canvas-label-editing-border, #ddd)`,
             borderRadius: `${2 / zoom}px`,
-            padding: `${2 / zoom}px ${4 / zoom}px`,
+            padding: `4px 8px`,
             outline: 'none',
             background: 'var(--canvas-label-editing-fill, #fff)',
           }}
@@ -99,7 +100,7 @@ export function ClassItemEditor({
           <span
             className="class-item-text"
             style={{
-              fontSize: `${fontSize / zoom}px`,
+              fontSize: fontSize,
               flex: 1,
               textAlign: 'left',
               whiteSpace: 'nowrap',
@@ -114,22 +115,19 @@ export function ClassItemEditor({
               className="class-item-delete"
               onClick={handleDeleteClick}
               style={{
-                fontSize: `${10 / zoom}px`,
-                width: `${16 / zoom}px`,
-                height: `${16 / zoom}px`,
+                fontSize: `10px`,
                 padding: 0,
-                border: `${1 / zoom}px solid var(--canvas-label-editing-border, #ddd)`,
                 borderRadius: `${2 / zoom}px`,
-                background: 'var(--canvas-label-editing-fill, #fff)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
+                color: 'var(--danger)',
               }}
               title="Delete"
             >
-              ×
+              <LuTrash2 />
             </button>
           )}
         </>

@@ -19,6 +19,7 @@ interface ShapeWrapperProps {
   borderWidth: number;
   backgroundColor: string;
   borderRadius?: number;
+  hoverPadding?: number; // Extra padding (in px) for hover detection area
   children: React.ReactNode;
   style?: React.CSSProperties;
   onMouseDown?: (e: React.MouseEvent, shapeId: string) => void;
@@ -63,6 +64,7 @@ export function ShapeWrapper({
   borderWidth,
   backgroundColor,
   borderRadius = 2 / zoom,
+  hoverPadding = 0,
   children,
   style,
   onMouseDown,
@@ -96,31 +98,50 @@ export function ShapeWrapper({
   };
 
   return (
-    <div
-      data-shape-id={id}
-      onMouseDown={handleMouseDown}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onDoubleClick={handleDoubleClick}
-      style={{
-        position: 'absolute',
-        left: `${x}px`,
-        top: `${y}px`,
-        width: `${width}px`,
-        minHeight: `${height}px`,
-        zIndex: 1,
-        outline: `${borderWidth}px solid ${borderColor}`,
-        outlineOffset: `-${borderWidth}px`,
-        borderRadius: `${borderRadius}px`,
-        backgroundColor,
-        cursor: isSelected ? 'move' : 'pointer',
-        boxSizing: 'border-box',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        ...style,
-      }}
-    >
-      {children}
-    </div>
+    <>
+      {/* Invisible hover detection area */}
+      {hoverPadding > 0 && (
+        <div
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          style={{
+            position: 'absolute',
+            left: `${x - hoverPadding}px`,
+            top: `${y - hoverPadding}px`,
+            width: `${width + hoverPadding * 2}px`,
+            height: `${height + hoverPadding * 2}px`,
+            zIndex: 1,
+            pointerEvents: 'auto',
+          }}
+        />
+      )}
+      {/* Actual shape */}
+      <div
+        data-shape-id={id}
+        onMouseDown={handleMouseDown}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onDoubleClick={handleDoubleClick}
+        style={{
+          position: 'absolute',
+          left: `${x}px`,
+          top: `${y}px`,
+          width: `${width}px`,
+          //minHeight: `${height}px`,
+          zIndex: 1,
+          outline: `${borderWidth}px solid ${borderColor}`,
+          outlineOffset: `-${borderWidth}px`,
+          borderRadius: `${borderRadius}px`,
+          backgroundColor,
+          cursor: isSelected ? 'move' : 'pointer',
+          boxSizing: 'border-box',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          ...style,
+        }}
+      >
+        {children}
+      </div>
+    </>
   );
 }

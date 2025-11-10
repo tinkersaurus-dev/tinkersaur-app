@@ -3,7 +3,7 @@
   border: 1px solid var(--canvas-label-editing-border);
   background: var(--canvas-label-editing-fill);
   color: var(--canvas-label-editing-text);
-  padding: 2px 4px;
+  padding: 4px 8px;
   border-radius: 2px;
 }
 

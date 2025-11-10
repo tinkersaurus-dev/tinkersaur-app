@@ -1,6 +1,7 @@
 import type { Command } from '../command.types';
 import type { Shape, ClassShapeData } from '../../entities/design-studio/types/Shape';
 import type { Diagram } from '../../entities/design-studio/types';
+import { calculateClassHeight } from '~/design-studio/utils/classHeightCalculator';
 
 export class AddClassMethodCommand implements Command {
   public readonly description: string;
@@ -35,12 +36,16 @@ export class AddClassMethodCommand implements Command {
       methods: [...methods, this.method],
     };
 
+    const newHeight = calculateClassHeight(newData);
+
     await this.updateShapeFn(this.diagramId, this.shapeId, {
       data: newData as unknown as Record<string, unknown>,
+      height: newHeight,
     });
 
     this.updateLocalShapeFn?.(this.shapeId, {
       data: newData as unknown as Record<string, unknown>,
+      height: newHeight,
     });
   }
 
@@ -56,12 +61,16 @@ export class AddClassMethodCommand implements Command {
       methods: methods.filter((method) => method !== this.method),
     };
 
+    const newHeight = calculateClassHeight(newData);
+
     await this.updateShapeFn(this.diagramId, this.shapeId, {
       data: newData as unknown as Record<string, unknown>,
+      height: newHeight,
     });
 
     this.updateLocalShapeFn?.(this.shapeId, {
       data: newData as unknown as Record<string, unknown>,
+      height: newHeight,
     });
   }
 }

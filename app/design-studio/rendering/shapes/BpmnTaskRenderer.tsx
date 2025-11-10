@@ -38,8 +38,8 @@ export function BpmnTaskRenderer({
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
-  const borderRadius = 4 / zoom; // More rounded for BPMN tasks
-  const padding = 8 / zoom;
+  const borderRadius = 4; // More rounded for BPMN tasks
+  const padding = 8;
 
   // Determine border color based on state
   let borderColor = 'var(--border)';
@@ -58,7 +58,7 @@ export function BpmnTaskRenderer({
     backgroundColor = 'var(--bg-light)';
   }
 
-  const iconSize = Math.max(8, 12 / zoom);
+  const iconSize = 12;
 
   return (
     <div
