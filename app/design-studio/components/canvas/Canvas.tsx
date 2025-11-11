@@ -12,6 +12,7 @@ import { useCanvasContextMenu } from '../../hooks/useCanvasContextMenu';
 import { useShapeDragging } from '../../hooks/useShapeDragging';
 import { useCanvasKeyboardHandlers } from '../../hooks/useCanvasKeyboardHandlers';
 import { useClassShapeEditing } from '../../hooks/useClassShapeEditing';
+import { useCanvasMouseOrchestration } from './useCanvasMouseOrchestration';
 import { commandManager } from '~/core/commands/CommandManager';
 import type { Command } from '~/core/commands/command.types';
 import { screenToCanvas } from '../../utils/canvas';
@@ -367,105 +368,26 @@ export function Canvas({ diagramId }: CanvasProps) {
     setSelectedShapes,
   });
 
-  // Handle mouse down for panning and selection
-  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.button === 1) {  // Middle mouse button
-      e.preventDefault();
-      startPanning(e.clientX, e.clientY);
-    } else if (e.button === 0) {  // Left mouse button - start selection box
-      const container = containerRef.current;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
-
-      startSelection(screenX, screenY);
-    }
-  }, [startPanning, startSelection]);
-
-  // Handle mouse move for panning, dragging, and selection box
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    // Priority 0: Drawing connector (highest priority)
-    if (drawingConnector) {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
-
-      updateDrawingConnector(screenX, screenY);
-      return;
-    }
-
-    // Priority 1: Panning
-    if (isPanning) {
-      updatePanning(e.clientX, e.clientY);
-      return;
-    }
-
-    // Priority 2: Dragging shapes
-    if (isDraggingShapesRef.current && dragStartCanvasPosRef.current) {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
-
-      updateDragging(screenX, screenY, rect);
-      return;
-    }
-
-    // Priority 3: Selection box dragging
-    if (isSelectingRef.current && selectionBox) {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
-
-      updateSelection(screenX, screenY);
-    }
-  }, [selectionBox, drawingConnector, isPanning, updatePanning, updateDrawingConnector, updateSelection, updateDragging, dragStartCanvasPosRef, isDraggingShapesRef, isSelectingRef]);
-
-  // Handle mouse up for panning, dragging, and selection box
-  const handleMouseUp = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      // Handle drawing connector - cancel if released on canvas (not on a connection point)
-      if (drawingConnector) {
-        cancelDrawingConnector();
-        return;
-      }
-
-      // Handle panning
-      if (isPanning) {
-        stopPanning();
-        return;
-      }
-
-      // Handle drag shapes end
-      if (e.button === 0 && isDraggingShapesRef.current) {
-        finishDragging();
-        return;
-      }
-
-      // Handle selection box
-      if (e.button === 0 && isSelectingRef.current) {
-        const container = containerRef.current;
-        if (!container) return;
-
-        const rect = container.getBoundingClientRect();
-        const screenX = e.clientX - rect.left;
-        const screenY = e.clientY - rect.top;
-
-        finishSelection(screenX, screenY);
-      }
-    },
-    [isPanning, stopPanning, drawingConnector, cancelDrawingConnector, isSelectingRef, finishSelection, finishDragging, isDraggingShapesRef]
-  );
+  // Orchestrate mouse events with priority-based routing
+  const { handleMouseDown, handleMouseMove, handleMouseUp } = useCanvasMouseOrchestration({
+    containerRef,
+    isPanning,
+    startPanning,
+    updatePanning,
+    stopPanning,
+    selectionBox,
+    isSelectingRef,
+    startSelection,
+    updateSelection,
+    finishSelection,
+    drawingConnector,
+    updateDrawingConnector,
+    cancelDrawingConnector,
+    isDraggingShapesRef,
+    dragStartCanvasPosRef,
+    updateDragging,
+    finishDragging,
+  });
 
   // Handle shape mouse down for selection and drag initialization
   const handleShapeMouseDown = useCallback(
