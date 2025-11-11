@@ -27,10 +27,13 @@ import { CanvasShapesList } from './CanvasShapesList';
 import { CanvasConnectorsList } from './CanvasConnectorsList';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import CanvasToolbar from '../toolbar/CanvasToolbar';
+import CanvasTextToolbar from '../toolbar/CanvasTextToolbar';
 import type { ToolbarButton } from '../toolbar/CanvasToolbar';
 import { TbGridDots, TbArrowRight } from 'react-icons/tb';
 import type { Tool as BpmnTool } from '../../config/bpmn-tools';
 import type { Tool as ClassTool } from '../../config/class-tools';
+import { useMermaidSync } from '../../hooks/useMermaidSync';
+import { MermaidViewer } from '../mermaid/MermaidViewer';
 import {
   allBpmnConnectorTools,
   getBpmnConnectorToolByType,
@@ -211,6 +214,14 @@ export function Canvas({ diagramId }: CanvasProps) {
     getShape,
     updateLocalShape,
     executeCommand,
+  });
+
+  // Mermaid sync hook - automatically generates mermaid syntax from committed shapes/connectors
+  useMermaidSync({
+    shapes: entityShapes,
+    connectors: entityConnectors,
+    diagramType: diagram?.type,
+    enabled: true,
   });
 
   // Initialize local content from entity store ONCE on mount
@@ -845,6 +856,12 @@ export function Canvas({ diagramId }: CanvasProps) {
 
       {/* Canvas Toolbar */}
       <CanvasToolbar placement="bottom" buttons={toolbarButtons} />
+
+      {/* Canvas Text Toolbar (right-side) */}
+      <CanvasTextToolbar diagramType={diagram?.type} />
+
+      {/* Mermaid Viewer */}
+      <MermaidViewer />
 
       {/* Connector Toolset Popover */}
       {isConnectorPopoverOpen && connectorPopoverPosition && (
