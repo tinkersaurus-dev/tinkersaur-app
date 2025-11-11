@@ -5,8 +5,8 @@
  * Allows the user to change the connector type inline.
  */
 
-import { useEffect, useRef } from 'react';
 import type { ConnectorTool } from '../../config/bpmn-connectors';
+import { ContextMenuWrapper } from './menus/ContextMenuWrapper';
 
 interface ConnectorContextMenuProps {
   /** X position in screen coordinates */
@@ -34,65 +34,19 @@ export function ConnectorContextMenu({
   connectorTools,
   currentConnectorType,
 }: ConnectorContextMenuProps) {
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Handle clicks outside the menu
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    // Small delay to prevent immediate close from the same click that opened it
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
-  // Handle Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const handleConnectorClick = (connectorTool: ConnectorTool) => {
     onConnectorTypeChange(connectorTool);
     onClose();
   };
 
-  // Prevent context menu on the menu itself
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
   return (
-    <div
-      ref={menuRef}
-      onContextMenu={handleContextMenu}
-      className="fixed bg-[var(--bg-light)] border border-[var(--border)] rounded-sm [box-shadow:var(--shadow)] p-2 z-50"
-      style={{
-        left: `${x}px`,
-        top: `${y}px`,
-      }}
+    <ContextMenuWrapper
+      menuId="connector-context-menu"
+      isOpen={isOpen}
+      x={x}
+      y={y}
+      onClose={onClose}
+      className="bg-[var(--bg-light)] border border-[var(--border)] rounded-sm [box-shadow:var(--shadow)] p-2"
     >
       {/* Header */}
       <div className="text-xs text-[var(--text-muted)] px-2 py-1 mb-1">
@@ -120,6 +74,6 @@ export function ConnectorContextMenu({
           );
         })}
       </div>
-    </div>
+    </ContextMenuWrapper>
   );
 }

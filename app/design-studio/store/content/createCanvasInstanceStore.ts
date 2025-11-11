@@ -36,8 +36,6 @@ export interface CanvasInstanceState {
   hoveredShapeId: string | null;
   selectedConnectorIds: string[];
   hoveredConnectorId: string | null;
-  isContextMenuOpen: boolean;
-  contextMenuPosition: { x: number; y: number } | null;
 
   // Label editing state
   editingEntityId: string | null;
@@ -72,8 +70,6 @@ export interface CanvasInstanceState {
   setSelection: (shapeIds: string[], connectorIds: string[]) => void;
   setHoveredConnectorId: (connectorId: string | null) => void;
   clearSelection: () => void;
-  openContextMenu: (x: number, y: number) => void;
-  closeContextMenu: () => void;
   setEditingEntity: (id: string, type: 'shape' | 'connector', originalLabel: string | undefined) => void;
   clearEditingEntity: () => void;
   setGridSnappingEnabled: (enabled: boolean) => void;
@@ -100,8 +96,6 @@ export function createCanvasInstanceStore(diagramId: string, initialConnectorTyp
     hoveredShapeId: null,
     selectedConnectorIds: [],
     hoveredConnectorId: null,
-    isContextMenuOpen: false,
-    contextMenuPosition: null,
     editingEntityId: null,
     editingEntityType: null,
     editingOriginalLabel: undefined,
@@ -207,19 +201,6 @@ export function createCanvasInstanceStore(diagramId: string, initialConnectorTyp
         hoveredConnectorId: connectorId,
       }),
 
-    // Context menu actions
-    openContextMenu: (x, y) =>
-      set({
-        isContextMenuOpen: true,
-        contextMenuPosition: { x, y },
-      }),
-
-    closeContextMenu: () =>
-      set({
-        isContextMenuOpen: false,
-        contextMenuPosition: null,
-      }),
-
     // Label editing actions
     setEditingEntity: (id, type, originalLabel) =>
       set({
@@ -259,8 +240,6 @@ export function createCanvasInstanceStore(diagramId: string, initialConnectorTyp
         hoveredShapeId: null,
         selectedConnectorIds: [],
         hoveredConnectorId: null,
-        isContextMenuOpen: false,
-        contextMenuPosition: null,
         editingEntityId: null,
         editingEntityType: null,
         editingOriginalLabel: undefined,

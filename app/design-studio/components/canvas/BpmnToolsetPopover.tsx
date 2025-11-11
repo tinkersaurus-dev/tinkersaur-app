@@ -5,9 +5,9 @@
  * Tools are organized by type (Tasks, Events, Gateways) in rows with icon buttons.
  */
 
-import { useEffect, useRef } from 'react';
 import { bpmnToolGroups, type Tool } from '../../config/bpmn-tools';
 import type { DrawingConnector } from '../../hooks/useConnectorDrawing';
+import { ContextMenuWrapper } from './menus/ContextMenuWrapper';
 
 interface BpmnToolsetPopoverProps {
   /** X position in screen coordinates */
@@ -38,65 +38,19 @@ export function BpmnToolsetPopover({
   onToolSelect,
   drawingConnector,
 }: BpmnToolsetPopoverProps) {
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Handle clicks outside the popover
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    // Small delay to prevent immediate close from the same click that opened it
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
-  // Handle Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const handleToolClick = (tool: Tool) => {
     onToolSelect(tool, canvasX, canvasY);
     onClose();
   };
 
-  // Prevent context menu on the popover itself
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
   return (
-    <div
-      ref={menuRef}
-      onContextMenu={handleContextMenu}
-      className="fixed bg-[var(--bg-light)] border border-[var(--border)] rounded-sm [box-shadow:var(--shadow)] p-2 z-50"
-      style={{
-        left: `${x}px`,
-        top: `${y}px`,
-      }}
+    <ContextMenuWrapper
+      menuId="bpmn-toolset-popover"
+      isOpen={isOpen}
+      x={x}
+      y={y}
+      onClose={onClose}
+      className="bg-[var(--bg-light)] border border-[var(--border)] rounded-sm [box-shadow:var(--shadow)] p-2"
     >
       {/* Dynamic tool groups */}
       <div className="flex flex-col gap-0">
@@ -134,6 +88,6 @@ export function BpmnToolsetPopover({
           Creating connection from {drawingConnector.fromShapeId}
         </div>
       )}
-    </div>
+    </ContextMenuWrapper>
   );
 }

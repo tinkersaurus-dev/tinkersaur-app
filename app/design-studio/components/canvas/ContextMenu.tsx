@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { ContextMenuWrapper } from './menus/ContextMenuWrapper';
 
 /**
  * Context Menu Component
  *
  * Displays a context menu at a specific position.
- * Auto-closes when clicking outside or pressing Escape.
+ * Auto-closes when clicking outside or pressing Escape (handled by wrapper).
  */
 
 interface ContextMenuProps {
@@ -31,58 +31,19 @@ export function ContextMenu({
   onClose,
   onAddRectangle,
 }: ContextMenuProps) {
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Handle clicks outside the menu
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    // Small delay to prevent immediate close from the same click that opened it
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
-  // Handle Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const handleAddRectangle = () => {
     onAddRectangle();
     onClose();
   };
 
   return (
-    <div
-      ref={menuRef}
-      className="fixed bg-[var(--bg-light)] border border-[var(--border)] rounded-sm [box-shadow:var(--shadow)] py-1 z-50 min-w-[160px]"
-      style={{
-        left: `${x}px`,
-        top: `${y}px`,
-      }}
+    <ContextMenuWrapper
+      menuId="canvas-context-menu"
+      isOpen={isOpen}
+      x={x}
+      y={y}
+      onClose={onClose}
+      className="bg-[var(--bg-light)] border border-[var(--border)] rounded-sm [box-shadow:var(--shadow)] py-1 min-w-[160px]"
     >
       <button
         onClick={handleAddRectangle}
@@ -94,6 +55,6 @@ export function ContextMenu({
       {/* Future menu items can be added here */}
       {/* <button className="...">Add Circle</button> */}
       {/* <button className="...">Add Text</button> */}
-    </div>
+    </ContextMenuWrapper>
   );
 }
