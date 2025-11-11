@@ -34,7 +34,7 @@ export function FloatingPanel({
   footer,
   width = 600,
   closable = true,
-  backdropClosable = true,
+  backdropClosable: _backdropClosable = true,
   className = '',
 }: FloatingPanelProps) {
   // Handle ESC key

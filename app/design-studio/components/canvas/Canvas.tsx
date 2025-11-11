@@ -12,10 +12,10 @@ import { useCanvasContextMenu } from '../../hooks/useCanvasContextMenu';
 import { useShapeDragging } from '../../hooks/useShapeDragging';
 import { useCanvasKeyboardHandlers } from '../../hooks/useCanvasKeyboardHandlers';
 import { useClassShapeEditing } from '../../hooks/useClassShapeEditing';
+import { useShapeInteraction } from '../../hooks/useShapeInteraction';
 import { useCanvasMouseOrchestration } from './useCanvasMouseOrchestration';
 import { commandManager } from '~/core/commands/CommandManager';
 import type { Command } from '~/core/commands/command.types';
-import { screenToCanvas } from '../../utils/canvas';
 import { GridBackground } from './GridBackground';
 import { ContextMenu } from './ContextMenu';
 import { BpmnToolsetPopover } from './BpmnToolsetPopover';
@@ -368,6 +368,23 @@ export function Canvas({ diagramId }: CanvasProps) {
     setSelectedShapes,
   });
 
+  // Use shape interaction hook for selection and drag initialization
+  const {
+    handleShapeMouseDown,
+    handleShapeMouseEnter,
+    handleShapeMouseLeave,
+  } = useShapeInteraction({
+    zoom,
+    panX,
+    panY,
+    selectedShapeIds,
+    setSelectedShapes,
+    setHoveredShapeId,
+    startDragging,
+    containerRef,
+    lastMousePosRef,
+  });
+
   // Orchestrate mouse events with priority-based routing
   const { handleMouseDown, handleMouseMove, handleMouseUp } = useCanvasMouseOrchestration({
     containerRef,
@@ -388,84 +405,6 @@ export function Canvas({ diagramId }: CanvasProps) {
     updateDragging,
     finishDragging,
   });
-
-  // Handle shape mouse down for selection and drag initialization
-  const handleShapeMouseDown = useCallback(
-    (e: React.MouseEvent, shapeId: string) => {
-      // Stop propagation to prevent canvas background click
-      e.stopPropagation();
-
-      // Only handle left mouse button
-      if (e.button !== 0) return;
-
-      const container = containerRef.current;
-      if (!container) return;
-
-      // Get mouse position in screen and canvas coordinates
-      const rect = container.getBoundingClientRect();
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
-      const { x: canvasX, y: canvasY } = screenToCanvas(
-        screenX,
-        screenY,
-        zoom,
-        panX,
-        panY
-      );
-
-      // Check for multi-select modifiers (Shift, Ctrl, or Cmd on Mac)
-      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-
-      // Determine which shapes will be dragged BEFORE modifying selection
-      let shapesToDrag: string[];
-
-      if (isMultiSelect) {
-        // Toggle shape in selection
-        if (selectedShapeIds.includes(shapeId)) {
-          // Remove from selection
-          setSelectedShapes(selectedShapeIds.filter((id) => id !== shapeId));
-          // Don't start dragging if we just deselected
-          return;
-        } else {
-          // Add to selection
-          const newSelection = [...selectedShapeIds, shapeId];
-          setSelectedShapes(newSelection);
-          // Drag all newly selected shapes
-          shapesToDrag = newSelection;
-        }
-      } else {
-        // If clicking on a non-selected shape, select only that shape
-        if (!selectedShapeIds.includes(shapeId)) {
-          setSelectedShapes([shapeId]);
-          shapesToDrag = [shapeId];
-        } else {
-          // Clicking on a selected shape - drag all currently selected shapes
-          shapesToDrag = selectedShapeIds;
-        }
-      }
-
-      // Start dragging
-      startDragging(canvasX, canvasY, shapesToDrag);
-      lastMousePosRef.current = { x: screenX, y: screenY };
-    },
-    [selectedShapeIds, setSelectedShapes, panX, panY, zoom, startDragging]
-  );
-
-  // Handle shape mouse enter for hover state
-  const handleShapeMouseEnter = useCallback(
-    (e: React.MouseEvent, shapeId: string) => {
-      setHoveredShapeId(shapeId);
-    },
-    [setHoveredShapeId]
-  );
-
-  // Handle shape mouse leave for hover state
-  const handleShapeMouseLeave = useCallback(
-    (_e: React.MouseEvent, _shapeId: string) => {
-      setHoveredShapeId(null);
-    },
-    [setHoveredShapeId]
-  );
 
   // Handle connector mouse down for selection
   const handleConnectorMouseDown = useCallback(

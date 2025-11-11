@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
+import type { DrawingConnector } from '../../hooks/useConnectorDrawing';
 
 /**
  * Props for the useCanvasMouseOrchestration hook
  */
 export interface UseCanvasMouseOrchestrationProps {
   // Refs
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 
   // Panning state and controls
   isPanning: boolean;
@@ -21,13 +22,13 @@ export interface UseCanvasMouseOrchestrationProps {
   finishSelection: (screenX: number, screenY: number) => void;
 
   // Connector drawing state and controls
-  drawingConnector: any | null;
+  drawingConnector: DrawingConnector | null;
   updateDrawingConnector: (screenX: number, screenY: number) => void;
   cancelDrawingConnector: () => void;
 
   // Shape dragging state and controls
   isDraggingShapesRef: React.MutableRefObject<boolean>;
-  dragStartCanvasPosRef: React.MutableRefObject<any>;
+  dragStartCanvasPosRef: React.MutableRefObject<{ x: number; y: number } | null>;
   updateDragging: (screenX: number, screenY: number, rect: DOMRect) => void;
   finishDragging: () => void;
 }

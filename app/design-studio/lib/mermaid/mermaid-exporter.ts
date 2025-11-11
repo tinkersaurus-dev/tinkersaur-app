@@ -68,7 +68,7 @@ export abstract class BaseMermaidExporter implements MermaidExporter {
 
   abstract getDiagramType(): string;
 
-  validate(shapes: Shape[], connectors: Connector[]): Result<void> {
+  validate(shapes: Shape[], _connectors: Connector[]): Result<void> {
     if (shapes.length === 0) {
       return { ok: false, error: 'No shapes to export' };
     }

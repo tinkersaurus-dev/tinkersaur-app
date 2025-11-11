@@ -110,7 +110,7 @@ export class ClassMermaidExporter extends BaseMermaidExporter {
     const usedNames = new Set<string>();
 
     shapes.forEach((shape) => {
-      let className = this.sanitizeClassName(shape.label || 'Class');
+      const className = this.sanitizeClassName(shape.label || 'Class');
 
       // Ensure unique class names
       let uniqueName = className;
@@ -229,7 +229,6 @@ export class ClassMermaidExporter extends BaseMermaidExporter {
    */
   private getRelationshipSymbol(connector: Connector): string {
     const type = connector.type;
-    const markerStart = connector.markerStart || 'none';
     const markerEnd = connector.markerEnd || 'arrow';
     const lineType = connector.lineType || 'solid';
 
