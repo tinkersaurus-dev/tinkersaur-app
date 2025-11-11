@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -29,7 +29,8 @@ export function Table<T = Record<string, unknown>>({
   );
 
   // Convert our column format to TanStack's format
-  const tanstackColumns: ColumnDef<T>[] = columns.map((col) => {
+  // Memoize to prevent table reinitialization on every render
+  const tanstackColumns: ColumnDef<T>[] = useMemo(() => columns.map((col) => {
     // Base column configuration
     const baseConfig = {
       id: col.key,
@@ -76,7 +77,7 @@ export function Table<T = Record<string, unknown>>({
     }
 
     return column;
-  });
+  }), [columns]);
 
   const table = useReactTable({
     data: dataSource,

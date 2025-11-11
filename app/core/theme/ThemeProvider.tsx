@@ -3,7 +3,7 @@
  * Manages theme state and applies theme to document
  */
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 
 export type Theme = 'light' | 'dark';
@@ -21,22 +21,26 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>('light');
-
-  useEffect(() => {
-    // Load theme from localStorage on mount
+  // Use lazy initialization to load theme from localStorage without causing extra render
+  // Check for browser environment to support SSR
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === 'undefined') {
+      return 'light'; // Default for SSR
+    }
     const stored = localStorage.getItem('theme') as Theme;
     if (stored && (stored === 'light' || stored === 'dark')) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setThemeState(stored);
       document.documentElement.setAttribute('data-theme', stored);
+      return stored;
     }
-  }, []);
+    return 'light';
+  });
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', newTheme);
+      document.documentElement.setAttribute('data-theme', newTheme);
+    }
   };
 
   const toggleTheme = () => {

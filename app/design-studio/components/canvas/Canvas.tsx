@@ -224,11 +224,15 @@ export function Canvas({ diagramId }: CanvasProps) {
     enabled: true,
   });
 
+  // Track lengths to avoid unnecessary effect re-runs from array reference changes
+  const entityShapesLength = entityShapes.length;
+  const entityConnectorsLength = entityConnectors.length;
+
   // Initialize local content from entity store ONCE on mount
   // After initialization, local state is autonomous and updated by commands
   // Commands coordinate updates to both local state and entity store
   useEffect(() => {
-    if (!loading && (entityShapes.length > 0 || entityConnectors.length > 0) && !isInitialized) {
+    if (!loading && (entityShapesLength > 0 || entityConnectorsLength > 0) && !isInitialized) {
       // Use requestAnimationFrame to defer state update
       const frameId = requestAnimationFrame(() => {
         initializeContent(entityShapes, entityConnectors);
@@ -236,7 +240,7 @@ export function Canvas({ diagramId }: CanvasProps) {
       });
       return () => cancelAnimationFrame(frameId);
     }
-  }, [loading, entityShapes, entityConnectors, initializeContent, isInitialized]);
+  }, [loading, entityShapesLength, entityConnectorsLength, initializeContent, isInitialized, entityShapes, entityConnectors]);
 
   // Render from local state (working copy), fallback to entity state if local not initialized
   const shapes = localShapes.length > 0 ? localShapes : entityShapes;
