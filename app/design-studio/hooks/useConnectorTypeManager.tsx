@@ -1,9 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import type { JSX } from 'react';
 import { TbArrowRight } from 'react-icons/tb';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
 import { commandManager } from '~/core/commands/CommandManager';
-import type { Command } from '~/core/commands/command.types';
+import type { CommandFactory } from '~/core/commands/CommandFactory';
 import type { Connector } from '~/core/entities/design-studio/types/Connector';
 import {
   allBpmnConnectorTools,
@@ -20,7 +19,7 @@ interface UseConnectorTypeManagerProps {
   diagramType: 'bpmn' | 'dataflow' | 'class' | 'sequence' | undefined;
   activeConnectorType: string;
   setActiveConnectorType: (type: string) => void;
-  updateLocalConnector: (connectorId: string, updates: Partial<Connector>) => void;
+  commandFactory: CommandFactory;
   connectors: Connector[];
 }
 
@@ -42,7 +41,7 @@ export function useConnectorTypeManager({
   diagramType,
   activeConnectorType,
   setActiveConnectorType,
-  updateLocalConnector,
+  commandFactory,
   connectors: _connectors,
 }: UseConnectorTypeManagerProps): UseConnectorTypeManagerReturn {
   // Note: Menu state now managed by useContextMenuManager in Canvas.tsx
@@ -86,16 +85,6 @@ export function useConnectorTypeManager({
   const handleConnectorTypeChange = useCallback(async (connectorTool: ConnectorTool, connectorId: string) => {
     if (!connectorId) return;
 
-    // Import the command dynamically to avoid circular dependencies
-    const { ChangeConnectorTypeCommand } = await import('~/core/commands/canvas/ChangeConnectorTypeCommand');
-
-    // Get the connector store functions
-    const updateConnectorFn = useDesignStudioEntityStore.getState()._internalUpdateConnector;
-    const getConnectorFn = (diagramId: string, connectorId: string) => {
-      const diagram = useDesignStudioEntityStore.getState().diagrams[diagramId];
-      return diagram?.connectors.find((c: Connector) => c.id === connectorId) || null;
-    };
-
     // Create the update data based on the connector tool config
     const updateData = {
       id: connectorId,
@@ -108,17 +97,14 @@ export function useConnectorTypeManager({
     };
 
     // Create and execute the command
-    const command: Command = new ChangeConnectorTypeCommand(
+    const command = commandFactory.createChangeConnectorType(
       diagramId,
       connectorId,
-      updateData,
-      updateConnectorFn,
-      getConnectorFn,
-      updateLocalConnector // Pass local state updater for immediate visual feedback
+      updateData
     );
 
     await commandManager.execute(command, diagramId);
-  }, [diagramId, updateLocalConnector]);
+  }, [diagramId, commandFactory]);
 
   return {
     // Handlers (menu state managed by useContextMenuManager)

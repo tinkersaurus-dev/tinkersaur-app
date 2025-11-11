@@ -11,7 +11,6 @@ export type { Command, CommandScope, CommandHistoryOptions } from './command.typ
 // Command management
 export { CommandHistory } from './CommandHistory';
 export { CommandManager, commandManager } from './CommandManager';
-export { CompositeCommand } from './CompositeCommand';
 
 // Canvas commands
 export { AddShapeCommand } from './canvas/AddShapeCommand';

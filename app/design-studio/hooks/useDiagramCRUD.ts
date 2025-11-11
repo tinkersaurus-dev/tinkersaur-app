@@ -14,10 +14,12 @@ export function useDiagramCRUD(diagramId: string | undefined) {
   const updateShapeAction = useDesignStudioEntityStore((state) => state.updateShape);
   const updateShapesAction = useDesignStudioEntityStore((state) => state.updateShapes);
   const deleteShapeAction = useDesignStudioEntityStore((state) => state.deleteShape);
+  const deleteShapesAction = useDesignStudioEntityStore((state) => state.deleteShapes);
 
   // Connector manipulation actions from store
   const addConnectorAction = useDesignStudioEntityStore((state) => state.addConnector);
   const deleteConnectorAction = useDesignStudioEntityStore((state) => state.deleteConnector);
+  const deleteConnectorsAction = useDesignStudioEntityStore((state) => state.deleteConnectors);
 
   // Wrapper functions that bind the diagram ID
   const addShape = diagramId
@@ -32,6 +34,9 @@ export function useDiagramCRUD(diagramId: string | undefined) {
   const deleteShape = diagramId
     ? (shapeId: string) => deleteShapeAction(diagramId, shapeId)
     : undefined;
+  const deleteShapes = diagramId
+    ? (shapeIds: string[]) => deleteShapesAction(diagramId, shapeIds)
+    : undefined;
 
   const addConnector = diagramId
     ? (connector: CreateConnectorDTO) => addConnectorAction(diagramId, connector)
@@ -39,13 +44,18 @@ export function useDiagramCRUD(diagramId: string | undefined) {
   const deleteConnector = diagramId
     ? (connectorId: string) => deleteConnectorAction(diagramId, connectorId)
     : undefined;
+  const deleteConnectors = diagramId
+    ? (connectorIds: string[]) => deleteConnectorsAction(diagramId, connectorIds)
+    : undefined;
 
   return {
     addShape,
     updateShape,
     updateShapes,
     deleteShape,
+    deleteShapes,
     addConnector,
     deleteConnector,
+    deleteConnectors,
   };
 }

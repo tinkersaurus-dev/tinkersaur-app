@@ -48,10 +48,13 @@ Manages multiple CommandHistory instances with scope isolation:
 - Scopes are identified by diagram ID
 - Global singleton instance: `commandManager`
 
-### 4. CompositeCommand (`CompositeCommand.ts`)
-Groups multiple commands into a single undoable operation:
-- Execute: runs all commands forward
-- Undo: runs all commands backward (reverse order)
+### 4. Batch Commands Pattern
+For operations affecting multiple entities, use dedicated batch commands for atomic operations:
+- **BatchDeleteShapesCommand**: Deletes multiple shapes and their connectors atomically
+- **BatchDeleteConnectorsCommand**: Deletes multiple connectors atomically
+- **MoveEntitiesCommand**: Moves multiple shapes atomically
+- All operations complete in a single state update for instant UI feedback
+- Single undo/redo operation for the entire batch
 
 ## Canvas Commands
 
@@ -162,21 +165,28 @@ function MyComponent() {
 }
 ```
 
-### Composite Commands (Future)
+### Batch Commands
 ```typescript
-// Group multiple operations into one undoable action
-const commands = [
-  new MoveShapeCommand(...),
-  new MoveShapeCommand(...),
-  new MoveShapeCommand(...),
-];
-
-const compositeCommand = new CompositeCommand(
-  commands,
-  'Move 3 shapes'
+// Delete multiple shapes as a single atomic operation
+const command = commandFactory.createBatchDeleteShapes(
+  diagramId,
+  ['shape-id-1', 'shape-id-2', 'shape-id-3']
 );
 
-await commandManager.execute(compositeCommand, diagramId);
+await commandManager.execute(command, diagramId);
+// All shapes and their connectors disappear instantly
+// Undo restores all shapes and connectors instantly
+
+// Move multiple entities atomically
+const command = commandFactory.createMoveEntities(
+  diagramId,
+  [
+    { shapeId: 'shape-1', fromPosition: {x: 0, y: 0}, toPosition: {x: 100, y: 100} },
+    { shapeId: 'shape-2', fromPosition: {x: 50, y: 50}, toPosition: {x: 150, y: 150} },
+  ]
+);
+
+await commandManager.execute(command, diagramId);
 ```
 
 ## State Capture Strategy
@@ -301,11 +311,14 @@ app/core/commands/
 ├── command.types.ts                # Core interfaces
 ├── CommandHistory.ts               # Undo/redo stack manager
 ├── CommandManager.ts               # Scoped history manager
-├── CompositeCommand.ts             # Command grouping
+├── CommandFactory.ts               # Command factory with DI
 └── canvas/
     ├── AddShapeCommand.ts          # Add shape operation
     ├── DeleteShapeCommand.ts       # Delete shape operation
-    └── MoveShapeCommand.ts         # Move shape position
+    ├── MoveShapeCommand.ts         # Move shape position
+    ├── MoveEntitiesCommand.ts      # Batch move shapes
+    ├── BatchDeleteShapesCommand.ts # Batch delete shapes
+    └── BatchDeleteConnectorsCommand.ts # Batch delete connectors
 
 app/design-studio/
 ├── store/

@@ -36,6 +36,8 @@ import type { Tool as BpmnTool } from '../../config/bpmn-tools';
 import type { Tool as ClassTool } from '../../config/class-tools';
 import { useMermaidSync } from '../../hooks/useMermaidSync';
 import { MermaidViewer } from '../mermaid/MermaidViewer';
+import { useToolHandler } from '../../hooks/useToolHandler';
+import { mapBpmnToolToShape, mapClassToolToShape } from '../../utils/toolMappers';
 
 /**
  * Canvas Component
@@ -110,8 +112,8 @@ export function Canvas({ diagramId }: CanvasProps) {
   const setActiveConnectorType = canvasInstance((state) => state.setActiveConnectorType);
 
   // Get CRUD operations for this diagram
-  const { addShape, updateShapes, addConnector, deleteConnector, deleteShape } = useDiagramCRUD(diagramId);
-  const updateShape = useDesignStudioEntityStore((state) => state._internalUpdateShape);
+  const { addShape, updateShapes, addConnector, deleteConnector, deleteShape, deleteConnectors, deleteShapes } = useDiagramCRUD(diagramId);
+  const commandFactory = useDesignStudioEntityStore((state) => state.commandFactory);
   const updateShapeLabel = useDesignStudioEntityStore((state) => state.updateShapeLabel);
   const updateConnectorLabel = useDesignStudioEntityStore((state) => state.updateConnectorLabel);
   const entityShapes = useMemo(() => diagram?.shapes || [], [diagram?.shapes]);
@@ -186,7 +188,7 @@ export function Canvas({ diagramId }: CanvasProps) {
     updateMethodLocal,
   } = useClassShapeEditing({
     diagramId,
-    updateShape,
+    commandFactory,
     getShape,
     updateLocalShape,
     executeCommand,
@@ -228,12 +230,25 @@ export function Canvas({ diagramId }: CanvasProps) {
     diagramType: diagram?.type,
     activeConnectorType,
     setActiveConnectorType,
-    updateLocalConnector,
+    commandFactory,
     connectors,
   });
 
   // Use unified context menu manager for all menus/popovers
   const menuManager = useContextMenuManager();
+
+  // Use polymorphic tool handlers for BPMN and Class diagrams
+  const { handleToolSelect: handleBpmnToolSelect } = useToolHandler<BpmnTool>({
+    addShape,
+    menuManager,
+    toolToShapeMapper: mapBpmnToolToShape,
+  });
+
+  const { handleToolSelect: handleClassToolSelect } = useToolHandler<ClassTool>({
+    addShape,
+    menuManager,
+    toolToShapeMapper: mapClassToolToShape,
+  });
 
   // Use Phase 2 hooks
   const {
@@ -324,47 +339,6 @@ export function Canvas({ diagramId }: CanvasProps) {
     menuManager.closeMenu();
   }, [addShape, menuManager]);
 
-  // Handle BPMN tool selection
-  const handleBpmnToolSelect = useCallback(async (tool: BpmnTool, canvasX: number, canvasY: number) => {
-    if (!addShape) return;
-
-    // Create shape from tool at the clicked position
-    await addShape({
-      type: tool.shapeType,
-      subtype: tool.shapeSubtype,
-      x: canvasX - tool.defaultSize.width / 2,
-      y: canvasY - tool.defaultSize.height / 2,
-      width: tool.defaultSize.width,
-      height: tool.defaultSize.height,
-      label: tool.name,
-      zIndex: 0,
-      locked: false,
-    });
-
-    menuManager.closeMenu();
-  }, [addShape, menuManager]);
-
-  // Handle Class tool selection
-  const handleClassToolSelect = useCallback(async (tool: ClassTool, canvasX: number, canvasY: number) => {
-    if (!addShape) return;
-
-    // Create shape from tool at the clicked position with initial data
-    await addShape({
-      type: tool.shapeType,
-      subtype: tool.shapeSubtype,
-      x: canvasX - tool.defaultSize.width / 2,
-      y: canvasY - tool.defaultSize.height / 2,
-      width: tool.defaultSize.width,
-      height: tool.defaultSize.height,
-      label: tool.name,
-      zIndex: 0,
-      locked: false,
-      data: tool.initialData,
-    });
-
-    menuManager.closeMenu();
-  }, [addShape, menuManager]);
-
   const {
     isDraggingShapesRef,
     dragStartCanvasPosRef,
@@ -390,6 +364,8 @@ export function Canvas({ diagramId }: CanvasProps) {
     selectedShapeIds,
     deleteConnector,
     deleteShape,
+    deleteConnectors,
+    deleteShapes,
     setSelectedConnectors,
     setSelectedShapes,
   });

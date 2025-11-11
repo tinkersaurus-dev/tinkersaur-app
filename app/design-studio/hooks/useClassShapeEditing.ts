@@ -7,23 +7,12 @@
 
 import { useCallback } from 'react';
 import type { Shape, ClassShapeData } from '~/core/entities/design-studio/types/Shape';
-import type { Diagram } from '~/core/entities/design-studio/types';
 import type { Command } from '~/core/commands/command.types';
-import { AddClassAttributeCommand } from '~/core/commands/canvas/AddClassAttributeCommand';
-import { DeleteClassAttributeCommand } from '~/core/commands/canvas/DeleteClassAttributeCommand';
-import { AddClassMethodCommand } from '~/core/commands/canvas/AddClassMethodCommand';
-import { DeleteClassMethodCommand } from '~/core/commands/canvas/DeleteClassMethodCommand';
-import { UpdateClassAttributeCommand } from '~/core/commands/canvas/UpdateClassAttributeCommand';
-import { UpdateClassMethodCommand } from '~/core/commands/canvas/UpdateClassMethodCommand';
-import { UpdateShapeDataCommand } from '~/core/commands/canvas/UpdateShapeDataCommand';
+import type { CommandFactory } from '~/core/commands/CommandFactory';
 
 interface UseClassShapeEditingProps {
   diagramId: string;
-  updateShape: (
-    diagramId: string,
-    shapeId: string,
-    updates: Partial<Shape>
-  ) => Promise<Diagram | null>;
+  commandFactory: CommandFactory;
   getShape: (shapeId: string) => Shape | undefined;
   updateLocalShape?: (shapeId: string, updates: Partial<Shape>) => void;
   executeCommand: (command: Command) => Promise<void>;
@@ -31,7 +20,7 @@ interface UseClassShapeEditingProps {
 
 export function useClassShapeEditing({
   diagramId,
-  updateShape,
+  commandFactory,
   getShape,
   updateLocalShape,
   executeCommand,
@@ -48,18 +37,16 @@ export function useClassShapeEditing({
       const oldData = { ...currentData };
       const newData = { ...currentData, stereotype: newStereotype };
 
-      const command = new UpdateShapeDataCommand(
+      const command = commandFactory.createUpdateShapeData(
         diagramId,
         shapeId,
         oldData,
-        newData,
-        updateShape,
-        updateLocalShape
+        newData
       );
 
       await executeCommand(command);
     },
-    [diagramId, updateShape, getShape, updateLocalShape, executeCommand]
+    [diagramId, commandFactory, getShape, executeCommand]
   );
 
   /**
@@ -67,18 +54,16 @@ export function useClassShapeEditing({
    */
   const addAttribute = useCallback(
     async (shapeId: string, attribute: string = '+ newAttribute: type') => {
-      const command = new AddClassAttributeCommand(
+      const command = commandFactory.createAddClassAttribute(
         diagramId,
         shapeId,
         attribute,
-        updateShape,
-        getShape,
-        updateLocalShape
+        getShape
       );
 
       await executeCommand(command);
     },
-    [diagramId, updateShape, getShape, updateLocalShape, executeCommand]
+    [diagramId, commandFactory, getShape, executeCommand]
   );
 
   /**
@@ -86,18 +71,16 @@ export function useClassShapeEditing({
    */
   const deleteAttribute = useCallback(
     async (shapeId: string, attributeIndex: number) => {
-      const command = new DeleteClassAttributeCommand(
+      const command = commandFactory.createDeleteClassAttribute(
         diagramId,
         shapeId,
         attributeIndex,
-        updateShape,
-        getShape,
-        updateLocalShape
+        getShape
       );
 
       await executeCommand(command);
     },
-    [diagramId, updateShape, getShape, updateLocalShape, executeCommand]
+    [diagramId, commandFactory, getShape, executeCommand]
   );
 
   /**
@@ -114,20 +97,18 @@ export function useClassShapeEditing({
 
       if (oldValue === newValue) return; // No change
 
-      const command = new UpdateClassAttributeCommand(
+      const command = commandFactory.createUpdateClassAttribute(
         diagramId,
         shapeId,
         attributeIndex,
         oldValue,
         newValue,
-        updateShape,
-        getShape,
-        updateLocalShape
+        getShape
       );
 
       await executeCommand(command);
     },
-    [diagramId, updateShape, getShape, updateLocalShape, executeCommand]
+    [diagramId, commandFactory, getShape, executeCommand]
   );
 
   /**
@@ -162,18 +143,16 @@ export function useClassShapeEditing({
    */
   const addMethod = useCallback(
     async (shapeId: string, method: string = '+ newMethod(): returnType') => {
-      const command = new AddClassMethodCommand(
+      const command = commandFactory.createAddClassMethod(
         diagramId,
         shapeId,
         method,
-        updateShape,
-        getShape,
-        updateLocalShape
+        getShape
       );
 
       await executeCommand(command);
     },
-    [diagramId, updateShape, getShape, updateLocalShape, executeCommand]
+    [diagramId, commandFactory, getShape, executeCommand]
   );
 
   /**
@@ -181,18 +160,16 @@ export function useClassShapeEditing({
    */
   const deleteMethod = useCallback(
     async (shapeId: string, methodIndex: number) => {
-      const command = new DeleteClassMethodCommand(
+      const command = commandFactory.createDeleteClassMethod(
         diagramId,
         shapeId,
         methodIndex,
-        updateShape,
-        getShape,
-        updateLocalShape
+        getShape
       );
 
       await executeCommand(command);
     },
-    [diagramId, updateShape, getShape, updateLocalShape, executeCommand]
+    [diagramId, commandFactory, getShape, executeCommand]
   );
 
   /**
@@ -209,20 +186,18 @@ export function useClassShapeEditing({
 
       if (oldValue === newValue) return; // No change
 
-      const command = new UpdateClassMethodCommand(
+      const command = commandFactory.createUpdateClassMethod(
         diagramId,
         shapeId,
         methodIndex,
         oldValue,
         newValue,
-        updateShape,
-        getShape,
-        updateLocalShape
+        getShape
       );
 
       await executeCommand(command);
     },
-    [diagramId, updateShape, getShape, updateLocalShape, executeCommand]
+    [diagramId, commandFactory, getShape, executeCommand]
   );
 
   /**

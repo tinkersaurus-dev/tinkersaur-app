@@ -278,6 +278,60 @@ class DiagramApi {
     return diagrams[index];
   }
 
+  /**
+   * Delete multiple shapes by their IDs in a single operation
+   * (Batch operation for atomic delete)
+   */
+  async deleteShapesByIds(diagramId: string, shapeIds: string[]): Promise<Diagram | null> {
+    await simulateDelay();
+
+    const diagrams = getDiagramsFromStorage();
+    const index = diagrams.findIndex((d: Diagram) => d.id === diagramId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    // Defensive: Initialize shapes array if undefined
+    if (!diagrams[index].shapes) {
+      diagrams[index].shapes = [];
+    }
+
+    const shapeIdSet = new Set(shapeIds);
+    diagrams[index].shapes = diagrams[index].shapes.filter((s: Shape) => !shapeIdSet.has(s.id));
+    diagrams[index].updatedAt = new Date();
+
+    saveToStorage(STORAGE_KEY, diagrams);
+    return diagrams[index];
+  }
+
+  /**
+   * Restore multiple shapes with their original IDs (used for undo operations)
+   * (Batch operation for atomic restore)
+   */
+  async restoreShapes(diagramId: string, shapes: Shape[]): Promise<Diagram | null> {
+    await simulateDelay();
+
+    const diagrams = getDiagramsFromStorage();
+    const index = diagrams.findIndex((d: Diagram) => d.id === diagramId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    // Defensive: Initialize shapes array if undefined
+    if (!diagrams[index].shapes) {
+      diagrams[index].shapes = [];
+    }
+
+    // Add all shapes with their preserved IDs
+    diagrams[index].shapes.push(...shapes);
+    diagrams[index].updatedAt = new Date();
+
+    saveToStorage(STORAGE_KEY, diagrams);
+    return diagrams[index];
+  }
+
   // ============================================
   // Connector manipulation methods
   // ============================================
