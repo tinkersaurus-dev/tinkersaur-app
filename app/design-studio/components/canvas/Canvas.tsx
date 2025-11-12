@@ -5,6 +5,7 @@ import { useDiagramCRUD } from '../../hooks/useDiagramCRUD';
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
 import { useCanvasViewport } from '../../hooks/useCanvasViewport';
 import { useCanvasLabelEditing } from '../../hooks/useCanvasLabelEditing';
+import { useInteractionState } from '../../hooks/useInteractionState';
 import { useCanvasPanning } from '../../hooks/useCanvasPanning';
 import { useCanvasSelection } from '../../hooks/useCanvasSelection';
 import { useConnectorDrawing } from '../../hooks/useConnectorDrawing';
@@ -131,12 +132,35 @@ export function Canvas({ diagramId }: CanvasProps) {
     setViewport,
   });
 
-  const { isPanning, startPanning, updatePanning, stopPanning } = useCanvasPanning({
+  // Initialize interaction state machine
+  const {
+    mode,
+    data: interactionData,
+    reset: resetInteraction,
+    startPanning: transitionToPanning,
+    startDragging: transitionToDragging,
+    updateDragging: updateDraggingData,
+    startSelecting: transitionToSelecting,
+    updateSelecting: updateSelectingData,
+    startDrawingConnector: transitionToDrawingConnector,
+    updateDrawingConnector: updateDrawingConnectorData,
+  } = useInteractionState();
+
+  // Extract mode-specific data with type safety
+  const selectionBox: import('../../hooks/useInteractionState').SelectionBox | null =
+    mode === 'selecting' ? (interactionData as import('../../hooks/useInteractionState').SelectionBox) : null;
+  const dragData: import('../../hooks/useInteractionState').DragData | null =
+    mode === 'dragging-shapes' ? (interactionData as import('../../hooks/useInteractionState').DragData) : null;
+  const drawingConnector: import('../../hooks/useInteractionState').DrawingConnector | null =
+    mode === 'drawing-connector' ? (interactionData as import('../../hooks/useInteractionState').DrawingConnector) : null;
+
+  const { startPanning, updatePanning, stopPanning } = useCanvasPanning({
     setViewport,
     zoom,
     panX,
     panY,
     lastMousePosRef,
+    isActive: mode === 'panning',
   });
 
   const {
@@ -252,8 +276,6 @@ export function Canvas({ diagramId }: CanvasProps) {
 
   // Use Phase 2 hooks
   const {
-    selectionBox,
-    isSelectingRef,
     startSelection,
     updateSelection,
     finishSelection,
@@ -267,14 +289,14 @@ export function Canvas({ diagramId }: CanvasProps) {
     connectors,
     clearSelection,
     setSelection,
+    isActive: mode === 'selecting',
+    selectionBox,
   });
 
   const {
-    drawingConnector,
     startDrawingConnector,
     updateDrawingConnector,
     finishDrawingConnector,
-    cancelDrawingConnector,
   } = useConnectorDrawing({
     containerRef,
     zoom,
@@ -283,6 +305,8 @@ export function Canvas({ diagramId }: CanvasProps) {
     addConnector: addConnector || (async () => {}),
     activeConnectorType,
     getConnectorConfig: connectorTypeManager.getConnectorConfig,
+    isActive: mode === 'drawing-connector',
+    drawingConnector,
   });
 
   // Handle canvas right-click context menu
@@ -340,8 +364,6 @@ export function Canvas({ diagramId }: CanvasProps) {
   }, [addShape, menuManager]);
 
   const {
-    isDraggingShapesRef,
-    dragStartCanvasPosRef,
     startDragging,
     updateDragging,
     finishDragging,
@@ -353,10 +375,9 @@ export function Canvas({ diagramId }: CanvasProps) {
     localShapes,
     updateLocalShapes,
     updateShapes,
-    _selectedShapeIds: selectedShapeIds,
-    _setSelectedShapes: setSelectedShapes,
     shapes,
-    _lastMousePosRef: lastMousePosRef,
+    isActive: mode === 'dragging-shapes',
+    dragData,
   });
 
   useCanvasKeyboardHandlers({
@@ -383,30 +404,50 @@ export function Canvas({ diagramId }: CanvasProps) {
     setSelectedShapes,
     setHoveredShapeId,
     startDragging,
+    onStartDragging: transitionToDragging,
     containerRef,
     lastMousePosRef,
   });
 
-  // Orchestrate mouse events with priority-based routing
+  // Orchestrate mouse events with state machine-based routing
   const { handleMouseDown, handleMouseMove, handleMouseUp } = useCanvasMouseOrchestration({
     containerRef,
-    isPanning,
+    mode,
+    selectionBox,
+    onStartPanning: transitionToPanning,
+    onStartSelecting: transitionToSelecting,
     startPanning,
     updatePanning,
     stopPanning,
-    selectionBox,
-    isSelectingRef,
     startSelection,
     updateSelection,
     finishSelection,
-    drawingConnector,
+    onUpdateSelecting: updateSelectingData,
     updateDrawingConnector,
-    cancelDrawingConnector,
-    isDraggingShapesRef,
-    dragStartCanvasPosRef,
+    onUpdateDrawingConnector: updateDrawingConnectorData,
+    onCancelDrawingConnector: resetInteraction,
     updateDragging,
     finishDragging,
+    onUpdateDragging: updateDraggingData,
+    onFinishInteraction: resetInteraction,
   });
+
+  // Wrap connector drawing functions to handle state machine transitions
+  const handleStartDrawingConnector = useCallback(
+    (connectionPointId: string, e: React.MouseEvent) => {
+      const connectorData = startDrawingConnector(connectionPointId, e);
+      transitionToDrawingConnector(connectorData);
+    },
+    [startDrawingConnector, transitionToDrawingConnector]
+  );
+
+  const handleFinishDrawingConnector = useCallback(
+    async (connectionPointId: string, e: React.MouseEvent) => {
+      await finishDrawingConnector(connectionPointId, e);
+      resetInteraction();
+    },
+    [finishDrawingConnector, resetInteraction]
+  );
 
   // Handle connector mouse down for selection
   const handleConnectorMouseDown = useCallback(
@@ -499,7 +540,7 @@ export function Canvas({ diagramId }: CanvasProps) {
       onDragStart={(e) => e.preventDefault()}
       style={{
         touchAction: 'none',
-        cursor: isPanning ? 'grabbing' : 'default',
+        cursor: mode === 'panning' ? 'grabbing' : 'default',
         userSelect: 'none',
         WebkitUserSelect: 'none',
       }}
@@ -535,8 +576,8 @@ export function Canvas({ diagramId }: CanvasProps) {
           onDoubleClick={handleShapeDoubleClick}
           onLabelChange={handleLabelChange}
           onFinishEditing={handleFinishEditing}
-          onConnectionPointMouseDown={startDrawingConnector}
-          onConnectionPointMouseUp={finishDrawingConnector}
+          onConnectionPointMouseDown={handleStartDrawingConnector}
+          onConnectionPointMouseUp={handleFinishDrawingConnector}
           onClassStereotypeChange={updateStereotype}
           onClassAddAttribute={addAttribute}
           onClassDeleteAttribute={deleteAttribute}
@@ -625,7 +666,7 @@ export function Canvas({ diagramId }: CanvasProps) {
         />
       )}
 
-      {/* Canvas Toolbar */}
+      {/* Canvas Toolbar - There is an error appearing here, this is realted to a Record<string, unknown> in the menumanager I think. The unknown needs to be converted into a union type of string, number, anb boolean.*/}
       <CanvasToolbar placement="bottom" buttons={toolbarButtons} />
 
       {/* Canvas Text Toolbar (right-side) */}
@@ -658,7 +699,7 @@ export function Canvas({ diagramId }: CanvasProps) {
           isOpen={true}
           onClose={menuManager.closeMenu}
           onConnectorTypeChange={async (tool) => {
-            await connectorTypeManager.handleConnectorTypeChange(tool, menuManager.activeMenuConfig!.metadata.connectorId);
+            await connectorTypeManager.handleConnectorTypeChange(tool, menuManager.activeMenuConfig!.metadata!.connectorId as string);
             menuManager.closeMenu();
           }}
           connectorTools={connectorTypeManager.availableConnectorTools}

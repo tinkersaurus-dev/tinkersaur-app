@@ -3,7 +3,7 @@ import { useState, useCallback, type RefObject } from 'react';
 /**
  * Configuration for a menu instance
  */
-export interface MenuConfig<T = Record<string, unknown>> {
+export interface MenuConfig<T = Record<string, string | number | boolean>> {
   id: string;
   screenPosition: { x: number; y: number };
   canvasPosition?: { x: number; y: number };
@@ -30,7 +30,7 @@ export interface UseContextMenuManagerReturn {
   activeMenuConfig: MenuConfig | null;
 
   // Core actions
-  openMenu: <T = Record<string, unknown>>(config: MenuConfig<T>) => void;
+  openMenu: <T = Record<string, string | number | boolean>>(config: MenuConfig<T>) => void;
   closeMenu: (menuId?: string) => void;
   closeAllMenus: () => void;
 
@@ -63,8 +63,8 @@ export interface UseContextMenuManagerReturn {
 export function useContextMenuManager(): UseContextMenuManagerReturn {
   const [activeMenuConfig, setActiveMenuConfig] = useState<MenuConfig | null>(null);
 
-  const openMenu = useCallback(<T = Record<string, unknown>>(config: MenuConfig<T>) => {
-    setActiveMenuConfig(config);
+  const openMenu = useCallback(<T = Record<string, string | number | boolean>>(config: MenuConfig<T>) => {
+    setActiveMenuConfig(config as MenuConfig);
   }, []);
 
   const closeMenu = useCallback((menuId?: string) => {

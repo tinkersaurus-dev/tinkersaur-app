@@ -1,6 +1,7 @@
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback } from 'react';
 import type { Shape } from '~/core/entities/design-studio/types';
 import { screenToCanvas, snapToGrid } from '../utils/canvas';
+import type { DragData } from './useInteractionState';
 
 interface UseShapeDraggingProps {
   zoom: number;
@@ -10,24 +11,20 @@ interface UseShapeDraggingProps {
   localShapes: Shape[];
   updateLocalShapes: (updates: Map<string, Partial<Shape>>) => void;
   updateShapes?: (shapeUpdates: Array<{ shapeId: string; updates: Partial<Shape> }>) => Promise<void>;
-  _selectedShapeIds: string[];
-  _setSelectedShapes: (shapeIds: string[]) => void;
   shapes: Shape[];
-  _lastMousePosRef: React.MutableRefObject<{ x: number; y: number }>;
+  isActive: boolean; // Driven by state machine
+  dragData: DragData | null; // From state machine
 }
 
 interface UseShapeDraggingReturn {
-  isDraggingShapesRef: React.MutableRefObject<boolean>;
-  dragStartCanvasPosRef: React.MutableRefObject<{ x: number; y: number } | null>;
-  shapesStartPositionsRef: React.MutableRefObject<Map<string, { x: number; y: number }>>;
-  dragDelta: { x: number; y: number } | null;
-  startDragging: (canvasX: number, canvasY: number, shapesToDrag: string[]) => void;
-  updateDragging: (screenX: number, screenY: number, containerRect: DOMRect) => void;
+  startDragging: (canvasX: number, canvasY: number, shapesToDrag: string[]) => DragData;
+  updateDragging: (screenX: number, screenY: number, containerRect: DOMRect) => { x: number; y: number };
   finishDragging: () => void;
 }
 
 /**
  * Hook for managing shape dragging interactions
+ * State is managed externally by the interaction state machine
  */
 export function useShapeDragging({
   zoom,
@@ -37,18 +34,14 @@ export function useShapeDragging({
   localShapes,
   updateLocalShapes,
   updateShapes,
-  _selectedShapeIds,
-  _setSelectedShapes,
   shapes,
-  _lastMousePosRef,
+  isActive,
+  dragData,
 }: UseShapeDraggingProps): UseShapeDraggingReturn {
-  const isDraggingShapesRef = useRef(false);
-  const dragStartCanvasPosRef = useRef<{ x: number; y: number } | null>(null);
   const shapesStartPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
-  const [dragDelta, setDragDelta] = useState<{ x: number; y: number } | null>(null);
 
   const startDragging = useCallback(
-    (canvasX: number, canvasY: number, shapesToDrag: string[]) => {
+    (canvasX: number, canvasY: number, shapesToDrag: string[]): DragData => {
       // Prepare for dragging: store original positions of shapes to drag
       const positionsMap = new Map<string, { x: number; y: number }>();
 
@@ -59,15 +52,19 @@ export function useShapeDragging({
       });
 
       shapesStartPositionsRef.current = positionsMap;
-      isDraggingShapesRef.current = true;
-      dragStartCanvasPosRef.current = { x: canvasX, y: canvasY };
+
+      return {
+        startCanvasPos: { x: canvasX, y: canvasY },
+        shapesStartPositions: positionsMap,
+        delta: null,
+      };
     },
     [shapes]
   );
 
   const updateDragging = useCallback(
-    (screenX: number, screenY: number, _containerRect: DOMRect) => {
-      if (!isDraggingShapesRef.current || !dragStartCanvasPosRef.current) return;
+    (screenX: number, screenY: number, _containerRect: DOMRect): { x: number; y: number } => {
+      if (!isActive || !dragData) return { x: 0, y: 0 };
 
       // Convert current mouse position to canvas coordinates
       const { x: currentCanvasX, y: currentCanvasY } = screenToCanvas(
@@ -79,8 +76,8 @@ export function useShapeDragging({
       );
 
       // Calculate delta in canvas space
-      const deltaX = currentCanvasX - dragStartCanvasPosRef.current.x;
-      const deltaY = currentCanvasY - dragStartCanvasPosRef.current.y;
+      const deltaX = currentCanvasX - dragData.startCanvasPos.x;
+      const deltaY = currentCanvasY - dragData.startCanvasPos.y;
 
       // Update LOCAL state only (ephemeral, not persisted)
       // Build batch update map for performance
@@ -104,15 +101,15 @@ export function useShapeDragging({
       // Single batch update to local state
       updateLocalShapes(updates);
 
-      // Store delta for command creation on mouseup
-      setDragDelta({ x: deltaX, y: deltaY });
+      // Return delta for state machine
+      return { x: deltaX, y: deltaY };
     },
-    [zoom, panX, panY, gridSnappingEnabled, updateLocalShapes]
+    [isActive, dragData, zoom, panX, panY, gridSnappingEnabled, updateLocalShapes]
   );
 
   const finishDragging = useCallback(() => {
     // Create composite command for undo/redo if there was any drag
-    if (dragDelta && (dragDelta.x !== 0 || dragDelta.y !== 0) && updateShapes) {
+    if (dragData?.delta && (dragData.delta.x !== 0 || dragData.delta.y !== 0) && updateShapes) {
       // Batch all shape updates into a single composite command
       // Use the actual positions from localShapes (which may have been snapped)
       const shapeUpdates = Array.from(shapesStartPositionsRef.current.entries()).map(
@@ -121,8 +118,8 @@ export function useShapeDragging({
           return {
             shapeId,
             updates: {
-              x: currentShape?.x ?? startPos.x + dragDelta.x,
-              y: currentShape?.y ?? startPos.y + dragDelta.y,
+              x: currentShape?.x ?? startPos.x + dragData.delta!.x,
+              y: currentShape?.y ?? startPos.y + dragData.delta!.y,
             },
           };
         }
@@ -130,18 +127,11 @@ export function useShapeDragging({
       updateShapes(shapeUpdates);
     }
 
-    // Clear drag state
-    isDraggingShapesRef.current = false;
-    dragStartCanvasPosRef.current = null;
+    // Clear internal refs
     shapesStartPositionsRef.current.clear();
-    setDragDelta(null);
-  }, [dragDelta, updateShapes, localShapes]);
+  }, [dragData, updateShapes, localShapes]);
 
   return {
-    isDraggingShapesRef,
-    dragStartCanvasPosRef,
-    shapesStartPositionsRef,
-    dragDelta,
     startDragging,
     updateDragging,
     finishDragging,

@@ -1,0 +1,153 @@
+import { useState, useCallback } from 'react';
+
+/**
+ * Interaction modes for the canvas
+ */
+export type InteractionMode =
+  | 'idle'
+  | 'panning'
+  | 'dragging-shapes'
+  | 'selecting'
+  | 'drawing-connector';
+
+/**
+ * Selection box data
+ */
+export interface SelectionBox {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+}
+
+/**
+ * Drawing connector data
+ */
+export interface DrawingConnector {
+  fromShapeId: string;
+  fromConnectionPointId: string;
+  currentX: number;
+  currentY: number;
+}
+
+/**
+ * Drag data for shape dragging
+ */
+export interface DragData {
+  startCanvasPos: { x: number; y: number };
+  shapesStartPositions: Map<string, { x: number; y: number }>;
+  delta: { x: number; y: number } | null;
+}
+
+/**
+ * Mode-specific data for each interaction type
+ */
+export type InteractionData =
+  | { mode: 'idle'; data: null }
+  | { mode: 'panning'; data: null }
+  | { mode: 'dragging-shapes'; data: DragData }
+  | { mode: 'selecting'; data: SelectionBox }
+  | { mode: 'drawing-connector'; data: DrawingConnector };
+
+/**
+ * Unified interaction state machine hook
+ *
+ * Replaces multiple boolean flags with a single state machine that ensures
+ * only one interaction mode is active at a time.
+ *
+ * Benefits:
+ * - Mutually exclusive states (impossible to be panning AND dragging)
+ * - Single source of truth
+ * - Type-safe transitions
+ * - Clearer reasoning about interaction flow
+ */
+export function useInteractionState() {
+  const [state, setState] = useState<InteractionData>({
+    mode: 'idle',
+    data: null,
+  });
+
+  /**
+   * Reset to idle state
+   */
+  const reset = useCallback(() => {
+    setState({ mode: 'idle', data: null });
+  }, []);
+
+  /**
+   * Start panning mode
+   */
+  const startPanning = useCallback(() => {
+    setState({ mode: 'panning', data: null });
+  }, []);
+
+  /**
+   * Start dragging shapes mode
+   */
+  const startDragging = useCallback((dragData: DragData) => {
+    setState({ mode: 'dragging-shapes', data: dragData });
+  }, []);
+
+  /**
+   * Update dragging shapes data
+   */
+  const updateDragging = useCallback((delta: { x: number; y: number }) => {
+    setState((prev) => {
+      if (prev.mode !== 'dragging-shapes') return prev;
+      return {
+        mode: 'dragging-shapes',
+        data: { ...prev.data, delta },
+      };
+    });
+  }, []);
+
+  /**
+   * Start selecting mode
+   */
+  const startSelecting = useCallback((selectionBox: SelectionBox) => {
+    setState({ mode: 'selecting', data: selectionBox });
+  }, []);
+
+  /**
+   * Update selection box
+   */
+  const updateSelecting = useCallback((selectionBox: SelectionBox) => {
+    setState((prev) => {
+      if (prev.mode !== 'selecting') return prev;
+      return { mode: 'selecting', data: selectionBox };
+    });
+  }, []);
+
+  /**
+   * Start drawing connector mode
+   */
+  const startDrawingConnector = useCallback((connectorData: DrawingConnector) => {
+    setState({ mode: 'drawing-connector', data: connectorData });
+  }, []);
+
+  /**
+   * Update drawing connector position
+   */
+  const updateDrawingConnector = useCallback((currentX: number, currentY: number) => {
+    setState((prev) => {
+      if (prev.mode !== 'drawing-connector') return prev;
+      return {
+        mode: 'drawing-connector',
+        data: { ...prev.data, currentX, currentY },
+      };
+    });
+  }, []);
+
+  return {
+    mode: state.mode,
+    data: state.data,
+    reset,
+    startPanning,
+    startDragging,
+    updateDragging,
+    startSelecting,
+    updateSelecting,
+    startDrawingConnector,
+    updateDrawingConnector,
+  };
+}

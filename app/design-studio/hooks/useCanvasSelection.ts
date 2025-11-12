@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
 import type { MutableRefObject, RefObject } from 'react';
 import type { Shape, Connector } from '~/core/entities/design-studio/types';
+import type { SelectionBox } from './useInteractionState';
 import {
   normalizeRectangle,
   getShapeBounds,
@@ -9,13 +9,6 @@ import {
   screenToCanvas,
   distance,
 } from '../utils/canvas';
-
-interface SelectionBox {
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
-}
 
 interface UseCanvasSelectionProps {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -27,20 +20,19 @@ interface UseCanvasSelectionProps {
   connectors: Connector[];
   clearSelection: () => void;
   setSelection: (shapeIds: string[], connectorIds: string[]) => void;
+  isActive: boolean; // Driven by state machine
+  selectionBox: SelectionBox | null; // From state machine
 }
 
 interface UseCanvasSelectionReturn {
-  selectionBox: SelectionBox | null;
-  setSelectionBox: (box: SelectionBox | null) => void;
-  isSelectingRef: MutableRefObject<boolean>;
-  startSelection: (screenX: number, screenY: number) => void;
-  updateSelection: (screenX: number, screenY: number) => void;
+  startSelection: (screenX: number, screenY: number) => SelectionBox;
+  updateSelection: (screenX: number, screenY: number) => SelectionBox;
   finishSelection: (screenX: number, screenY: number) => void;
-  cancelSelection: () => void;
 }
 
 /**
  * Hook for managing selection box and multi-select functionality
+ * State is managed externally by the interaction state machine
  */
 export function useCanvasSelection({
   containerRef,
@@ -52,35 +44,31 @@ export function useCanvasSelection({
   connectors,
   clearSelection,
   setSelection,
+  isActive,
+  selectionBox,
 }: UseCanvasSelectionProps): UseCanvasSelectionReturn {
-  const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
-  const isSelectingRef = useRef(false);
-
-  const startSelection = (screenX: number, screenY: number) => {
-    isSelectingRef.current = true;
+  const startSelection = (screenX: number, screenY: number): SelectionBox => {
     lastMousePosRef.current = { x: screenX, y: screenY };
 
-    setSelectionBox({
+    return {
       startX: screenX,
       startY: screenY,
       endX: screenX,
       endY: screenY,
-    });
+    };
   };
 
-  const updateSelection = (screenX: number, screenY: number) => {
-    if (!isSelectingRef.current) return;
+  const updateSelection = (screenX: number, screenY: number): SelectionBox => {
+    if (!isActive || !selectionBox) {
+      return selectionBox || { startX: 0, startY: 0, endX: 0, endY: 0 };
+    }
 
-    setSelectionBox((prev) =>
-      prev ? { ...prev, endX: screenX, endY: screenY } : null
-    );
+    return { ...selectionBox, endX: screenX, endY: screenY };
   };
 
   const finishSelection = (screenX: number, screenY: number) => {
     const container = containerRef.current;
     if (!container || !selectionBox) {
-      isSelectingRef.current = false;
-      setSelectionBox(null);
       return;
     }
 
@@ -159,24 +147,11 @@ export function useCanvasSelection({
       // Use the setSelection action to select both shapes and connectors
       setSelection(selectedShapeIds, selectedConnectorIds);
     }
-
-    // Reset selection box state
-    isSelectingRef.current = false;
-    setSelectionBox(null);
-  };
-
-  const cancelSelection = () => {
-    isSelectingRef.current = false;
-    setSelectionBox(null);
   };
 
   return {
-    selectionBox,
-    setSelectionBox,
-    isSelectingRef,
     startSelection,
     updateSelection,
     finishSelection,
-    cancelSelection,
   };
 }

@@ -1,5 +1,5 @@
 import type { Shape } from '~/core/entities/design-studio/types';
-import type { DrawingConnector } from '../../hooks/useConnectorDrawing';
+import type { DrawingConnector } from '../../hooks/useInteractionState';
 import { getConnectionPointsForShape, calculateAbsolutePosition } from '../../utils/connectionPoints';
 
 interface ConnectorDrawingPreviewProps {

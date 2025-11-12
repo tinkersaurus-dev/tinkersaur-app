@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { MutableRefObject } from 'react';
 
 interface UseCanvasPanningProps {
@@ -7,11 +6,10 @@ interface UseCanvasPanningProps {
   panX: number;
   panY: number;
   lastMousePosRef: MutableRefObject<{ x: number; y: number }>;
+  isActive: boolean; // Driven by state machine
 }
 
 interface UseCanvasPanningReturn {
-  isPanning: boolean;
-  setIsPanning: (isPanning: boolean) => void;
   startPanning: (clientX: number, clientY: number) => void;
   updatePanning: (clientX: number, clientY: number) => void;
   stopPanning: () => void;
@@ -19,6 +17,7 @@ interface UseCanvasPanningReturn {
 
 /**
  * Hook for managing canvas panning with middle mouse button
+ * State is managed externally by the interaction state machine
  */
 export function useCanvasPanning({
   setViewport,
@@ -26,16 +25,14 @@ export function useCanvasPanning({
   panX,
   panY,
   lastMousePosRef,
+  isActive,
 }: UseCanvasPanningProps): UseCanvasPanningReturn {
-  const [isPanning, setIsPanning] = useState(false);
-
   const startPanning = (clientX: number, clientY: number) => {
-    setIsPanning(true);
     lastMousePosRef.current = { x: clientX, y: clientY };
   };
 
   const updatePanning = (clientX: number, clientY: number) => {
-    if (!isPanning) return;
+    if (!isActive) return;
 
     const deltaX = clientX - lastMousePosRef.current.x;
     const deltaY = clientY - lastMousePosRef.current.y;
@@ -46,12 +43,10 @@ export function useCanvasPanning({
   };
 
   const stopPanning = () => {
-    setIsPanning(false);
+    // No state to clear - handled by state machine
   };
 
   return {
-    isPanning,
-    setIsPanning,
     startPanning,
     updatePanning,
     stopPanning,

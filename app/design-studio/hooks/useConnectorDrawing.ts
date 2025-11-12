@@ -1,15 +1,8 @@
-import { useState } from 'react';
 import type { RefObject } from 'react';
 import { screenToCanvas } from '../utils/canvas';
 import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
 import type { ConnectorTool } from '../config/bpmn-connectors';
-
-export interface DrawingConnector {
-  fromShapeId: string;
-  fromConnectionPointId: string;
-  currentX: number;
-  currentY: number;
-}
+import type { DrawingConnector } from './useInteractionState';
 
 interface UseConnectorDrawingProps {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -19,19 +12,19 @@ interface UseConnectorDrawingProps {
   addConnector: (connector: CreateConnectorDTO) => Promise<void>;
   activeConnectorType: string;
   getConnectorConfig: (connectorType: string) => ConnectorTool | undefined;
+  isActive: boolean; // Driven by state machine
+  drawingConnector: DrawingConnector | null; // From state machine
 }
 
 interface UseConnectorDrawingReturn {
-  drawingConnector: DrawingConnector | null;
-  setDrawingConnector: (connector: DrawingConnector | null) => void;
-  startDrawingConnector: (connectionPointId: string, e: React.MouseEvent) => void;
-  updateDrawingConnector: (screenX: number, screenY: number) => void;
+  startDrawingConnector: (connectionPointId: string, e: React.MouseEvent) => DrawingConnector;
+  updateDrawingConnector: (screenX: number, screenY: number) => { currentX: number; currentY: number };
   finishDrawingConnector: (connectionPointId: string, e: React.MouseEvent) => Promise<void>;
-  cancelDrawingConnector: () => void;
 }
 
 /**
  * Hook for managing connector drawing interactions
+ * State is managed externally by the interaction state machine
  */
 export function useConnectorDrawing({
   containerRef,
@@ -41,14 +34,22 @@ export function useConnectorDrawing({
   addConnector,
   activeConnectorType,
   getConnectorConfig,
+  isActive,
+  drawingConnector,
 }: UseConnectorDrawingProps): UseConnectorDrawingReturn {
-  const [drawingConnector, setDrawingConnector] = useState<DrawingConnector | null>(null);
-
-  const startDrawingConnector = (connectionPointId: string, e: React.MouseEvent) => {
+  const startDrawingConnector = (connectionPointId: string, e: React.MouseEvent): DrawingConnector => {
     e.stopPropagation();
 
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {
+      // Return a dummy connector if container is not available
+      return {
+        fromShapeId: '',
+        fromConnectionPointId: connectionPointId,
+        currentX: 0,
+        currentY: 0,
+      };
+    }
 
     // Parse shape ID from connection point ID (format: "{shapeId}-{connectionPointId}")
     // For now, we'll assume the last part after the last dash is the connection point ID
@@ -61,23 +62,23 @@ export function useConnectorDrawing({
     const screenY = e.clientY - rect.top;
     const { x: canvasX, y: canvasY } = screenToCanvas(screenX, screenY, zoom, panX, panY);
 
-    // Start drawing connector
-    setDrawingConnector({
+    // Return connector data for state machine
+    return {
       fromShapeId: shapeId,
       fromConnectionPointId: connectionPointId,
       currentX: canvasX,
       currentY: canvasY,
-    });
+    };
   };
 
-  const updateDrawingConnector = (screenX: number, screenY: number) => {
-    if (!drawingConnector) return;
+  const updateDrawingConnector = (screenX: number, screenY: number): { currentX: number; currentY: number } => {
+    if (!isActive || !drawingConnector) {
+      return { currentX: 0, currentY: 0 };
+    }
 
     const { x: canvasX, y: canvasY } = screenToCanvas(screenX, screenY, zoom, panX, panY);
 
-    setDrawingConnector((prev) =>
-      prev ? { ...prev, currentX: canvasX, currentY: canvasY } : null
-    );
+    return { currentX: canvasX, currentY: canvasY };
   };
 
   const finishDrawingConnector = async (connectionPointId: string, e: React.MouseEvent) => {
@@ -91,7 +92,6 @@ export function useConnectorDrawing({
 
     // Don't allow connecting to the same shape
     if (toShapeId === drawingConnector.fromShapeId) {
-      setDrawingConnector(null);
       return;
     }
 
@@ -120,21 +120,11 @@ export function useConnectorDrawing({
       lineType,
       zIndex: 0,
     });
-
-    // Clear drawing state
-    setDrawingConnector(null);
-  };
-
-  const cancelDrawingConnector = () => {
-    setDrawingConnector(null);
   };
 
   return {
-    drawingConnector,
-    setDrawingConnector,
     startDrawingConnector,
     updateDrawingConnector,
     finishDrawingConnector,
-    cancelDrawingConnector,
   };
 }

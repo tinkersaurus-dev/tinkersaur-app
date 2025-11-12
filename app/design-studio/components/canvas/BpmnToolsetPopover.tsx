@@ -6,7 +6,7 @@
  */
 
 import { bpmnToolGroups, type Tool } from '../../config/bpmn-tools';
-import type { DrawingConnector } from '../../hooks/useConnectorDrawing';
+import type { DrawingConnector } from '../../hooks/useInteractionState';
 import { ContextMenuWrapper } from './menus/ContextMenuWrapper';
 
 interface BpmnToolsetPopoverProps {

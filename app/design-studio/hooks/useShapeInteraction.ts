@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { RefObject, MutableRefObject } from 'react';
 import { screenToCanvas } from '../utils/canvas';
+import type { DragData } from './useInteractionState';
 
 interface UseShapeInteractionProps {
   // Viewport state for coordinate transformation
@@ -16,7 +17,8 @@ interface UseShapeInteractionProps {
   setHoveredShapeId: (shapeId: string | null) => void;
 
   // Drag initialization callback
-  startDragging: (canvasX: number, canvasY: number, shapesToDrag: string[]) => void;
+  startDragging: (canvasX: number, canvasY: number, shapesToDrag: string[]) => DragData;
+  onStartDragging: (dragData: DragData) => void;
 
   // Shared refs
   containerRef: RefObject<HTMLDivElement | null>;
@@ -49,6 +51,7 @@ export function useShapeInteraction({
   setSelectedShapes,
   setHoveredShapeId,
   startDragging,
+  onStartDragging,
   containerRef,
   lastMousePosRef,
 }: UseShapeInteractionProps): UseShapeInteractionReturn {
@@ -108,11 +111,12 @@ export function useShapeInteraction({
         }
       }
 
-      // Start dragging
-      startDragging(canvasX, canvasY, shapesToDrag);
+      // Start dragging and transition state machine
+      const dragData = startDragging(canvasX, canvasY, shapesToDrag);
+      onStartDragging(dragData);
       lastMousePosRef.current = { x: screenX, y: screenY };
     },
-    [selectedShapeIds, setSelectedShapes, panX, panY, zoom, startDragging, containerRef, lastMousePosRef]
+    [selectedShapeIds, setSelectedShapes, panX, panY, zoom, startDragging, onStartDragging, containerRef, lastMousePosRef]
   );
 
   // Handle shape mouse enter for hover state
