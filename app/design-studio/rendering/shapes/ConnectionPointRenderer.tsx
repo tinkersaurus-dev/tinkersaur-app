@@ -42,7 +42,7 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
     y: connectionPoint.position.y * shapeHeight,
   };
 
-  const size = 8 / zoom; // 8px diameter compensated for zoom
+  const size = 8; // 8px diameter compensated for zoom
   const borderWidth = 2 / zoom; // 2px border compensated for zoom
 
   const handleMouseDown = (e: React.MouseEvent) => {

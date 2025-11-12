@@ -1,0 +1,631 @@
+import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
+import { useCanvasInstance } from '../../store/content/useCanvasInstance';
+import { useDiagram } from '../../hooks/useDiagrams';
+import { useDiagramCRUD } from '../../hooks/useDiagramCRUD';
+import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
+import { useViewportTransform } from '../../hooks/useViewportTransform';
+import { useCanvasViewport } from '../../hooks/useCanvasViewport';
+import { useCanvasLabelEditing } from '../../hooks/useCanvasLabelEditing';
+import { useInteractionState } from '../../hooks/useInteractionState';
+import { useCanvasPanning } from '../../hooks/useCanvasPanning';
+import { useCanvasSelection } from '../../hooks/useCanvasSelection';
+import { useConnectorDrawing } from '../../hooks/useConnectorDrawing';
+import { useShapeDragging } from '../../hooks/useShapeDragging';
+import { useCanvasKeyboardHandlers } from '../../hooks/useCanvasKeyboardHandlers';
+import { useClassShapeEditing } from '../../hooks/useClassShapeEditing';
+import { useShapeInteraction } from '../../hooks/useShapeInteraction';
+import { useCanvasMouseOrchestration } from './useCanvasMouseOrchestration';
+import { useConnectorTypeManager } from '../../hooks/useConnectorTypeManager';
+import { useContextMenuManager, MENU_IDS } from '../../hooks/useContextMenuManager';
+import { commandManager } from '~/core/commands/CommandManager';
+import type { Command } from '~/core/commands/command.types';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { createToolbarButtons } from './toolbarConfig';
+import type { Tool as BpmnTool } from '../../config/bpmn-tools';
+import type { Tool as ClassTool } from '../../config/class-tools';
+import { useMermaidSync } from '../../hooks/useMermaidSync';
+import { useToolHandler } from '../../hooks/useToolHandler';
+import { mapBpmnToolToShape, mapClassToolToShape } from '../../utils/toolMappers';
+import { CanvasContext } from './CanvasControllerContext';
+import type { CanvasControllerContext } from './CanvasControllerContext';
+
+/**
+ * Canvas Controller Component
+ *
+ * Orchestrates all business logic, state management, and event handling for the Canvas.
+ * Provides state and handlers to child components via CanvasContext.
+ *
+ * Responsibilities:
+ * - Hook composition and coordination
+ * - State initialization and synchronization
+ * - Event handler creation and delegation
+ * - Command execution and CRUD operations
+ * - Menu and toolbar management
+ */
+
+interface CanvasControllerProps {
+  /** The diagram ID for this canvas instance */
+  diagramId: string;
+  /** Child components that will consume the canvas context */
+  children: React.ReactNode;
+}
+
+export function CanvasController({ diagramId, children }: CanvasControllerProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lastMousePosRef = useRef({ x: 0, y: 0 });
+
+  // Track if local state has been initialized from entity store
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Get persisted canvas data from entity store (need diagram type early for store initialization)
+  const { diagram, loading } = useDiagram(diagramId);
+
+  // Get isolated instance store for THIS diagram
+  const canvasInstance = useCanvasInstance(diagramId, diagram?.type);
+
+  // Get viewport transform (bundles zoom, panX, panY with transformation methods)
+  const viewportTransform = useViewportTransform(canvasInstance);
+
+  // Get instance-specific state
+  const selectedShapeIds = canvasInstance((state) => state.selectedShapeIds);
+  const hoveredShapeId = canvasInstance((state) => state.hoveredShapeId);
+  const selectedConnectorIds = canvasInstance((state) => state.selectedConnectorIds);
+  const hoveredConnectorId = canvasInstance((state) => state.hoveredConnectorId);
+  const gridSnappingEnabled = canvasInstance((state) => state.gridSnappingEnabled);
+
+  // Get LOCAL editing state (ephemeral, not persisted until commit)
+  const localShapes = canvasInstance((state) => state.localShapes);
+  const localConnectors = canvasInstance((state) => state.localConnectors);
+  const editingEntityId = canvasInstance((state) => state.editingEntityId);
+  const editingEntityType = canvasInstance((state) => state.editingEntityType);
+  const editingOriginalLabel = canvasInstance((state) => state.editingOriginalLabel);
+
+  // Get instance actions
+  const setSelectedShapes = canvasInstance((state) => state.setSelectedShapes);
+  const setHoveredShapeId = canvasInstance((state) => state.setHoveredShapeId);
+  const setSelectedConnectors = canvasInstance((state) => state.setSelectedConnectors);
+  const setSelection = canvasInstance((state) => state.setSelection);
+  const setHoveredConnectorId = canvasInstance((state) => state.setHoveredConnectorId);
+  const clearSelection = canvasInstance((state) => state.clearSelection);
+  const initializeContent = canvasInstance((state) => state.initializeContent);
+  const updateLocalShape = canvasInstance((state) => state.updateLocalShape);
+  const updateLocalShapes = canvasInstance((state) => state.updateLocalShapes);
+  const updateLocalConnector = canvasInstance((state) => state.updateLocalConnector);
+  const setEditingEntity = canvasInstance((state) => state.setEditingEntity);
+  const clearEditingEntity = canvasInstance((state) => state.clearEditingEntity);
+  const setGridSnappingEnabled = canvasInstance((state) => state.setGridSnappingEnabled);
+  const activeConnectorType = canvasInstance((state) => state.activeConnectorType);
+  const setActiveConnectorType = canvasInstance((state) => state.setActiveConnectorType);
+
+  // Get CRUD operations for this diagram
+  const { addShape, updateShapes, addConnector, deleteConnector, deleteShape, deleteConnectors, deleteShapes } = useDiagramCRUD(diagramId);
+  const commandFactory = useDesignStudioEntityStore((state) => state.commandFactory);
+  const updateShapeLabel = useDesignStudioEntityStore((state) => state.updateShapeLabel);
+  const updateConnectorLabel = useDesignStudioEntityStore((state) => state.updateConnectorLabel);
+  const entityShapes = useMemo(() => diagram?.shapes || [], [diagram?.shapes]);
+  const entityConnectors = useMemo(() => diagram?.connectors || [], [diagram?.connectors]);
+
+  // Enable keyboard shortcuts for undo/redo
+  useKeyboardShortcuts({ scope: diagramId });
+
+  // Use custom hooks for viewport, panning, and label editing
+  useCanvasViewport({
+    containerRef,
+    viewportTransform,
+  });
+
+  // Initialize interaction state machine
+  const {
+    mode,
+    data: interactionData,
+    reset: resetInteraction,
+    startPanning: transitionToPanning,
+    startDragging: transitionToDragging,
+    updateDragging: updateDraggingData,
+    startSelecting: transitionToSelecting,
+    updateSelecting: updateSelectingData,
+    startDrawingConnector: transitionToDrawingConnector,
+    updateDrawingConnector: updateDrawingConnectorData,
+  } = useInteractionState();
+
+  // Extract mode-specific data with type safety
+  const selectionBox: import('../../hooks/useInteractionState').SelectionBox | null =
+    mode === 'selecting' ? (interactionData as import('../../hooks/useInteractionState').SelectionBox) : null;
+  const dragData: import('../../hooks/useInteractionState').DragData | null =
+    mode === 'dragging-shapes' ? (interactionData as import('../../hooks/useInteractionState').DragData) : null;
+  const drawingConnector: import('../../hooks/useInteractionState').DrawingConnector | null =
+    mode === 'drawing-connector' ? (interactionData as import('../../hooks/useInteractionState').DrawingConnector) : null;
+
+  const { startPanning, updatePanning, stopPanning } = useCanvasPanning({
+    viewportTransform,
+    lastMousePosRef,
+    isActive: mode === 'panning',
+  });
+
+  const {
+    handleShapeDoubleClick,
+    handleConnectorDoubleClick,
+    handleLabelChange,
+    handleFinishEditing,
+  } = useCanvasLabelEditing({
+    localShapes,
+    localConnectors,
+    editingEntityId,
+    editingEntityType,
+    editingOriginalLabel,
+    setEditingEntity,
+    clearEditingEntity,
+    updateLocalShape,
+    updateLocalConnector,
+    updateShapeLabel,
+    updateConnectorLabel,
+    diagramId,
+  });
+
+  // Helper function to get a shape by ID from local shapes
+  const getShape = useCallback(
+    (shapeId: string) => {
+      return localShapes.find((s) => s.id === shapeId);
+    },
+    [localShapes]
+  );
+
+  // Helper function to execute commands
+  const executeCommand = useCallback(
+    async (command: Command) => {
+      await commandManager.execute(command, diagramId);
+    },
+    [diagramId]
+  );
+
+  // Class shape editing hook
+  const {
+    updateStereotype,
+    addAttribute,
+    deleteAttribute,
+    updateAttribute,
+    updateAttributeLocal,
+    addMethod,
+    deleteMethod,
+    updateMethod,
+    updateMethodLocal,
+  } = useClassShapeEditing({
+    diagramId,
+    commandFactory,
+    getShape,
+    updateLocalShape,
+    executeCommand,
+  });
+
+  // Mermaid sync hook - automatically generates mermaid syntax from committed shapes/connectors
+  useMermaidSync({
+    shapes: entityShapes,
+    connectors: entityConnectors,
+    diagramType: diagram?.type,
+    enabled: true,
+  });
+
+  // Track lengths to avoid unnecessary effect re-runs from array reference changes
+  const entityShapesLength = entityShapes.length;
+  const entityConnectorsLength = entityConnectors.length;
+
+  // Initialize local content from entity store ONCE on mount
+  // After initialization, local state is autonomous and updated by commands
+  // Commands coordinate updates to both local state and entity store
+  useEffect(() => {
+    if (!loading && (entityShapesLength > 0 || entityConnectorsLength > 0) && !isInitialized) {
+      // Use requestAnimationFrame to defer state update
+      const frameId = requestAnimationFrame(() => {
+        initializeContent(entityShapes, entityConnectors);
+        setIsInitialized(true);
+      });
+      return () => cancelAnimationFrame(frameId);
+    }
+  }, [loading, entityShapesLength, entityConnectorsLength, initializeContent, isInitialized, entityShapes, entityConnectors]);
+
+  // Render from local state (working copy), fallback to entity state if local not initialized
+  const shapes = localShapes.length > 0 ? localShapes : entityShapes;
+  const connectors = localConnectors.length > 0 ? localConnectors : entityConnectors;
+
+  // Use connector type manager hook for all connector type management
+  const connectorTypeManager = useConnectorTypeManager({
+    diagramId,
+    diagramType: diagram?.type,
+    activeConnectorType,
+    setActiveConnectorType,
+    commandFactory,
+    connectors,
+  });
+
+  // Use unified context menu manager for all menus/popovers
+  const menuManager = useContextMenuManager();
+
+  // Use polymorphic tool handlers for BPMN and Class diagrams
+  const { handleToolSelect: handleBpmnToolSelect } = useToolHandler<BpmnTool>({
+    addShape,
+    menuManager,
+    toolToShapeMapper: mapBpmnToolToShape,
+  });
+
+  const { handleToolSelect: handleClassToolSelect } = useToolHandler<ClassTool>({
+    addShape,
+    menuManager,
+    toolToShapeMapper: mapClassToolToShape,
+  });
+
+  // Use Phase 2 hooks
+  const {
+    startSelection,
+    updateSelection,
+    finishSelection,
+  } = useCanvasSelection({
+    containerRef,
+    lastMousePosRef,
+    viewportTransform,
+    shapes,
+    connectors,
+    clearSelection,
+    setSelection,
+    isActive: mode === 'selecting',
+    selectionBox,
+  });
+
+  const {
+    startDrawingConnector,
+    updateDrawingConnector,
+    finishDrawingConnector,
+  } = useConnectorDrawing({
+    containerRef,
+    viewportTransform,
+    addConnector: addConnector || (async () => {}),
+    activeConnectorType,
+    getConnectorConfig: connectorTypeManager.getConnectorConfig,
+    isActive: mode === 'drawing-connector',
+    drawingConnector,
+  });
+
+  // Handle canvas right-click context menu
+  const handleContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Get click position in screen coordinates
+    const rect = container.getBoundingClientRect();
+    const screenX = event.clientX - rect.left;
+    const screenY = event.clientY - rect.top;
+
+    // Convert to canvas coordinates for shape placement
+    const { x: canvasX, y: canvasY } = viewportTransform.screenToCanvas(screenX, screenY);
+
+    // Determine which menu to open based on diagram type
+    let menuId: string = MENU_IDS.CANVAS_CONTEXT_MENU;
+    if (diagram?.type === 'bpmn') {
+      menuId = MENU_IDS.BPMN_TOOLSET_POPOVER;
+    } else if (diagram?.type === 'class') {
+      menuId = MENU_IDS.CLASS_TOOLSET_POPOVER;
+    }
+
+    // Open the appropriate menu
+    menuManager.openMenu({
+      id: menuId,
+      screenPosition: { x: event.clientX, y: event.clientY },
+      canvasPosition: { x: canvasX, y: canvasY },
+    });
+  }, [containerRef, viewportTransform, diagram?.type, menuManager]);
+
+  // Handle adding rectangle from simple context menu
+  const handleAddRectangle = useCallback(async () => {
+    if (!addShape) return;
+
+    const menuConfig = menuManager.getMenuConfig(MENU_IDS.CANVAS_CONTEXT_MENU);
+    if (!menuConfig?.canvasPosition) return;
+
+    const { x: canvasX, y: canvasY } = menuConfig.canvasPosition;
+
+    // Persist to entity store
+    await addShape({
+      type: 'rectangle',
+      x: canvasX,
+      y: canvasY,
+      width: 120,
+      height: 80,
+      zIndex: 0,
+      locked: false,
+    });
+
+    menuManager.closeMenu();
+  }, [addShape, menuManager]);
+
+  const {
+    startDragging,
+    updateDragging,
+    finishDragging,
+  } = useShapeDragging({
+    viewportTransform,
+    gridSnappingEnabled,
+    localShapes,
+    updateLocalShapes,
+    updateShapes,
+    shapes,
+    isActive: mode === 'dragging-shapes',
+    dragData,
+  });
+
+  useCanvasKeyboardHandlers({
+    selectedConnectorIds,
+    selectedShapeIds,
+    deleteConnector,
+    deleteShape,
+    deleteConnectors,
+    deleteShapes,
+    setSelectedConnectors,
+    setSelectedShapes,
+  });
+
+  // Use shape interaction hook for selection and drag initialization
+  const {
+    handleShapeMouseDown,
+    handleShapeMouseEnter,
+    handleShapeMouseLeave,
+  } = useShapeInteraction({
+    viewportTransform,
+    selectedShapeIds,
+    setSelectedShapes,
+    setHoveredShapeId,
+    startDragging,
+    onStartDragging: transitionToDragging,
+    containerRef,
+    lastMousePosRef,
+  });
+
+  // Orchestrate mouse events with state machine-based routing
+  const { handleMouseDown, handleMouseMove, handleMouseUp } = useCanvasMouseOrchestration({
+    containerRef,
+    mode,
+    selectionBox,
+    onStartPanning: transitionToPanning,
+    onStartSelecting: transitionToSelecting,
+    startPanning,
+    updatePanning,
+    stopPanning,
+    startSelection,
+    updateSelection,
+    finishSelection,
+    onUpdateSelecting: updateSelectingData,
+    updateDrawingConnector,
+    onUpdateDrawingConnector: updateDrawingConnectorData,
+    onCancelDrawingConnector: resetInteraction,
+    updateDragging,
+    finishDragging,
+    onUpdateDragging: updateDraggingData,
+    onFinishInteraction: resetInteraction,
+  });
+
+  // Wrap connector drawing functions to handle state machine transitions
+  const handleStartDrawingConnector = useCallback(
+    (connectionPointId: string, e: React.MouseEvent) => {
+      const connectorData = startDrawingConnector(connectionPointId, e);
+      transitionToDrawingConnector(connectorData);
+    },
+    [startDrawingConnector, transitionToDrawingConnector]
+  );
+
+  const handleFinishDrawingConnector = useCallback(
+    async (connectionPointId: string, e: React.MouseEvent) => {
+      await finishDrawingConnector(connectionPointId, e);
+      resetInteraction();
+    },
+    [finishDrawingConnector, resetInteraction]
+  );
+
+  // Handle connector mouse down for selection
+  const handleConnectorMouseDown = useCallback(
+    (e: React.MouseEvent, connectorId: string) => {
+      e.stopPropagation();
+
+      // Handle right-click for context menu
+      if (e.button === 2) {
+        e.preventDefault();
+        menuManager.openConnectorContextMenu(connectorId, e.clientX, e.clientY);
+        return;
+      }
+
+      // Only handle left mouse button for selection
+      if (e.button !== 0) return;
+
+      // Check for multi-select modifiers (Shift, Ctrl, or Cmd on Mac)
+      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+
+      if (isMultiSelect) {
+        // Toggle connector in selection
+        if (selectedConnectorIds.includes(connectorId)) {
+          // Remove from selection
+          setSelectedConnectors(selectedConnectorIds.filter((id) => id !== connectorId));
+        } else {
+          // Add to selection
+          setSelectedConnectors([...selectedConnectorIds, connectorId]);
+        }
+      } else {
+        // If clicking on a non-selected connector, select only that connector
+        if (!selectedConnectorIds.includes(connectorId)) {
+          setSelectedConnectors([connectorId]);
+        }
+        // If clicking on an already selected connector, keep the current selection
+      }
+    },
+    [selectedConnectorIds, setSelectedConnectors, menuManager]
+  );
+
+  // Handle connector mouse enter for hover state
+  const handleConnectorMouseEnter = useCallback(
+    (e: React.MouseEvent, connectorId: string) => {
+      setHoveredConnectorId(connectorId);
+    },
+    [setHoveredConnectorId]
+  );
+
+  // Handle connector mouse leave for hover state
+  const handleConnectorMouseLeave = useCallback(
+    (_e: React.MouseEvent, _connectorId: string) => {
+      setHoveredConnectorId(null);
+    },
+    [setHoveredConnectorId]
+  );
+
+  // Handle connector toolbar button click
+  const handleConnectorToolbarClick = useCallback(() => {
+    menuManager.openConnectorToolbarPopover();
+  }, [menuManager]);
+
+  // Configure toolbar buttons
+  const toolbarButtons = useMemo(() =>
+    createToolbarButtons({
+      diagramType: diagram?.type,
+      gridSnappingEnabled,
+      activeConnectorIcon: connectorTypeManager.activeConnectorIcon,
+      setGridSnappingEnabled,
+      handleConnectorToolbarClick,
+    }),
+    [diagram?.type, connectorTypeManager.activeConnectorIcon, handleConnectorToolbarClick, gridSnappingEnabled, setGridSnappingEnabled]
+  );
+
+  // Build context value
+  const contextValue: CanvasControllerContext = useMemo(() => ({
+    // Diagram Data
+    diagramId,
+    diagram,
+    loading,
+
+    // Viewport
+    viewportTransform,
+
+    // Content
+    shapes,
+    connectors,
+
+    // Selection & Interaction
+    selectedShapeIds,
+    hoveredShapeId,
+    selectedConnectorIds,
+    hoveredConnectorId,
+    mode,
+    selectionBox,
+    drawingConnector,
+
+    // Editing State
+    editingEntityId,
+    editingEntityType,
+    gridSnappingEnabled,
+    activeConnectorType,
+
+    // Event Handlers - Canvas
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleContextMenu,
+
+    // Event Handlers - Shapes
+    handleShapeMouseDown,
+    handleShapeMouseEnter,
+    handleShapeMouseLeave,
+    handleShapeDoubleClick,
+    handleStartDrawingConnector,
+    handleFinishDrawingConnector,
+
+    // Event Handlers - Connectors
+    handleConnectorMouseDown,
+    handleConnectorMouseEnter,
+    handleConnectorMouseLeave,
+    handleConnectorDoubleClick,
+
+    // Event Handlers - Editing
+    handleLabelChange,
+    handleFinishEditing,
+
+    // Event Handlers - Class Shapes
+    updateStereotype,
+    addAttribute,
+    deleteAttribute,
+    updateAttribute,
+    updateAttributeLocal,
+    addMethod,
+    deleteMethod,
+    updateMethod,
+    updateMethodLocal,
+
+    // Menu Management
+    menuManager,
+    handleAddRectangle,
+    handleBpmnToolSelect,
+    handleClassToolSelect,
+    handleConnectorToolbarClick,
+
+    // Connector Type Management
+    connectorTypeManager,
+
+    // Toolbar Configuration
+    toolbarButtons,
+
+    // Refs
+    containerRef,
+  }), [
+    diagramId,
+    diagram,
+    loading,
+    viewportTransform,
+    shapes,
+    connectors,
+    selectedShapeIds,
+    hoveredShapeId,
+    selectedConnectorIds,
+    hoveredConnectorId,
+    mode,
+    selectionBox,
+    drawingConnector,
+    editingEntityId,
+    editingEntityType,
+    gridSnappingEnabled,
+    activeConnectorType,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleContextMenu,
+    handleShapeMouseDown,
+    handleShapeMouseEnter,
+    handleShapeMouseLeave,
+    handleShapeDoubleClick,
+    handleStartDrawingConnector,
+    handleFinishDrawingConnector,
+    handleConnectorMouseDown,
+    handleConnectorMouseEnter,
+    handleConnectorMouseLeave,
+    handleConnectorDoubleClick,
+    handleLabelChange,
+    handleFinishEditing,
+    updateStereotype,
+    addAttribute,
+    deleteAttribute,
+    updateAttribute,
+    updateAttributeLocal,
+    addMethod,
+    deleteMethod,
+    updateMethod,
+    updateMethodLocal,
+    menuManager,
+    handleAddRectangle,
+    handleBpmnToolSelect,
+    handleClassToolSelect,
+    handleConnectorToolbarClick,
+    connectorTypeManager,
+    toolbarButtons,
+    containerRef,
+  ]);
+
+  return (
+    <CanvasContext.Provider value={contextValue}>
+      {children}
+    </CanvasContext.Provider>
+  );
+}
