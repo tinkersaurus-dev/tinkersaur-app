@@ -9,6 +9,7 @@ import { FaUser, FaCog, FaCode } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/EditableLabel';
+import { ShapeWrapper } from './ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 
 export function BpmnTaskRenderer({
@@ -24,7 +25,7 @@ export function BpmnTaskRenderer({
   onConnectionPointMouseDown,
   onConnectionPointMouseUp,
 }: ShapeRendererProps): React.ReactElement {
-  const { x, y, width, height, subtype } = shape;
+  const { width, height, subtype } = shape;
   const { isSelected, isHovered, zoom } = context;
 
   // Wrap connection point handlers to prepend shape ID
@@ -61,35 +62,27 @@ export function BpmnTaskRenderer({
   const iconSize = 12;
 
   return (
-    <div
-      data-shape-id={shape.id}
-      onMouseDown={(e) => onMouseDown?.(e, shape.id)}
-      onMouseEnter={(e) => onMouseEnter?.(e, shape.id)}
-      onMouseLeave={(e) => onMouseLeave?.(e, shape.id)}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        onDoubleClick?.(shape.id);
-      }}
+    <ShapeWrapper
+      shape={shape}
+      isSelected={isSelected}
+      isHovered={isHovered}
+      zoom={zoom}
+      borderColor={borderColor}
+      borderWidth={borderWidth}
+      backgroundColor={backgroundColor}
+      borderRadius={borderRadius}
+      hoverPadding={15}
+      onMouseDown={onMouseDown}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onDoubleClick={onDoubleClick}
       style={{
-        position: 'absolute',
-        left: `${x}px`,
-        top: `${y}px`,
-        width: `${width}px`,
         height: `${height}px`,
-        zIndex: 1,
-        outline: `${borderWidth}px solid ${borderColor}`,
-        outlineOffset: `-${borderWidth}px`,
-        borderRadius: `${borderRadius}px`,
-        backgroundColor,
-        cursor: isSelected ? 'move' : 'pointer',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: `${padding}px`,
-        boxSizing: 'border-box',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
       }}
     >
       {/* Task icon in top-left corner */}
@@ -167,11 +160,10 @@ export function BpmnTaskRenderer({
             connectionPoint={connectionPoint}
             shapeWidth={width}
             shapeHeight={height}
-            zoom={zoom}
             onMouseDown={handleConnectionPointMouseDown}
             onMouseUp={handleConnectionPointMouseUp}
           />
         ))}
-    </div>
+    </ShapeWrapper>
   );
 }

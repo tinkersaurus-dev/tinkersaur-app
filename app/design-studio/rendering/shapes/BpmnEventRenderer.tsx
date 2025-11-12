@@ -17,6 +17,7 @@ import {
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/EditableLabel';
+import { ShapeWrapper } from './ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 
 /**
@@ -76,7 +77,7 @@ export function BpmnEventRenderer({
   onConnectionPointMouseDown,
   onConnectionPointMouseUp,
 }: ShapeRendererProps): React.ReactElement {
-  const { x, y, width, height, subtype } = shape;
+  const { width, height, subtype } = shape;
   const { isSelected, isHovered, zoom } = context;
 
   // Wrap connection point handlers to prepend shape ID
@@ -172,31 +173,26 @@ export function BpmnEventRenderer({
   };
 
   return (
-    <div
-      data-shape-id={shape.id}
-      onMouseDown={(e) => onMouseDown?.(e, shape.id)}
-      onMouseEnter={(e) => onMouseEnter?.(e, shape.id)}
-      onMouseLeave={(e) => onMouseLeave?.(e, shape.id)}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        onDoubleClick?.(shape.id);
-      }}
+    <ShapeWrapper
+      shape={{ ...shape, width: diameter, height: diameter }}
+      isSelected={isSelected}
+      isHovered={isHovered}
+      zoom={zoom}
+      borderColor="transparent"
+      borderWidth={0}
+      backgroundColor={backgroundColor}
+      borderRadius={0}
+      hoverPadding={15}
+      onMouseDown={onMouseDown}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onDoubleClick={onDoubleClick}
       style={{
-        position: 'absolute',
-        left: `${x}px`,
-        top: `${y}px`,
-        width: `${diameter}px`,
         height: `${diameter}px`,
-        zIndex: 1,
-        backgroundColor,
         borderRadius: '50%',
-        cursor: isSelected ? 'move' : 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxSizing: 'border-box',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
       }}
     >
       {/* Render border(s) */}
@@ -274,11 +270,10 @@ export function BpmnEventRenderer({
             connectionPoint={connectionPoint}
             shapeWidth={diameter}
             shapeHeight={diameter}
-            zoom={zoom}
             onMouseDown={handleConnectionPointMouseDown}
             onMouseUp={handleConnectionPointMouseUp}
           />
         ))}
-    </div>
+    </ShapeWrapper>
   );
 }

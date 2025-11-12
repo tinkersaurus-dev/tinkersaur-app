@@ -17,8 +17,6 @@ interface ConnectionPointRendererProps {
   shapeWidth: number;
   shapeHeight: number;
 
-  /** Current zoom level (for size compensation) */
-  zoom: number;
 
   /** Mouse down handler (starts connector drawing) */
   onMouseDown?: (connectionPointId: string, e: React.MouseEvent) => void;
@@ -31,7 +29,6 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
   connectionPoint,
   shapeWidth,
   shapeHeight,
-  zoom,
   onMouseDown,
   onMouseUp,
 }) => {
@@ -42,8 +39,8 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
     y: connectionPoint.position.y * shapeHeight,
   };
 
-  const size = 8; // 8px diameter compensated for zoom
-  const borderWidth = 2 / zoom; // 2px border compensated for zoom
+  const size = 12; // 8px diameter compensated for zoom
+  const borderWidth = 3.5; // 2px border compensated for zoom
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();

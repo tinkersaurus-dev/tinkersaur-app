@@ -119,7 +119,6 @@ export function RectangleRenderer({
             connectionPoint={connectionPoint}
             shapeWidth={width}
             shapeHeight={height}
-            zoom={zoom}
             onMouseDown={handleConnectionPointMouseDown}
             onMouseUp={handleConnectionPointMouseUp}
           />

@@ -9,6 +9,7 @@ import { FaTimes, FaCircle, FaPlus } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/EditableLabel';
+import { ShapeWrapper } from './ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 
 export function BpmnGatewayRenderer({
@@ -24,7 +25,7 @@ export function BpmnGatewayRenderer({
   onConnectionPointMouseDown,
   onConnectionPointMouseUp,
 }: ShapeRendererProps): React.ReactElement {
-  const { x, y, width, height, subtype } = shape;
+  const { width, height, subtype } = shape;
   const { isSelected, isHovered, zoom } = context;
 
   // Wrap connection point handlers to prepend shape ID
@@ -68,25 +69,22 @@ export function BpmnGatewayRenderer({
   const iconSize = Math.max(12, 16 / zoom);
 
   return (
-    <div
-      data-shape-id={shape.id}
-      onMouseDown={(e) => onMouseDown?.(e, shape.id)}
-      onMouseEnter={(e) => onMouseEnter?.(e, shape.id)}
-      onMouseLeave={(e) => onMouseLeave?.(e, shape.id)}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        onDoubleClick?.(shape.id);
-      }}
+    <ShapeWrapper
+      shape={{ ...shape, width: desiredDiagonal, height: desiredDiagonal }}
+      isSelected={isSelected}
+      isHovered={isHovered}
+      zoom={zoom}
+      borderColor="transparent"
+      borderWidth={0}
+      backgroundColor="transparent"
+      borderRadius={0}
+      hoverPadding={15}
+      onMouseDown={onMouseDown}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onDoubleClick={onDoubleClick}
       style={{
-        position: 'absolute',
-        left: `${x}px`,
-        top: `${y}px`,
-        width: `${desiredDiagonal}px`,
         height: `${desiredDiagonal}px`,
-        zIndex: 1,
-        cursor: isSelected ? 'move' : 'pointer',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
       }}
     >
       {/* Diamond shape (rotated square) */}
@@ -208,11 +206,10 @@ export function BpmnGatewayRenderer({
             connectionPoint={connectionPoint}
             shapeWidth={desiredDiagonal}
             shapeHeight={desiredDiagonal}
-            zoom={zoom}
             onMouseDown={handleConnectionPointMouseDown}
             onMouseUp={handleConnectionPointMouseUp}
           />
         ))}
-    </div>
+    </ShapeWrapper>
   );
 }
