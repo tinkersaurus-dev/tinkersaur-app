@@ -1,14 +1,12 @@
 import type { RefObject } from 'react';
-import { screenToCanvas } from '../utils/canvas';
+import type { ViewportTransform } from '../utils/viewport';
 import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
 import type { ConnectorTool } from '../config/bpmn-connectors';
 import type { DrawingConnector } from './useInteractionState';
 
 interface UseConnectorDrawingProps {
   containerRef: RefObject<HTMLDivElement | null>;
-  zoom: number;
-  panX: number;
-  panY: number;
+  viewportTransform: ViewportTransform;
   addConnector: (connector: CreateConnectorDTO) => Promise<void>;
   activeConnectorType: string;
   getConnectorConfig: (connectorType: string) => ConnectorTool | undefined;
@@ -28,9 +26,7 @@ interface UseConnectorDrawingReturn {
  */
 export function useConnectorDrawing({
   containerRef,
-  zoom,
-  panX,
-  panY,
+  viewportTransform,
   addConnector,
   activeConnectorType,
   getConnectorConfig,
@@ -60,7 +56,7 @@ export function useConnectorDrawing({
     const rect = container.getBoundingClientRect();
     const screenX = e.clientX - rect.left;
     const screenY = e.clientY - rect.top;
-    const { x: canvasX, y: canvasY } = screenToCanvas(screenX, screenY, zoom, panX, panY);
+    const { x: canvasX, y: canvasY } = viewportTransform.screenToCanvas(screenX, screenY);
 
     // Return connector data for state machine
     return {
@@ -76,7 +72,7 @@ export function useConnectorDrawing({
       return { currentX: 0, currentY: 0 };
     }
 
-    const { x: canvasX, y: canvasY } = screenToCanvas(screenX, screenY, zoom, panX, panY);
+    const { x: canvasX, y: canvasY } = viewportTransform.screenToCanvas(screenX, screenY);
 
     return { currentX: canvasX, currentY: canvasY };
   };

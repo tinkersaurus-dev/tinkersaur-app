@@ -3,6 +3,7 @@ import { useCanvasInstance } from '../../store/content/useCanvasInstance';
 import { useDiagram } from '../../hooks/useDiagrams';
 import { useDiagramCRUD } from '../../hooks/useDiagramCRUD';
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
+import { useViewportTransform } from '../../hooks/useViewportTransform';
 import { useCanvasViewport } from '../../hooks/useCanvasViewport';
 import { useCanvasLabelEditing } from '../../hooks/useCanvasLabelEditing';
 import { useInteractionState } from '../../hooks/useInteractionState';
@@ -16,7 +17,6 @@ import { useShapeInteraction } from '../../hooks/useShapeInteraction';
 import { useCanvasMouseOrchestration } from './useCanvasMouseOrchestration';
 import { useConnectorTypeManager } from '../../hooks/useConnectorTypeManager';
 import { useContextMenuManager, MENU_IDS } from '../../hooks/useContextMenuManager';
-import { screenToCanvas } from '../../utils/canvas';
 import { commandManager } from '~/core/commands/CommandManager';
 import type { Command } from '~/core/commands/command.types';
 import { GridBackground } from './GridBackground';
@@ -77,10 +77,10 @@ export function Canvas({ diagramId }: CanvasProps) {
   // Get isolated instance store for THIS diagram
   const canvasInstance = useCanvasInstance(diagramId, diagram?.type);
 
+  // Get viewport transform (bundles zoom, panX, panY with transformation methods)
+  const viewportTransform = useViewportTransform(canvasInstance);
+
   // Get instance-specific state
-  const zoom = canvasInstance((state) => state.viewportZoom);
-  const panX = canvasInstance((state) => state.viewportPanX);
-  const panY = canvasInstance((state) => state.viewportPanY);
   const selectedShapeIds = canvasInstance((state) => state.selectedShapeIds);
   const hoveredShapeId = canvasInstance((state) => state.hoveredShapeId);
   const selectedConnectorIds = canvasInstance((state) => state.selectedConnectorIds);
@@ -95,7 +95,6 @@ export function Canvas({ diagramId }: CanvasProps) {
   const editingOriginalLabel = canvasInstance((state) => state.editingOriginalLabel);
 
   // Get instance actions
-  const setViewport = canvasInstance((state) => state.setViewport);
   const setSelectedShapes = canvasInstance((state) => state.setSelectedShapes);
   const setHoveredShapeId = canvasInstance((state) => state.setHoveredShapeId);
   const setSelectedConnectors = canvasInstance((state) => state.setSelectedConnectors);
@@ -126,10 +125,7 @@ export function Canvas({ diagramId }: CanvasProps) {
   // Use custom hooks for viewport, panning, and label editing
   useCanvasViewport({
     containerRef,
-    zoom,
-    panX,
-    panY,
-    setViewport,
+    viewportTransform,
   });
 
   // Initialize interaction state machine
@@ -155,10 +151,7 @@ export function Canvas({ diagramId }: CanvasProps) {
     mode === 'drawing-connector' ? (interactionData as import('../../hooks/useInteractionState').DrawingConnector) : null;
 
   const { startPanning, updatePanning, stopPanning } = useCanvasPanning({
-    setViewport,
-    zoom,
-    panX,
-    panY,
+    viewportTransform,
     lastMousePosRef,
     isActive: mode === 'panning',
   });
@@ -282,9 +275,7 @@ export function Canvas({ diagramId }: CanvasProps) {
   } = useCanvasSelection({
     containerRef,
     lastMousePosRef,
-    zoom,
-    panX,
-    panY,
+    viewportTransform,
     shapes,
     connectors,
     clearSelection,
@@ -299,9 +290,7 @@ export function Canvas({ diagramId }: CanvasProps) {
     finishDrawingConnector,
   } = useConnectorDrawing({
     containerRef,
-    zoom,
-    panX,
-    panY,
+    viewportTransform,
     addConnector: addConnector || (async () => {}),
     activeConnectorType,
     getConnectorConfig: connectorTypeManager.getConnectorConfig,
@@ -322,7 +311,7 @@ export function Canvas({ diagramId }: CanvasProps) {
     const screenY = event.clientY - rect.top;
 
     // Convert to canvas coordinates for shape placement
-    const { x: canvasX, y: canvasY } = screenToCanvas(screenX, screenY, zoom, panX, panY);
+    const { x: canvasX, y: canvasY } = viewportTransform.screenToCanvas(screenX, screenY);
 
     // Determine which menu to open based on diagram type
     let menuId: string = MENU_IDS.CANVAS_CONTEXT_MENU;
@@ -338,7 +327,7 @@ export function Canvas({ diagramId }: CanvasProps) {
       screenPosition: { x: event.clientX, y: event.clientY },
       canvasPosition: { x: canvasX, y: canvasY },
     });
-  }, [containerRef, zoom, panX, panY, diagram?.type, menuManager]);
+  }, [containerRef, viewportTransform, diagram?.type, menuManager]);
 
   // Handle adding rectangle from simple context menu
   const handleAddRectangle = useCallback(async () => {
@@ -368,9 +357,7 @@ export function Canvas({ diagramId }: CanvasProps) {
     updateDragging,
     finishDragging,
   } = useShapeDragging({
-    zoom,
-    panX,
-    panY,
+    viewportTransform,
     gridSnappingEnabled,
     localShapes,
     updateLocalShapes,
@@ -397,9 +384,7 @@ export function Canvas({ diagramId }: CanvasProps) {
     handleShapeMouseEnter,
     handleShapeMouseLeave,
   } = useShapeInteraction({
-    zoom,
-    panX,
-    panY,
+    viewportTransform,
     selectedShapeIds,
     setSelectedShapes,
     setHoveredShapeId,
@@ -548,7 +533,7 @@ export function Canvas({ diagramId }: CanvasProps) {
       {/* Grid Layer (screen space, no transform) */}
       <div className="absolute inset-0 pointer-events-none">
         <svg className="w-full h-full">
-          <g transform={`translate(${panX}, ${panY}) scale(${zoom})`}>
+          <g transform={`translate(${viewportTransform.viewport.panX}, ${viewportTransform.viewport.panY}) scale(${viewportTransform.viewport.zoom})`}>
             <GridBackground gridSize={10} />
           </g>
         </svg>
@@ -558,7 +543,7 @@ export function Canvas({ diagramId }: CanvasProps) {
       <div
         className="absolute inset-0"
         style={{
-          transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
+          transform: viewportTransform.getTransformString(),
           transformOrigin: '0 0',
         }}
       >
@@ -567,7 +552,7 @@ export function Canvas({ diagramId }: CanvasProps) {
           shapes={shapes}
           selectedShapeIds={selectedShapeIds}
           hoveredShapeId={hoveredShapeId}
-          zoom={zoom}
+          viewportTransform={viewportTransform}
           editingEntityId={editingEntityId}
           editingEntityType={editingEntityType}
           onMouseDown={handleShapeMouseDown}
@@ -595,7 +580,7 @@ export function Canvas({ diagramId }: CanvasProps) {
           shapes={shapes}
           selectedConnectorIds={selectedConnectorIds}
           hoveredConnectorId={hoveredConnectorId}
-          zoom={zoom}
+          viewportTransform={viewportTransform}
           editingEntityId={editingEntityId}
           editingEntityType={editingEntityType}
           onMouseDown={handleConnectorMouseDown}
@@ -611,7 +596,7 @@ export function Canvas({ diagramId }: CanvasProps) {
           <ConnectorDrawingPreview
             drawingConnector={drawingConnector}
             shapes={shapes}
-            zoom={zoom}
+            viewportTransform={viewportTransform}
           />
         )}
       </div>
@@ -708,7 +693,7 @@ export function Canvas({ diagramId }: CanvasProps) {
       )}
 
       {/* Debug info (optional - can be removed) */}
-      <CanvasDebugInfo diagramId={diagramId} zoom={zoom} shapesCount={shapes.length} />
+      <CanvasDebugInfo diagramId={diagramId} zoom={viewportTransform.viewport.zoom} shapesCount={shapes.length} />
     </div>
   );
 }

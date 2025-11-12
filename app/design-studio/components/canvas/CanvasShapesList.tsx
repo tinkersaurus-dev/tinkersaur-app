@@ -1,4 +1,5 @@
 import type { Shape } from '~/core/entities/design-studio/types';
+import type { ViewportTransform } from '../../utils/viewport';
 import { ShapeRenderer } from '../../rendering/shapes/ShapeRenderer';
 import type { RenderContext } from '../../rendering/shapes/types';
 
@@ -6,7 +7,7 @@ interface CanvasShapesListProps {
   shapes: Shape[];
   selectedShapeIds: string[];
   hoveredShapeId: string | null;
-  zoom: number;
+  viewportTransform: ViewportTransform;
   editingEntityId: string | null;
   editingEntityType: 'shape' | 'connector' | null;
   onMouseDown: (e: React.MouseEvent, shapeId: string) => void;
@@ -36,7 +37,7 @@ export function CanvasShapesList({
   shapes,
   selectedShapeIds,
   hoveredShapeId,
-  zoom,
+  viewportTransform,
   editingEntityId,
   editingEntityType,
   onMouseDown,
@@ -63,7 +64,7 @@ export function CanvasShapesList({
         const shapeContext: RenderContext = {
           isSelected: selectedShapeIds.includes(shape.id),
           isHovered: shape.id === hoveredShapeId,
-          zoom,
+          zoom: viewportTransform.viewport.zoom,
           readOnly: false,
         };
 

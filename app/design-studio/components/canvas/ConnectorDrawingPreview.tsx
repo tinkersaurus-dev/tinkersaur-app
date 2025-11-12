@@ -1,17 +1,18 @@
 import type { Shape } from '~/core/entities/design-studio/types';
+import type { ViewportTransform } from '../../utils/viewport';
 import type { DrawingConnector } from '../../hooks/useInteractionState';
 import { getConnectionPointsForShape, calculateAbsolutePosition } from '../../utils/connectionPoints';
 
 interface ConnectorDrawingPreviewProps {
   drawingConnector: DrawingConnector;
   shapes: Shape[];
-  zoom: number;
+  viewportTransform: ViewportTransform;
 }
 
 /**
  * Preview line shown while drawing a new connector
  */
-export function ConnectorDrawingPreview({ drawingConnector, shapes, zoom }: ConnectorDrawingPreviewProps) {
+export function ConnectorDrawingPreview({ drawingConnector, shapes, viewportTransform }: ConnectorDrawingPreviewProps) {
   const fromShape = shapes.find((s) => s.id === drawingConnector.fromShapeId);
   if (!fromShape) return null;
 
@@ -31,7 +32,7 @@ export function ConnectorDrawingPreview({ drawingConnector, shapes, zoom }: Conn
   const startX = startPos.x;
   const startY = startPos.y;
 
-  const strokeWidth = 2 / zoom;
+  const strokeWidth = 2 / viewportTransform.viewport.zoom;
 
   return (
     <svg

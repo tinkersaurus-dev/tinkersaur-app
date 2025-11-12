@@ -1,4 +1,5 @@
 import type { Shape, Connector } from '~/core/entities/design-studio/types';
+import type { ViewportTransform } from '../../utils/viewport';
 import { ConnectorRenderer } from '../../rendering/connectors/ConnectorRenderer';
 import type { ConnectorRenderContext } from '../../rendering/connectors/types';
 
@@ -7,7 +8,7 @@ interface CanvasConnectorsListProps {
   shapes: Shape[];
   selectedConnectorIds: string[];
   hoveredConnectorId: string | null;
-  zoom: number;
+  viewportTransform: ViewportTransform;
   editingEntityId: string | null;
   editingEntityType: 'shape' | 'connector' | null;
   onMouseDown: (e: React.MouseEvent, connectorId: string) => void;
@@ -26,7 +27,7 @@ export function CanvasConnectorsList({
   shapes,
   selectedConnectorIds,
   hoveredConnectorId,
-  zoom,
+  viewportTransform,
   editingEntityId,
   editingEntityType,
   onMouseDown,
@@ -54,7 +55,7 @@ export function CanvasConnectorsList({
         const connectorContext: ConnectorRenderContext = {
           isSelected: selectedConnectorIds.includes(connector.id),
           isHovered: connector.id === hoveredConnectorId,
-          zoom,
+          zoom: viewportTransform.viewport.zoom,
           readOnly: false,
         };
 

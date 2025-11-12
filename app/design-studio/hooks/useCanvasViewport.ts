@@ -1,13 +1,10 @@
 import { useCallback, useEffect } from 'react';
 import type { RefObject } from 'react';
-import { calculateZoomFromWheel, calculateZoomToPoint } from '../utils/canvas';
+import type { ViewportTransform } from '../utils/viewport';
 
 interface UseCanvasViewportProps {
   containerRef: RefObject<HTMLDivElement | null>;
-  zoom: number;
-  panX: number;
-  panY: number;
-  setViewport: (zoom: number, panX: number, panY: number) => void;
+  viewportTransform: ViewportTransform;
 }
 
 /**
@@ -15,10 +12,7 @@ interface UseCanvasViewportProps {
  */
 export function useCanvasViewport({
   containerRef,
-  zoom,
-  panX,
-  panY,
-  setViewport,
+  viewportTransform,
 }: UseCanvasViewportProps) {
   const handleWheel = useCallback(
     (event: WheelEvent) => {
@@ -32,22 +26,19 @@ export function useCanvasViewport({
       const cursorX = event.clientX - rect.left;
       const cursorY = event.clientY - rect.top;
 
-      // Calculate new zoom
-      const newZoom = calculateZoomFromWheel(zoom, event.deltaY);
+      // Calculate new zoom using viewport transform method
+      const newZoom = viewportTransform.calculateZoomFromWheel(event.deltaY);
 
       // Calculate new pan to zoom to cursor position
-      const { panX: newPanX, panY: newPanY } = calculateZoomToPoint(
+      const { panX: newPanX, panY: newPanY } = viewportTransform.calculateZoomToPoint(
         cursorX,
         cursorY,
-        zoom,
-        newZoom,
-        panX,
-        panY
+        newZoom
       );
 
-      setViewport(newZoom, newPanX, newPanY);
+      viewportTransform.setViewport(newZoom, newPanX, newPanY);
     },
-    [zoom, panX, panY, setViewport, containerRef]
+    [viewportTransform, containerRef]
   );
 
   // Attach wheel listener

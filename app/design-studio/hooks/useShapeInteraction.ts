@@ -1,13 +1,11 @@
 import { useCallback } from 'react';
 import type { RefObject, MutableRefObject } from 'react';
-import { screenToCanvas } from '../utils/canvas';
+import type { ViewportTransform } from '../utils/viewport';
 import type { DragData } from './useInteractionState';
 
 interface UseShapeInteractionProps {
-  // Viewport state for coordinate transformation
-  zoom: number;
-  panX: number;
-  panY: number;
+  // Viewport transform for coordinate transformation
+  viewportTransform: ViewportTransform;
 
   // Selection state management
   selectedShapeIds: string[];
@@ -44,9 +42,7 @@ interface UseShapeInteractionReturn {
  * @returns Event handlers for shape mouse events
  */
 export function useShapeInteraction({
-  zoom,
-  panX,
-  panY,
+  viewportTransform,
   selectedShapeIds,
   setSelectedShapes,
   setHoveredShapeId,
@@ -72,12 +68,9 @@ export function useShapeInteraction({
       const rect = container.getBoundingClientRect();
       const screenX = e.clientX - rect.left;
       const screenY = e.clientY - rect.top;
-      const { x: canvasX, y: canvasY } = screenToCanvas(
+      const { x: canvasX, y: canvasY } = viewportTransform.screenToCanvas(
         screenX,
-        screenY,
-        zoom,
-        panX,
-        panY
+        screenY
       );
 
       // Check for multi-select modifiers (Shift, Ctrl, or Cmd on Mac)
@@ -116,7 +109,7 @@ export function useShapeInteraction({
       onStartDragging(dragData);
       lastMousePosRef.current = { x: screenX, y: screenY };
     },
-    [selectedShapeIds, setSelectedShapes, panX, panY, zoom, startDragging, onStartDragging, containerRef, lastMousePosRef]
+    [selectedShapeIds, setSelectedShapes, viewportTransform, startDragging, onStartDragging, containerRef, lastMousePosRef]
   );
 
   // Handle shape mouse enter for hover state

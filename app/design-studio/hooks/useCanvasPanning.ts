@@ -1,10 +1,8 @@
 import type { MutableRefObject } from 'react';
+import type { ViewportTransform } from '../utils/viewport';
 
 interface UseCanvasPanningProps {
-  setViewport: (zoom: number, panX: number, panY: number) => void;
-  zoom: number;
-  panX: number;
-  panY: number;
+  viewportTransform: ViewportTransform;
   lastMousePosRef: MutableRefObject<{ x: number; y: number }>;
   isActive: boolean; // Driven by state machine
 }
@@ -20,10 +18,7 @@ interface UseCanvasPanningReturn {
  * State is managed externally by the interaction state machine
  */
 export function useCanvasPanning({
-  setViewport,
-  zoom,
-  panX,
-  panY,
+  viewportTransform,
   lastMousePosRef,
   isActive,
 }: UseCanvasPanningProps): UseCanvasPanningReturn {
@@ -37,7 +32,8 @@ export function useCanvasPanning({
     const deltaX = clientX - lastMousePosRef.current.x;
     const deltaY = clientY - lastMousePosRef.current.y;
 
-    setViewport(zoom, panX + deltaX, panY + deltaY);
+    const { zoom, panX, panY } = viewportTransform.viewport;
+    viewportTransform.setViewport(zoom, panX + deltaX, panY + deltaY);
 
     lastMousePosRef.current = { x: clientX, y: clientY };
   };

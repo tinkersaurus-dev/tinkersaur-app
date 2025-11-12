@@ -1,21 +1,19 @@
 import type { MutableRefObject, RefObject } from 'react';
 import type { Shape, Connector } from '~/core/entities/design-studio/types';
 import type { SelectionBox } from './useInteractionState';
+import type { ViewportTransform } from '../utils/viewport';
 import {
   normalizeRectangle,
   getShapeBounds,
   getConnectorBounds,
   rectanglesIntersect,
-  screenToCanvas,
   distance,
 } from '../utils/canvas';
 
 interface UseCanvasSelectionProps {
   containerRef: RefObject<HTMLDivElement | null>;
   lastMousePosRef: MutableRefObject<{ x: number; y: number }>;
-  zoom: number;
-  panX: number;
-  panY: number;
+  viewportTransform: ViewportTransform;
   shapes: Shape[];
   connectors: Connector[];
   clearSelection: () => void;
@@ -37,9 +35,7 @@ interface UseCanvasSelectionReturn {
 export function useCanvasSelection({
   containerRef,
   lastMousePosRef,
-  zoom,
-  panX,
-  panY,
+  viewportTransform,
   shapes,
   connectors,
   clearSelection,
@@ -95,19 +91,13 @@ export function useCanvasSelection({
       );
 
       // Convert selection box from screen space to canvas space
-      const { x: canvasBoxLeft, y: canvasBoxTop } = screenToCanvas(
+      const { x: canvasBoxLeft, y: canvasBoxTop } = viewportTransform.screenToCanvas(
         screenBox.left,
-        screenBox.top,
-        zoom,
-        panX,
-        panY
+        screenBox.top
       );
-      const { x: canvasBoxRight, y: canvasBoxBottom } = screenToCanvas(
+      const { x: canvasBoxRight, y: canvasBoxBottom } = viewportTransform.screenToCanvas(
         screenBox.right,
-        screenBox.bottom,
-        zoom,
-        panX,
-        panY
+        screenBox.bottom
       );
 
       const canvasBox = {

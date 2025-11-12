@@ -1,12 +1,11 @@
 import { useRef, useCallback } from 'react';
 import type { Shape } from '~/core/entities/design-studio/types';
-import { screenToCanvas, snapToGrid } from '../utils/canvas';
+import type { ViewportTransform } from '../utils/viewport';
+import { snapToGrid } from '../utils/canvas';
 import type { DragData } from './useInteractionState';
 
 interface UseShapeDraggingProps {
-  zoom: number;
-  panX: number;
-  panY: number;
+  viewportTransform: ViewportTransform;
   gridSnappingEnabled: boolean;
   localShapes: Shape[];
   updateLocalShapes: (updates: Map<string, Partial<Shape>>) => void;
@@ -27,9 +26,7 @@ interface UseShapeDraggingReturn {
  * State is managed externally by the interaction state machine
  */
 export function useShapeDragging({
-  zoom,
-  panX,
-  panY,
+  viewportTransform,
   gridSnappingEnabled,
   localShapes,
   updateLocalShapes,
@@ -67,12 +64,9 @@ export function useShapeDragging({
       if (!isActive || !dragData) return { x: 0, y: 0 };
 
       // Convert current mouse position to canvas coordinates
-      const { x: currentCanvasX, y: currentCanvasY } = screenToCanvas(
+      const { x: currentCanvasX, y: currentCanvasY } = viewportTransform.screenToCanvas(
         screenX,
-        screenY,
-        zoom,
-        panX,
-        panY
+        screenY
       );
 
       // Calculate delta in canvas space
@@ -104,7 +98,7 @@ export function useShapeDragging({
       // Return delta for state machine
       return { x: deltaX, y: deltaY };
     },
-    [isActive, dragData, zoom, panX, panY, gridSnappingEnabled, updateLocalShapes]
+    [isActive, dragData, viewportTransform, gridSnappingEnabled, updateLocalShapes]
   );
 
   const finishDragging = useCallback(() => {
