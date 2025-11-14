@@ -6,6 +6,8 @@ import type {
   MermaidExportResult,
 } from '../mermaid-exporter';
 import { BaseMermaidExporter } from '../mermaid-exporter';
+import { isSequenceLifelineData } from '~/core/entities/design-studio/types/Shape';
+import { FIRST_CONNECTION_POINT_Y, CONNECTION_POINT_SPACING } from '~/design-studio/config/sequenceConstants';
 
 /**
  * Mermaid exporter for Sequence diagrams
@@ -200,7 +202,7 @@ export class SequenceMermaidExporter extends BaseMermaidExporter {
 
     if (!sourceName || !targetName) return null;
 
-    // Determine arrow syntax based on connector type
+    // Determine base arrow syntax based on connector type
     let arrow = '->>';
     switch (connector.type) {
       case 'sequence-synchronous':
@@ -213,7 +215,8 @@ export class SequenceMermaidExporter extends BaseMermaidExporter {
         arrow = '-->>';
         break;
       case 'sequence-create':
-        arrow = '->+';
+        // For create messages, we'll let the activation logic handle the +
+        arrow = '->>';
         break;
       case 'sequence-destroy':
         arrow = '->>';
@@ -225,12 +228,32 @@ export class SequenceMermaidExporter extends BaseMermaidExporter {
         arrow = '->>';
     }
 
+    // Check for activation markers
+    const endsSourceActivation = this.endsActivation(connector, sourceShape);
+    const startsTargetActivation = this.startsActivation(connector, targetShape);
+
+    // Build the complete arrow with activation markers
+    // Note: In Mermaid, the activation marker goes after the arrow
+    // e.g., "->>+" to activate, "-->-" to deactivate
+    let fullArrow = arrow;
+
+    // For source deactivation, add '-' at the end
+    if (endsSourceActivation) {
+      fullArrow = arrow + '-';
+    }
+
+    // For target activation, add '+' at the end
+    // If both occur, target activation takes precedence (common pattern)
+    if (startsTargetActivation) {
+      fullArrow = arrow + '+';
+    }
+
     const label = connector.label ? this.sanitizeText(connector.label) : '';
 
     if (label) {
-      return `${sourceName}${arrow}${targetName}: ${label}`;
+      return `${sourceName}${fullArrow}${targetName}: ${label}`;
     } else {
-      return `${sourceName}${arrow}${targetName}`;
+      return `${sourceName}${fullArrow}${targetName}`;
     }
   }
 
@@ -271,6 +294,55 @@ export class SequenceMermaidExporter extends BaseMermaidExporter {
     // For normal messages, source and target have the same index
     // For self-messages or edge cases, use the earlier one
     return Math.min(sourceIndex, targetIndex);
+  }
+
+  /**
+   * Calculate the Y-coordinate of a connection point relative to the lifeline
+   * Connection points use format "e-0", "w-1", etc. where the number is the index
+   */
+  private getConnectionPointY(connectionPointId: string | undefined): number | null {
+    const index = this.getConnectionPointIndex(connectionPointId);
+    if (index === Infinity) return null;
+
+    return FIRST_CONNECTION_POINT_Y + (index * CONNECTION_POINT_SPACING);
+  }
+
+  /**
+   * Check if a message starts an activation on the target lifeline
+   * Returns true if the target connection point Y matches the start of an activation box
+   */
+  private startsActivation(connector: Connector, targetShape: Shape): boolean {
+    const targetY = this.getConnectionPointY(connector.targetConnectionPoint);
+    if (targetY === null) return false;
+
+    // Check if target shape has activation data
+    if (!targetShape.data || !isSequenceLifelineData(targetShape.data)) {
+      return false;
+    }
+
+    // Check if any activation starts at this Y coordinate
+    return targetShape.data.activations.some(
+      (activation) => activation.startY === targetY
+    );
+  }
+
+  /**
+   * Check if a message ends an activation on the source lifeline
+   * Returns true if the source connection point Y matches the end of an activation box
+   */
+  private endsActivation(connector: Connector, sourceShape: Shape): boolean {
+    const sourceY = this.getConnectionPointY(connector.sourceConnectionPoint);
+    if (sourceY === null) return false;
+
+    // Check if source shape has activation data
+    if (!sourceShape.data || !isSequenceLifelineData(sourceShape.data)) {
+      return false;
+    }
+
+    // Check if any activation ends at this Y coordinate
+    return sourceShape.data.activations.some(
+      (activation) => activation.endY === sourceY
+    );
   }
 }
 
