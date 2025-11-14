@@ -36,6 +36,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     deleteDocument,
     deleteDesignWork,
     createDesignWork,
+    updateDesignWork,
   } = useDesignStudioCRUD();
 
   // Context menu state
@@ -45,6 +46,10 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     y: number;
     nodeKey: string;
   } | null>(null);
+
+  // Editing state for inline folder rename
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [editingFolderName, setEditingFolderName] = useState<string>('');
 
   // Create diagram modal state
   const [createDiagramModalOpen, setCreateDiagramModalOpen] = useState(false);
@@ -73,6 +78,30 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
       console.error('Failed to create folder:', error);
     }
   }, [createDesignWork, solutionId]);
+
+  // Handle starting inline rename of a folder
+  const handleStartRename = useCallback((folderId: string, currentName: string) => {
+    setEditingFolderId(folderId);
+    setEditingFolderName(currentName);
+  }, []);
+
+  // Handle finishing inline rename of a folder
+  const handleFinishRename = useCallback(async () => {
+    if (editingFolderId && editingFolderName.trim()) {
+      try {
+        await updateDesignWork(editingFolderId, { name: editingFolderName.trim() });
+      } catch (error) {
+        console.error('Failed to rename folder:', error);
+      }
+    }
+    setEditingFolderId(null);
+    setEditingFolderName('');
+  }, [editingFolderId, editingFolderName, updateDesignWork]);
+
+  // Handle changing folder name during inline edit
+  const handleFolderNameChange = useCallback((newValue: string) => {
+    setEditingFolderName(newValue);
+  }, []);
 
   // Helper to get icon based on content type
   const getContentIcon = (type: DesignContentType) => {
@@ -243,6 +272,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
 
     if (type === 'folder') {
       // Folder context menu
+      const designWork = designWorks.find((dw) => dw.id === id);
       return [
         {
           key: 'add-diagram',
@@ -281,6 +311,16 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
           key: 'divider-1',
           label: '',
           type: 'divider',
+        },
+        {
+          key: 'rename',
+          label: 'Rename',
+          onClick: () => {
+            if (designWork) {
+              handleStartRename(id, designWork.name);
+            }
+            closeContextMenu();
+          },
         },
         {
           key: 'delete',
@@ -325,12 +365,14 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     }
   }, [
     contextMenu,
+    designWorks,
     createDocument,
     createInterface,
     deleteDiagram,
     deleteInterface,
     deleteDocument,
     deleteDesignWork,
+    handleStartRename,
     closeContextMenu,
   ]);
 
@@ -354,6 +396,10 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         indentSize={8}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
+        editingNodeKey={editingFolderId ? `folder-${editingFolderId}` : null}
+        editingValue={editingFolderName}
+        onEditingChange={handleFolderNameChange}
+        onEditingFinish={handleFinishRename}
       />
 
       {contextMenu && (

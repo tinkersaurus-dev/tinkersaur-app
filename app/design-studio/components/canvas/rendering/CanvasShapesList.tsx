@@ -1,7 +1,7 @@
 import type { Shape } from '~/core/entities/design-studio/types';
-import type { ViewportTransform } from '../../utils/viewport';
-import { ShapeRenderer } from '../../rendering/shapes/ShapeRenderer';
-import type { RenderContext } from '../../rendering/shapes/types';
+import type { ViewportTransform } from '../../../utils/viewport';
+import { ShapeRenderer } from '../../../rendering/shapes/ShapeRenderer';
+import type { RenderContext } from '../../../rendering/shapes/types';
 
 interface CanvasShapesListProps {
   shapes: Shape[];

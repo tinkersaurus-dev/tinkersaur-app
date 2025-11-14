@@ -8,10 +8,12 @@
 import { registerMermaidExporter } from './mermaid-parser-registry';
 import { createBpmnMermaidExporter } from './exporters/bpmn-mermaid-exporter';
 import { createClassMermaidExporter } from './exporters/class-mermaid-exporter';
+import { createSequenceMermaidExporter } from './exporters/sequence-mermaid-exporter';
 
 // Register all available exporters
 registerMermaidExporter('bpmn', createBpmnMermaidExporter);
 registerMermaidExporter('class', createClassMermaidExporter);
+registerMermaidExporter('sequence', createSequenceMermaidExporter);
 
 // Re-export public API
 export { getMermaidExporter, hasMermaidExporter, getSupportedDiagramTypes } from './mermaid-parser-registry';

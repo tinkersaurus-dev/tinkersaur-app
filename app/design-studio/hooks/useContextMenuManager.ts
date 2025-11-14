@@ -17,6 +17,7 @@ export const MENU_IDS = {
   CANVAS_CONTEXT_MENU: 'canvas-context-menu',
   BPMN_TOOLSET_POPOVER: 'bpmn-toolset-popover',
   CLASS_TOOLSET_POPOVER: 'class-toolset-popover',
+  SEQUENCE_TOOLSET_POPOVER: 'sequence-toolset-popover',
   CONNECTOR_TOOLBAR_POPOVER: 'connector-toolbar-popover',
   CONNECTOR_CONTEXT_MENU: 'connector-context-menu',
 } as const;

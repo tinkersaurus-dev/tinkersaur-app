@@ -1,15 +1,15 @@
 /**
- * BPMN Toolset Popover Component
+ * Sequence Diagram Toolset Popover Component
  *
- * Displays a popover with BPMN tools when the user right-clicks on the canvas.
- * Tools are organized by type (Tasks, Events, Gateways) in rows with icon buttons.
+ * Displays a popover with sequence diagram tools when the user right-clicks on the canvas.
+ * Tools are organized by type (Participants, Annotations) with icon buttons.
  */
 
-import { bpmnToolGroups, type Tool } from '../../config/bpmn-tools';
-import type { DrawingConnector } from '../../hooks/useInteractionState';
-import { ContextMenuWrapper } from './menus/ContextMenuWrapper';
+import { sequenceToolGroups, type Tool } from '../../../../config/sequence-tools';
+import type { DrawingConnector } from '../../../../hooks/useInteractionState';
+import { ContextMenuWrapper } from '../ContextMenuWrapper';
 
-interface BpmnToolsetPopoverProps {
+interface SequenceToolsetPopoverProps {
   /** X position in screen coordinates */
   x: number;
   /** Y position in screen coordinates */
@@ -28,7 +28,7 @@ interface BpmnToolsetPopoverProps {
   drawingConnector?: DrawingConnector | null;
 }
 
-export function BpmnToolsetPopover({
+export function SequenceToolsetPopover({
   x,
   y,
   canvasX,
@@ -37,7 +37,7 @@ export function BpmnToolsetPopover({
   onClose,
   onToolSelect,
   drawingConnector,
-}: BpmnToolsetPopoverProps) {
+}: SequenceToolsetPopoverProps) {
   const handleToolClick = (tool: Tool) => {
     onToolSelect(tool, canvasX, canvasY);
     onClose();
@@ -45,7 +45,7 @@ export function BpmnToolsetPopover({
 
   return (
     <ContextMenuWrapper
-      menuId="bpmn-toolset-popover"
+      menuId="sequence-toolset-popover"
       isOpen={isOpen}
       x={x}
       y={y}
@@ -54,8 +54,13 @@ export function BpmnToolsetPopover({
     >
       {/* Dynamic tool groups */}
       <div className="flex flex-col gap-0">
-        {bpmnToolGroups.map((group, groupIndex) => (
+        {sequenceToolGroups.map((group, groupIndex) => (
           <div key={group.type}>
+            {/* Group label */}
+            <div className="text-xs text-[var(--text-muted)] px-1 py-1 font-medium">
+              {group.label}
+            </div>
+
             {/* Tool row */}
             <div className="flex gap-1 py-1">
               {group.tools.map((tool) => {
@@ -75,7 +80,7 @@ export function BpmnToolsetPopover({
             </div>
 
             {/* Divider between groups (except after last group) */}
-            {groupIndex < bpmnToolGroups.length - 1 && (
+            {groupIndex < sequenceToolGroups.length - 1 && (
               <div className="h-px bg-[var(--border-muted)] my-1" />
             )}
           </div>
@@ -85,7 +90,7 @@ export function BpmnToolsetPopover({
       {/* Optional: Display hint if drawing connector */}
       {drawingConnector && (
         <div className="mt-2 pt-2 border-t border-[var(--border-muted)] text-xs text-[var(--text-muted)]">
-          Creating connection from {drawingConnector.fromShapeId}
+          Creating message from {drawingConnector.fromShapeId}
         </div>
       )}
     </ContextMenuWrapper>

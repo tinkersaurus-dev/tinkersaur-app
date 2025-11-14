@@ -1,18 +1,19 @@
 import { useCanvasController } from './CanvasControllerContext';
-import { MENU_IDS } from '../../hooks/useContextMenuManager';
-import { GridBackground } from './GridBackground';
-import { ContextMenu } from './ContextMenu';
-import { BpmnToolsetPopover } from './BpmnToolsetPopover';
-import { ClassToolsetPopover } from './ClassToolsetPopover';
-import { ConnectorToolsetPopover } from './ConnectorToolsetPopover';
-import { ConnectorContextMenu } from './ConnectorContextMenu';
-import { CanvasDebugInfo } from './CanvasDebugInfo';
-import { ConnectorDrawingPreview } from './ConnectorDrawingPreview';
-import { CanvasShapesList } from './CanvasShapesList';
-import { CanvasConnectorsList } from './CanvasConnectorsList';
-import CanvasToolbar from '../toolbar/CanvasToolbar';
-import CanvasTextToolbar from '../toolbar/CanvasTextToolbar';
-import { MermaidViewer } from '../mermaid/MermaidViewer';
+import { MENU_IDS } from '../../../hooks/useContextMenuManager';
+import { GridBackground } from '../ui/GridBackground';
+import { ContextMenu } from '../menus/ContextMenu';
+import { BpmnToolsetPopover } from '../menus/popovers/BpmnToolsetPopover';
+import { ClassToolsetPopover } from '../menus/popovers/ClassToolsetPopover';
+import { SequenceToolsetPopover } from '../menus/popovers/SequenceToolsetPopover';
+import { ConnectorToolsetPopover } from '../menus/popovers/ConnectorToolsetPopover';
+import { ConnectorContextMenu } from '../menus/ConnectorContextMenu';
+import { CanvasDebugInfo } from '../ui/CanvasDebugInfo';
+import { ConnectorDrawingPreview } from '../rendering/ConnectorDrawingPreview';
+import { CanvasShapesList } from '../rendering/CanvasShapesList';
+import { CanvasConnectorsList } from '../rendering/CanvasConnectorsList';
+import CanvasToolbar from '../../toolbar/CanvasToolbar';
+import CanvasTextToolbar from '../../toolbar/CanvasTextToolbar';
+import { MermaidViewer } from '../../mermaid/MermaidViewer';
 
 /**
  * Canvas View Component
@@ -95,6 +96,7 @@ export function CanvasView() {
     handleAddRectangle,
     handleBpmnToolSelect,
     handleClassToolSelect,
+    handleSequenceToolSelect,
 
     // Connector Type Management
     connectorTypeManager,
@@ -198,6 +200,7 @@ export function CanvasView() {
             drawingConnector={drawingConnector}
             shapes={shapes}
             viewportTransform={viewportTransform}
+            getConnectorConfig={connectorTypeManager.getConnectorConfig}
           />
         )}
       </div>
@@ -224,6 +227,18 @@ export function CanvasView() {
           isOpen={true}
           onClose={menuManager.closeMenu}
           onToolSelect={handleClassToolSelect}
+          drawingConnector={drawingConnector}
+        />
+      )}
+      {menuManager.isMenuOpen(MENU_IDS.SEQUENCE_TOOLSET_POPOVER) && menuManager.activeMenuConfig && (
+        <SequenceToolsetPopover
+          x={menuManager.activeMenuConfig.screenPosition.x}
+          y={menuManager.activeMenuConfig.screenPosition.y}
+          canvasX={menuManager.activeMenuConfig.canvasPosition?.x ?? 0}
+          canvasY={menuManager.activeMenuConfig.canvasPosition?.y ?? 0}
+          isOpen={true}
+          onClose={menuManager.closeMenu}
+          onToolSelect={handleSequenceToolSelect}
           drawingConnector={drawingConnector}
         />
       )}

@@ -8,7 +8,7 @@
 import { Empty } from '~/core/components/ui';
 import { ErrorBoundary } from '~/core/components';
 import { useDiagram } from '../hooks';
-import { Canvas } from './canvas/Canvas';
+import { Canvas } from './canvas/core/Canvas';
 
 interface DiagramViewProps {
   diagramId: string;

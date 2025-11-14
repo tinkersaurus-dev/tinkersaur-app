@@ -5,9 +5,9 @@
  * Tools are organized by type with icon buttons.
  */
 
-import { classToolGroups, type Tool } from '../../config/class-tools';
-import type { DrawingConnector } from '../../hooks/useInteractionState';
-import { ContextMenuWrapper } from './menus/ContextMenuWrapper';
+import { classToolGroups, type Tool } from '../../../../config/class-tools';
+import type { DrawingConnector } from '../../../../hooks/useInteractionState';
+import { ContextMenuWrapper } from '../ContextMenuWrapper';
 
 interface ClassToolsetPopoverProps {
   /** X position in screen coordinates */

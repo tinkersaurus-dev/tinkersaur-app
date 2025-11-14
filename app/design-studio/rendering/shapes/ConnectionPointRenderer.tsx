@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ConnectionPoint } from '~/design-studio/utils/connectionPoints';
+import { calculateAbsolutePosition } from '~/design-studio/utils/connectionPoints';
 
 /**
  * ConnectionPointRenderer
@@ -17,12 +18,17 @@ interface ConnectionPointRendererProps {
   shapeWidth: number;
   shapeHeight: number;
 
-
   /** Mouse down handler (starts connector drawing) */
   onMouseDown?: (connectionPointId: string, e: React.MouseEvent) => void;
 
   /** Mouse up handler (completes connector drawing) */
   onMouseUp?: (connectionPointId: string, e: React.MouseEvent) => void;
+
+  /** Mouse enter handler (to maintain hover state) */
+  onMouseEnter?: (e: React.MouseEvent) => void;
+
+  /** Mouse leave handler (to maintain hover state) */
+  onMouseLeave?: (e: React.MouseEvent) => void;
 }
 
 export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = ({
@@ -31,23 +37,42 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
   shapeHeight,
   onMouseDown,
   onMouseUp,
+  onMouseEnter,
+  onMouseLeave,
 }) => {
   // Calculate position relative to the shape (parent container)
-  // Position is based on percentage of shape dimensions
+  // Uses calculateAbsolutePosition to handle both percentage and fixed offset positioning
+  const absolutePos = calculateAbsolutePosition(connectionPoint, {
+    x: 0,
+    y: 0,
+    width: shapeWidth,
+    height: shapeHeight,
+  });
+
   const pos = {
-    x: connectionPoint.position.x * shapeWidth,
-    y: connectionPoint.position.y * shapeHeight,
+    x: absolutePos.x,
+    y: absolutePos.y,
   };
 
   const size = 12; // 8px diameter compensated for zoom
   const borderWidth = 3.5; // 2px border compensated for zoom
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    console.log('[ConnectionPointRenderer] mouseDown:', {
+      connectionPointId: connectionPoint.id,
+      hasHandler: !!onMouseDown,
+      target: e.target,
+    });
     e.stopPropagation();
     onMouseDown?.(connectionPoint.id, e);
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
+    console.log('[ConnectionPointRenderer] mouseUp:', {
+      connectionPointId: connectionPoint.id,
+      hasHandler: !!onMouseUp,
+      target: e.target,
+    });
     e.stopPropagation();
     onMouseUp?.(connectionPoint.id, e);
   };
@@ -56,6 +81,8 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
     <div
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       style={{
         position: 'absolute',
         left: `${pos.x}px`,
@@ -67,7 +94,7 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
         border: `${borderWidth}px solid var(--canvas-connection-point-border)`,
         transform: 'translate(-50%, -50%)',
         cursor: 'crosshair',
-        zIndex: 10,
+        zIndex: 100, // High z-index to ensure connection points are above other interactive elements
         boxSizing: 'border-box',
         pointerEvents: 'auto',
       }}

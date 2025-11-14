@@ -1,4 +1,4 @@
-import { ContextMenuWrapper } from './menus/ContextMenuWrapper';
+import { ContextMenuWrapper } from './ContextMenuWrapper';
 
 /**
  * Context Menu Component

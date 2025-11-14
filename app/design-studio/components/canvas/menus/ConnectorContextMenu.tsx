@@ -5,8 +5,8 @@
  * Allows the user to change the connector type inline.
  */
 
-import type { ConnectorTool } from '../../config/bpmn-connectors';
-import { ContextMenuWrapper } from './menus/ContextMenuWrapper';
+import type { ConnectorTool } from '../../../config/bpmn-connectors';
+import { ContextMenuWrapper } from './ContextMenuWrapper';
 
 interface ConnectorContextMenuProps {
   /** X position in screen coordinates */

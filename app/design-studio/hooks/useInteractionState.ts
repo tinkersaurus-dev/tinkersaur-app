@@ -28,6 +28,10 @@ export interface DrawingConnector {
   fromConnectionPointId: string;
   currentX: number;
   currentY: number;
+  connectorType: string; // The type of connector being drawn (e.g., 'sequence-flow', 'association')
+  sourceDirection?: 'N' | 'S' | 'E' | 'W'; // Direction from the source connection point
+  targetShapeId?: string; // Optional: ID of the shape being hovered over
+  targetDirection?: 'N' | 'S' | 'E' | 'W'; // Optional: Direction to the target connection point
 }
 
 /**

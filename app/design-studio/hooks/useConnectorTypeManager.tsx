@@ -13,6 +13,10 @@ import {
   allClassConnectorTools,
   getClassConnectorToolByType,
 } from '../config/class-connectors';
+import {
+  allSequenceConnectorTools,
+  getSequenceConnectorToolByType,
+} from '../config/sequence-connectors';
 
 interface UseConnectorTypeManagerProps {
   diagramId: string;
@@ -52,6 +56,8 @@ export function useConnectorTypeManager({
       return getBpmnConnectorToolByType(connectorType);
     } else if (diagramType === 'class') {
       return getClassConnectorToolByType(connectorType);
+    } else if (diagramType === 'sequence') {
+      return getSequenceConnectorToolByType(connectorType);
     }
     return undefined;
   }, [diagramType]);
@@ -62,6 +68,8 @@ export function useConnectorTypeManager({
       return allBpmnConnectorTools;
     } else if (diagramType === 'class') {
       return allClassConnectorTools;
+    } else if (diagramType === 'sequence') {
+      return allSequenceConnectorTools;
     }
     return [];
   }, [diagramType]);

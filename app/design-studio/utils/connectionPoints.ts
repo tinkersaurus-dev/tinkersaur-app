@@ -34,6 +34,12 @@ export interface ConnectionPoint {
    * Indicates which way connectors should exit from this point.
    */
   direction: ConnectionPointDirection;
+
+  /**
+   * Optional fixed offset in pixels (used for sequence lifelines).
+   * When present, this overrides the percentage-based positioning for the Y coordinate.
+   */
+  fixedOffsetY?: number;
 }
 
 /**
@@ -74,7 +80,9 @@ export function calculateAbsolutePosition(
 ): AbsolutePosition {
   return {
     x: bounds.x + connectionPoint.position.x * bounds.width,
-    y: bounds.y + connectionPoint.position.y * bounds.height,
+    y: connectionPoint.fixedOffsetY !== undefined
+      ? bounds.y + connectionPoint.fixedOffsetY
+      : bounds.y + connectionPoint.position.y * bounds.height,
   };
 }
 
@@ -151,6 +159,48 @@ export const CLASS_CONNECTION_POINTS: ConnectionPoint[] = [
 ];
 
 /**
+ * Connection points for sequence diagram lifelines
+ * Uses index-based IDs and fixed pixel offsets for stable positioning
+ * Connection points are placed every 40 pixels along the lifeline starting at 80px
+ */
+export const SEQUENCE_LIFELINE_CONNECTION_POINTS: ConnectionPoint[] = [
+  // Top and bottom on participant box (still percentage-based)
+  { id: 'n', position: { x: 0.5, y: 0 }, direction: 'N' },
+  { id: 's', position: { x: 0.5, y: 0.15 }, direction: 'S' }, // Just below participant box
+  // Connection points along the lifeline (index-based with fixed offsets)
+  { id: 'e-0', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 80 },
+  { id: 'w-0', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 80 },
+  { id: 'e-1', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 120 },
+  { id: 'w-1', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 120 },
+  { id: 'e-2', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 160 },
+  { id: 'w-2', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 160 },
+  { id: 'e-3', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 200 },
+  { id: 'w-3', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 200 },
+  { id: 'e-4', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 240 },
+  { id: 'w-4', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 240 },
+  { id: 'e-5', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 280 },
+  { id: 'w-5', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 280 },
+  { id: 'e-6', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 320 },
+  { id: 'w-6', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 320 },
+  { id: 'e-7', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 360 },
+  { id: 'w-7', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 360 },
+  { id: 'e-8', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 400 },
+  { id: 'w-8', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 400 },
+  { id: 'e-9', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 440 },
+  { id: 'w-9', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 440 },
+  { id: 'e-10', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 480 },
+  { id: 'w-10', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 480 },
+  { id: 'e-11', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 520 },
+  { id: 'w-11', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 520 },
+  { id: 'e-12', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 560 },
+  { id: 'w-12', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 560 },
+  { id: 'e-13', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 600 },
+  { id: 'w-13', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 600 },
+  { id: 'e-14', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 640 },
+  { id: 'w-14', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 640 },
+];
+
+/**
  * Gets connection points for a shape based on its type.
  * Returns the appropriate connection point configuration for the shape.
  *
@@ -161,6 +211,11 @@ export function getConnectionPointsForShape(shapeType: string): ConnectionPoint[
   // Class shapes use connection points at quarter height
   if (shapeType === 'class') {
     return CLASS_CONNECTION_POINTS;
+  }
+
+  // Sequence lifeline shapes use distributed connection points along the lifeline
+  if (shapeType === 'sequence-lifeline') {
+    return SEQUENCE_LIFELINE_CONNECTION_POINTS;
   }
 
   // All other shapes use standard rectangle connection points

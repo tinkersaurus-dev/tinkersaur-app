@@ -8,7 +8,7 @@
 import { FaTimes, FaCircle, FaPlus } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
-import { EditableLabel } from '../../components/canvas/EditableLabel';
+import { EditableLabel } from '../../components/canvas/editors/EditableLabel';
 import { ShapeWrapper } from './ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 

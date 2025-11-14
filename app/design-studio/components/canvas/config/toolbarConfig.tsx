@@ -1,6 +1,6 @@
 import React from 'react';
 import { TbGridDots } from 'react-icons/tb';
-import type { ToolbarButton } from '../toolbar/CanvasToolbar';
+import type { ToolbarButton } from '../../toolbar/CanvasToolbar';
 
 export interface ToolbarConfigParams {
   diagramType: string | undefined;
@@ -26,8 +26,8 @@ export function createToolbarButtons(params: ToolbarConfigParams): ToolbarButton
 
   const buttons: ToolbarButton[] = [];
 
-  // Only show connector button for BPMN and Class diagrams
-  if (diagramType === 'bpmn' || diagramType === 'class') {
+  // Only show connector button for BPMN, Class, and Sequence diagrams
+  if (diagramType === 'bpmn' || diagramType === 'class' || diagramType === 'sequence') {
     buttons.push({
       id: 'connector-type',
       icon: activeConnectorIcon,

@@ -1,31 +1,32 @@
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
-import { useCanvasInstance } from '../../store/content/useCanvasInstance';
-import { useDiagram } from '../../hooks/useDiagrams';
-import { useDiagramCRUD } from '../../hooks/useDiagramCRUD';
+import { useCanvasInstance } from '../../../store/content/useCanvasInstance';
+import { useDiagram } from '../../../hooks/useDiagrams';
+import { useDiagramCRUD } from '../../../hooks/useDiagramCRUD';
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
-import { useViewportTransform } from '../../hooks/useViewportTransform';
-import { useCanvasViewport } from '../../hooks/useCanvasViewport';
-import { useCanvasLabelEditing } from '../../hooks/useCanvasLabelEditing';
-import { useInteractionState } from '../../hooks/useInteractionState';
-import { useCanvasPanning } from '../../hooks/useCanvasPanning';
-import { useCanvasSelection } from '../../hooks/useCanvasSelection';
-import { useConnectorDrawing } from '../../hooks/useConnectorDrawing';
-import { useShapeDragging } from '../../hooks/useShapeDragging';
-import { useCanvasKeyboardHandlers } from '../../hooks/useCanvasKeyboardHandlers';
-import { useClassShapeEditing } from '../../hooks/useClassShapeEditing';
-import { useShapeInteraction } from '../../hooks/useShapeInteraction';
-import { useCanvasMouseOrchestration } from './useCanvasMouseOrchestration';
-import { useConnectorTypeManager } from '../../hooks/useConnectorTypeManager';
-import { useContextMenuManager, MENU_IDS } from '../../hooks/useContextMenuManager';
+import { useViewportTransform } from '../../../hooks/useViewportTransform';
+import { useCanvasViewport } from '../../../hooks/useCanvasViewport';
+import { useCanvasLabelEditing } from '../../../hooks/useCanvasLabelEditing';
+import { useInteractionState } from '../../../hooks/useInteractionState';
+import { useCanvasPanning } from '../../../hooks/useCanvasPanning';
+import { useCanvasSelection } from '../../../hooks/useCanvasSelection';
+import { useConnectorDrawing } from '../../../hooks/useConnectorDrawing';
+import { useShapeDragging } from '../../../hooks/useShapeDragging';
+import { useCanvasKeyboardHandlers } from '../../../hooks/useCanvasKeyboardHandlers';
+import { useClassShapeEditing } from '../../../hooks/useClassShapeEditing';
+import { useShapeInteraction } from '../../../hooks/useShapeInteraction';
+import { useCanvasMouseOrchestration } from '../hooks/useCanvasMouseOrchestration';
+import { useConnectorTypeManager } from '../../../hooks/useConnectorTypeManager';
+import { useContextMenuManager, MENU_IDS } from '../../../hooks/useContextMenuManager';
 import { commandManager } from '~/core/commands/CommandManager';
 import type { Command } from '~/core/commands/command.types';
-import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
-import { createToolbarButtons } from './toolbarConfig';
-import type { Tool as BpmnTool } from '../../config/bpmn-tools';
-import type { Tool as ClassTool } from '../../config/class-tools';
-import { useMermaidSync } from '../../hooks/useMermaidSync';
-import { useToolHandler } from '../../hooks/useToolHandler';
-import { mapBpmnToolToShape, mapClassToolToShape } from '../../utils/toolMappers';
+import { useKeyboardShortcuts } from '../../../hooks/useKeyboardShortcuts';
+import { createToolbarButtons } from '../config/toolbarConfig';
+import type { Tool as BpmnTool } from '../../../config/bpmn-tools';
+import type { Tool as ClassTool } from '../../../config/class-tools';
+import type { Tool as SequenceTool } from '../../../config/sequence-tools';
+import { useMermaidSync } from '../../../hooks/useMermaidSync';
+import { useToolHandler } from '../../../hooks/useToolHandler';
+import { mapBpmnToolToShape, mapClassToolToShape, mapSequenceToolToShape } from '../../../utils/toolMappers';
 import { CanvasContext } from './CanvasControllerContext';
 import type { CanvasControllerContext } from './CanvasControllerContext';
 
@@ -129,12 +130,12 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   } = useInteractionState();
 
   // Extract mode-specific data with type safety
-  const selectionBox: import('../../hooks/useInteractionState').SelectionBox | null =
-    mode === 'selecting' ? (interactionData as import('../../hooks/useInteractionState').SelectionBox) : null;
-  const dragData: import('../../hooks/useInteractionState').DragData | null =
-    mode === 'dragging-shapes' ? (interactionData as import('../../hooks/useInteractionState').DragData) : null;
-  const drawingConnector: import('../../hooks/useInteractionState').DrawingConnector | null =
-    mode === 'drawing-connector' ? (interactionData as import('../../hooks/useInteractionState').DrawingConnector) : null;
+  const selectionBox: import('../../../hooks/useInteractionState').SelectionBox | null =
+    mode === 'selecting' ? (interactionData as import('../../../hooks/useInteractionState').SelectionBox) : null;
+  const dragData: import('../../../hooks/useInteractionState').DragData | null =
+    mode === 'dragging-shapes' ? (interactionData as import('../../../hooks/useInteractionState').DragData) : null;
+  const drawingConnector: import('../../../hooks/useInteractionState').DrawingConnector | null =
+    mode === 'drawing-connector' ? (interactionData as import('../../../hooks/useInteractionState').DrawingConnector) : null;
 
   const { startPanning, updatePanning, stopPanning } = useCanvasPanning({
     viewportTransform,
@@ -240,7 +241,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   // Use unified context menu manager for all menus/popovers
   const menuManager = useContextMenuManager();
 
-  // Use polymorphic tool handlers for BPMN and Class diagrams
+  // Use polymorphic tool handlers for BPMN, Class, and Sequence diagrams
   const { handleToolSelect: handleBpmnToolSelect } = useToolHandler<BpmnTool>({
     addShape,
     menuManager,
@@ -251,6 +252,12 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     addShape,
     menuManager,
     toolToShapeMapper: mapClassToolToShape,
+  });
+
+  const { handleToolSelect: handleSequenceToolSelect } = useToolHandler<SequenceTool>({
+    addShape,
+    menuManager,
+    toolToShapeMapper: mapSequenceToolToShape,
   });
 
   // Use Phase 2 hooks
@@ -282,6 +289,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     getConnectorConfig: connectorTypeManager.getConnectorConfig,
     isActive: mode === 'drawing-connector',
     drawingConnector,
+    diagramType: diagram?.type,
+    shapes: new Map(shapes.map((shape) => [shape.id, shape])),
   });
 
   // Handle canvas right-click context menu
@@ -305,6 +314,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
       menuId = MENU_IDS.BPMN_TOOLSET_POPOVER;
     } else if (diagram?.type === 'class') {
       menuId = MENU_IDS.CLASS_TOOLSET_POPOVER;
+    } else if (diagram?.type === 'sequence') {
+      menuId = MENU_IDS.SEQUENCE_TOOLSET_POPOVER;
     }
 
     // Open the appropriate menu
@@ -560,6 +571,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     handleAddRectangle,
     handleBpmnToolSelect,
     handleClassToolSelect,
+    handleSequenceToolSelect,
     handleConnectorToolbarClick,
 
     // Connector Type Management
@@ -617,6 +629,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     handleAddRectangle,
     handleBpmnToolSelect,
     handleClassToolSelect,
+    handleSequenceToolSelect,
     handleConnectorToolbarClick,
     connectorTypeManager,
     toolbarButtons,

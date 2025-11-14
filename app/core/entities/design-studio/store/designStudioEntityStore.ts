@@ -1353,6 +1353,13 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
       // Create and execute command
       const command = commandFactory.createAddConnector(diagramId, connector);
       await commandManager.execute(command, diagramId);
+
+      // Refresh activation boxes for sequence diagrams
+      const diagram = get().diagrams[diagramId];
+      if (diagram?.type === 'sequence' && connector.type.startsWith('sequence-')) {
+        const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
+        await commandManager.execute(refreshCommand, diagramId);
+      }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to add connector');
       set((state) => ({
@@ -1419,9 +1426,19 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
 
   deleteConnector: async (diagramId: string, connectorId: string) => {
     try {
+      // Check if this is a sequence diagram before deleting
+      const diagram = get().diagrams[diagramId];
+      const isSequenceDiagram = diagram?.type === 'sequence';
+
       // Create and execute command
       const command = commandFactory.createDeleteConnector(diagramId, connectorId);
       await commandManager.execute(command, diagramId);
+
+      // Refresh activation boxes for sequence diagrams
+      if (isSequenceDiagram) {
+        const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
+        await commandManager.execute(refreshCommand, diagramId);
+      }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete connector');
       set((state) => ({

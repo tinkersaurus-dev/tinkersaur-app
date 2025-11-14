@@ -1,18 +1,18 @@
 /**
- * BPMN Task Renderer
+ * Sequence Note Renderer
  *
- * Renders BPMN task shapes as rounded rectangles with subtype-specific icons.
- * Supports subtypes: user, service, script
+ * Renders note/comment shapes for sequence diagrams.
+ * Notes are used for documentation and annotations.
  */
 
-import { FaUser, FaCog, FaCode } from 'react-icons/fa';
+import { FaStickyNote } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/editors/EditableLabel';
 import { ShapeWrapper } from './ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 
-export function BpmnTaskRenderer({
+export function SequenceNoteRenderer({
   shape,
   context,
   isEditing = false,
@@ -25,7 +25,7 @@ export function BpmnTaskRenderer({
   onConnectionPointMouseDown,
   onConnectionPointMouseUp,
 }: ShapeRendererProps): React.ReactElement {
-  const { width, height, subtype } = shape;
+  const { width, height } = shape;
   const { isSelected, isHovered, zoom } = context;
 
   // Wrap connection point handlers to prepend shape ID
@@ -38,28 +38,28 @@ export function BpmnTaskRenderer({
   };
 
   // Calculate zoom-compensated values
-  let borderWidth = 2 / zoom;
-  const borderRadius = 4; // More rounded for BPMN tasks
+  let borderWidth = 1 / zoom; // Thinner border for notes
+  const borderRadius = 2;
   const padding = 8;
 
   // Determine border color based on state
   let borderColor = 'var(--border)';
   if (isSelected) {
     borderColor = 'var(--primary)';
-    borderWidth = 3 / zoom;
+    borderWidth = 2 / zoom;
   } else if (isHovered) {
     borderColor = 'var(--secondary)';
   }
 
-  // Determine background color
-  let backgroundColor = 'var(--bg)';
+  // Note-specific background color (slightly different tint)
+  let backgroundColor = 'var(--warning-light)'; // Light yellow/note color
   if (isSelected) {
-    backgroundColor = 'var(--bg)';
+    backgroundColor = 'var(--warning-light)';
   } else if (isHovered) {
-    backgroundColor = 'var(--bg-light)';
+    backgroundColor = 'var(--warning-lighter)';
   }
 
-  const iconSize = 12;
+  const iconSize = 10;
 
   return (
     <ShapeWrapper
@@ -80,73 +80,43 @@ export function BpmnTaskRenderer({
         height: `${height}px`,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
         padding: `${padding}px`,
+        borderStyle: 'dashed', // Dashed border for notes
       }}
     >
-      {/* Task icon in top-left corner */}
-      {subtype === 'user' && (
-        <div
-          style={{
-            position: 'absolute',
-            top: `${4 / zoom}px`,
-            left: `${4 / zoom}px`,
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-          }}
-        >
-          <FaUser size={iconSize} />
-        </div>
-      )}
-      {subtype === 'service' && (
-        <div
-          style={{
-            position: 'absolute',
-            top: `${4 / zoom}px`,
-            left: `${4 / zoom}px`,
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-          }}
-        >
-          <FaCog size={iconSize} />
-        </div>
-      )}
-      {subtype === 'script' && (
-        <div
-          style={{
-            position: 'absolute',
-            top: `${4 / zoom}px`,
-            left: `${4 / zoom}px`,
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-          }}
-        >
-          <FaCode size={iconSize} />
-        </div>
-      )}
+      {/* Note icon in top-left corner */}
+      <div
+        style={{
+          position: 'absolute',
+          top: `${4 / zoom}px`,
+          right: `${4 / zoom}px`,
+          color: 'var(--text-muted)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+        }}
+      >
+        <FaStickyNote size={iconSize} />
+      </div>
 
       {/* Editable label */}
       <EditableLabel
-        label={shape.label}
+        label={shape.label || 'Note'}
         isEditing={isEditing}
         onStartEdit={() => {}}
         onLabelChange={(newLabel) => onLabelChange?.(shape.id, 'shape', newLabel)}
         onFinishEdit={() => onFinishEditing?.()}
-        fontSize={12}
+        fontSize={11}
         style={{
           color: 'var(--text)',
           pointerEvents: isEditing ? 'auto' : 'none',
-          textAlign: 'center',
+          textAlign: 'left',
+          width: '100%',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
         }}
       />
 

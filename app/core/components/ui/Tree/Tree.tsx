@@ -12,6 +12,10 @@ interface TreeProps {
   indentSize?: number; // pixels per depth level
   onDoubleClick?: (key: string) => void;
   onContextMenu?: (event: React.MouseEvent, key: string) => void;
+  editingNodeKey?: string | null;
+  editingValue?: string;
+  onEditingChange?: (newValue: string) => void;
+  onEditingFinish?: () => void;
 }
 
 export function Tree({
@@ -20,6 +24,10 @@ export function Tree({
   indentSize = 4,
   onDoubleClick,
   onContextMenu,
+  editingNodeKey,
+  editingValue,
+  onEditingChange,
+  onEditingFinish,
 }: TreeProps) {
   // Calculate all keys that can be expanded
   const allExpandableKeys = useMemo(() => {
@@ -74,6 +82,10 @@ export function Tree({
           onToggleExpand={handleToggleExpand}
           onDoubleClick={onDoubleClick}
           onContextMenu={onContextMenu}
+          isEditing={editingNodeKey === node.key}
+          editingValue={editingValue}
+          onEditingChange={onEditingChange}
+          onEditingFinish={onEditingFinish}
         />
       ))}
     </div>

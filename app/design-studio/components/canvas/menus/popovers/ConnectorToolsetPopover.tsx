@@ -5,8 +5,8 @@
  * or right-clicks on an existing connector.
  */
 
-import type { ConnectorTool } from '../../config/bpmn-connectors';
-import { ContextMenuWrapper } from './menus/ContextMenuWrapper';
+import type { ConnectorTool } from '../../../../config/bpmn-connectors';
+import { ContextMenuWrapper } from '../ContextMenuWrapper';
 
 interface ConnectorToolsetPopoverProps {
   /** X position in screen coordinates */

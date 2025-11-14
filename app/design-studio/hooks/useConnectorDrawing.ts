@@ -3,6 +3,8 @@ import type { ViewportTransform } from '../utils/viewport';
 import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
 import type { ConnectorTool } from '../config/bpmn-connectors';
 import type { DrawingConnector } from './useInteractionState';
+import { findConnectionPointById, getConnectionPointsForShape } from '../utils/connectionPoints';
+import type { Shape } from '~/core/entities/design-studio/types/Shape';
 
 interface UseConnectorDrawingProps {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -12,6 +14,8 @@ interface UseConnectorDrawingProps {
   getConnectorConfig: (connectorType: string) => ConnectorTool | undefined;
   isActive: boolean; // Driven by state machine
   drawingConnector: DrawingConnector | null; // From state machine
+  diagramType?: string; // Diagram type for determining connection point behavior
+  shapes: Map<string, Shape>; // All shapes on the canvas
 }
 
 interface UseConnectorDrawingReturn {
@@ -32,6 +36,8 @@ export function useConnectorDrawing({
   getConnectorConfig,
   isActive,
   drawingConnector,
+  diagramType,
+  shapes,
 }: UseConnectorDrawingProps): UseConnectorDrawingReturn {
   const startDrawingConnector = (connectionPointId: string, e: React.MouseEvent): DrawingConnector => {
     e.stopPropagation();
@@ -44,13 +50,17 @@ export function useConnectorDrawing({
         fromConnectionPointId: connectionPointId,
         currentX: 0,
         currentY: 0,
+        connectorType: activeConnectorType,
       };
     }
 
-    // Parse shape ID from connection point ID (format: "{shapeId}-{connectionPointId}")
-    // For now, we'll assume the last part after the last dash is the connection point ID
+    // Parse shape ID from connection point ID (format: "{shapeId}-{actualConnectionPointId}")
+    // Connection point IDs can have dashes (e.g., "w-20", "e-30")
+    // Shape IDs are UUIDs with 4 dashes (8-4-4-4-12 format)
+    // So we need to extract the UUID portion (first 5 segments) as the shape ID
     const parts = connectionPointId.split('-');
-    const shapeId = parts.slice(0, -1).join('-');
+    // UUID has 5 parts: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    const shapeId = parts.slice(0, 5).join('-');
 
     // Get current mouse position in canvas coordinates
     const rect = container.getBoundingClientRect();
@@ -58,12 +68,26 @@ export function useConnectorDrawing({
     const screenY = e.clientY - rect.top;
     const { x: canvasX, y: canvasY } = viewportTransform.screenToCanvas(screenX, screenY);
 
+    // Get the source shape and find the connection point direction
+    const sourceShape = shapes.get(shapeId);
+    let sourceDirection: 'N' | 'S' | 'E' | 'W' | undefined;
+
+    if (sourceShape) {
+      const connectionPoints = getConnectionPointsForShape(sourceShape.type);
+      // Extract the actual connection point ID (after the UUID)
+      const actualConnectionPointId = parts.slice(5).join('-');
+      const connectionPoint = findConnectionPointById(connectionPoints, actualConnectionPointId);
+      sourceDirection = connectionPoint?.direction;
+    }
+
     // Return connector data for state machine
     return {
       fromShapeId: shapeId,
       fromConnectionPointId: connectionPointId,
       currentX: canvasX,
       currentY: canvasY,
+      connectorType: activeConnectorType,
+      sourceDirection,
     };
   };
 
@@ -82,12 +106,12 @@ export function useConnectorDrawing({
 
     if (!drawingConnector) return;
 
-    // Parse shape ID from connection point ID
+    // Parse shape ID from connection point ID (UUID has 5 parts)
     const parts = connectionPointId.split('-');
-    const toShapeId = parts.slice(0, -1).join('-');
+    const toShapeId = parts.slice(0, 5).join('-');
 
-    // Don't allow connecting to the same shape
-    if (toShapeId === drawingConnector.fromShapeId) {
+    // Don't allow connecting to the same shape (except for sequence self-messages)
+    if (toShapeId === drawingConnector.fromShapeId && diagramType !== 'sequence') {
       return;
     }
 
@@ -101,14 +125,30 @@ export function useConnectorDrawing({
     const markerEnd = connectorConfig?.markerEnd || 'arrow';
     const lineType = connectorConfig?.lineType || 'solid';
 
+    console.log('[useConnectorDrawing] Creating connector:', {
+      activeConnectorType,
+      connectorConfig,
+      type,
+      diagramType,
+    });
+
+    // For sequence diagrams, store explicit connection points for manual placement
+    // Extract connection point IDs from the full connection point identifiers
+    // Connection point ID comes after the UUID (5 segments)
+    const sourceConnectionPointId = drawingConnector.fromConnectionPointId.split('-').slice(5).join('-');
+    const targetConnectionPointId = connectionPointId.split('-').slice(5).join('-');
+
     // Create connector via command (with undo/redo support)
-    // NOTE: We omit sourceConnectionPoint and targetConnectionPoint
-    // The renderer will dynamically calculate the closest connection points
     await addConnector({
       type,
       sourceShapeId: drawingConnector.fromShapeId,
       targetShapeId: toShapeId,
-      // Connection points are omitted - they'll be calculated dynamically
+      // For sequence diagrams, store explicit connection points for manual placement
+      // For other diagrams, omit them so renderer calculates closest points dynamically
+      ...(diagramType === 'sequence' && {
+        sourceConnectionPoint: sourceConnectionPointId,
+        targetConnectionPoint: targetConnectionPointId,
+      }),
       style,
       arrowType: markerEnd, // Keep for backwards compatibility
       markerStart,

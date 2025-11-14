@@ -1,5 +1,6 @@
 import type { ConnectorRendererProps, ConnectorRendererComponent } from './types';
 import { LineConnectorRenderer } from './LineConnectorRenderer';
+import { MessageConnectorRenderer } from './MessageConnectorRenderer';
 
 /**
  * Connector Renderer Registry
@@ -10,6 +11,13 @@ import { LineConnectorRenderer } from './LineConnectorRenderer';
 
 const connectorRenderers: Record<string, ConnectorRendererComponent> = {
   line: LineConnectorRenderer,
+  // Sequence diagram message connectors
+  'sequence-synchronous': MessageConnectorRenderer,
+  'sequence-asynchronous': MessageConnectorRenderer,
+  'sequence-return': MessageConnectorRenderer,
+  'sequence-create': MessageConnectorRenderer,
+  'sequence-destroy': MessageConnectorRenderer,
+  'sequence-self': MessageConnectorRenderer,
   // Future connector types can be added here:
   // arrow: ArrowRenderer, (if different from line)
   // association: AssociationRenderer,

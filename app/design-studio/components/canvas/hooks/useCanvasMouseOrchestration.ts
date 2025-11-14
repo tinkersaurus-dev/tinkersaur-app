@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { InteractionMode, SelectionBox } from '../../hooks/useInteractionState';
+import type { InteractionMode, SelectionBox } from '../../../hooks/useInteractionState';
 
 /**
  * Props for the useCanvasMouseOrchestration hook

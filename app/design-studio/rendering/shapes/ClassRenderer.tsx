@@ -10,9 +10,9 @@ import { FaPlus } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import type { ClassShapeData } from '~/core/entities/design-studio/types/Shape';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
-import { EditableLabel } from '../../components/canvas/EditableLabel';
-import { ShapeDropdown } from '../../components/canvas/ShapeDropdown';
-import { ClassItemEditor } from '../../components/canvas/ClassItemEditor';
+import { EditableLabel } from '../../components/canvas/editors/EditableLabel';
+import { ShapeDropdown } from '../../components/canvas/editors/ShapeDropdown';
+import { ClassItemEditor } from '../../components/canvas/editors/ClassItemEditor';
 import { ShapeWrapper } from './ShapeWrapper';
 import { CLASS_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 

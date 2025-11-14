@@ -6,7 +6,7 @@ export const ConnectionPointId = z.string();
 export type ConnectionPointId = z.infer<typeof ConnectionPointId>;
 
 // Arrow head types for connector endpoints
-export const ArrowType = z.enum(['none', 'arrow', 'circle', 'diamond', 'triangle', 'filled-diamond', 'filled-triangle']);
+export const ArrowType = z.enum(['none', 'arrow', 'circle', 'diamond', 'triangle', 'filled-diamond', 'filled-triangle', 'filled-arrow', 'cross']);
 export type ArrowType = z.infer<typeof ArrowType>;
 
 // Line style types for connectors

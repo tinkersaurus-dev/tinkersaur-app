@@ -1,16 +1,17 @@
 import type { RefObject } from 'react';
 import { createContext, useContext } from 'react';
-import type { ViewportTransform } from '../../utils/viewport';
+import type { ViewportTransform } from '../../../utils/viewport';
 import type { Shape } from '~/core/entities/design-studio/types/Shape';
 import type { Connector } from '~/core/entities/design-studio/types/Connector';
 import type { Diagram } from '~/core/entities/design-studio/types/Diagram';
-import type { InteractionMode, SelectionBox, DrawingConnector } from '../../hooks/useInteractionState';
-import type { UseContextMenuManagerReturn } from '../../hooks/useContextMenuManager';
-import type { Tool as BpmnTool } from '../../config/bpmn-tools';
-import type { Tool as ClassTool } from '../../config/class-tools';
-import type { ToolbarButton } from '../toolbar/CanvasToolbar';
+import type { InteractionMode, SelectionBox, DrawingConnector } from '../../../hooks/useInteractionState';
+import type { UseContextMenuManagerReturn } from '../../../hooks/useContextMenuManager';
+import type { Tool as BpmnTool } from '../../../config/bpmn-tools';
+import type { Tool as ClassTool } from '../../../config/class-tools';
+import type { Tool as SequenceTool } from '../../../config/sequence-tools';
+import type { ToolbarButton } from '../../toolbar/CanvasToolbar';
 import type { JSX } from 'react';
-import type { ConnectorTool } from '../../config/bpmn-connectors';
+import type { ConnectorTool } from '../../../config/bpmn-connectors';
 
 /**
  * Canvas Controller Context
@@ -86,6 +87,7 @@ export interface CanvasControllerContext {
   handleAddRectangle: () => Promise<void>;
   handleBpmnToolSelect: (tool: BpmnTool, canvasX: number, canvasY: number) => Promise<void>;
   handleClassToolSelect: (tool: ClassTool, canvasX: number, canvasY: number) => Promise<void>;
+  handleSequenceToolSelect: (tool: SequenceTool, canvasX: number, canvasY: number) => Promise<void>;
   handleConnectorToolbarClick: () => void;
 
   // Connector Type Management

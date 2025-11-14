@@ -20,6 +20,9 @@ import { DeleteClassAttributeCommand } from './canvas/DeleteClassAttributeComman
 import { DeleteClassMethodCommand } from './canvas/DeleteClassMethodCommand';
 import { BatchDeleteShapesCommand } from './canvas/BatchDeleteShapesCommand';
 import { BatchDeleteConnectorsCommand } from './canvas/BatchDeleteConnectorsCommand';
+import { UpdateLifelineActivationsCommand } from './canvas/UpdateLifelineActivationsCommand';
+import { RefreshSequenceActivationsCommand } from './canvas/RefreshSequenceActivationsCommand';
+import type { ActivationBox } from '../entities/design-studio/types/Shape';
 
 /**
  * Command Factory - Centralized command creation with dependency injection
@@ -362,6 +365,45 @@ export class CommandFactory {
       this.deps._internalGetConnector,
       this.deps._internalDeleteConnectorsBatch,
       this.deps._internalRestoreConnectorsBatch
+    );
+  }
+
+  // ============================================================================
+  // Sequence Diagram Commands
+  // ============================================================================
+
+  /**
+   * Update activation boxes for a specific sequence lifeline
+   */
+  createUpdateLifelineActivations(
+    diagramId: string,
+    shapeId: string,
+    oldActivations: ActivationBox[],
+    newActivations: ActivationBox[]
+  ): Command {
+    const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
+    return new UpdateLifelineActivationsCommand(
+      diagramId,
+      shapeId,
+      oldActivations,
+      newActivations,
+      this.deps.getDiagram,
+      this.deps._internalUpdateShape,
+      updateLocalShape
+    );
+  }
+
+  /**
+   * Refresh all activation boxes in a sequence diagram
+   * Should be called when connectors are added, deleted, or modified
+   */
+  createRefreshSequenceActivations(diagramId: string): Command {
+    const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
+    return new RefreshSequenceActivationsCommand(
+      diagramId,
+      this.deps.getDiagram,
+      this.deps._internalUpdateShape,
+      updateLocalShape
     );
   }
 }
