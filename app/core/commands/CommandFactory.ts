@@ -22,6 +22,7 @@ import { BatchDeleteShapesCommand } from './canvas/BatchDeleteShapesCommand';
 import { BatchDeleteConnectorsCommand } from './canvas/BatchDeleteConnectorsCommand';
 import { UpdateLifelineActivationsCommand } from './canvas/UpdateLifelineActivationsCommand';
 import { RefreshSequenceActivationsCommand } from './canvas/RefreshSequenceActivationsCommand';
+import { UpdateLifelineHeightsCommand } from './canvas/UpdateLifelineHeightsCommand';
 import type { ActivationBox } from '../entities/design-studio/types/Shape';
 
 /**
@@ -401,6 +402,21 @@ export class CommandFactory {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
     return new RefreshSequenceActivationsCommand(
       diagramId,
+      this.deps.getDiagram,
+      this.deps._internalUpdateShape,
+      updateLocalShape
+    );
+  }
+
+  /**
+   * Update heights for all lifelines in a sequence diagram
+   * Should be called when connectors are added, deleted, or modified
+   */
+  createUpdateLifelineHeights(diagramId: string, newHeight: number): Command {
+    const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
+    return new UpdateLifelineHeightsCommand(
+      diagramId,
+      newHeight,
       this.deps.getDiagram,
       this.deps._internalUpdateShape,
       updateLocalShape

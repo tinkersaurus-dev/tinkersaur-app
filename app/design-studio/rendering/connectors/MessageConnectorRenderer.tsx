@@ -45,22 +45,13 @@ export const MessageConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   // If connector has explicit connection points stored, use them for exact positioning
   if (connector.sourceConnectionPoint && connector.targetConnectionPoint) {
     // Get connection point configurations for both shapes
-    const sourceConnectionPoints = getConnectionPointsForShape(sourceShape.type);
-    const targetConnectionPoints = getConnectionPointsForShape(targetShape.type);
+    const sourceConnectionPoints = getConnectionPointsForShape(sourceShape.type, sourceShape.height);
+    const targetConnectionPoints = getConnectionPointsForShape(targetShape.type, targetShape.height);
 
     // Find the specific connection points by ID
     const sourceCP = sourceConnectionPoints.find((cp) => cp.id === connector.sourceConnectionPoint);
     const targetCP = targetConnectionPoints.find((cp) => cp.id === connector.targetConnectionPoint);
 
-    console.log('[MessageConnectorRenderer] Connection points:', {
-      connectorId: connector.id,
-      sourceConnectionPoint: connector.sourceConnectionPoint,
-      targetConnectionPoint: connector.targetConnectionPoint,
-      sourceCP,
-      targetCP,
-      sourceShapeType: sourceShape.type,
-      targetShapeType: targetShape.type,
-    });
 
     if (sourceCP && targetCP) {
       // Calculate exact positions using calculateAbsolutePosition (handles both percentage and fixed offsets)
@@ -81,15 +72,7 @@ export const MessageConnectorRenderer: React.FC<ConnectorRendererProps> = ({
       sourceY = sourcePos.y;
       targetX = targetPos.x;
       targetY = targetPos.y;
-
-      console.log('[MessageConnectorRenderer] Calculated positions:', {
-        sourceX,
-        sourceY,
-        targetX,
-        targetY,
-      });
     } else {
-      console.log('[MessageConnectorRenderer] Connection points not found, using fallback');
       // Fallback if connection points not found
       sourceX = sourceShape.x + sourceShape.width / 2;
       sourceY = sourceShape.y + 100;
@@ -97,7 +80,6 @@ export const MessageConnectorRenderer: React.FC<ConnectorRendererProps> = ({
       targetY = sourceY;
     }
   } else {
-    console.log('[MessageConnectorRenderer] No explicit connection points, using center-based positioning');
     // Fallback to center-based positioning for backward compatibility
     sourceX = sourceShape.x + sourceShape.width / 2; // Center of source lifeline
     targetX = targetShape.x + targetShape.width / 2; // Center of target lifeline
@@ -225,7 +207,7 @@ function getSelfMessagePath(
   sourceY: number,
   targetX: number,
   targetY: number,
-  zoom: number
+  _zoom: number
 ): { pathData: string; labelX: number; labelY: number } {
   const loopWidth = 40;
 

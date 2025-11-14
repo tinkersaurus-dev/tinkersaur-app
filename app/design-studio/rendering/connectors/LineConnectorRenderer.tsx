@@ -40,8 +40,8 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
 
   // DYNAMIC CONNECTION POINT SELECTION
   // Get connection points from shapes based on their type
-  const sourceConnectionPoints = getConnectionPointsForShape(sourceShape.type);
-  const targetConnectionPoints = getConnectionPointsForShape(targetShape.type);
+  const sourceConnectionPoints = getConnectionPointsForShape(sourceShape.type, sourceShape.height);
+  const targetConnectionPoints = getConnectionPointsForShape(targetShape.type, targetShape.height);
 
   // Calculate the closest pair to ensure connectors always connect optimally
   const { sourceDirection, targetDirection, start, end } = findOptimalConnectionPoints(

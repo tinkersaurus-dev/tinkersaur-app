@@ -73,7 +73,7 @@ export function useConnectorDrawing({
     let sourceDirection: 'N' | 'S' | 'E' | 'W' | undefined;
 
     if (sourceShape) {
-      const connectionPoints = getConnectionPointsForShape(sourceShape.type);
+      const connectionPoints = getConnectionPointsForShape(sourceShape.type, sourceShape.height);
       // Extract the actual connection point ID (after the UUID)
       const actualConnectionPointId = parts.slice(5).join('-');
       const connectionPoint = findConnectionPointById(connectionPoints, actualConnectionPointId);
@@ -125,12 +125,6 @@ export function useConnectorDrawing({
     const markerEnd = connectorConfig?.markerEnd || 'arrow';
     const lineType = connectorConfig?.lineType || 'solid';
 
-    console.log('[useConnectorDrawing] Creating connector:', {
-      activeConnectorType,
-      connectorConfig,
-      type,
-      diagramType,
-    });
 
     // For sequence diagrams, store explicit connection points for manual placement
     // Extract connection point IDs from the full connection point identifiers

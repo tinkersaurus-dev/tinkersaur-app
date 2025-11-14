@@ -159,63 +159,72 @@ export const CLASS_CONNECTION_POINTS: ConnectionPoint[] = [
 ];
 
 /**
- * Connection points for sequence diagram lifelines
- * Uses index-based IDs and fixed pixel offsets for stable positioning
- * Connection points are placed every 40 pixels along the lifeline starting at 80px
+ * Generates connection points dynamically for sequence diagram lifelines
+ * based on the lifeline height. Uses index-based IDs and fixed pixel offsets
+ * for stable positioning.
+ *
+ * @param height - The total height of the lifeline shape
+ * @returns Array of connection points for the lifeline
  */
-export const SEQUENCE_LIFELINE_CONNECTION_POINTS: ConnectionPoint[] = [
-  // Top and bottom on participant box (still percentage-based)
-  { id: 'n', position: { x: 0.5, y: 0 }, direction: 'N' },
-  { id: 's', position: { x: 0.5, y: 0.15 }, direction: 'S' }, // Just below participant box
-  // Connection points along the lifeline (index-based with fixed offsets)
-  { id: 'e-0', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 80 },
-  { id: 'w-0', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 80 },
-  { id: 'e-1', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 120 },
-  { id: 'w-1', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 120 },
-  { id: 'e-2', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 160 },
-  { id: 'w-2', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 160 },
-  { id: 'e-3', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 200 },
-  { id: 'w-3', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 200 },
-  { id: 'e-4', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 240 },
-  { id: 'w-4', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 240 },
-  { id: 'e-5', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 280 },
-  { id: 'w-5', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 280 },
-  { id: 'e-6', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 320 },
-  { id: 'w-6', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 320 },
-  { id: 'e-7', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 360 },
-  { id: 'w-7', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 360 },
-  { id: 'e-8', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 400 },
-  { id: 'w-8', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 400 },
-  { id: 'e-9', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 440 },
-  { id: 'w-9', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 440 },
-  { id: 'e-10', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 480 },
-  { id: 'w-10', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 480 },
-  { id: 'e-11', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 520 },
-  { id: 'w-11', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 520 },
-  { id: 'e-12', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 560 },
-  { id: 'w-12', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 560 },
-  { id: 'e-13', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 600 },
-  { id: 'w-13', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 600 },
-  { id: 'e-14', position: { x: 0.5, y: 0 }, direction: 'E', fixedOffsetY: 640 },
-  { id: 'w-14', position: { x: 0.5, y: 0 }, direction: 'W', fixedOffsetY: 640 },
-];
+export function generateSequenceLifelineConnectionPoints(height: number): ConnectionPoint[] {
+  // Import constants dynamically to avoid circular dependencies
+  // These values match the constants in sequenceConstants.ts
+  const FIRST_CONNECTION_POINT_Y = 80;
+  const CONNECTION_POINT_SPACING = 40;
+
+  const connectionPoints: ConnectionPoint[] = [
+    // Top and bottom on participant box (percentage-based)
+    { id: 'n', position: { x: 0.5, y: 0 }, direction: 'N' },
+    { id: 's', position: { x: 0.5, y: 0.15 }, direction: 'S' },
+  ];
+
+  // Generate connection points along the lifeline
+  // Start at FIRST_CONNECTION_POINT_Y and add points every CONNECTION_POINT_SPACING
+  let index = 0;
+  for (let offsetY = FIRST_CONNECTION_POINT_Y; offsetY < height; offsetY += CONNECTION_POINT_SPACING) {
+    // Add east connection point
+    connectionPoints.push({
+      id: `e-${index}`,
+      position: { x: 0.5, y: 0 },
+      direction: 'E',
+      fixedOffsetY: offsetY,
+    });
+
+    // Add west connection point
+    connectionPoints.push({
+      id: `w-${index}`,
+      position: { x: 0.5, y: 0 },
+      direction: 'W',
+      fixedOffsetY: offsetY,
+    });
+
+    index++;
+  }
+
+  return connectionPoints;
+}
 
 /**
- * Gets connection points for a shape based on its type.
+ * Gets connection points for a shape based on its type and dimensions.
  * Returns the appropriate connection point configuration for the shape.
  *
  * @param shapeType - The type of the shape
+ * @param height - The height of the shape (required for sequence lifelines)
  * @returns Array of connection points for the shape
  */
-export function getConnectionPointsForShape(shapeType: string): ConnectionPoint[] {
+export function getConnectionPointsForShape(shapeType: string, height?: number): ConnectionPoint[] {
   // Class shapes use connection points at quarter height
   if (shapeType === 'class') {
     return CLASS_CONNECTION_POINTS;
   }
 
-  // Sequence lifeline shapes use distributed connection points along the lifeline
+  // Sequence lifeline shapes use dynamically generated connection points
   if (shapeType === 'sequence-lifeline') {
-    return SEQUENCE_LIFELINE_CONNECTION_POINTS;
+    if (height === undefined) {
+      console.warn('Height is required for sequence-lifeline connection points');
+      return generateSequenceLifelineConnectionPoints(400); // Fallback to default
+    }
+    return generateSequenceLifelineConnectionPoints(height);
   }
 
   // All other shapes use standard rectangle connection points

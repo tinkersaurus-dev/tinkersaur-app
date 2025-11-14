@@ -330,8 +330,8 @@ export function getConnectorBounds(
   targetShape: { x: number; y: number; width: number; height: number; type: string }
 ): { left: number; right: number; top: number; bottom: number } {
   // Get connection points from shapes
-  const sourceConnectionPoints = getConnectionPointsForShape(sourceShape.type);
-  const targetConnectionPoints = getConnectionPointsForShape(targetShape.type);
+  const sourceConnectionPoints = getConnectionPointsForShape(sourceShape.type, sourceShape.height);
+  const targetConnectionPoints = getConnectionPointsForShape(targetShape.type, targetShape.height);
 
   // Calculate connection points (same logic as LineConnectorRenderer)
   const { start, end } = findOptimalConnectionPoints(

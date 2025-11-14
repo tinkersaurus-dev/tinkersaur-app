@@ -9,9 +9,9 @@ import type { Shape } from '~/core/entities/design-studio/types/Shape';
 import type { Connector } from '~/core/entities/design-studio/types/Connector';
 import type { ActivationBox } from '~/core/entities/design-studio/types/Shape';
 import {
-  SEQUENCE_LIFELINE_CONNECTION_POINTS,
-  findConnectionPointById,
-} from './connectionPoints';
+  FIRST_CONNECTION_POINT_Y,
+  CONNECTION_POINT_SPACING,
+} from '../config/sequenceConstants';
 
 /**
  * Calculates activation boxes for a sequence diagram lifeline based on connected messages.
@@ -168,22 +168,22 @@ function getConnectionPointDirection(connectionPointId: string): string | null {
  * Extracts the Y-offset (fixedOffsetY) from a connection point ID.
  *
  * Connection point IDs are in format: "e-0", "w-3", etc.
- * We need to look up the corresponding fixedOffsetY from the connection point definition.
+ * We calculate the Y offset based on the index and spacing constants.
  *
  * @param connectionPointId - The connection point ID (e.g., "e-0", "w-3")
  * @returns The Y-offset in pixels, or null if not found
  */
 function extractYOffsetFromConnectionPoint(connectionPointId: string): number | null {
-  const connectionPoint = findConnectionPointById(
-    SEQUENCE_LIFELINE_CONNECTION_POINTS,
-    connectionPointId
-  );
-
-  if (!connectionPoint || connectionPoint.fixedOffsetY === undefined) {
+  // Parse index from connection point ID (e.g., "e-5" -> 5, "w-12" -> 12)
+  const match = connectionPointId.match(/^[ew]-(\d+)$/);
+  if (!match) {
     return null;
   }
 
-  return connectionPoint.fixedOffsetY;
+  const index = parseInt(match[1], 10);
+
+  // Calculate Y offset: startY + (index * spacing)
+  return FIRST_CONNECTION_POINT_Y + (index * CONNECTION_POINT_SPACING);
 }
 
 /**

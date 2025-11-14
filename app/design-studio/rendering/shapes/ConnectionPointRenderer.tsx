@@ -58,21 +58,11 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
   const borderWidth = 3.5; // 2px border compensated for zoom
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    console.log('[ConnectionPointRenderer] mouseDown:', {
-      connectionPointId: connectionPoint.id,
-      hasHandler: !!onMouseDown,
-      target: e.target,
-    });
     e.stopPropagation();
     onMouseDown?.(connectionPoint.id, e);
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
-    console.log('[ConnectionPointRenderer] mouseUp:', {
-      connectionPointId: connectionPoint.id,
-      hasHandler: !!onMouseUp,
-      target: e.target,
-    });
     e.stopPropagation();
     onMouseUp?.(connectionPoint.id, e);
   };

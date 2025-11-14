@@ -1354,9 +1354,19 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
       const command = commandFactory.createAddConnector(diagramId, connector);
       await commandManager.execute(command, diagramId);
 
-      // Refresh activation boxes for sequence diagrams
+      // Refresh activation boxes and lifeline heights for sequence diagrams
       const diagram = get().diagrams[diagramId];
       if (diagram?.type === 'sequence' && connector.type.startsWith('sequence-')) {
+        // Calculate and update lifeline heights first
+        const { calculateRequiredLifelineHeight } = await import('~/design-studio/utils/lifelineHeightCalculator');
+        const requiredHeight = calculateRequiredLifelineHeight(
+          diagram.shapes,
+          diagram.connectors || []
+        );
+        const heightCommand = commandFactory.createUpdateLifelineHeights(diagramId, requiredHeight);
+        await commandManager.execute(heightCommand, diagramId);
+
+        // Then refresh activation boxes
         const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
         await commandManager.execute(refreshCommand, diagramId);
       }
@@ -1434,10 +1444,24 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
       const command = commandFactory.createDeleteConnector(diagramId, connectorId);
       await commandManager.execute(command, diagramId);
 
-      // Refresh activation boxes for sequence diagrams
+      // Refresh activation boxes and lifeline heights for sequence diagrams
       if (isSequenceDiagram) {
-        const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
-        await commandManager.execute(refreshCommand, diagramId);
+        // Get updated diagram after deletion
+        const updatedDiagram = get().diagrams[diagramId];
+        if (updatedDiagram) {
+          // Calculate and update lifeline heights first
+          const { calculateRequiredLifelineHeight } = await import('~/design-studio/utils/lifelineHeightCalculator');
+          const requiredHeight = calculateRequiredLifelineHeight(
+            updatedDiagram.shapes,
+            updatedDiagram.connectors || []
+          );
+          const heightCommand = commandFactory.createUpdateLifelineHeights(diagramId, requiredHeight);
+          await commandManager.execute(heightCommand, diagramId);
+
+          // Then refresh activation boxes
+          const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
+          await commandManager.execute(refreshCommand, diagramId);
+        }
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete connector');

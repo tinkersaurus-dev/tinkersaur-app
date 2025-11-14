@@ -8,7 +8,6 @@ import {
   TbArrowRight,
   TbArrowBack,
   TbArrowBigRight,
-  TbArrowBigRightLines,
   TbCirclePlus,
   TbCircleX,
   TbArrowLoopRight,

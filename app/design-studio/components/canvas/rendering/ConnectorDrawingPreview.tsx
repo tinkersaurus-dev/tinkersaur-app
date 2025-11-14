@@ -25,7 +25,7 @@ export function ConnectorDrawingPreview({
   if (!fromShape) return null;
 
   // Get connection points for the shape
-  const connectionPoints = getConnectionPointsForShape(fromShape.type);
+  const connectionPoints = getConnectionPointsForShape(fromShape.type, fromShape.height);
 
   // Parse the connection point ID from the full ID (format: "{shapeId}-{connectionPointId}")
   // Shape IDs are UUIDs with 5 parts, connection point ID is everything after

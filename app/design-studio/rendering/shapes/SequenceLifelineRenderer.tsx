@@ -13,53 +13,9 @@ import type { SequenceLifelineData } from '~/core/entities/design-studio/types/S
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/editors/EditableLabel';
 import { ShapeWrapper } from './ShapeWrapper';
-import type { ConnectionPoint } from '~/design-studio/utils/connectionPoints';
+import { generateSequenceLifelineConnectionPoints } from '~/design-studio/utils/connectionPoints';
 
 const PARTICIPANT_BOX_HEIGHT = 40; // Fixed height for the participant box at the top
-
-/**
- * Generates connection points dynamically based on the lifeline height.
- * This ensures connection points scale with the shape height and never extend beyond it.
- *
- * @param height - The total height of the lifeline shape
- * @returns Array of connection points for the lifeline
- */
-function generateLifelineConnectionPoints(height: number): ConnectionPoint[] {
-  const connectionPoints: ConnectionPoint[] = [
-    // Top and bottom on participant box (percentage-based)
-    { id: 'n', position: { x: 0.5, y: 0 }, direction: 'N' },
-    { id: 's', position: { x: 0.5, y: 0.15 }, direction: 'S' },
-  ];
-
-  // Generate connection points along the lifeline
-  // Start at 80px and add points every 40px
-  const startY = 80;
-  const spacing = 40;
-
-  // Calculate how many connection point pairs fit within the height
-  let index = 0;
-  for (let offsetY = startY; offsetY < height; offsetY += spacing) {
-    // Add east connection point
-    connectionPoints.push({
-      id: `e-${index}`,
-      position: { x: 0.5, y: 0 },
-      direction: 'E',
-      fixedOffsetY: offsetY,
-    });
-
-    // Add west connection point
-    connectionPoints.push({
-      id: `w-${index}`,
-      position: { x: 0.5, y: 0 },
-      direction: 'W',
-      fixedOffsetY: offsetY,
-    });
-
-    index++;
-  }
-
-  return connectionPoints;
-}
 
 export function SequenceLifelineRenderer({
   shape,
@@ -79,22 +35,10 @@ export function SequenceLifelineRenderer({
 
   // Wrap connection point handlers to prepend shape ID
   const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
-    console.log('[SequenceLifeline] Connection point mouseDown:', {
-      connectionPointId,
-      fullId: `${shape.id}-${connectionPointId}`,
-      shapeId: shape.id,
-      hasHandler: !!onConnectionPointMouseDown,
-    });
     onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
   };
 
   const handleConnectionPointMouseUp = (connectionPointId: string, e: React.MouseEvent) => {
-    console.log('[SequenceLifeline] Connection point mouseUp:', {
-      connectionPointId,
-      fullId: `${shape.id}-${connectionPointId}`,
-      shapeId: shape.id,
-      hasHandler: !!onConnectionPointMouseUp,
-    });
     onConnectionPointMouseUp?.(`${shape.id}-${connectionPointId}`, e);
   };
 
@@ -314,7 +258,7 @@ export function SequenceLifelineRenderer({
       {isHovered &&
         onConnectionPointMouseDown &&
         onConnectionPointMouseUp &&
-        generateLifelineConnectionPoints(height)
+        generateSequenceLifelineConnectionPoints(height)
           .filter((cp) => cp.id !== 'n' && cp.id !== 's')
           .map((connectionPoint) => (
             <div
