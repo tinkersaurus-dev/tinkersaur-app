@@ -49,6 +49,7 @@ export function CanvasConnectorsList({
             `Connector ${connector.id} references missing shape(s): ` +
               `source=${connector.sourceShapeId}, target=${connector.targetShapeId}`
           );
+          console.warn('Available shape IDs:', shapes.map(s => s.id));
           return null;
         }
 

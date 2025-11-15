@@ -112,7 +112,14 @@ export function useConnectorTypeManager({
     );
 
     await commandManager.execute(command, diagramId);
-  }, [diagramId, commandFactory]);
+
+    // Refresh activation boxes for sequence diagrams
+    // (changing connector type can affect activation box placement, e.g., synchronous <-> return)
+    if (diagramType === 'sequence') {
+      const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
+      await commandManager.execute(refreshCommand, diagramId);
+    }
+  }, [diagramId, diagramType, commandFactory]);
 
   return {
     // Handlers (menu state managed by useContextMenuManager)

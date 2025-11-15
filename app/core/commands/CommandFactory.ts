@@ -23,6 +23,7 @@ import { BatchDeleteConnectorsCommand } from './canvas/BatchDeleteConnectorsComm
 import { UpdateLifelineActivationsCommand } from './canvas/UpdateLifelineActivationsCommand';
 import { RefreshSequenceActivationsCommand } from './canvas/RefreshSequenceActivationsCommand';
 import { UpdateLifelineHeightsCommand } from './canvas/UpdateLifelineHeightsCommand';
+import { ImportMermaidCommand } from './canvas/ImportMermaidCommand';
 import type { ActivationBox } from '../entities/design-studio/types/Shape';
 
 /**
@@ -420,6 +421,30 @@ export class CommandFactory {
       this.deps.getDiagram,
       this.deps._internalUpdateShape,
       updateLocalShape
+    );
+  }
+
+  // ============================================================================
+  // Import/Export Commands
+  // ============================================================================
+
+  /**
+   * Import shapes and connectors from Mermaid syntax
+   * All imported entities are added as a single undoable operation
+   */
+  createImportMermaid(
+    diagramId: string,
+    shapes: Shape[],
+    connectors: Connector[]
+  ): Command {
+    return new ImportMermaidCommand(
+      diagramId,
+      shapes,
+      connectors,
+      this.deps._internalRestoreShapesBatch,
+      this.deps._internalDeleteShapesBatch,
+      this.deps._internalRestoreConnectorsBatch,
+      this.deps._internalDeleteConnectorsBatch
     );
   }
 }

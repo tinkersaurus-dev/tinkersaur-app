@@ -6,6 +6,7 @@
  */
 
 import { FaUser, FaCog, FaCode } from 'react-icons/fa';
+import { LuSquareUserRound, LuSettings, LuSquareCode } from "react-icons/lu";
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/editors/EditableLabel';
@@ -59,7 +60,7 @@ export function BpmnTaskRenderer({
     backgroundColor = 'var(--bg-light)';
   }
 
-  const iconSize = 12;
+  const iconSize = 14;
 
   return (
     <ShapeWrapper
@@ -99,7 +100,7 @@ export function BpmnTaskRenderer({
             pointerEvents: 'none',
           }}
         >
-          <FaUser size={iconSize} />
+          <LuSquareUserRound size={iconSize}/>
         </div>
       )}
       {subtype === 'service' && (
@@ -115,7 +116,7 @@ export function BpmnTaskRenderer({
             pointerEvents: 'none',
           }}
         >
-          <FaCog size={iconSize} />
+          <LuSettings size={iconSize} />
         </div>
       )}
       {subtype === 'script' && (
@@ -131,7 +132,7 @@ export function BpmnTaskRenderer({
             pointerEvents: 'none',
           }}
         >
-          <FaCode size={iconSize} />
+          <LuSquareCode size={iconSize} />
         </div>
       )}
 

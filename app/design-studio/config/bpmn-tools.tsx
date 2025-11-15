@@ -18,6 +18,7 @@ import {
   FaTimes,
   FaStream,
 } from 'react-icons/fa';
+import { LuSquareUserRound, LuSettings, LuSquareCode } from "react-icons/lu";
 
 /**
  * Tool definition interface
@@ -62,7 +63,7 @@ const taskTools: Tool[] = [
   {
     id: 'user-task',
     name: 'User Task',
-    icon: FaUser,
+    icon: LuSquareUserRound,
     shapeType: 'bpmn-task',
     shapeSubtype: 'user',
     defaultSize: { width: 120, height: 80 },
@@ -70,7 +71,7 @@ const taskTools: Tool[] = [
   {
     id: 'service-task',
     name: 'Service Task',
-    icon: FaCog,
+    icon: LuSettings,
     shapeType: 'bpmn-task',
     shapeSubtype: 'service',
     defaultSize: { width: 120, height: 80 },
@@ -78,7 +79,7 @@ const taskTools: Tool[] = [
   {
     id: 'script-task',
     name: 'Script Task',
-    icon: FaCode,
+    icon: LuSquareCode,
     shapeType: 'bpmn-task',
     shapeSubtype: 'script',
     defaultSize: { width: 120, height: 80 },

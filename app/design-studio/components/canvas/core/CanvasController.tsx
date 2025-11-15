@@ -15,6 +15,7 @@ import { useCanvasKeyboardHandlers } from '../../../hooks/useCanvasKeyboardHandl
 import { useClassShapeEditing } from '../../../hooks/useClassShapeEditing';
 import { useShapeInteraction } from '../../../hooks/useShapeInteraction';
 import { useCanvasMouseOrchestration } from '../hooks/useCanvasMouseOrchestration';
+import { useCanvasPasteHandler } from '../hooks/useCanvasPasteHandler';
 import { useConnectorTypeManager } from '../../../hooks/useConnectorTypeManager';
 import { useContextMenuManager, MENU_IDS } from '../../../hooks/useContextMenuManager';
 import { commandManager } from '~/core/commands/CommandManager';
@@ -108,6 +109,32 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
 
   // Enable keyboard shortcuts for undo/redo
   useKeyboardShortcuts({ scope: diagramId });
+
+  // Get mouse position helper (for paste import centering)
+  const getMousePosition = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return { x: 0, y: 0 };
+    }
+
+    // Use last known mouse position in screen coords, or center of viewport
+    const rect = container.getBoundingClientRect();
+    const screenX = lastMousePosRef.current.x || rect.width / 2;
+    const screenY = lastMousePosRef.current.y || rect.height / 2;
+
+    // Convert to canvas coordinates
+    return viewportTransform.screenToCanvas(screenX, screenY);
+  }, [containerRef, viewportTransform]);
+
+  // Enable paste handler for importing Mermaid diagrams
+  useCanvasPasteHandler({
+    diagramId,
+    diagramType: diagram?.type || 'bpmn',
+    commandFactory,
+    canvasRef: containerRef,
+    getMousePosition,
+    enabled: !loading && !!diagram,
+  });
 
   // Use custom hooks for viewport, panning, and label editing
   useCanvasViewport({
