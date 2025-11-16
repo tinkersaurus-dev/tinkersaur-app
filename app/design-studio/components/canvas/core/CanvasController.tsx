@@ -27,6 +27,7 @@ import type { Tool as ClassTool } from '../../../config/class-tools';
 import type { Tool as SequenceTool } from '../../../config/sequence-tools';
 import { getGlobalToolById } from '../../../config/global-tools';
 import { useMermaidSync } from '../../../hooks/useMermaidSync';
+import { useMermaidViewerStore } from '../../../store/mermaid/mermaidViewerStore';
 import { useToolHandler } from '../../../hooks/useToolHandler';
 import { mapBpmnToolToShape, mapClassToolToShape, mapSequenceToolToShape, mapGlobalToolToShape } from '../../../utils/toolMappers';
 import { CanvasContext } from './CanvasControllerContext';
@@ -59,6 +60,9 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
 
   // Track if local state has been initialized from entity store
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Track if mermaid syntax has been initialized from diagram
+  const mermaidInitializedRef = useRef(false);
 
   // Get persisted canvas data from entity store (need diagram type early for store initialization)
   const { diagram, loading } = useDiagram(diagramId);
@@ -227,12 +231,31 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   });
 
   // Mermaid sync hook - automatically generates mermaid syntax from committed shapes/connectors
+  // Also persists the mermaid syntax to the diagram object for reuse across the app
   useMermaidSync({
     shapes: entityShapes,
     connectors: entityConnectors,
     diagramType: diagram?.type,
+    diagramId,
     enabled: true,
   });
+
+  // Initialize mermaid viewer with persisted syntax when diagram first loads
+  // Only run ONCE per diagram to avoid conflicts with auto-generation
+  const setSyntax = useMermaidViewerStore((state) => state.setSyntax);
+  useEffect(() => {
+    if (diagram && !mermaidInitializedRef.current) {
+      if (diagram.mermaidSyntax) {
+        setSyntax(diagram.mermaidSyntax);
+      }
+      mermaidInitializedRef.current = true;
+    }
+  }, [diagram, setSyntax]);
+
+  // Reset mermaid initialization flag when diagram ID changes
+  useEffect(() => {
+    mermaidInitializedRef.current = false;
+  }, [diagramId]);
 
   // Track lengths to avoid unnecessary effect re-runs from array reference changes
   const entityShapesLength = entityShapes.length;

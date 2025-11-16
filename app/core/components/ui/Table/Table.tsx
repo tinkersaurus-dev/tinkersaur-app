@@ -79,6 +79,7 @@ export function Table<T = Record<string, unknown>>({
     return column;
   }), [columns]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: dataSource,
     columns: tanstackColumns,

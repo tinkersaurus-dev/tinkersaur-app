@@ -4,6 +4,7 @@ import type { Connector } from '~/core/entities/design-studio/types/Connector';
 import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 import { getMermaidExporter } from '../lib/mermaid';
 import { useMermaidViewerStore } from '../store/mermaid/mermaidViewerStore';
+import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store/designStudioEntityStore';
 
 /**
  * Debounce time in milliseconds for mermaid syntax generation
@@ -12,12 +13,19 @@ import { useMermaidViewerStore } from '../store/mermaid/mermaidViewerStore';
 const MERMAID_UPDATE_DEBOUNCE_MS = 300;
 
 /**
+ * Debounce time in milliseconds for persisting mermaid syntax to diagram
+ * Longer than generation to allow multiple rapid edits to settle
+ */
+const MERMAID_PERSIST_DEBOUNCE_MS = 1000;
+
+/**
  * Props for the useMermaidSync hook
  */
 interface UseMermaidSyncProps {
   shapes: Shape[];
   connectors: Connector[];
   diagramType: DiagramType | undefined;
+  diagramId?: string;
   enabled?: boolean;
 }
 
@@ -26,6 +34,9 @@ interface UseMermaidSyncProps {
  *
  * This hook watches the shapes and connectors and automatically generates
  * mermaid syntax, storing it in the global mermaid viewer store.
+ *
+ * If diagramId is provided, the generated mermaid syntax is also persisted
+ * to the diagram object for reuse across the application.
  *
  * The generation is debounced to prevent excessive updates during editing.
  *
@@ -36,10 +47,36 @@ export function useMermaidSync({
   shapes,
   connectors,
   diagramType,
+  diagramId,
   enabled = true,
 }: UseMermaidSyncProps) {
   const { setSyntax, setError } = useMermaidViewerStore();
+  const updateDiagramMermaid = useDesignStudioEntityStore((state) => state._internalUpdateDiagramMermaid);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const persistTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * Debounced function to persist mermaid syntax to diagram
+   * Uses internal update method to avoid triggering loading states
+   */
+  const persistMermaidToDiagram = useCallback(
+    (syntax: string) => {
+      if (!diagramId) {
+        return;
+      }
+
+      // Clear any existing persist timer
+      if (persistTimerRef.current) {
+        clearTimeout(persistTimerRef.current);
+      }
+
+      // Set new timer for debounced persistence
+      persistTimerRef.current = setTimeout(() => {
+        updateDiagramMermaid(diagramId, syntax);
+      }, MERMAID_PERSIST_DEBOUNCE_MS);
+    },
+    [diagramId, updateDiagramMermaid]
+  );
 
   /**
    * Generate mermaid syntax from current shapes and connectors
@@ -51,6 +88,8 @@ export function useMermaidSync({
     // If no shapes, clear syntax and return
     if (shapes.length === 0) {
       setSyntax('');
+      // Persist empty syntax to diagram
+      persistMermaidToDiagram('');
       return;
     }
 
@@ -90,8 +129,12 @@ export function useMermaidSync({
     }
 
     // Update store with generated syntax
-    setSyntax(exportResult.value.syntax);
-  }, [shapes, connectors, diagramType, setSyntax, setError]);
+    const syntax = exportResult.value.syntax;
+    setSyntax(syntax);
+
+    // Persist to diagram (debounced)
+    persistMermaidToDiagram(syntax);
+  }, [shapes, connectors, diagramType, setSyntax, setError, persistMermaidToDiagram]);
 
   /**
    * Effect to auto-generate mermaid syntax when shapes/connectors change
@@ -116,6 +159,9 @@ export function useMermaidSync({
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
+      }
+      if (persistTimerRef.current) {
+        clearTimeout(persistTimerRef.current);
       }
     };
   }, [shapes, connectors, diagramType, enabled, generateMermaid]);

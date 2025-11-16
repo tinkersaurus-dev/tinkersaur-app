@@ -283,7 +283,7 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
     messages: ParsedMessage[],
     indexMapping: Map<string, number>
   ): MermaidConnectorRef[] {
-    return messages.map((message) => {
+    return messages.map((message, messageIndex) => {
       const fromShapeIndex = indexMapping.get(message.sourceName);
       const toShapeIndex = indexMapping.get(message.targetName);
 
@@ -293,6 +293,14 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
 
       // Determine connector properties from message type
       const { lineType } = this.getConnectorProperties(message.messageType);
+
+      // Determine direction based on lifeline positions
+      const isGoingRight = toShapeIndex > fromShapeIndex;
+
+      // Assign connection points based on message index
+      // Use east/west connection points to ensure proper vertical progression
+      const sourceConnectionPoint = isGoingRight ? `e-${messageIndex}` : `w-${messageIndex}`;
+      const targetConnectionPoint = isGoingRight ? `w-${messageIndex}` : `e-${messageIndex}`;
 
       const connector: MermaidConnectorRef = {
         type: message.messageType,
@@ -305,6 +313,8 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
         lineType,
         label: message.label,
         zIndex: 0,
+        sourceConnectionPoint,
+        targetConnectionPoint,
       };
 
       return connector;

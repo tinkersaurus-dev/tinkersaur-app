@@ -105,6 +105,9 @@ interface DesignStudioEntityStore {
   _internalDeleteShapesBatch: (diagramId: string, shapeIds: string[]) => Promise<Diagram | null>;
   _internalRestoreShapesBatch: (diagramId: string, shapes: Shape[]) => Promise<Diagram | null>;
 
+  // Internal diagram actions
+  _internalUpdateDiagramMermaid: (diagramId: string, mermaidSyntax: string) => void;
+
   // Utility actions
   initializeData: () => void;
 }
@@ -1732,6 +1735,26 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
   },
 
   // Utility actions
+  // Internal method to update diagram mermaid syntax without triggering loading states
+  // Used by useMermaidSync hook to persist cached mermaid export
+  _internalUpdateDiagramMermaid: (diagramId: string, mermaidSyntax: string) => {
+    const diagram = get().diagrams[diagramId];
+    if (diagram) {
+      set((state) => ({
+        diagrams: {
+          ...state.diagrams,
+          [diagramId]: {
+            ...diagram,
+            mermaidSyntax,
+            updatedAt: new Date(),
+          },
+        },
+      }));
+      // Persist to storage
+      diagramApi.update(diagramId, { mermaidSyntax });
+    }
+  },
+
   initializeData: () => {
     initializeMockData();
   },

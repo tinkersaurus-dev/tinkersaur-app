@@ -26,6 +26,8 @@ export const DiagramSchema = z.object({
   // Diagram content - shapes and connectors live within the diagram
   shapes: z.array(ShapeSchema).default([]),
   connectors: z.array(ConnectorSchema).default([]),
+  // Cached mermaid export - auto-generated and persisted for reuse across the app
+  mermaidSyntax: z.string().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

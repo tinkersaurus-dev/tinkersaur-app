@@ -31,8 +31,14 @@ export function MermaidEditorRenderer({
   // Get diagram info and store functions
   const { diagramId, diagram } = useCanvasController();
   const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
+  const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
   const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);
-  const _getShape = useDesignStudioEntityStore((state) => state._internalGetShape);
+  const deleteConnector = useDesignStudioEntityStore((state) => state._internalDeleteConnector);
+  const getShape = useDesignStudioEntityStore((state) => state._internalGetShape);
+  const addShapesBatch = useDesignStudioEntityStore((state) => state._internalAddShapesBatch);
+  const addConnectorsBatch = useDesignStudioEntityStore((state) => state._internalAddConnectorsBatch);
+  const deleteShapesBatch = useDesignStudioEntityStore((state) => state._internalDeleteShapesBatch);
+  const deleteConnectorsBatch = useDesignStudioEntityStore((state) => state._internalDeleteConnectorsBatch);
 
   const diagramType = diagram?.type as DiagramType | undefined;
 
@@ -74,25 +80,23 @@ export function MermaidEditorRenderer({
       setIsUpdating(true);
       setError(undefined);
 
-      // Create a synchronous wrapper for getShape that returns the current shape from diagram
-      const getShapeSync = (_diagramId: string, shapeId: string) => {
-        const currentShape = diagram?.shapes.find((s) => s.id === shapeId);
-        if (!currentShape) return null;
-        // Convert Shape to CreateShapeDTO by removing the id
-        const { id: _id, ...shapeDTO } = currentShape;
-        return shapeDTO;
-      };
-
       const command = new UpdatePreviewCommand(
         diagramId,
         diagramType,
         shape.id,
         mermaidSyntax,
         { x: shape.x, y: shape.y, width: shape.width, height: shape.height },
-        editorData.previewShapeId,
+        editorData.previewShapeId, // originalGeneratorShapeId (from the original preview)
+        null, // oldPreviewShapeId (there's no old preview when updating from editor)
         addShape,
+        addConnector,
         deleteShape,
-        getShapeSync
+        deleteConnector,
+        getShape,
+        addShapesBatch,
+        addConnectorsBatch,
+        deleteShapesBatch,
+        deleteConnectorsBatch
       );
 
       await commandManager.execute(command, diagramId);
@@ -122,7 +126,7 @@ export function MermaidEditorRenderer({
         display: 'flex',
         flexDirection: 'column',
         padding: `${padding}px`,
-        gap: `${padding}px`,
+        gap: `${padding}px`
       }}
     >
       {/* Header */}
@@ -147,7 +151,7 @@ export function MermaidEditorRenderer({
         spellCheck={false}
         style={{
           width: '100%',
-          flex: 1,
+          height:'300px',
           padding: '8px',
           fontSize: '11px',
           fontFamily: 'monospace',

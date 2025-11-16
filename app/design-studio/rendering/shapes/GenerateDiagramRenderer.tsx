@@ -37,6 +37,7 @@ export function GenerateDiagramRenderer({
   const getShape = useDesignStudioEntityStore((state) => state._internalGetShape);
   const addShapesBatch = useDesignStudioEntityStore((state) => state._internalAddShapesBatch);
   const addConnectorsBatch = useDesignStudioEntityStore((state) => state._internalAddConnectorsBatch);
+  const commandFactory = useDesignStudioEntityStore((state) => state.commandFactory);
 
   const diagramType = diagram?.type as DiagramType | undefined;
 
@@ -109,6 +110,13 @@ export function GenerateDiagramRenderer({
       console.log('[GenerateDiagramRenderer] Received mermaid syntax:', mermaidSyntax.substring(0, 100) + '...');
 
       console.log('[GenerateDiagramRenderer] Creating ReplaceWithPreviewCommand...');
+
+      // Create refresh activations callback for sequence diagrams
+      const refreshActivations = async (diagramId: string) => {
+        const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
+        await commandManager.execute(refreshCommand, diagramId);
+      };
+
       const command = new ReplaceWithPreviewCommand(
         diagramId,
         diagramType,
@@ -121,7 +129,8 @@ export function GenerateDiagramRenderer({
         deleteConnector,
         getShape,
         addShapesBatch,
-        addConnectorsBatch
+        addConnectorsBatch,
+        refreshActivations
       );
 
       console.log('[GenerateDiagramRenderer] Executing command...');

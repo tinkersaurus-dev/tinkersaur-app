@@ -8,6 +8,7 @@
  */
 
 import { FaEdit, FaCheck } from 'react-icons/fa';
+import { useCallback } from 'react';
 import type { ShapeRendererProps } from './types';
 import type { LLMPreviewShapeData } from '~/core/entities/design-studio/types';
 import { ShapeWrapper } from './ShapeWrapper';
@@ -29,26 +30,22 @@ export function PreviewRenderer({
   const { isSelected, isHovered, zoom } = context;
 
   // Get diagram info from canvas controller
-  const { diagramId, diagram } = useCanvasController();
+  const { diagramId } = useCanvasController();
   const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
   const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
   const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);
   const deleteConnector = useDesignStudioEntityStore((state) => state._internalDeleteConnector);
   const getShape = useDesignStudioEntityStore((state) => state._internalGetShape);
   const getConnector = useDesignStudioEntityStore((state) => state._internalGetConnector);
+  const diagrams = useDesignStudioEntityStore((state) => state.diagrams);
   const addShapesBatch = useDesignStudioEntityStore((state) => state._internalAddShapesBatch);
   const addConnectorsBatch = useDesignStudioEntityStore((state) => state._internalAddConnectorsBatch);
   const deleteShapesBatch = useDesignStudioEntityStore((state) => state._internalDeleteShapesBatch);
   const deleteConnectorsBatch = useDesignStudioEntityStore((state) => state._internalDeleteConnectorsBatch);
+  const commandFactory = useDesignStudioEntityStore((state) => state.commandFactory);
 
-  // Create a synchronous wrapper for getShape that returns the current shape from diagram
-  const getShapeSync = (_diagramId: string, shapeId: string) => {
-    const currentShape = diagram?.shapes.find((s) => s.id === shapeId);
-    if (!currentShape) return null;
-    // Convert Shape to CreateShapeDTO by removing the id
-    const { id: _id, ...shapeDTO } = currentShape;
-    return shapeDTO;
-  };
+  // Create stable getDiagram function
+  const getDiagram = useCallback((id: string) => diagrams[id] ?? null, [diagrams]);
 
   // Parse shape data - the preview shapes and connectors are already in the diagram
   const previewData = (shape.data || {}) as unknown as LLMPreviewShapeData;
@@ -79,8 +76,13 @@ export function PreviewRenderer({
         previewData.mermaidSyntax,
         { x: shape.x, y: shape.y, width: shape.width, height: shape.height },
         addShape,
+        addConnector,
         deleteShape,
-        getShapeSync
+        deleteConnector,
+        getShape,
+        getConnector,
+        deleteShapesBatch,
+        deleteConnectorsBatch
       );
 
       await commandManager.execute(command, diagramId);
@@ -93,6 +95,12 @@ export function PreviewRenderer({
 
   const handleApply = async () => {
     try {
+      // Create refresh activations callback for sequence diagrams
+      const refreshActivations = async (diagramId: string) => {
+        const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
+        await commandManager.execute(refreshCommand, diagramId);
+      };
+
       const command = new ApplyPreviewCommand(
         diagramId,
         shape.id,
@@ -105,7 +113,9 @@ export function PreviewRenderer({
         addShapesBatch,
         addConnectorsBatch,
         deleteShapesBatch,
-        deleteConnectorsBatch
+        deleteConnectorsBatch,
+        refreshActivations,
+        getDiagram
       );
 
       await commandManager.execute(command, diagramId);

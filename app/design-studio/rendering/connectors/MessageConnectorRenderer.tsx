@@ -166,13 +166,13 @@ export const MessageConnectorRenderer: React.FC<ConnectorRendererProps> = ({
             onStartEdit={() => onDoubleClick?.(connector.id)}
             onLabelChange={(newLabel) => onLabelChange?.(connector.id, 'connector', newLabel)}
             onFinishEdit={() => onFinishEditing?.()}
-            fontSize={11}
+            fontSize={8}
             style={{
               color: 'var(--text)',
               pointerEvents: isEditing ? 'auto' : 'none',
-              background: 'var(--bg)',
+              background: 'var(--bg-light)',
               padding: '2px 4px',
-              borderRadius: '3px',
+              borderRadius: '2px',
               border: '1px solid var(--border)',
             }}
           />
