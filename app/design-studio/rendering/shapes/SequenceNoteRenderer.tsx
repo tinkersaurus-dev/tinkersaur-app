@@ -28,6 +28,11 @@ export function SequenceNoteRenderer({
   const { width, height } = shape;
   const { isSelected, isHovered, zoom } = context;
 
+  // Disable interactivity for preview shapes
+  const isInteractive = !shape.isPreview;
+  const showHover = isInteractive && isHovered;
+  const showSelected = isInteractive && isSelected;
+
   // Wrap connection point handlers to prepend shape ID
   const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
     onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
@@ -44,18 +49,18 @@ export function SequenceNoteRenderer({
 
   // Determine border color based on state
   let borderColor = 'var(--border)';
-  if (isSelected) {
+  if (showSelected) {
     borderColor = 'var(--primary)';
     borderWidth = 2 / zoom;
-  } else if (isHovered) {
+  } else if (showHover) {
     borderColor = 'var(--secondary)';
   }
 
   // Note-specific background color (slightly different tint)
   let backgroundColor = 'var(--warning-light)'; // Light yellow/note color
-  if (isSelected) {
+  if (showSelected) {
     backgroundColor = 'var(--warning-light)';
-  } else if (isHovered) {
+  } else if (showHover) {
     backgroundColor = 'var(--warning-lighter)';
   }
 
@@ -64,18 +69,18 @@ export function SequenceNoteRenderer({
   return (
     <ShapeWrapper
       shape={shape}
-      isSelected={isSelected}
-      isHovered={isHovered}
+      isSelected={showSelected}
+      isHovered={showHover}
       zoom={zoom}
       borderColor={borderColor}
       borderWidth={borderWidth}
       backgroundColor={backgroundColor}
       borderRadius={borderRadius}
       hoverPadding={15}
-      onMouseDown={onMouseDown}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onDoubleClick={onDoubleClick}
+      onMouseDown={isInteractive ? onMouseDown : undefined}
+      onMouseEnter={isInteractive ? onMouseEnter : undefined}
+      onMouseLeave={isInteractive ? onMouseLeave : undefined}
+      onDoubleClick={isInteractive ? onDoubleClick : undefined}
       style={{
         height: `${height}px`,
         display: 'flex',
@@ -105,14 +110,14 @@ export function SequenceNoteRenderer({
       {/* Editable label */}
       <EditableLabel
         label={shape.label || 'Note'}
-        isEditing={isEditing}
+        isEditing={isInteractive && isEditing}
         onStartEdit={() => {}}
         onLabelChange={(newLabel) => onLabelChange?.(shape.id, 'shape', newLabel)}
         onFinishEdit={() => onFinishEditing?.()}
         fontSize={11}
         style={{
           color: 'var(--text)',
-          pointerEvents: isEditing ? 'auto' : 'none',
+          pointerEvents: isInteractive && isEditing ? 'auto' : 'none',
           textAlign: 'left',
           width: '100%',
           whiteSpace: 'pre-wrap',
@@ -121,7 +126,7 @@ export function SequenceNoteRenderer({
       />
 
       {/* Connection points when hovered */}
-      {isHovered &&
+      {showHover &&
         onConnectionPointMouseDown &&
         onConnectionPointMouseUp &&
         STANDARD_RECTANGLE_CONNECTION_POINTS.map((connectionPoint) => (

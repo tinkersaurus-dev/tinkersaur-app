@@ -3,6 +3,9 @@ import { type RouteConfig, index, route } from "@react-router/dev/routes";
 export default [
   index("routes/home.tsx"),
 
+  // API routes
+  route("api/generate-mermaid", "routes/api.generate-mermaid.ts"),
+
   // Solution Management routes
   route("solutions", "product-management/routes/solutions-list.tsx"),
   route("solutions/:solutionId", "product-management/routes/solution-detail.tsx"),

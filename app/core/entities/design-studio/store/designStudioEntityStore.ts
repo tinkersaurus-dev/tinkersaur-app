@@ -76,6 +76,7 @@ interface DesignStudioEntityStore {
 
   // Internal shape actions (used by commands, not wrapped)
   _internalAddShape: (diagramId: string, shape: CreateShapeDTO) => Promise<Diagram>;
+  _internalAddShapesBatch: (diagramId: string, shapes: CreateShapeDTO[]) => Promise<Diagram>;
   _internalUpdateShape: (diagramId: string, shapeId: string, updates: Partial<Shape>) => Promise<Diagram | null>;
   _internalUpdateShapes: (diagramId: string, updates: Array<{ shapeId: string; updates: Partial<Shape> }>) => Promise<Diagram | null>;
   _internalDeleteShape: (diagramId: string, shapeId: string) => Promise<Diagram | null>;
@@ -90,6 +91,7 @@ interface DesignStudioEntityStore {
 
   // Internal connector actions (used by commands, not wrapped)
   _internalAddConnector: (diagramId: string, connector: CreateConnectorDTO) => Promise<Diagram | null>;
+  _internalAddConnectorsBatch: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>;
   _internalUpdateConnector: (diagramId: string, connectorId: string, updates: Partial<Connector>) => Promise<Diagram | null>;
   _internalDeleteConnector: (diagramId: string, connectorId: string) => Promise<Diagram | null>;
   _internalRestoreConnector: (diagramId: string, connector: Connector) => Promise<Diagram | null>;
@@ -1113,6 +1115,40 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
     return updatedDiagram;
   },
 
+  _internalAddShapesBatch: async (diagramId: string, shapes: CreateShapeDTO[]) => {
+    // Add all shapes sequentially to the API but only trigger one set() at the end
+    let currentDiagram = get().diagrams[diagramId];
+    if (!currentDiagram) {
+      throw new Error(`Diagram ${diagramId} not found`);
+    }
+
+    for (const shape of shapes) {
+      const updatedDiagram = await diagramApi.addShape(diagramId, shape);
+      if (!updatedDiagram) {
+        throw new Error(`Failed to add shape to diagram ${diagramId}`);
+      }
+      currentDiagram = updatedDiagram;
+    }
+
+    // Single set() call at the end
+    set((state) => ({
+      diagrams: {
+        ...state.diagrams,
+        [diagramId]: currentDiagram,
+      },
+    }));
+
+    // Update canvas instance with all new shapes
+    const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
+    const startIndex = currentDiagram.shapes.length - shapes.length;
+    for (let i = 0; i < shapes.length; i++) {
+      const newShape = currentDiagram.shapes[startIndex + i];
+      canvasInstance.getState().addLocalShape(newShape);
+    }
+
+    return currentDiagram;
+  },
+
   updateShape: async (diagramId: string, shapeId: string, updates: Partial<Shape>) => {
     try {
       // Get the current shape to capture before state
@@ -1404,6 +1440,40 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
     }
 
     return updatedDiagram;
+  },
+
+  _internalAddConnectorsBatch: async (diagramId: string, connectors: CreateConnectorDTO[]) => {
+    // Add all connectors sequentially to the API but only trigger one set() at the end
+    let currentDiagram = get().diagrams[diagramId];
+    if (!currentDiagram) {
+      throw new Error(`Diagram ${diagramId} not found`);
+    }
+
+    for (const connector of connectors) {
+      const updatedDiagram = await diagramApi.addConnector(diagramId, connector);
+      if (!updatedDiagram) {
+        throw new Error(`Failed to add connector to diagram ${diagramId}`);
+      }
+      currentDiagram = updatedDiagram;
+    }
+
+    // Single set() call at the end
+    set((state) => ({
+      diagrams: {
+        ...state.diagrams,
+        [diagramId]: currentDiagram,
+      },
+    }));
+
+    // Update canvas instance with all new connectors
+    const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
+    const startIndex = currentDiagram.connectors.length - connectors.length;
+    for (let i = 0; i < connectors.length; i++) {
+      const newConnector = currentDiagram.connectors[startIndex + i];
+      canvasInstance.getState().addLocalConnector(newConnector);
+    }
+
+    return currentDiagram;
   },
 
   updateConnectorLabel: async (diagramId: string, connectorId: string, newLabel: string) => {

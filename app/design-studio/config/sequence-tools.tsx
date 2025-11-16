@@ -13,6 +13,7 @@ import {
   FaStickyNote,
 } from 'react-icons/fa';
 import { DEFAULT_LIFELINE_HEIGHT } from './sequenceConstants';
+import { globalToolGroup } from './global-tools';
 
 /**
  * Tool definition interface
@@ -162,6 +163,7 @@ export const sequenceToolGroups: ToolGroup[] = [
     label: 'Annotations',
     tools: annotationTools,
   },
+  globalToolGroup, // Global tools available in all diagram types
 ];
 
 /**

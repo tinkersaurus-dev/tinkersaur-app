@@ -28,6 +28,11 @@ export function BpmnGatewayRenderer({
   const { width, height, subtype } = shape;
   const { isSelected, isHovered, zoom } = context;
 
+  // Disable interactivity for preview shapes
+  const isInteractive = !shape.isPreview;
+  const showHover = isInteractive && isHovered;
+  const showSelected = isInteractive && isSelected;
+
   // Wrap connection point handlers to prepend shape ID
   const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
     onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
@@ -51,18 +56,18 @@ export function BpmnGatewayRenderer({
 
   // Determine border color based on state
   let borderColor = 'var(--border)';
-  if (isSelected) {
+  if (showSelected) {
     borderColor = 'var(--primary)';
     borderWidth = 3 / zoom;
-  } else if (isHovered) {
+  } else if (showHover) {
     borderColor = 'var(--secondary)';
   }
 
   // Determine background color
   let backgroundColor = 'var(--bg)';
-  if (isSelected) {
+  if (showSelected) {
     backgroundColor = 'var(--bg)';
-  } else if (isHovered) {
+  } else if (showHover) {
     backgroundColor = 'var(--bg-light)';
   }
 
@@ -71,18 +76,18 @@ export function BpmnGatewayRenderer({
   return (
     <ShapeWrapper
       shape={{ ...shape, width: desiredDiagonal, height: desiredDiagonal }}
-      isSelected={isSelected}
-      isHovered={isHovered}
+      isSelected={showSelected}
+      isHovered={showHover}
       zoom={zoom}
       borderColor="transparent"
       borderWidth={0}
       backgroundColor="transparent"
       borderRadius={0}
       hoverPadding={15}
-      onMouseDown={onMouseDown}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onDoubleClick={onDoubleClick}
+      onMouseDown={isInteractive ? onMouseDown : undefined}
+      onMouseEnter={isInteractive ? onMouseEnter : undefined}
+      onMouseLeave={isInteractive ? onMouseLeave : undefined}
+      onDoubleClick={isInteractive ? onDoubleClick : undefined}
       style={{
         height: `${desiredDiagonal}px`,
       }}
@@ -151,7 +156,7 @@ export function BpmnGatewayRenderer({
       </div>
 
       {/* Label below the gateway (not editable inline due to rotated shape complexity) */}
-      {shape.label && !isEditing && (
+      {shape.label && !(isInteractive && isEditing) && (
         <div
           style={{
             position: 'absolute',
@@ -170,7 +175,7 @@ export function BpmnGatewayRenderer({
       )}
 
       {/* Editable label (for when editing) */}
-      {isEditing && (
+      {isInteractive && isEditing && (
         <div
           style={{
             position: 'absolute',
@@ -182,14 +187,14 @@ export function BpmnGatewayRenderer({
         >
           <EditableLabel
             label={shape.label}
-            isEditing={isEditing}
+            isEditing={isInteractive && isEditing}
             onStartEdit={() => {}}
             onLabelChange={(newLabel) => onLabelChange?.(shape.id, 'shape', newLabel)}
             onFinishEdit={() => onFinishEditing?.()}
             fontSize={10}
             style={{
               color: 'var(--text)',
-              pointerEvents: isEditing ? 'auto' : 'none',
+              pointerEvents: isInteractive && isEditing ? 'auto' : 'none',
               textAlign: 'center',
             }}
           />
@@ -197,7 +202,7 @@ export function BpmnGatewayRenderer({
       )}
 
       {/* Connection points when hovered (placed at actual N/S/E/W of the bounding box) */}
-      {isHovered &&
+      {showHover &&
         onConnectionPointMouseDown &&
         onConnectionPointMouseUp &&
         STANDARD_RECTANGLE_CONNECTION_POINTS.map((connectionPoint) => (

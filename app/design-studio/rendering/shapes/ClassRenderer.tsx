@@ -52,6 +52,11 @@ export function ClassRenderer({
   const { width, height } = shape;
   const { isSelected, isHovered, zoom } = context;
 
+  // Disable interactivity for preview shapes
+  const isInteractive = !shape.isPreview;
+  const showHover = isInteractive && isHovered;
+  const showSelected = isInteractive && isSelected;
+
   // Wrap connection point handlers to prepend shape ID
   const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
     onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
@@ -82,18 +87,18 @@ export function ClassRenderer({
 
   // Determine border color based on state
   let borderColor = 'var(--border)';
-  if (isSelected) {
+  if (showSelected) {
     borderColor = 'var(--primary)';
     borderWidth = 3 / zoom;
-  } else if (isHovered) {
+  } else if (showHover) {
     borderColor = 'var(--secondary)';
   }
 
   // Determine background color
   let backgroundColor = 'var(--bg)';
-  if (isSelected) {
+  if (showSelected) {
     backgroundColor = 'var(--bg)';
-  } else if (isHovered) {
+  } else if (showHover) {
     backgroundColor = 'var(--bg-light)';
   }
 
@@ -102,18 +107,18 @@ export function ClassRenderer({
   return (
     <ShapeWrapper
       shape={shape}
-      isSelected={isSelected}
-      isHovered={isHovered}
+      isSelected={showSelected}
+      isHovered={showHover}
       zoom={zoom}
       borderColor={borderColor}
       borderWidth={borderWidth}
       backgroundColor={backgroundColor}
       borderRadius={borderRadius}
       hoverPadding={30}
-      onMouseDown={onMouseDown}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onDoubleClick={onDoubleClick}
+      onMouseDown={isInteractive ? onMouseDown : undefined}
+      onMouseEnter={isInteractive ? onMouseEnter : undefined}
+      onMouseLeave={isInteractive ? onMouseLeave : undefined}
+      onDoubleClick={isInteractive ? onDoubleClick : undefined}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -158,7 +163,7 @@ export function ClassRenderer({
       >
         <EditableLabel
           label={shape.label || 'ClassName'}
-          isEditing={isEditing}
+          isEditing={isInteractive && isEditing}
           onStartEdit={() => {}}
           onLabelChange={(newLabel) => onLabelChange?.(shape.id, 'shape', newLabel)}
           onFinishEdit={() => onFinishEditing?.()}
@@ -166,7 +171,7 @@ export function ClassRenderer({
           style={{
             color: 'var(--text)',
             fontWeight: 'bold',
-            pointerEvents: isEditing ? 'auto' : 'none',
+            pointerEvents: isInteractive && isEditing ? 'auto' : 'none',
             textAlign: 'center',
           }}
         />
@@ -219,16 +224,16 @@ export function ClassRenderer({
                 onClassDeleteAttribute?.(shape.id, index);
               }}
               fontSize={itemFontSize}
-              showDelete={isHovered}
+              showDelete={showHover}
               zoom={zoom}
             />
           ))
         )}
 
-        
+
 
         {/* Add attribute button */}
-        {isHovered && (
+        {showHover && (
           <button
             data-interactive="true"
             onClick={() => {
@@ -300,14 +305,14 @@ export function ClassRenderer({
                 onClassDeleteMethod?.(shape.id, index);
               }}
               fontSize={itemFontSize}
-              showDelete={isHovered}
+              showDelete={showHover}
               zoom={zoom}
             />
           ))
         )}
 
         {/* Add method button */}
-        {isHovered && (
+        {showHover && (
           <button
             data-interactive="true"
             onClick={() => {
@@ -334,7 +339,7 @@ export function ClassRenderer({
       </div>
 
       {/* Connection points when hovered */}
-      {isHovered &&
+      {showHover &&
         onConnectionPointMouseDown &&
         onConnectionPointMouseUp &&
         CLASS_CONNECTION_POINTS.map((connectionPoint) => (

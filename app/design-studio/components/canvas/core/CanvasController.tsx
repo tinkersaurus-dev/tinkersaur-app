@@ -25,9 +25,10 @@ import { createToolbarButtons } from '../config/toolbarConfig';
 import type { Tool as BpmnTool } from '../../../config/bpmn-tools';
 import type { Tool as ClassTool } from '../../../config/class-tools';
 import type { Tool as SequenceTool } from '../../../config/sequence-tools';
+import { getGlobalToolById } from '../../../config/global-tools';
 import { useMermaidSync } from '../../../hooks/useMermaidSync';
 import { useToolHandler } from '../../../hooks/useToolHandler';
-import { mapBpmnToolToShape, mapClassToolToShape, mapSequenceToolToShape } from '../../../utils/toolMappers';
+import { mapBpmnToolToShape, mapClassToolToShape, mapSequenceToolToShape, mapGlobalToolToShape } from '../../../utils/toolMappers';
 import { CanvasContext } from './CanvasControllerContext';
 import type { CanvasControllerContext } from './CanvasControllerContext';
 
@@ -269,22 +270,44 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   const menuManager = useContextMenuManager();
 
   // Use polymorphic tool handlers for BPMN, Class, and Sequence diagrams
+  // These handlers check if the tool is a global tool and use the appropriate mapper
   const { handleToolSelect: handleBpmnToolSelect } = useToolHandler<BpmnTool>({
     addShape,
     menuManager,
-    toolToShapeMapper: mapBpmnToolToShape,
+    toolToShapeMapper: (tool, canvasX, canvasY) => {
+      // Check if this is a global tool
+      const globalTool = getGlobalToolById(tool.id);
+      if (globalTool) {
+        return mapGlobalToolToShape(globalTool, canvasX, canvasY);
+      }
+      return mapBpmnToolToShape(tool, canvasX, canvasY);
+    },
   });
 
   const { handleToolSelect: handleClassToolSelect } = useToolHandler<ClassTool>({
     addShape,
     menuManager,
-    toolToShapeMapper: mapClassToolToShape,
+    toolToShapeMapper: (tool, canvasX, canvasY) => {
+      // Check if this is a global tool
+      const globalTool = getGlobalToolById(tool.id);
+      if (globalTool) {
+        return mapGlobalToolToShape(globalTool, canvasX, canvasY);
+      }
+      return mapClassToolToShape(tool, canvasX, canvasY);
+    },
   });
 
   const { handleToolSelect: handleSequenceToolSelect } = useToolHandler<SequenceTool>({
     addShape,
     menuManager,
-    toolToShapeMapper: mapSequenceToolToShape,
+    toolToShapeMapper: (tool, canvasX, canvasY) => {
+      // Check if this is a global tool
+      const globalTool = getGlobalToolById(tool.id);
+      if (globalTool) {
+        return mapGlobalToolToShape(globalTool, canvasX, canvasY);
+      }
+      return mapSequenceToolToShape(tool, canvasX, canvasY);
+    },
   });
 
   // Use Phase 2 hooks

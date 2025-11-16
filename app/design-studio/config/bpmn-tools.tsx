@@ -19,6 +19,7 @@ import {
   FaStream,
 } from 'react-icons/fa';
 import { LuSquareUserRound, LuSettings, LuSquareCode } from "react-icons/lu";
+import { globalToolGroup } from './global-tools';
 
 /**
  * Tool definition interface
@@ -208,6 +209,7 @@ export const bpmnToolGroups: ToolGroup[] = [
     label: 'Gateways',
     tools: gatewayTools,
   },
+  globalToolGroup, // Global tools available in all diagram types
 ];
 
 /**

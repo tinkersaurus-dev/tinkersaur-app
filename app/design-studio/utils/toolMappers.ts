@@ -7,6 +7,7 @@ import type { CreateShapeDTO } from '../../core/entities/design-studio/types/Sha
 import type { Tool as BpmnTool } from '../config/bpmn-tools';
 import type { Tool as ClassTool } from '../config/class-tools';
 import type { Tool as SequenceTool } from '../config/sequence-tools';
+import type { Tool as GlobalTool } from '../config/global-tools';
 
 /**
  * Maps a BPMN tool to a CreateShapeDTO
@@ -88,5 +89,54 @@ export function mapSequenceToolToShape(
     zIndex: 0,
     locked: false,
     data: tool.initialData,
+  };
+}
+
+/**
+ * Maps a Global tool to a CreateShapeDTO
+ * Global tools are available in all diagram types (e.g., Generate Diagram)
+ * Centers the shape at the canvas coordinates and includes initial data
+ *
+ * @param tool - The Global tool to map
+ * @param canvasX - X coordinate on the canvas
+ * @param canvasY - Y coordinate on the canvas
+ * @returns CreateShapeDTO for the shape to be created
+ */
+export function mapGlobalToolToShape(
+  tool: GlobalTool,
+  canvasX: number,
+  canvasY: number
+): CreateShapeDTO {
+  // Special handling for LLM generator tool
+  if (tool.shapeType === 'llm-generator') {
+    return {
+      type: tool.shapeType,
+      subtype: tool.shapeSubtype,
+      x: canvasX - tool.defaultSize.width / 2,
+      y: canvasY - tool.defaultSize.height / 2,
+      width: tool.defaultSize.width,
+      height: tool.defaultSize.height,
+      label: undefined, // No label for generator shape
+      zIndex: 0,
+      locked: false,
+      data: {
+        prompt: '',
+        error: undefined,
+        isLoading: false,
+      },
+    };
+  }
+
+  // Default mapping for other global tools
+  return {
+    type: tool.shapeType,
+    subtype: tool.shapeSubtype,
+    x: canvasX - tool.defaultSize.width / 2,
+    y: canvasY - tool.defaultSize.height / 2,
+    width: tool.defaultSize.width,
+    height: tool.defaultSize.height,
+    label: tool.name,
+    zIndex: 0,
+    locked: false,
   };
 }

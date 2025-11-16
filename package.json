@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.932.0",
     "@floating-ui/react": "^0.27.16",
     "@monaco-editor/react": "^4.7.0",
     "@react-router/node": "^7.9.2",

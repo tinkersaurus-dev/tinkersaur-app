@@ -80,6 +80,11 @@ export function BpmnEventRenderer({
   const { width, height, subtype } = shape;
   const { isSelected, isHovered, zoom } = context;
 
+  // Disable interactivity for preview shapes
+  const isInteractive = !shape.isPreview;
+  const showHover = isInteractive && isHovered;
+  const showSelected = isInteractive && isSelected;
+
   // Wrap connection point handlers to prepend shape ID
   const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
     onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
@@ -98,18 +103,18 @@ export function BpmnEventRenderer({
 
   // Determine border color based on state
   let borderColor = 'var(--border)';
-  if (isSelected) {
+  if (showSelected) {
     borderColor = 'var(--primary)';
     borderWidth = 3 / zoom;
-  } else if (isHovered) {
+  } else if (showHover) {
     borderColor = 'var(--secondary)';
   }
 
   // Determine background color
   let backgroundColor = 'var(--bg)';
-  if (isSelected) {
+  if (showSelected) {
     backgroundColor = 'var(--bg)';
-  } else if (isHovered) {
+  } else if (showHover) {
     backgroundColor = 'var(--bg-light)';
   }
 
@@ -175,18 +180,18 @@ export function BpmnEventRenderer({
   return (
     <ShapeWrapper
       shape={{ ...shape, width: diameter, height: diameter }}
-      isSelected={isSelected}
-      isHovered={isHovered}
+      isSelected={showSelected}
+      isHovered={showHover}
       zoom={zoom}
       borderColor="transparent"
       borderWidth={0}
       backgroundColor={backgroundColor}
       borderRadius={0}
       hoverPadding={15}
-      onMouseDown={onMouseDown}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onDoubleClick={onDoubleClick}
+      onMouseDown={isInteractive ? onMouseDown : undefined}
+      onMouseEnter={isInteractive ? onMouseEnter : undefined}
+      onMouseLeave={isInteractive ? onMouseLeave : undefined}
+      onDoubleClick={isInteractive ? onDoubleClick : undefined}
       style={{
         height: `${diameter}px`,
         borderRadius: '50%',
@@ -234,7 +239,7 @@ export function BpmnEventRenderer({
       )}
 
       {/* Editable label (for when editing) */}
-      {isEditing && (
+      {isInteractive && isEditing && (
         <div
           style={{
             position: 'absolute',
@@ -253,7 +258,7 @@ export function BpmnEventRenderer({
             fontSize={10}
             style={{
               color: 'var(--text)',
-              pointerEvents: isEditing ? 'auto' : 'none',
+              pointerEvents: 'auto',
               textAlign: 'center',
             }}
           />
@@ -261,7 +266,7 @@ export function BpmnEventRenderer({
       )}
 
       {/* Connection points when hovered */}
-      {isHovered &&
+      {showHover &&
         onConnectionPointMouseDown &&
         onConnectionPointMouseUp &&
         STANDARD_RECTANGLE_CONNECTION_POINTS.map((connectionPoint) => (

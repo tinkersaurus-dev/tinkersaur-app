@@ -5,6 +5,7 @@
 
 import type { ComponentType } from 'react';
 import { FaSquare } from 'react-icons/fa';
+import { globalToolGroup } from './global-tools';
 
 /**
  * Tool definition interface
@@ -72,6 +73,7 @@ export const classToolGroups: ToolGroup[] = [
     label: 'Classes',
     tools: classTools,
   },
+  globalToolGroup, // Global tools available in all diagram types
 ];
 
 /**

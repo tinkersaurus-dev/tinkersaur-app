@@ -6,6 +6,9 @@ import { BpmnGatewayRenderer } from './BpmnGatewayRenderer';
 import { ClassRenderer } from './ClassRenderer';
 import { SequenceLifelineRenderer } from './SequenceLifelineRenderer';
 import { SequenceNoteRenderer } from './SequenceNoteRenderer';
+import { GenerateDiagramRenderer } from './GenerateDiagramRenderer';
+import { PreviewRenderer } from './PreviewRenderer';
+import { MermaidEditorRenderer } from './MermaidEditorRenderer';
 
 /**
  * Shape Renderer Registry
@@ -25,6 +28,10 @@ const shapeRenderers: Record<string, ShapeRendererComponent> = {
   // Sequence diagram shape renderers
   'sequence-lifeline': SequenceLifelineRenderer,
   'sequence-note': SequenceNoteRenderer,
+  // LLM-powered diagram generation shapes
+  'llm-generator': GenerateDiagramRenderer,
+  'llm-preview': PreviewRenderer,
+  'mermaid-editor': MermaidEditorRenderer,
   // Future shape types can be added here:
   // circle: CircleRenderer,
   // ellipse: EllipseRenderer,

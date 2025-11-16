@@ -1,7 +1,6 @@
 import type { Result } from '~/core/lib/utils/result';
-import type { Shape } from '~/core/entities/design-studio/types/Shape';
-import type { Connector } from '~/core/entities/design-studio/types/Connector';
-import type { MermaidImportOptions, MermaidImportResult } from '../mermaid-importer';
+import type { Shape, CreateShapeDTO } from '~/core/entities/design-studio/types/Shape';
+import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
 
 /**
@@ -73,17 +72,17 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
 
       const { nodes, connections } = parseResult.value;
 
-      // Create ID mapping from alphabetic IDs to generated UUIDs
-      const idMapping = new Map<string, string>();
-      nodes.forEach((node) => {
-        idMapping.set(node.id, this.generateShapeId());
+      // Create index mapping from node IDs to array indices
+      const indexMapping = new Map<string, number>();
+      nodes.forEach((node, index) => {
+        indexMapping.set(node.id, index);
       });
 
-      // Convert parsed nodes to shapes with layout
-      const shapes = this.createShapesWithLayout(nodes, idMapping, opts);
+      // Convert parsed nodes to shapes with layout (no IDs)
+      const shapes = this.createShapesWithLayout(nodes, opts);
 
-      // Convert parsed connections to connectors
-      const connectors = this.createConnectors(connections, idMapping);
+      // Convert parsed connections to connector refs (using indices)
+      const connectors = this.createConnectors(connections, indexMapping);
 
       const result: MermaidImportResult = {
         shapes,
@@ -314,24 +313,24 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
   }
 
   /**
-   * Create shapes with simple grid layout
+   * Create shapes with simple grid layout (no IDs - they'll be generated when added to diagram)
    */
   private createShapesWithLayout(
     nodes: ParsedNode[],
-    idMapping: Map<string, string>,
     options: Required<MermaidImportOptions>
-  ): Shape[] {
-    const shapes: Shape[] = [];
+  ): CreateShapeDTO[] {
+    const shapes: CreateShapeDTO[] = [];
     const { horizontal, vertical } = options.nodeSpacing;
 
     // Simple grid layout: arrange nodes in a grid pattern
     const columns = Math.ceil(Math.sqrt(nodes.length));
 
     nodes.forEach((node, index) => {
+      console.log('---')
+      console.log('Type: ', node.shapeType)
+      console.log('Label: ', node.label)
       const row = Math.floor(index / columns);
       const col = index % columns;
-
-      const shapeId = idMapping.get(node.id)!;
 
       // Determine dimensions based on shape type
       let width = options.defaultShapeDimensions.width;
@@ -351,8 +350,7 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
       const x = col * horizontal;
       const y = row * vertical;
 
-      const shape: Shape = {
-        id: shapeId,
+      const shape: CreateShapeDTO = {
         type: node.shapeType,
         subtype: node.subtype,
         x,
@@ -360,38 +358,38 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
         width,
         height,
         label: node.label,
-        zIndex: 1,
+        zIndex: 0,
         locked: false,
+        isPreview: false,
       };
 
       shapes.push(shape);
     });
 
     // Center all shapes around the target point
-    return this.centerShapes(shapes, options.centerPoint);
+    return this.centerShapesDTO(shapes, options.centerPoint);
   }
 
   /**
-   * Create connectors from parsed connections
+   * Create connector refs from parsed connections (using shape indices instead of IDs)
    */
   private createConnectors(
     connections: ParsedConnection[],
-    idMapping: Map<string, string>
-  ): Connector[] {
+    indexMapping: Map<string, number>
+  ): MermaidConnectorRef[] {
     return connections.map((conn) => {
-      const sourceShapeId = idMapping.get(conn.sourceId);
-      const targetShapeId = idMapping.get(conn.targetId);
+      const fromShapeIndex = indexMapping.get(conn.sourceId);
+      const toShapeIndex = indexMapping.get(conn.targetId);
 
-      if (!sourceShapeId || !targetShapeId) {
-        throw new Error(`Invalid connection: missing shape ID mapping`);
+      if (fromShapeIndex === undefined || toShapeIndex === undefined) {
+        throw new Error(`Invalid connection: missing shape mapping for ${conn.sourceId} or ${conn.targetId}`);
       }
 
-      const connector: Connector = {
-        id: this.generateConnectorId(),
-        type: 'arrow',
-        sourceShapeId,
-        targetShapeId,
-        style: 'straight',
+      const connector: MermaidConnectorRef = {
+        type: 'bpmn-sequence-flow',
+        fromShapeIndex,
+        toShapeIndex,
+        style: 'orthogonal',
         arrowType: conn.markerEnd,
         markerStart: 'none',
         markerEnd: conn.markerEnd,

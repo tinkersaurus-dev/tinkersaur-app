@@ -1,14 +1,24 @@
 import type { Result } from '~/core/lib/utils/result';
-import type { Shape } from '~/core/entities/design-studio/types/Shape';
-import type { Connector } from '~/core/entities/design-studio/types/Connector';
-import { v4 as uuidv4 } from 'uuid';
+import type { Shape, CreateShapeDTO } from '~/core/entities/design-studio/types/Shape';
+import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
+
+/**
+ * Connector reference that uses shape indices instead of IDs
+ * The indices refer to positions in the shapes array of MermaidImportResult
+ */
+export interface MermaidConnectorRef extends Omit<CreateConnectorDTO, 'sourceShapeId' | 'targetShapeId'> {
+  fromShapeIndex: number;
+  toShapeIndex: number;
+}
 
 /**
  * Result of a mermaid import operation
+ * Returns shape data WITHOUT IDs and connectors with shape INDICES
+ * IDs will be generated when shapes are added to the diagram
  */
 export interface MermaidImportResult {
-  shapes: Shape[];
-  connectors: Connector[];
+  shapes: CreateShapeDTO[];
+  connectors: MermaidConnectorRef[];
   metadata?: {
     diagramType: string;
     nodeCount: number;
@@ -100,17 +110,11 @@ export abstract class BaseMermaidImporter implements MermaidImporter {
   }
 
   /**
-   * Generate unique ID for imported shapes
+   * Generate a temporary reference ID for tracking shapes during import
+   * This is NOT the final diagram ID - just used to map connectors to shapes
    */
-  protected generateShapeId(): string {
-    return uuidv4();
-  }
-
-  /**
-   * Generate unique ID for imported connectors
-   */
-  protected generateConnectorId(): string {
-    return uuidv4();
+  protected generateTempRef(): string {
+    return `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
@@ -192,5 +196,64 @@ export abstract class BaseMermaidImporter implements MermaidImporter {
       x: shape.x + offsetX,
       y: shape.y + offsetY,
     }));
+  }
+
+  /**
+   * Center shape DTOs around a target point (for shapes without IDs)
+   */
+  protected centerShapesDTO(shapes: CreateShapeDTO[], centerPoint: { x: number; y: number }): CreateShapeDTO[] {
+    if (shapes.length === 0) {
+      return shapes;
+    }
+
+    const bbox = this.calculateBoundingBoxDTO(shapes);
+    const currentCenterX = bbox.minX + bbox.width / 2;
+    const currentCenterY = bbox.minY + bbox.height / 2;
+
+    const offsetX = centerPoint.x - currentCenterX;
+    const offsetY = centerPoint.y - currentCenterY;
+
+    return shapes.map((shape) => ({
+      ...shape,
+      x: shape.x + offsetX,
+      y: shape.y + offsetY,
+    }));
+  }
+
+  /**
+   * Calculate bounding box of shape DTOs (for shapes without IDs)
+   */
+  protected calculateBoundingBoxDTO(shapes: CreateShapeDTO[]): {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    width: number;
+    height: number;
+  } {
+    if (shapes.length === 0) {
+      return { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 };
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    shapes.forEach((shape) => {
+      minX = Math.min(minX, shape.x);
+      minY = Math.min(minY, shape.y);
+      maxX = Math.max(maxX, shape.x + shape.width);
+      maxY = Math.max(maxY, shape.y + shape.height);
+    });
+
+    return {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      width: maxX - minX,
+      height: maxY - minY,
+    };
   }
 }

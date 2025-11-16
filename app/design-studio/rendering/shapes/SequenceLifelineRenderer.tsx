@@ -33,6 +33,11 @@ export function SequenceLifelineRenderer({
   const { x, y, width, height, subtype } = shape;
   const { isSelected, isHovered, zoom } = context;
 
+  // Disable interactivity for preview shapes
+  const isInteractive = !shape.isPreview;
+  const showHover = isInteractive && isHovered;
+  const showSelected = isInteractive && isSelected;
+
   // Wrap connection point handlers to prepend shape ID
   const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
     onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
@@ -73,18 +78,18 @@ export function SequenceLifelineRenderer({
 
   // Determine border color based on state
   let borderColor = 'var(--border)';
-  if (isSelected) {
+  if (showSelected) {
     borderColor = 'var(--primary)';
     borderWidth = 3 / zoom;
-  } else if (isHovered) {
+  } else if (showHover) {
     borderColor = 'var(--secondary)';
   }
 
   // Determine background color
   let backgroundColor = 'var(--bg)';
-  if (isSelected) {
+  if (showSelected) {
     backgroundColor = 'var(--bg)';
-  } else if (isHovered) {
+  } else if (showHover) {
     backgroundColor = 'var(--bg-light)';
   }
 
@@ -101,17 +106,17 @@ export function SequenceLifelineRenderer({
       {/* Participant box (clickable area) - using ShapeWrapper for proper event handling */}
       <ShapeWrapper
         shape={{ ...shape, height: PARTICIPANT_BOX_HEIGHT }}
-        isSelected={isSelected}
-        isHovered={isHovered}
+        isSelected={showSelected}
+        isHovered={showHover}
         zoom={zoom}
         borderColor={borderColor}
         borderWidth={borderWidth}
         backgroundColor={backgroundColor}
         borderRadius={borderRadius}
-        onMouseDown={handleMouseDown}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onDoubleClick={handleDoubleClick}
+        onMouseDown={isInteractive ? handleMouseDown : undefined}
+        onMouseEnter={isInteractive ? handleMouseEnter : undefined}
+        onMouseLeave={isInteractive ? handleMouseLeave : undefined}
+        onDoubleClick={isInteractive ? handleDoubleClick : undefined}
         style={{
           display: 'flex',
           flexDirection: 'row',
@@ -157,14 +162,14 @@ export function SequenceLifelineRenderer({
         {/* Editable label */}
         <EditableLabel
           label={shape.label || 'Participant'}
-          isEditing={isEditing}
+          isEditing={isInteractive && isEditing}
           onStartEdit={() => {}}
           onLabelChange={(newLabel) => onLabelChange?.(shape.id, 'shape', newLabel)}
           onFinishEdit={() => onFinishEditing?.()}
           fontSize={11}
           style={{
             color: 'var(--text)',
-            pointerEvents: isEditing ? 'auto' : 'none',
+            pointerEvents: isInteractive && isEditing ? 'auto' : 'none',
             textAlign: 'center',
           }}
         />
@@ -255,7 +260,7 @@ export function SequenceLifelineRenderer({
       })}
 
       {/* Connection points along lifeline when hovered */}
-      {isHovered &&
+      {showHover &&
         onConnectionPointMouseDown &&
         onConnectionPointMouseUp &&
         generateSequenceLifelineConnectionPoints(height)

@@ -28,6 +28,7 @@ export const ShapeSchema = z.object({
   label: z.string().optional(), // Optional text label for the shape
   zIndex: z.number().default(0),
   locked: z.boolean().default(false),
+  isPreview: z.boolean().default(false), // If true, shape is in preview mode (no interactivity)
   // Optional hierarchy support for complex diagrams
   parentId: z.string().optional(),
   children: z.array(z.string()).optional(),
@@ -98,5 +99,62 @@ export function isSequenceLifelineData(data: unknown): data is SequenceLifelineD
     ) &&
     (d.isDestroyed === undefined || typeof d.isDestroyed === 'boolean') &&
     (d.destroyedAtY === undefined || typeof d.destroyedAtY === 'number')
+  );
+}
+
+// LLM Generator shape data (type: 'llm-generator')
+export interface LLMGeneratorShapeData {
+  prompt?: string; // User's natural language prompt
+  error?: string; // Error message if generation failed
+  isLoading?: boolean; // Whether LLM is currently generating
+}
+
+// Type guard for LLM generator shape data
+export function isLLMGeneratorShapeData(data: unknown): data is LLMGeneratorShapeData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    (d.prompt === undefined || typeof d.prompt === 'string') &&
+    (d.error === undefined || typeof d.error === 'string') &&
+    (d.isLoading === undefined || typeof d.isLoading === 'boolean')
+  );
+}
+
+// LLM Preview shape data (type: 'llm-preview')
+// Stores metadata about preview content (actual shapes/connectors are in the diagram)
+export interface LLMPreviewShapeData {
+  mermaidSyntax: string; // Generated mermaid syntax
+  generatorShapeId: string; // ID of the original generator shape (for undo)
+  previewShapeIds: string[]; // IDs of preview shapes in the diagram
+  previewConnectorIds: string[]; // IDs of preview connectors in the diagram
+}
+
+// Type guard for LLM preview shape data
+export function isLLMPreviewShapeData(data: unknown): data is LLMPreviewShapeData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    typeof d.mermaidSyntax === 'string' &&
+    typeof d.generatorShapeId === 'string' &&
+    Array.isArray(d.previewShapeIds) &&
+    Array.isArray(d.previewConnectorIds)
+  );
+}
+
+// Mermaid Editor shape data (type: 'mermaid-editor')
+export interface MermaidEditorShapeData {
+  mermaidSyntax: string; // Current mermaid syntax being edited
+  previewShapeId: string; // ID of the preview shape that spawned this editor (for undo)
+  error?: string; // Parse error if mermaid syntax is invalid
+}
+
+// Type guard for mermaid editor shape data
+export function isMermaidEditorShapeData(data: unknown): data is MermaidEditorShapeData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    typeof d.mermaidSyntax === 'string' &&
+    typeof d.previewShapeId === 'string' &&
+    (d.error === undefined || typeof d.error === 'string')
   );
 }

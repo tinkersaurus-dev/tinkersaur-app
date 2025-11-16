@@ -61,6 +61,16 @@ export {
   type Shape,
   type CreateShapeDTO,
   type UpdateShapeDTO,
+  type ClassShapeData,
+  type SequenceLifelineData,
+  type LLMGeneratorShapeData,
+  type LLMPreviewShapeData,
+  type MermaidEditorShapeData,
+  isClassShapeData,
+  isSequenceLifelineData,
+  isLLMGeneratorShapeData,
+  isLLMPreviewShapeData,
+  isMermaidEditorShapeData,
 } from './Shape';
 
 // Connector

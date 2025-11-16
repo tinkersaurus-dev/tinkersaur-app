@@ -1,7 +1,6 @@
 import type { Result } from '~/core/lib/utils/result';
-import type { Shape, ClassShapeData } from '~/core/entities/design-studio/types/Shape';
-import type { Connector } from '~/core/entities/design-studio/types/Connector';
-import type { MermaidImportOptions, MermaidImportResult } from '../mermaid-importer';
+import type { Shape, CreateShapeDTO, ClassShapeData } from '~/core/entities/design-studio/types/Shape';
+import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
 
 /**
@@ -71,17 +70,17 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
 
       const { classes, relationships } = parseResult.value;
 
-      // Create ID mapping from class names to generated UUIDs
-      const idMapping = new Map<string, string>();
-      classes.forEach((cls) => {
-        idMapping.set(cls.name, this.generateShapeId());
+      // Create index mapping from class names to array indices
+      const indexMapping = new Map<string, number>();
+      classes.forEach((cls, index) => {
+        indexMapping.set(cls.name, index);
       });
 
-      // Convert parsed classes to shapes with layout
-      const shapes = this.createShapesWithLayout(classes, idMapping, opts);
+      // Convert parsed classes to shapes with layout (no IDs)
+      const shapes = this.createShapesWithLayout(classes, opts);
 
-      // Convert parsed relationships to connectors
-      const connectors = this.createConnectors(relationships, idMapping);
+      // Convert parsed relationships to connector refs (using indices)
+      const connectors = this.createConnectors(relationships, indexMapping);
 
       const result: MermaidImportResult = {
         shapes,
@@ -262,14 +261,13 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
   }
 
   /**
-   * Create shapes with simple grid layout
+   * Create shapes with simple grid layout (no IDs - they'll be generated when added to diagram)
    */
   private createShapesWithLayout(
     classes: ParsedClass[],
-    idMapping: Map<string, string>,
     options: Required<MermaidImportOptions>
-  ): Shape[] {
-    const shapes: Shape[] = [];
+  ): CreateShapeDTO[] {
+    const shapes: CreateShapeDTO[] = [];
     const { horizontal, vertical } = options.nodeSpacing;
 
     // Simple grid layout: arrange classes in a grid pattern
@@ -278,8 +276,6 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
     classes.forEach((cls, index) => {
       const row = Math.floor(index / columns);
       const col = index % columns;
-
-      const shapeId = idMapping.get(cls.name)!;
 
       const x = col * horizontal;
       const y = row * vertical;
@@ -290,16 +286,16 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
         methods: cls.methods,
       };
 
-      const shape: Shape = {
-        id: shapeId,
+      const shape: CreateShapeDTO = {
         type: 'class',
         x,
         y,
         width: 180,
         height: 120,
         label: cls.name,
-        zIndex: 1,
+        zIndex: 0,
         locked: false,
+        isPreview: false,
         data: classData as unknown as Record<string, unknown>,
       };
 
@@ -307,38 +303,35 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
     });
 
     // Center all shapes around the target point
-    return this.centerShapes(shapes, options.centerPoint);
+    return this.centerShapesDTO(shapes, options.centerPoint);
   }
 
   /**
-   * Create connectors from parsed relationships
+   * Create connector refs from parsed relationships (using shape indices instead of IDs)
    */
   private createConnectors(
     relationships: ParsedRelationship[],
-    idMapping: Map<string, string>
-  ): Connector[] {
+    indexMapping: Map<string, number>
+  ): MermaidConnectorRef[] {
     return relationships.map((rel) => {
-      const sourceShapeId = idMapping.get(rel.sourceClass);
-      const targetShapeId = idMapping.get(rel.targetClass);
+      const fromShapeIndex = indexMapping.get(rel.sourceClass);
+      const toShapeIndex = indexMapping.get(rel.targetClass);
 
-      if (!sourceShapeId || !targetShapeId) {
-        throw new Error(`Invalid relationship: missing class mapping`);
+      if (fromShapeIndex === undefined || toShapeIndex === undefined) {
+        throw new Error(`Invalid relationship: missing class mapping for ${rel.sourceClass} or ${rel.targetClass}`);
       }
 
       // Determine connector properties from relationship type
-      const { type, arrowType, markerEnd, lineType } = this.getConnectorProperties(
-        rel.relationshipType
-      );
+      const { type, lineType } = this.getConnectorProperties(rel.relationshipType);
 
-      const connector: Connector = {
-        id: this.generateConnectorId(),
+      const connector: MermaidConnectorRef = {
         type,
-        sourceShapeId,
-        targetShapeId,
-        style: 'straight',
-        arrowType,
+        fromShapeIndex,
+        toShapeIndex,
+        style: 'orthogonal',
+        arrowType: 'arrow',
         markerStart: 'none',
-        markerEnd,
+        markerEnd: 'arrow',
         lineType,
         label: rel.label,
         zIndex: 0,
@@ -353,65 +346,47 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
    */
   private getConnectorProperties(relationshipSymbol: string): {
     type: string;
-    arrowType: 'arrow' | 'none' | 'filled-triangle' | 'diamond' | 'filled-diamond';
-    markerEnd: 'arrow' | 'none' | 'filled-triangle' | 'diamond' | 'filled-diamond';
     lineType: 'solid' | 'dashed' | 'dotted';
   } {
     switch (relationshipSymbol) {
       case '<|--': // Inheritance
         return {
-          type: 'inheritance',
-          arrowType: 'filled-triangle',
-          markerEnd: 'filled-triangle',
+          type: 'class-inheritance',
           lineType: 'solid',
         };
       case '..|>': // Realization
         return {
-          type: 'realization',
-          arrowType: 'filled-triangle',
-          markerEnd: 'filled-triangle',
-          lineType: 'dotted',
+          type: 'class-realization',
+          lineType: 'dashed',
         };
       case '*--': // Composition
         return {
-          type: 'composition',
-          arrowType: 'filled-diamond',
-          markerEnd: 'filled-diamond',
+          type: 'class-composition',
           lineType: 'solid',
         };
       case 'o--': // Aggregation
         return {
-          type: 'aggregation',
-          arrowType: 'diamond',
-          markerEnd: 'diamond',
+          type: 'class-aggregation',
           lineType: 'solid',
         };
       case '..>': // Dependency
         return {
-          type: 'dependency',
-          arrowType: 'arrow',
-          markerEnd: 'arrow',
+          type: 'class-dependency',
           lineType: 'dotted',
         };
       case '-->': // Directed Association
         return {
-          type: 'association',
-          arrowType: 'arrow',
-          markerEnd: 'arrow',
+          type: 'class-association',
           lineType: 'solid',
         };
       case '--': // Association
         return {
-          type: 'association',
-          arrowType: 'none',
-          markerEnd: 'none',
+          type: 'class-association',
           lineType: 'solid',
         };
       default:
         return {
-          type: 'association',
-          arrowType: 'arrow',
-          markerEnd: 'arrow',
+          type: 'class-association',
           lineType: 'solid',
         };
     }

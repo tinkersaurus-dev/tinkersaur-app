@@ -1,7 +1,6 @@
 import type { Result } from '~/core/lib/utils/result';
-import type { Shape } from '~/core/entities/design-studio/types/Shape';
-import type { Connector } from '~/core/entities/design-studio/types/Connector';
-import type { MermaidImportOptions, MermaidImportResult } from '../mermaid-importer';
+import type { Shape, CreateShapeDTO, SequenceLifelineData } from '~/core/entities/design-studio/types/Shape';
+import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
 
 /**
@@ -72,17 +71,17 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
 
       const { participants, messages } = parseResult.value;
 
-      // Create ID mapping from participant names to generated UUIDs
-      const idMapping = new Map<string, string>();
-      participants.forEach((participant) => {
-        idMapping.set(participant.name, this.generateShapeId());
+      // Create index mapping from participant names to array indices
+      const indexMapping = new Map<string, number>();
+      participants.forEach((participant, index) => {
+        indexMapping.set(participant.name, index);
       });
 
-      // Convert parsed participants to lifeline shapes with layout
-      const shapes = this.createShapesWithLayout(participants, idMapping, opts);
+      // Convert parsed participants to lifeline shapes with layout (no IDs)
+      const shapes = this.createShapesWithLayout(participants, opts);
 
-      // Convert parsed messages to connectors
-      const connectors = this.createConnectors(messages, idMapping);
+      // Convert parsed messages to connector refs (using indices)
+      const connectors = this.createConnectors(messages, indexMapping);
 
       const result: MermaidImportResult = {
         shapes,
@@ -237,25 +236,26 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
   }
 
   /**
-   * Create shapes with horizontal layout for sequence diagram
+   * Create shapes with horizontal layout for sequence diagram (no IDs)
    */
   private createShapesWithLayout(
     participants: ParsedParticipant[],
-    idMapping: Map<string, string>,
     options: Required<MermaidImportOptions>
-  ): Shape[] {
-    const shapes: Shape[] = [];
+  ): CreateShapeDTO[] {
+    const shapes: CreateShapeDTO[] = [];
     const spacing = options.nodeSpacing.horizontal;
 
     // Sequence diagrams arrange participants horizontally
     participants.forEach((participant, index) => {
-      const shapeId = idMapping.get(participant.name)!;
-
       const x = index * spacing;
       const y = 50; // Start at top
 
-      const shape: Shape = {
-        id: shapeId,
+      const lifelineData: SequenceLifelineData = {
+        lifelineStyle: 'dashed',
+        activations: [],
+      };
+
+      const shape: CreateShapeDTO = {
         type: 'sequence-lifeline',
         subtype: participant.type,
         x,
@@ -263,53 +263,45 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
         width: 100,
         height: 400, // Default lifeline height
         label: participant.displayLabel,
-        zIndex: 1,
+        zIndex: 0,
         locked: false,
-        data: {
-          lifelineStyle: 'dashed',
-          activations: [],
-        },
+        isPreview: false,
+        data: lifelineData as unknown as Record<string, unknown>,
       };
 
       shapes.push(shape);
     });
 
     // Center all shapes around the target point
-    return this.centerShapes(shapes, options.centerPoint);
+    return this.centerShapesDTO(shapes, options.centerPoint);
   }
 
   /**
-   * Create connectors from parsed messages
+   * Create connector refs from parsed messages (using shape indices)
    */
   private createConnectors(
     messages: ParsedMessage[],
-    idMapping: Map<string, string>
-  ): Connector[] {
-    return messages.map((message, index) => {
-      const sourceShapeId = idMapping.get(message.sourceName);
-      const targetShapeId = idMapping.get(message.targetName);
+    indexMapping: Map<string, number>
+  ): MermaidConnectorRef[] {
+    return messages.map((message) => {
+      const fromShapeIndex = indexMapping.get(message.sourceName);
+      const toShapeIndex = indexMapping.get(message.targetName);
 
-      if (!sourceShapeId || !targetShapeId) {
-        throw new Error(`Invalid message: missing participant mapping`);
+      if (fromShapeIndex === undefined || toShapeIndex === undefined) {
+        throw new Error(`Invalid message: missing participant mapping for ${message.sourceName} or ${message.targetName}`);
       }
 
       // Determine connector properties from message type
-      const { arrowType, lineType } = this.getConnectorProperties(message.messageType);
+      const { lineType } = this.getConnectorProperties(message.messageType);
 
-      // Use connection point indices to maintain message order
-      const connectionIndex = index;
-
-      const connector: Connector = {
-        id: this.generateConnectorId(),
+      const connector: MermaidConnectorRef = {
         type: message.messageType,
-        sourceShapeId,
-        targetShapeId,
-        sourceConnectionPoint: `e-${connectionIndex}`,
-        targetConnectionPoint: `w-${connectionIndex}`,
+        fromShapeIndex,
+        toShapeIndex,
         style: 'straight',
-        arrowType,
+        arrowType: 'arrow',
         markerStart: 'none',
-        markerEnd: arrowType,
+        markerEnd: 'arrow',
         lineType,
         label: message.label,
         zIndex: 0,
@@ -323,7 +315,6 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
    * Get connector properties from message type
    */
   private getConnectorProperties(messageType: string): {
-    arrowType: 'arrow' | 'none';
     lineType: 'solid' | 'dashed' | 'dotted';
   } {
     switch (messageType) {
@@ -333,17 +324,14 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
       case 'sequence-destroy':
       case 'sequence-self':
         return {
-          arrowType: 'arrow',
           lineType: 'solid',
         };
       case 'sequence-return':
         return {
-          arrowType: 'arrow',
           lineType: 'dashed',
         };
       default:
         return {
-          arrowType: 'arrow',
           lineType: 'solid',
         };
     }
