@@ -5,9 +5,6 @@
 
 import type { ComponentType } from 'react';
 import {
-  FaUser,
-  FaCog,
-  FaCode,
   FaPlay,
   FaStop,
   FaCircle,

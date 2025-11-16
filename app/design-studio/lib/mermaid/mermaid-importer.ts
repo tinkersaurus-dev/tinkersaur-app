@@ -72,8 +72,8 @@ export interface MermaidImporter {
 export abstract class BaseMermaidImporter implements MermaidImporter {
   protected defaultOptions: Required<MermaidImportOptions> = {
     centerPoint: { x: 0, y: 0 },
-    nodeSpacing: { horizontal: 200, vertical: 150 },
-    defaultShapeDimensions: { width: 120, height: 60 },
+    nodeSpacing: { horizontal:  80, vertical: 120 },
+    defaultShapeDimensions: { width: 120, height: 80 },
   };
 
   abstract import(

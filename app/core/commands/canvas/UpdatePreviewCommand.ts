@@ -76,6 +76,7 @@ export class UpdatePreviewCommand implements Command {
       label: undefined,
       zIndex: 0,
       locked: false,
+      isPreview: true,
       data: {
         mermaidSyntax: this.updatedMermaidSyntax,
         generatorShapeId: this.originalGeneratorShapeId,

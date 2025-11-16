@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * LLM Diagram Generator Renderer
  *
@@ -24,7 +25,7 @@ export function GenerateDiagramRenderer({
   onMouseEnter,
   onMouseLeave,
 }: ShapeRendererProps): React.ReactElement {
-  const { width, height } = shape;
+  const { width: _width, height: _height } = shape;
   const { isSelected, isHovered, zoom } = context;
 
   // Get diagram info from canvas controller
@@ -48,8 +49,8 @@ export function GenerateDiagramRenderer({
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
-  const borderRadius = 4;
-  const padding = 12;
+  const borderRadius = 2;
+  const padding = 8;
 
   // Determine border color
   let borderColor = 'var(--border)';
@@ -166,10 +167,10 @@ export function GenerateDiagramRenderer({
       {/* Header */}
       <div
         style={{
-          fontSize: '12px',
-          fontWeight: 'bold',
+          fontSize: '10px',
+          fontWeight: 'semibold',
           color: 'var(--text)',
-          textAlign: 'center',
+          textAlign: 'left',
         }}
       >
         Generate Diagram
@@ -185,11 +186,11 @@ export function GenerateDiagramRenderer({
         style={{
           width: '100%',
           flex: 1,
-          padding: '8px',
-          fontSize: '11px',
+          padding: '6px',
+          fontSize: '10px',
           fontFamily: 'inherit',
           color: 'var(--text)',
-          backgroundColor: 'var(--bg)',
+          backgroundColor: 'var(--bg-light)',
           border: `${1 / zoom}px solid var(--border)`,
           borderRadius: '2px',
           resize: 'none',
@@ -208,12 +209,13 @@ export function GenerateDiagramRenderer({
       {error && (
         <div
           style={{
-            fontSize: '10px',
+            fontSize: '8px',
             color: 'var(--error)',
             backgroundColor: 'var(--error-bg)',
             padding: '6px',
             borderRadius: '2px',
             border: `${1 / zoom}px solid var(--error)`,
+            textAlign: 'left',
           }}
         >
           {error}
@@ -227,9 +229,10 @@ export function GenerateDiagramRenderer({
         disabled={isLoading || !prompt.trim()}
         style={{
           width: '100%',
+          height: '16px',
           padding: '8px',
-          fontSize: '12px',
-          fontWeight: 'bold',
+          fontSize: '10px',
+          fontWeight: 'semibold',
           color: isLoading || !prompt.trim() ? 'var(--text-muted)' : 'var(--bg)',
           backgroundColor: isLoading || !prompt.trim() ? 'var(--bg-muted)' : 'var(--primary)',
           border: 'none',
@@ -263,12 +266,10 @@ export function GenerateDiagramRenderer({
                 animation: 'spin 0.8s linear infinite',
               }}
             />
-            Generating...
           </>
         ) : (
           <>
-            <FaPlay size={10} />
-            Generate
+            <FaPlay size={8} />
           </>
         )}
       </button>

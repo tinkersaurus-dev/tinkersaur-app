@@ -1,7 +1,8 @@
 import type { Result } from '~/core/lib/utils/result';
-import type { Shape, CreateShapeDTO } from '~/core/entities/design-studio/types/Shape';
+import type { CreateShapeDTO } from '~/core/entities/design-studio/types/Shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
+import { layoutBpmnGraph } from '../../layout/bpmn-auto-layout';
 
 /**
  * Parsed node information from Mermaid syntax
@@ -79,7 +80,8 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
       });
 
       // Convert parsed nodes to shapes with layout (no IDs)
-      const shapes = this.createShapesWithLayout(nodes, opts);
+      // Pass connections to the layout method
+      const shapes = this.createShapesWithLayout(nodes, connections, opts);
 
       // Convert parsed connections to connector refs (using indices)
       const connectors = this.createConnectors(connections, indexMapping);
@@ -313,25 +315,17 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
   }
 
   /**
-   * Create shapes with simple grid layout (no IDs - they'll be generated when added to diagram)
+   * Create shapes with flow-based auto-layout (no IDs - they'll be generated when added to diagram)
    */
   private createShapesWithLayout(
     nodes: ParsedNode[],
+    connections: ParsedConnection[],
     options: Required<MermaidImportOptions>
   ): CreateShapeDTO[] {
-    const shapes: CreateShapeDTO[] = [];
     const { horizontal, vertical } = options.nodeSpacing;
 
-    // Simple grid layout: arrange nodes in a grid pattern
-    const columns = Math.ceil(Math.sqrt(nodes.length));
-
-    nodes.forEach((node, index) => {
-      console.log('---')
-      console.log('Type: ', node.shapeType)
-      console.log('Label: ', node.label)
-      const row = Math.floor(index / columns);
-      const col = index % columns;
-
+    // Prepare nodes with dimensions for layout algorithm
+    const layoutNodes = nodes.map((node) => {
       // Determine dimensions based on shape type
       let width = options.defaultShapeDimensions.width;
       let height = options.defaultShapeDimensions.height;
@@ -347,23 +341,45 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
         height = 80;
       }
 
-      const x = col * horizontal;
-      const y = row * vertical;
+      return {
+        id: node.id,
+        type: node.shapeType,
+        subtype: node.subtype,
+        width,
+        height,
+        label: node.label,
+      };
+    });
+
+    // Apply auto-layout algorithm
+    const positions = layoutBpmnGraph(layoutNodes, connections, {
+      horizontalSpacing: horizontal,
+      verticalSpacing: vertical,
+    });
+
+    // Create shape DTOs with calculated positions
+    const shapes: CreateShapeDTO[] = nodes.map((node) => {
+      const position = positions.find((p) => p.id === node.id);
+      const layoutNode = layoutNodes.find((n) => n.id === node.id);
+
+      if (!position || !layoutNode) {
+        throw new Error(`Failed to calculate position for node ${node.id}`);
+      }
 
       const shape: CreateShapeDTO = {
         type: node.shapeType,
         subtype: node.subtype,
-        x,
-        y,
-        width,
-        height,
+        x: position.x,
+        y: position.y,
+        width: layoutNode.width,
+        height: layoutNode.height,
         label: node.label,
         zIndex: 0,
         locked: false,
         isPreview: false,
       };
 
-      shapes.push(shape);
+      return shape;
     });
 
     // Center all shapes around the target point

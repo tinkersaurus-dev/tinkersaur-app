@@ -49,6 +49,7 @@ export class ReplaceWithEditorCommand implements Command {
       label: undefined,
       zIndex: 0,
       locked: false,
+      isPreview: false,
       data: {
         mermaidSyntax: this.mermaidSyntax,
         previewShapeId: this.previewShapeId,

@@ -394,6 +394,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
       height: 80,
       zIndex: 0,
       locked: false,
+      isPreview: false,
     });
 
     menuManager.closeMenu();
@@ -439,6 +440,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     onStartDragging: transitionToDragging,
     containerRef,
     lastMousePosRef,
+    shapes: diagram?.shapes ?? [],
   });
 
   // Orchestrate mouse events with state machine-based routing

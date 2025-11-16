@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Client-side API wrapper for LLM-based Mermaid diagram generation
  */

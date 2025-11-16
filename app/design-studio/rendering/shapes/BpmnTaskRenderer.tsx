@@ -5,7 +5,6 @@
  * Supports subtypes: user, service, script
  */
 
-import { FaUser, FaCog, FaCode } from 'react-icons/fa';
 import { LuSquareUserRound, LuSettings, LuSquareCode } from "react-icons/lu";
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';

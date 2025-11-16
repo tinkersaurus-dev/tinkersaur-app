@@ -93,7 +93,9 @@ export class CommandFactory {
       this.deps._internalRestoreShape,
       this.deps.getDiagram,
       this.deps._internalDeleteConnectorsBatch,
-      this.deps._internalRestoreConnectorsBatch
+      this.deps._internalRestoreConnectorsBatch,
+      this.deps._internalDeleteShapesBatch,
+      this.deps._internalRestoreShapesBatch
     );
   }
 
@@ -161,6 +163,7 @@ export class CommandFactory {
       diagramId,
       moves,
       this.deps._internalUpdateShapes,
+      this.deps.getDiagram,
       updateLocalShape
     );
   }

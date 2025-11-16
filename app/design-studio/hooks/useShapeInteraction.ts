@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 import type { RefObject, MutableRefObject } from 'react';
 import type { ViewportTransform } from '../utils/viewport';
 import type { DragData } from './useInteractionState';
+import type { Shape } from '~/core/entities/design-studio/types';
+import { isLLMPreviewShapeData } from '~/core/entities/design-studio/types/Shape';
 
 interface UseShapeInteractionProps {
   // Viewport transform for coordinate transformation
@@ -21,6 +23,9 @@ interface UseShapeInteractionProps {
   // Shared refs
   containerRef: RefObject<HTMLDivElement | null>;
   lastMousePosRef: MutableRefObject<{ x: number; y: number }>;
+
+  // Shapes array for preview container expansion
+  shapes: Shape[];
 }
 
 interface UseShapeInteractionReturn {
@@ -50,7 +55,23 @@ export function useShapeInteraction({
   onStartDragging,
   containerRef,
   lastMousePosRef,
+  shapes,
 }: UseShapeInteractionProps): UseShapeInteractionReturn {
+
+  // Helper function to expand shape IDs to include preview shapes
+  const expandWithPreviewShapes = useCallback((shapeIds: string[]): string[] => {
+    const expanded = new Set(shapeIds);
+
+    for (const shapeId of shapeIds) {
+      const shape = shapes.find(s => s.id === shapeId);
+      if (shape?.type === 'llm-preview' && isLLMPreviewShapeData(shape.data)) {
+        // Add all preview shape IDs
+        shape.data.previewShapeIds.forEach(id => expanded.add(id));
+      }
+    }
+
+    return Array.from(expanded);
+  }, [shapes]);
 
   // Handle shape mouse down for selection and drag initialization
   const handleShapeMouseDown = useCallback(
@@ -90,17 +111,17 @@ export function useShapeInteraction({
           // Add to selection
           const newSelection = [...selectedShapeIds, shapeId];
           setSelectedShapes(newSelection);
-          // Drag all newly selected shapes
-          shapesToDrag = newSelection;
+          // Drag all newly selected shapes (expanded to include preview shapes)
+          shapesToDrag = expandWithPreviewShapes(newSelection);
         }
       } else {
         // If clicking on a non-selected shape, select only that shape
         if (!selectedShapeIds.includes(shapeId)) {
           setSelectedShapes([shapeId]);
-          shapesToDrag = [shapeId];
+          shapesToDrag = expandWithPreviewShapes([shapeId]);
         } else {
-          // Clicking on a selected shape - drag all currently selected shapes
-          shapesToDrag = selectedShapeIds;
+          // Clicking on a selected shape - drag all currently selected shapes (expanded)
+          shapesToDrag = expandWithPreviewShapes(selectedShapeIds);
         }
       }
 
@@ -109,7 +130,7 @@ export function useShapeInteraction({
       onStartDragging(dragData);
       lastMousePosRef.current = { x: screenX, y: screenY };
     },
-    [selectedShapeIds, setSelectedShapes, viewportTransform, startDragging, onStartDragging, containerRef, lastMousePosRef]
+    [selectedShapeIds, setSelectedShapes, viewportTransform, startDragging, onStartDragging, containerRef, lastMousePosRef, expandWithPreviewShapes]
   );
 
   // Handle shape mouse enter for hover state

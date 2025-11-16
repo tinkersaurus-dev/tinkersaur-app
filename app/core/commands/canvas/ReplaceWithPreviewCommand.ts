@@ -29,7 +29,7 @@ export class ReplaceWithPreviewCommand implements Command {
     private readonly mermaidSyntax: string,
     private readonly generatorPosition: { x: number; y: number; width: number; height: number },
     private readonly addShapeFn: (diagramId: string, shapeData: CreateShapeDTO) => Promise<Diagram>,
-    private readonly addConnectorFn: (diagramId: string, connectorData: CreateConnectorDTO) => Promise<Diagram>,
+    private readonly addConnectorFn: (diagramId: string, connectorData: CreateConnectorDTO) => Promise<Diagram | null>,
     private readonly deleteShapeFn: (diagramId: string, shapeId: string) => Promise<Diagram | null>,
     private readonly deleteConnectorFn: (diagramId: string, connectorId: string) => Promise<Diagram | null>,
     private readonly getShapeFn: (diagramId: string, shapeId: string) => Promise<Shape | null>,
@@ -40,18 +40,12 @@ export class ReplaceWithPreviewCommand implements Command {
   }
 
   async execute(): Promise<void> {
-    console.log('[ReplaceWithPreviewCommand] execute() called');
-    console.log('[ReplaceWithPreviewCommand] diagramType:', this.diagramType);
-    console.log('[ReplaceWithPreviewCommand] mermaidSyntax preview:', this.mermaidSyntax.substring(0, 100));
-
     // Get the appropriate mermaid importer for the diagram type
     const importer = this.getImporter(this.diagramType);
     if (!importer) {
       console.error('[ReplaceWithPreviewCommand] No importer found for:', this.diagramType);
       throw new Error(`No mermaid importer found for diagram type: ${this.diagramType}`);
     }
-
-    console.log('[ReplaceWithPreviewCommand] Importer found, parsing mermaid...');
     // Parse the mermaid syntax
     const parseResult = importer.import(this.mermaidSyntax, {
       centerPoint: {
@@ -65,34 +59,26 @@ export class ReplaceWithPreviewCommand implements Command {
       throw new Error(`Failed to parse mermaid: ${parseResult.error}`);
     }
 
-    console.log('[ReplaceWithPreviewCommand] Parse successful');
     const importResult: MermaidImportResult = parseResult.value;
-    console.log('[ReplaceWithPreviewCommand] Shapes parsed:', importResult.shapes.length);
-    console.log('[ReplaceWithPreviewCommand] Connectors parsed:', importResult.connectors.length);
 
     // Calculate bounding box of the parsed shapes to determine preview size
     const boundingBox = this.calculateBoundingBox(importResult);
-    console.log('[ReplaceWithPreviewCommand] Bounding box:', boundingBox);
 
     // Store generator shape data for undo
     const generatorShape = await this.getShapeFn(this.diagramId, this.generatorShapeId);
     if (generatorShape) {
       // Convert Shape to CreateShapeDTO by removing the id field
-      const { id, ...shapeData } = generatorShape;
+      const { id: _id, ...shapeData } = generatorShape;
       this.generatorShapeData = shapeData;
-      console.log('[ReplaceWithPreviewCommand] Generator shape data stored');
     }
 
     // Delete the generator shape
-    console.log('[ReplaceWithPreviewCommand] Deleting generator shape...');
     await this.deleteShapeFn(this.diagramId, this.generatorShapeId);
 
     // Track shape IDs by their index in the import result
     const createdShapeIds: string[] = [];
 
     // Create all preview shapes as actual diagram entities (marked with isPreview)
-    console.log('[ReplaceWithPreviewCommand] Creating preview shapes...');
-
     // Prepare all shape DTOs with isPreview flag
     const shapeDTOs = importResult.shapes.map(shapeData => ({
       ...shapeData,
@@ -108,7 +94,6 @@ export class ReplaceWithPreviewCommand implements Command {
         createdShapeIds.push(newShapeId);
         this.previewContentShapeIds.push(newShapeId);
       }
-      console.log('[ReplaceWithPreviewCommand] Created', shapeDTOs.length, 'preview shapes in batch');
     } else {
       for (const shapeDTO of shapeDTOs) {
         const diagram = await this.addShapeFn(this.diagramId, shapeDTO);
@@ -116,14 +101,11 @@ export class ReplaceWithPreviewCommand implements Command {
           const newShapeId = diagram.shapes[diagram.shapes.length - 1].id;
           createdShapeIds.push(newShapeId);
           this.previewContentShapeIds.push(newShapeId);
-          console.log('[ReplaceWithPreviewCommand] Created preview shape at index', createdShapeIds.length - 1, ':', newShapeId);
         }
       }
     }
 
     // Create all preview connectors using shape indices
-    console.log('[ReplaceWithPreviewCommand] Creating preview connectors...');
-
     // Prepare all connector DTOs with actual shape IDs
     const connectorDTOs: CreateConnectorDTO[] = [];
     for (const connectorRef of importResult.connectors) {
@@ -168,14 +150,12 @@ export class ReplaceWithPreviewCommand implements Command {
           this.previewContentConnectorIds.push(newConnectorId);
         }
       }
-      console.log('[ReplaceWithPreviewCommand] Created', connectorDTOs.length, 'preview connectors in batch');
     } else {
       for (const connectorDTO of connectorDTOs) {
         const diagram = await this.addConnectorFn(this.diagramId, connectorDTO);
         if (diagram && diagram.connectors.length > 0) {
           const newConnectorId = diagram.connectors[diagram.connectors.length - 1].id;
           this.previewContentConnectorIds.push(newConnectorId);
-          console.log('[ReplaceWithPreviewCommand] Created preview connector:', newConnectorId);
         }
       }
     }
@@ -200,18 +180,15 @@ export class ReplaceWithPreviewCommand implements Command {
       },
     };
 
-    console.log('[ReplaceWithPreviewCommand] Creating preview container shape...');
     const diagram = await this.addShapeFn(this.diagramId, previewShapeData);
 
     // Store the preview shape ID for undo
     if (diagram && diagram.shapes.length > 0) {
       this.previewShapeId = diagram.shapes[diagram.shapes.length - 1].id;
-      console.log('[ReplaceWithPreviewCommand] Preview container created with ID:', this.previewShapeId);
     } else {
       console.error('[ReplaceWithPreviewCommand] Failed to create preview container');
       throw new Error('Failed to create preview shape');
     }
-    console.log('[ReplaceWithPreviewCommand] execute() completed successfully');
   }
 
   async undo(): Promise<void> {

@@ -33,6 +33,7 @@ export function mapBpmnToolToShape(
     label: tool.name,
     zIndex: 0,
     locked: false,
+    isPreview: false,
   };
 }
 
@@ -60,6 +61,7 @@ export function mapClassToolToShape(
     label: tool.name,
     zIndex: 0,
     locked: false,
+    isPreview: false,
     data: tool.initialData,
   };
 }
@@ -88,6 +90,7 @@ export function mapSequenceToolToShape(
     label: tool.name,
     zIndex: 0,
     locked: false,
+    isPreview: false,
     data: tool.initialData,
   };
 }
@@ -119,6 +122,7 @@ export function mapGlobalToolToShape(
       label: undefined, // No label for generator shape
       zIndex: 0,
       locked: false,
+      isPreview: false,
       data: {
         prompt: '',
         error: undefined,
@@ -138,5 +142,6 @@ export function mapGlobalToolToShape(
     label: tool.name,
     zIndex: 0,
     locked: false,
+    isPreview: false,
   };
 }

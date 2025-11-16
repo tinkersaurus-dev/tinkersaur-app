@@ -3,9 +3,11 @@
  * Defines tools that are available across all diagram types
  */
 
-import type { ComponentType } from 'react';
 import { FaWandMagicSparkles } from 'react-icons/fa6';
 import type { Tool, ToolGroup } from './bpmn-tools';
+
+// Re-export Tool type for use in toolMappers
+export type { Tool };
 
 /**
  * LLM-powered diagram generation tool

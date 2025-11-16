@@ -25,19 +25,19 @@ export function MermaidEditorRenderer({
   onMouseEnter,
   onMouseLeave,
 }: ShapeRendererProps): React.ReactElement {
-  const { width, height } = shape;
+  const { width: _width, height: _height } = shape;
   const { isSelected, isHovered, zoom } = context;
 
   // Get diagram info and store functions
   const { diagramId, diagram } = useCanvasController();
-  const addShape = useDesignStudioEntityStore((state) => state.addShape);
-  const deleteShape = useDesignStudioEntityStore((state) => state.deleteShape);
-  const getShape = useDesignStudioEntityStore((state) => state._internalGetShape);
+  const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
+  const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);
+  const _getShape = useDesignStudioEntityStore((state) => state._internalGetShape);
 
   const diagramType = diagram?.type as DiagramType | undefined;
 
   // Parse shape data
-  const editorData = (shape.data || {}) as MermaidEditorShapeData;
+  const editorData = (shape.data || {}) as unknown as MermaidEditorShapeData;
   const [mermaidSyntax, setMermaidSyntax] = useState(editorData.mermaidSyntax || '');
   const [error, setError] = useState(editorData.error);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -74,6 +74,15 @@ export function MermaidEditorRenderer({
       setIsUpdating(true);
       setError(undefined);
 
+      // Create a synchronous wrapper for getShape that returns the current shape from diagram
+      const getShapeSync = (_diagramId: string, shapeId: string) => {
+        const currentShape = diagram?.shapes.find((s) => s.id === shapeId);
+        if (!currentShape) return null;
+        // Convert Shape to CreateShapeDTO by removing the id
+        const { id: _id, ...shapeDTO } = currentShape;
+        return shapeDTO;
+      };
+
       const command = new UpdatePreviewCommand(
         diagramId,
         diagramType,
@@ -83,7 +92,7 @@ export function MermaidEditorRenderer({
         editorData.previewShapeId,
         addShape,
         deleteShape,
-        getShape
+        getShapeSync
       );
 
       await commandManager.execute(command, diagramId);

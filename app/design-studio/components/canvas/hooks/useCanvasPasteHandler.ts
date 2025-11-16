@@ -1,6 +1,9 @@
 import { useEffect, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 import type { CommandFactory } from '~/core/commands/CommandFactory';
+import type { Shape } from '~/core/entities/design-studio/types/Shape';
+import type { Connector } from '~/core/entities/design-studio/types/Connector';
 import { getMermaidImporter } from '~/design-studio/lib/mermaid';
 import { commandManager } from '~/core/commands/CommandManager';
 import { toast } from '~/core/utils/toast';
@@ -82,20 +85,49 @@ export function useCanvasPasteHandler({
           return;
         }
 
-        const { shapes, connectors } = importResult.value;
+        const { shapes: shapeDTOs, connectors: connectorRefs } = importResult.value;
 
-        if (shapes.length === 0) {
+        if (shapeDTOs.length === 0) {
           toast.info('No shapes to import');
           return;
         }
 
+        // Generate IDs for all shapes and build a mapping from indices to IDs
+        const shapeIdMapping = new Map<number, string>();
+        const shapesWithIds: Shape[] = shapeDTOs.map((shapeDTO, index) => {
+          const id = uuidv4();
+          shapeIdMapping.set(index, id);
+          return {
+            id,
+            ...shapeDTO,
+          };
+        });
+
+        // Convert connector refs (using shape indices) to connectors (using shape IDs)
+        const connectorsWithIds: Connector[] = connectorRefs.map((connectorRef) => {
+          const sourceShapeId = shapeIdMapping.get(connectorRef.fromShapeIndex);
+          const targetShapeId = shapeIdMapping.get(connectorRef.toShapeIndex);
+
+          if (!sourceShapeId || !targetShapeId) {
+            throw new Error('Invalid connector reference - shape ID not found');
+          }
+
+          const { fromShapeIndex: _fromShapeIndex, toShapeIndex: _toShapeIndex, ...connectorData } = connectorRef;
+          return {
+            id: uuidv4(),
+            sourceShapeId,
+            targetShapeId,
+            ...connectorData,
+          };
+        });
+
         // Create and execute import command
-        const command = commandFactory.createImportMermaid(diagramId, shapes, connectors);
+        const command = commandFactory.createImportMermaid(diagramId, shapesWithIds, connectorsWithIds);
         await commandManager.execute(command, diagramId);
 
         // Show success message
         toast.success(
-          `Imported ${shapes.length} shape${shapes.length !== 1 ? 's' : ''} and ${connectors.length} connector${connectors.length !== 1 ? 's' : ''}`
+          `Imported ${shapesWithIds.length} shape${shapesWithIds.length !== 1 ? 's' : ''} and ${connectorsWithIds.length} connector${connectorsWithIds.length !== 1 ? 's' : ''}`
         );
       } catch (error) {
         console.error('Failed to import Mermaid diagram:', error);

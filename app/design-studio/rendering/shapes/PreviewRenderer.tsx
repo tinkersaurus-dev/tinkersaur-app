@@ -25,11 +25,11 @@ export function PreviewRenderer({
   onMouseEnter,
   onMouseLeave,
 }: ShapeRendererProps): React.ReactElement {
-  const { width, height } = shape;
+  const { width: _width, height } = shape;
   const { isSelected, isHovered, zoom } = context;
 
   // Get diagram info from canvas controller
-  const { diagramId } = useCanvasController();
+  const { diagramId, diagram } = useCanvasController();
   const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
   const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
   const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);
@@ -41,8 +41,17 @@ export function PreviewRenderer({
   const deleteShapesBatch = useDesignStudioEntityStore((state) => state._internalDeleteShapesBatch);
   const deleteConnectorsBatch = useDesignStudioEntityStore((state) => state._internalDeleteConnectorsBatch);
 
+  // Create a synchronous wrapper for getShape that returns the current shape from diagram
+  const getShapeSync = (_diagramId: string, shapeId: string) => {
+    const currentShape = diagram?.shapes.find((s) => s.id === shapeId);
+    if (!currentShape) return null;
+    // Convert Shape to CreateShapeDTO by removing the id
+    const { id: _id, ...shapeDTO } = currentShape;
+    return shapeDTO;
+  };
+
   // Parse shape data - the preview shapes and connectors are already in the diagram
-  const previewData = (shape.data || {}) as LLMPreviewShapeData;
+  const previewData = (shape.data || {}) as unknown as LLMPreviewShapeData;
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
@@ -71,7 +80,7 @@ export function PreviewRenderer({
         { x: shape.x, y: shape.y, width: shape.width, height: shape.height },
         addShape,
         deleteShape,
-        getShape
+        getShapeSync
       );
 
       await commandManager.execute(command, diagramId);

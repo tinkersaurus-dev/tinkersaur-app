@@ -1,3 +1,4 @@
+/* eslint-disable no-console, @typescript-eslint/no-explicit-any */
 /**
  * React Router API Route for generating Mermaid diagrams using Amazon Bedrock
  * Using AWS SDK with bearer token authentication

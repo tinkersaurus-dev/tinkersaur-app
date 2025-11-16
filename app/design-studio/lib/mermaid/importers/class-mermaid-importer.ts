@@ -1,5 +1,5 @@
 import type { Result } from '~/core/lib/utils/result';
-import type { Shape, CreateShapeDTO, ClassShapeData } from '~/core/entities/design-studio/types/Shape';
+import type { CreateShapeDTO, ClassShapeData } from '~/core/entities/design-studio/types/Shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
 
