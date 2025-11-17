@@ -57,7 +57,12 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
     end,
     sourceDirection,
     targetDirection,
-    connector.style
+    connector.style,
+    {
+      shapes: context.allShapes,
+      excludeShapeIds: [connector.sourceShapeId, connector.targetShapeId],
+      useAdvancedRouting: connector.style === 'orthogonal' && context.allShapes && context.allShapes.length > 2
+    }
   );
 
   // Calculate the actual midpoint along the path for label positioning

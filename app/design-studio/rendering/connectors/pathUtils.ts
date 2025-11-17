@@ -1,4 +1,9 @@
 import type { Point } from '../../utils/pathUtils';
+import type { Shape } from '~/core/entities/design-studio/types/Shape';
+import {
+  findOrthogonalRoute,
+  type Direction
+} from '../../utils/orthogonalRouting';
 
 // Connection point direction for routing
 export type ConnectionPointDirection = 'N' | 'S' | 'E' | 'W';
@@ -12,7 +17,15 @@ export function getPathData(
   end: { x: number; y: number },
   startDirection: ConnectionPointDirection,
   endDirection: ConnectionPointDirection,
-  style: 'straight' | 'orthogonal' | 'curved'
+  style: 'straight' | 'orthogonal' | 'curved',
+  options?: {
+    /** All shapes for obstacle avoidance (optional) */
+    shapes?: Shape[];
+    /** Source and target shape IDs to exclude from obstacles */
+    excludeShapeIds?: string[];
+    /** Use advanced routing algorithm */
+    useAdvancedRouting?: boolean;
+  }
 ): { pathData: string; pathPoints: Point[] } {
   switch (style) {
     case 'straight':
@@ -26,6 +39,22 @@ export function getPathData(
 
     case 'orthogonal':
     default:
+      // Use advanced routing if shapes are provided and flag is set
+      if (options?.useAdvancedRouting && options?.shapes && options.shapes.length > 0) {
+        try {
+          return getAdvancedOrthogonalPath(
+            start,
+            end,
+            startDirection,
+            endDirection,
+            options.shapes,
+            options.excludeShapeIds || []
+          );
+        } catch (error) {
+          console.error('[pathUtils] Advanced routing FAILED:', error);
+          return getOrthogonalPath(start, end, startDirection, endDirection);
+        }
+      }
       return getOrthogonalPath(start, end, startDirection, endDirection);
   }
 }
@@ -150,4 +179,36 @@ export function inferConnectionDirection(
     // Vertical is primary
     return dy > 0 ? 'S' : 'N';
   }
+}
+
+/**
+ * Generate advanced orthogonal path using Wybrow et al. algorithm
+ * This uses object-avoiding routing with optimal path finding
+ */
+export function getAdvancedOrthogonalPath(
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+  startDirection: ConnectionPointDirection,
+  endDirection: ConnectionPointDirection,
+  allShapes: Shape[],
+  excludeShapeIds: string[]
+): { pathData: string; pathPoints: Point[] } {
+  // Filter out the source and target shapes from obstacles
+  const obstacles = allShapes.filter(shape => !excludeShapeIds.includes(shape.id));
+
+  // Use the Wybrow algorithm to find optimal route
+  const pathPoints = findOrthogonalRoute(
+    start,
+    end,
+    obstacles,
+    startDirection as Direction,
+    endDirection as Direction,
+    50, // Bend penalty weight
+    true // Enable path refinement
+  );
+
+  // Build SVG path string from points
+  const pathData = pathPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+  return { pathData, pathPoints };
 }

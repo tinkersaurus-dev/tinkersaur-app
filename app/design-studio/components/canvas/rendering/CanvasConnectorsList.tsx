@@ -58,6 +58,7 @@ export function CanvasConnectorsList({
           isHovered: connector.id === hoveredConnectorId,
           zoom: viewportTransform.viewport.zoom,
           readOnly: false,
+          allShapes: shapes, // Provide all shapes for obstacle avoidance
         };
 
         const isEditing = editingEntityId === connector.id && editingEntityType === 'connector';

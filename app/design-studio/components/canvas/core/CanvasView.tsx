@@ -14,6 +14,7 @@ import { CanvasConnectorsList } from '../rendering/CanvasConnectorsList';
 import CanvasToolbar from '../../toolbar/CanvasToolbar';
 import CanvasTextToolbar from '../../toolbar/CanvasTextToolbar';
 import { MermaidViewer } from '../../mermaid/MermaidViewer';
+import { RoutingDebugOverlay, setDebugGraph } from '../debug/RoutingDebugOverlay';
 
 /**
  * Canvas View Component
@@ -317,6 +318,14 @@ export function CanvasView() {
 
       {/* Debug info (optional - can be removed) */}
       <CanvasDebugInfo diagramId={diagramId} zoom={viewportTransform.viewport.zoom} shapesCount={shapes.length} />
+
+      {/* Routing Debug Overlay - Press 'D' to toggle */}
+      <RoutingDebugOverlay />
     </div>
   );
+}
+
+// Expose debug function globally
+if (typeof window !== 'undefined') {
+  (window as any).setRoutingDebugGraph = setDebugGraph;
 }

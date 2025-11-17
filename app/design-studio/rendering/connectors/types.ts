@@ -25,6 +25,9 @@ export interface ConnectorRenderContext {
 
   /** Whether the canvas is in read-only mode */
   readOnly: boolean;
+
+  /** All shapes on the canvas (for obstacle avoidance in routing) */
+  allShapes?: Shape[];
 }
 
 /**
