@@ -1,6 +1,6 @@
-import type { Command } from '../command.types';
-import type { CreateShapeDTO } from '../../entities/design-studio/types/Shape';
-import type { Diagram } from '../../entities/design-studio/types';
+import type { Command } from '../../command.types';
+import type { CreateShapeDTO } from '../../../entities/design-studio/types/Shape';
+import type { Diagram } from '../../../entities/design-studio/types';
 
 /**
  * Command to add a shape to a diagram

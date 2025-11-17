@@ -1,8 +1,8 @@
-import type { Command } from '../command.types';
-import type { CreateShapeDTO, Shape } from '../../entities/design-studio/types/Shape';
-import type { Diagram } from '../../entities/design-studio/types';
-import type { Connector, CreateConnectorDTO } from '../../entities/design-studio/types/Connector';
-import { isLLMPreviewShapeData } from '../../entities/design-studio/types/Shape';
+import type { Command } from '../../command.types';
+import type { CreateShapeDTO, Shape } from '../../../entities/design-studio/types/Shape';
+import type { Diagram } from '../../../entities/design-studio/types';
+import type { Connector, CreateConnectorDTO } from '../../../entities/design-studio/types/Connector';
+import { isLLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
 
 /**
  * Command to replace a preview shape with a mermaid editor shape

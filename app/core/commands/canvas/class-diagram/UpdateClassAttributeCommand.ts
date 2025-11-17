@@ -1,6 +1,6 @@
-import type { Command } from '../command.types';
-import type { Shape, ClassShapeData } from '../../entities/design-studio/types/Shape';
-import type { Diagram } from '../../entities/design-studio/types';
+import type { Command } from '../../command.types';
+import type { Shape, ClassShapeData } from '../../../entities/design-studio/types/Shape';
+import type { Diagram } from '../../../entities/design-studio/types';
 
 export class UpdateClassAttributeCommand implements Command {
   public readonly description: string;

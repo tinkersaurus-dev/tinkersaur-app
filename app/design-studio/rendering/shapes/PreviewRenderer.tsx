@@ -14,8 +14,8 @@ import { ShapeWrapper } from './ShapeWrapper';
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
 import { useCanvasController } from '~/design-studio/components/canvas/core/CanvasControllerContext';
 import { commandManager } from '~/core/commands/CommandManager';
-import { ReplaceWithEditorCommand } from '~/core/commands/canvas/ReplaceWithEditorCommand';
-import { ApplyPreviewCommand } from '~/core/commands/canvas/ApplyPreviewCommand';
+import { ReplaceWithEditorCommand } from '~/core/commands/canvas/preview-import/ReplaceWithEditorCommand';
+import { ApplyPreviewCommand } from '~/core/commands/canvas/preview-import/ApplyPreviewCommand';
 import { toast } from 'sonner';
 import { applySequenceDiagramPostProcessing } from '~/design-studio/utils/sequenceDiagramPostProcessing';
 

@@ -1,6 +1,6 @@
-import type { Command } from '../command.types';
-import type { Connector } from '../../entities/design-studio/types/Connector';
-import type { Diagram } from '../../entities/design-studio/types';
+import type { Command } from '../../command.types';
+import type { Connector } from '../../../entities/design-studio/types/Connector';
+import type { Diagram } from '../../../entities/design-studio/types';
 
 export class UpdateConnectorLabelCommand implements Command {
   public readonly description: string;

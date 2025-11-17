@@ -1,8 +1,8 @@
-import type { Command } from '../command.types';
-import type { CreateShapeDTO, Shape } from '../../entities/design-studio/types/Shape';
-import type { CreateConnectorDTO, Connector } from '../../entities/design-studio/types/Connector';
-import type { Diagram } from '../../entities/design-studio/types';
-import type { LLMPreviewShapeData } from '../../entities/design-studio/types/Shape';
+import type { Command } from '../../command.types';
+import type { CreateShapeDTO, Shape } from '../../../entities/design-studio/types/Shape';
+import type { CreateConnectorDTO, Connector } from '../../../entities/design-studio/types/Connector';
+import type { Diagram } from '../../../entities/design-studio/types';
+import type { LLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
 
 /**
  * Command to apply a preview shape by converting it to real shapes and connectors

@@ -5,10 +5,10 @@
  * Activation boxes show periods when a participant is actively processing.
  */
 
-import type { Command } from '../command.types';
-import type { Shape } from '../../entities/design-studio/types/Shape';
-import type { Diagram } from '../../entities/design-studio/types';
-import type { ActivationBox, SequenceLifelineData } from '../../entities/design-studio/types/Shape';
+import type { Command } from '../../command.types';
+import type { Shape } from '../../../entities/design-studio/types/Shape';
+import type { Diagram } from '../../../entities/design-studio/types';
+import type { ActivationBox, SequenceLifelineData } from '../../../entities/design-studio/types/Shape';
 
 export class UpdateLifelineActivationsCommand implements Command {
   public readonly description: string;

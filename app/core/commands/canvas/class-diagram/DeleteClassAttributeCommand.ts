@@ -1,17 +1,17 @@
-import type { Command } from '../command.types';
-import type { Shape, ClassShapeData } from '../../entities/design-studio/types/Shape';
-import type { Diagram } from '../../entities/design-studio/types';
+import type { Command } from '../../command.types';
+import type { Shape, ClassShapeData } from '../../../entities/design-studio/types/Shape';
+import type { Diagram } from '../../../entities/design-studio/types';
 import { calculateClassHeight } from '~/design-studio/utils/classHeightCalculator';
 
-export class DeleteClassMethodCommand implements Command {
+export class DeleteClassAttributeCommand implements Command {
   public readonly description: string;
-  private deletedMethod: string | null = null;
+  private deletedAttribute: string | null = null;
   private deletedIndex: number = -1;
 
   constructor(
     private readonly diagramId: string,
     private readonly shapeId: string,
-    private readonly methodIndex: number,
+    private readonly attributeIndex: number,
     private readonly updateShapeFn: (
       diagramId: string,
       shapeId: string,
@@ -23,7 +23,7 @@ export class DeleteClassMethodCommand implements Command {
       updates: Partial<Shape>
     ) => void
   ) {
-    this.description = `Delete class method at index ${methodIndex}`;
+    this.description = `Delete class attribute at index ${attributeIndex}`;
   }
 
   async execute(): Promise<void> {
@@ -31,15 +31,15 @@ export class DeleteClassMethodCommand implements Command {
     if (!shape) return;
 
     const currentData = (shape.data || {}) as unknown as ClassShapeData;
-    const methods = currentData.methods || [];
+    const attributes = currentData.attributes || [];
 
-    // Store the deleted method for undo
-    this.deletedMethod = methods[this.methodIndex];
-    this.deletedIndex = this.methodIndex;
+    // Store the deleted attribute for undo
+    this.deletedAttribute = attributes[this.attributeIndex];
+    this.deletedIndex = this.attributeIndex;
 
     const newData: ClassShapeData = {
       ...currentData,
-      methods: methods.filter((_, index) => index !== this.methodIndex),
+      attributes: attributes.filter((_, index) => index !== this.attributeIndex),
     };
 
     const newHeight = calculateClassHeight(newData);
@@ -56,21 +56,21 @@ export class DeleteClassMethodCommand implements Command {
   }
 
   async undo(): Promise<void> {
-    if (this.deletedMethod === null) return;
+    if (this.deletedAttribute === null) return;
 
     const shape = this.getShapeFn(this.shapeId);
     if (!shape) return;
 
     const currentData = (shape.data || {}) as unknown as ClassShapeData;
-    const methods = currentData.methods || [];
+    const attributes = currentData.attributes || [];
 
-    // Restore the method at the original index
-    const newMethods = [...methods];
-    newMethods.splice(this.deletedIndex, 0, this.deletedMethod);
+    // Restore the attribute at the original index
+    const newAttributes = [...attributes];
+    newAttributes.splice(this.deletedIndex, 0, this.deletedAttribute);
 
     const newData: ClassShapeData = {
       ...currentData,
-      methods: newMethods,
+      attributes: newAttributes,
     };
 
     const newHeight = calculateClassHeight(newData);

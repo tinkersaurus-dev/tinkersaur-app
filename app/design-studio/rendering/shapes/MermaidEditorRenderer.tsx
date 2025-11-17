@@ -15,7 +15,7 @@ import { ShapeWrapper } from './ShapeWrapper';
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
 import { useCanvasController } from '~/design-studio/components/canvas/core/CanvasControllerContext';
 import { commandManager } from '~/core/commands/CommandManager';
-import { UpdatePreviewCommand } from '~/core/commands/canvas/UpdatePreviewCommand';
+import { UpdatePreviewCommand } from '~/core/commands/canvas/preview-import/UpdatePreviewCommand';
 import { toast } from 'sonner';
 import { applySequenceDiagramPostProcessing } from '~/design-studio/utils/sequenceDiagramPostProcessing';
 

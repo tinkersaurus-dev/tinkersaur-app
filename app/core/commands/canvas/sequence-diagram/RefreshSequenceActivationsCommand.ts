@@ -6,10 +6,10 @@
  * in sequence diagrams.
  */
 
-import type { Command } from '../command.types';
-import type { Diagram } from '../../entities/design-studio/types';
-import type { Shape } from '../../entities/design-studio/types/Shape';
-import type { ActivationBox, SequenceLifelineData } from '../../entities/design-studio/types/Shape';
+import type { Command } from '../../command.types';
+import type { Diagram } from '../../../entities/design-studio/types';
+import type { Shape } from '../../../entities/design-studio/types/Shape';
+import type { ActivationBox, SequenceLifelineData } from '../../../entities/design-studio/types/Shape';
 import { calculateAllLifelineActivations } from '~/design-studio/utils/sequenceActivationCalculator';
 import { UpdateLifelineActivationsCommand } from './UpdateLifelineActivationsCommand';
 

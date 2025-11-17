@@ -1,6 +1,6 @@
-import type { Command } from '../command.types';
-import type { Connector, UpdateConnectorDTO } from '../../entities/design-studio/types/Connector';
-import type { Diagram } from '../../entities/design-studio/types';
+import type { Command } from '../../command.types';
+import type { Connector, UpdateConnectorDTO } from '../../../entities/design-studio/types/Connector';
+import type { Diagram } from '../../../entities/design-studio/types';
 
 /**
  * Command to change a connector's type (and associated visual properties)

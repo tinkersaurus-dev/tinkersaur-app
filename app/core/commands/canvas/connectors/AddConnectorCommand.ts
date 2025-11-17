@@ -1,6 +1,6 @@
-import type { Command } from '../command.types';
-import type { CreateConnectorDTO } from '../../entities/design-studio/types/Connector';
-import type { Diagram } from '../../entities/design-studio/types';
+import type { Command } from '../../command.types';
+import type { CreateConnectorDTO } from '../../../entities/design-studio/types/Connector';
+import type { Diagram } from '../../../entities/design-studio/types';
 
 /**
  * Command to add a connector to a diagram

@@ -13,8 +13,8 @@ export { CommandHistory } from './CommandHistory';
 export { CommandManager, commandManager } from './CommandManager';
 
 // Canvas commands
-export { AddShapeCommand } from './canvas/AddShapeCommand';
-export { DeleteShapeCommand } from './canvas/DeleteShapeCommand';
-export { MoveShapeCommand } from './canvas/MoveShapeCommand';
-export { UpdateShapeLabelCommand } from './canvas/UpdateShapeLabelCommand';
-export { UpdateConnectorLabelCommand } from './canvas/UpdateConnectorLabelCommand';
+export { AddShapeCommand } from './canvas/shapes/AddShapeCommand';
+export { DeleteShapeCommand } from './canvas/shapes/DeleteShapeCommand';
+export { MoveShapeCommand } from './canvas/shapes/MoveShapeCommand';
+export { UpdateShapeLabelCommand } from './canvas/shapes/UpdateShapeLabelCommand';
+export { UpdateConnectorLabelCommand } from './canvas/connectors/UpdateConnectorLabelCommand';

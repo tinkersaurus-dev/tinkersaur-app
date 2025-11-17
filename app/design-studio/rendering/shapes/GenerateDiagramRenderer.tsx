@@ -15,7 +15,7 @@ import { generateMermaid, MermaidGeneratorAPIError } from '~/design-studio/lib/l
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
 import { useCanvasController } from '~/design-studio/components/canvas/core/CanvasControllerContext';
 import { commandManager } from '~/core/commands/CommandManager';
-import { ReplaceWithPreviewCommand } from '~/core/commands/canvas/ReplaceWithPreviewCommand';
+import { ReplaceWithPreviewCommand } from '~/core/commands/canvas/preview-import/ReplaceWithPreviewCommand';
 import { toast } from 'sonner';
 import { applySequenceDiagramPostProcessing } from '~/design-studio/utils/sequenceDiagramPostProcessing';
 

@@ -1,8 +1,8 @@
-import type { Command } from '../command.types';
-import type { Shape } from '../../entities/design-studio/types/Shape';
-import type { Connector } from '../../entities/design-studio/types/Connector';
-import type { Diagram } from '../../entities/design-studio/types';
-import { isLLMPreviewShapeData } from '../../entities/design-studio/types/Shape';
+import type { Command } from '../../command.types';
+import type { Shape } from '../../../entities/design-studio/types/Shape';
+import type { Connector } from '../../../entities/design-studio/types/Connector';
+import type { Diagram } from '../../../entities/design-studio/types';
+import { isLLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
 
 /**
  * Command to delete a shape from a diagram

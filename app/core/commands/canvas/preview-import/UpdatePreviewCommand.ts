@@ -1,61 +1,70 @@
-import type { Command } from '../command.types';
-import type { CreateShapeDTO, Shape } from '../../entities/design-studio/types/Shape';
-import type { CreateConnectorDTO } from '../../entities/design-studio/types/Connector';
-import type { Diagram, DiagramType } from '../../entities/design-studio/types';
+import type { Command } from '../../command.types';
+import type { CreateShapeDTO, Shape } from '../../../entities/design-studio/types/Shape';
+import type { CreateConnectorDTO } from '../../../entities/design-studio/types/Connector';
+import type { Diagram, DiagramType } from '../../../entities/design-studio/types';
 import type { MermaidImportResult } from '~/design-studio/lib/mermaid/mermaid-importer';
 import { BpmnMermaidImporter } from '~/design-studio/lib/mermaid/importers/bpmn-mermaid-importer';
 import { ClassMermaidImporter } from '~/design-studio/lib/mermaid/importers/class-mermaid-importer';
-import { SequenceMermaidImporter} from '~/design-studio/lib/mermaid/importers/sequence-mermaid-importer';
+import { SequenceMermaidImporter } from '~/design-studio/lib/mermaid/importers/sequence-mermaid-importer';
+import { isLLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
 
 /**
- * Command to replace a generator shape with a preview shape
+ * Command to update a preview shape from a mermaid editor shape
  * This command:
- * 1. Parses the generated mermaid syntax using the appropriate importer
- * 2. Deletes the generator shape
- * 3. Creates a preview container shape with metadata
- * 4. Creates all preview shapes and connectors as actual diagram entities (marked with isPreview)
+ * 1. Parses the updated mermaid syntax using the appropriate importer
+ * 2. Deletes the editor shape
+ * 3. Deletes old preview shapes/connectors if they exist
+ * 4. Creates new preview shapes and connectors as diagram entities (marked with isPreview)
+ * 5. Creates an updated preview container shape with the correct data structure
  */
-export class ReplaceWithPreviewCommand implements Command {
+export class UpdatePreviewCommand implements Command {
   public readonly description: string;
   private previewShapeId: string | null = null;
   private previewContentShapeIds: string[] = [];
   private previewContentConnectorIds: string[] = [];
-  private generatorShapeData: CreateShapeDTO | null = null;
+  private editorShapeData: CreateShapeDTO | null = null;
+  private oldPreviewShapeId: string | null = null;
+  private oldPreviewContentShapeIds: string[] = [];
+  private oldPreviewContentConnectorIds: string[] = [];
 
   constructor(
     private readonly diagramId: string,
     private readonly diagramType: DiagramType,
-    private readonly generatorShapeId: string,
-    private readonly mermaidSyntax: string,
-    private readonly generatorPosition: { x: number; y: number; width: number; height: number },
+    private readonly editorShapeId: string,
+    private readonly updatedMermaidSyntax: string,
+    private readonly editorPosition: { x: number; y: number; width: number; height: number },
+    private readonly originalGeneratorShapeId: string,
+    private readonly oldPreviewShapeId_param: string | null,
     private readonly addShapeFn: (diagramId: string, shapeData: CreateShapeDTO) => Promise<Diagram>,
     private readonly addConnectorFn: (diagramId: string, connectorData: CreateConnectorDTO) => Promise<Diagram | null>,
     private readonly deleteShapeFn: (diagramId: string, shapeId: string) => Promise<Diagram | null>,
     private readonly deleteConnectorFn: (diagramId: string, connectorId: string) => Promise<Diagram | null>,
     private readonly getShapeFn: (diagramId: string, shapeId: string) => Promise<Shape | null>,
     private readonly addShapesBatchFn?: (diagramId: string, shapes: CreateShapeDTO[]) => Promise<Diagram>,
-    private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>
+    private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>,
+    private readonly deleteShapesBatchFn?: (diagramId: string, shapeIds: string[]) => Promise<Diagram | null>,
+    private readonly deleteConnectorsBatchFn?: (diagramId: string, connectorIds: string[]) => Promise<Diagram | null>
   ) {
-    this.description = 'Replace generator with preview';
+    this.description = 'Update diagram preview';
+    this.oldPreviewShapeId = oldPreviewShapeId_param;
   }
 
   async execute(): Promise<void> {
     // Get the appropriate mermaid importer for the diagram type
     const importer = this.getImporter(this.diagramType);
     if (!importer) {
-      console.error('[ReplaceWithPreviewCommand] No importer found for:', this.diagramType);
       throw new Error(`No mermaid importer found for diagram type: ${this.diagramType}`);
     }
-    // Parse the mermaid syntax
-    const parseResult = importer.import(this.mermaidSyntax, {
+
+    // Parse the updated mermaid syntax
+    const parseResult = importer.import(this.updatedMermaidSyntax, {
       centerPoint: {
-        x: this.generatorPosition.x + this.generatorPosition.width / 2,
-        y: this.generatorPosition.y + this.generatorPosition.height / 2,
+        x: this.editorPosition.x + this.editorPosition.width / 2,
+        y: this.editorPosition.y + this.editorPosition.height / 2,
       },
     });
 
     if (!parseResult.ok) {
-      console.error('[ReplaceWithPreviewCommand] Parse failed:', parseResult.error);
       throw new Error(`Failed to parse mermaid: ${parseResult.error}`);
     }
 
@@ -64,22 +73,50 @@ export class ReplaceWithPreviewCommand implements Command {
     // Calculate bounding box of the parsed shapes to determine preview size
     const boundingBox = this.calculateBoundingBox(importResult);
 
-    // Store generator shape data for undo
-    const generatorShape = await this.getShapeFn(this.diagramId, this.generatorShapeId);
-    if (generatorShape) {
-      // Convert Shape to CreateShapeDTO by removing the id field
-      const { id: _id, ...shapeData } = generatorShape;
-      this.generatorShapeData = shapeData;
+    // Store editor shape data for undo
+    const editorShape = await this.getShapeFn(this.diagramId, this.editorShapeId);
+    if (editorShape) {
+      const { id: _id, ...shapeData } = editorShape;
+      this.editorShapeData = shapeData;
     }
 
-    // Delete the generator shape
-    await this.deleteShapeFn(this.diagramId, this.generatorShapeId);
+    // Delete the editor shape
+    await this.deleteShapeFn(this.diagramId, this.editorShapeId);
+
+    // If there's an old preview shape, delete its content first
+    if (this.oldPreviewShapeId) {
+      const oldPreviewShape = await this.getShapeFn(this.diagramId, this.oldPreviewShapeId);
+      if (oldPreviewShape && oldPreviewShape.data && isLLMPreviewShapeData(oldPreviewShape.data)) {
+        this.oldPreviewContentShapeIds = oldPreviewShape.data.previewShapeIds;
+        this.oldPreviewContentConnectorIds = oldPreviewShape.data.previewConnectorIds;
+
+        // Delete old preview connectors
+        if (this.deleteConnectorsBatchFn && this.oldPreviewContentConnectorIds.length > 0) {
+          await this.deleteConnectorsBatchFn(this.diagramId, this.oldPreviewContentConnectorIds);
+        } else {
+          for (const connectorId of this.oldPreviewContentConnectorIds) {
+            await this.deleteConnectorFn(this.diagramId, connectorId);
+          }
+        }
+
+        // Delete old preview shapes
+        if (this.deleteShapesBatchFn && this.oldPreviewContentShapeIds.length > 0) {
+          await this.deleteShapesBatchFn(this.diagramId, this.oldPreviewContentShapeIds);
+        } else {
+          for (const shapeId of this.oldPreviewContentShapeIds) {
+            await this.deleteShapeFn(this.diagramId, shapeId);
+          }
+        }
+
+        // Delete old preview container
+        await this.deleteShapeFn(this.diagramId, this.oldPreviewShapeId);
+      }
+    }
 
     // Track shape IDs by their index in the import result
     const createdShapeIds: string[] = [];
 
     // Create all preview shapes as actual diagram entities (marked with isPreview)
-    // Prepare all shape DTOs with isPreview flag
     const shapeDTOs = importResult.shapes.map(shapeData => ({
       ...shapeData,
       isPreview: true, // Mark as preview to disable interactivity
@@ -106,7 +143,6 @@ export class ReplaceWithPreviewCommand implements Command {
     }
 
     // Create all preview connectors using shape indices
-    // Prepare all connector DTOs with actual shape IDs
     const connectorDTOs: CreateConnectorDTO[] = [];
     for (const connectorRef of importResult.connectors) {
       // Look up the actual shape IDs using the indices
@@ -114,7 +150,7 @@ export class ReplaceWithPreviewCommand implements Command {
       const toShapeId = createdShapeIds[connectorRef.toShapeIndex];
 
       if (!fromShapeId || !toShapeId) {
-        console.error('[ReplaceWithPreviewCommand] Cannot create connector - invalid shape index:', {
+        console.error('[UpdatePreviewCommand] Cannot create connector - invalid shape index:', {
           fromShapeIndex: connectorRef.fromShapeIndex,
           toShapeIndex: connectorRef.toShapeIndex,
           fromShapeId,
@@ -160,7 +196,7 @@ export class ReplaceWithPreviewCommand implements Command {
       }
     }
 
-    // Create the preview container shape with metadata
+    // Create the preview container shape with correct data structure
     const previewShapeData: CreateShapeDTO = {
       type: 'llm-preview',
       subtype: undefined,
@@ -173,8 +209,8 @@ export class ReplaceWithPreviewCommand implements Command {
       locked: false,
       isPreview: false, // The preview container itself is not a preview shape
       data: {
-        mermaidSyntax: this.mermaidSyntax,
-        generatorShapeId: this.generatorShapeId,
+        mermaidSyntax: this.updatedMermaidSyntax,
+        generatorShapeId: this.originalGeneratorShapeId,
         previewShapeIds: this.previewContentShapeIds,
         previewConnectorIds: this.previewContentConnectorIds,
       },
@@ -186,14 +222,14 @@ export class ReplaceWithPreviewCommand implements Command {
     if (diagram && diagram.shapes.length > 0) {
       this.previewShapeId = diagram.shapes[diagram.shapes.length - 1].id;
     } else {
-      console.error('[ReplaceWithPreviewCommand] Failed to create preview container');
+      console.error('[UpdatePreviewCommand] Failed to create preview container');
       throw new Error('Failed to create preview shape');
     }
   }
 
   async undo(): Promise<void> {
-    if (!this.previewShapeId || !this.generatorShapeData) {
-      console.warn('Cannot undo ReplaceWithPreviewCommand: missing data');
+    if (!this.previewShapeId || !this.editorShapeData) {
+      console.warn('Cannot undo UpdatePreviewCommand: missing data');
       return;
     }
 
@@ -201,17 +237,29 @@ export class ReplaceWithPreviewCommand implements Command {
     await this.deleteShapeFn(this.diagramId, this.previewShapeId);
 
     // Delete all preview content connectors
-    for (const connectorId of this.previewContentConnectorIds) {
-      await this.deleteConnectorFn(this.diagramId, connectorId);
+    if (this.deleteConnectorsBatchFn && this.previewContentConnectorIds.length > 0) {
+      await this.deleteConnectorsBatchFn(this.diagramId, this.previewContentConnectorIds);
+    } else {
+      for (const connectorId of this.previewContentConnectorIds) {
+        await this.deleteConnectorFn(this.diagramId, connectorId);
+      }
     }
 
     // Delete all preview content shapes
-    for (const shapeId of this.previewContentShapeIds) {
-      await this.deleteShapeFn(this.diagramId, shapeId);
+    if (this.deleteShapesBatchFn && this.previewContentShapeIds.length > 0) {
+      await this.deleteShapesBatchFn(this.diagramId, this.previewContentShapeIds);
+    } else {
+      for (const shapeId of this.previewContentShapeIds) {
+        await this.deleteShapeFn(this.diagramId, shapeId);
+      }
     }
 
-    // Restore the generator shape
-    await this.addShapeFn(this.diagramId, this.generatorShapeData);
+    // Restore the editor shape
+    await this.addShapeFn(this.diagramId, this.editorShapeData);
+
+    // If there was an old preview, restore it
+    // Note: This is complex and would require storing all the old preview data
+    // For now, we'll just restore the editor shape
   }
 
   /**
@@ -242,8 +290,8 @@ export class ReplaceWithPreviewCommand implements Command {
     if (importResult.shapes.length === 0) {
       // Return default size if no shapes
       return {
-        x: this.generatorPosition.x,
-        y: this.generatorPosition.y,
+        x: this.editorPosition.x,
+        y: this.editorPosition.y,
         width: 300,
         height: 200,
       };
