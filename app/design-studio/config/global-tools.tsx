@@ -19,7 +19,7 @@ const generateDiagramTool: Tool = {
   icon: FaWandMagicSparkles,
   shapeType: 'llm-generator',
   shapeSubtype: '',
-  defaultSize: { width: 180, height: 120 },
+  defaultSize: { width: 280, height: 280 },
 };
 
 /**

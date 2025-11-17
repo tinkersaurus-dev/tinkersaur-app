@@ -16,7 +16,6 @@ export class ApplyPreviewCommand implements Command {
   private createdShapeIds: string[] = [];
   private createdConnectorIds: string[] = [];
   private previewShapeData: CreateShapeDTO | null = null;
-  private diagramType: string | null = null;
 
   constructor(
     private readonly diagramId: string,
@@ -30,20 +29,12 @@ export class ApplyPreviewCommand implements Command {
     private readonly addShapesBatchFn?: (diagramId: string, shapes: CreateShapeDTO[]) => Promise<Diagram>,
     private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>,
     private readonly deleteShapesBatchFn?: (diagramId: string, shapeIds: string[]) => Promise<Diagram | null>,
-    private readonly deleteConnectorsBatchFn?: (diagramId: string, connectorIds: string[]) => Promise<Diagram | null>,
-    private readonly refreshActivationsFn?: (diagramId: string) => Promise<void>,
-    private readonly getDiagramFn?: (diagramId: string) => Diagram | null | undefined
+    private readonly deleteConnectorsBatchFn?: (diagramId: string, connectorIds: string[]) => Promise<Diagram | null>
   ) {
     this.description = 'Apply diagram';
   }
 
   async execute(): Promise<void> {
-    // Get diagram type for activation box refresh
-    if (this.getDiagramFn) {
-      const diagram = this.getDiagramFn(this.diagramId);
-      this.diagramType = diagram?.type || null;
-    }
-
     // Get the preview shape to extract its data
     const previewShape = await this.getShapeFn(this.diagramId, this.previewShapeId);
 
@@ -200,11 +191,6 @@ export class ApplyPreviewCommand implements Command {
           this.createdConnectorIds.push(newConnectorId);
         }
       }
-    }
-
-    // Refresh activation boxes for sequence diagrams
-    if (this.diagramType === 'sequence' && this.refreshActivationsFn) {
-      await this.refreshActivationsFn(this.diagramId);
     }
   }
 

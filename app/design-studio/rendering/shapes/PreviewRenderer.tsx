@@ -8,7 +8,6 @@
  */
 
 import { FaEdit, FaCheck } from 'react-icons/fa';
-import { useCallback } from 'react';
 import type { ShapeRendererProps } from './types';
 import type { LLMPreviewShapeData } from '~/core/entities/design-studio/types';
 import { ShapeWrapper } from './ShapeWrapper';
@@ -18,6 +17,7 @@ import { commandManager } from '~/core/commands/CommandManager';
 import { ReplaceWithEditorCommand } from '~/core/commands/canvas/ReplaceWithEditorCommand';
 import { ApplyPreviewCommand } from '~/core/commands/canvas/ApplyPreviewCommand';
 import { toast } from 'sonner';
+import { applySequenceDiagramPostProcessing } from '~/design-studio/utils/sequenceDiagramPostProcessing';
 
 export function PreviewRenderer({
   shape,
@@ -37,15 +37,11 @@ export function PreviewRenderer({
   const deleteConnector = useDesignStudioEntityStore((state) => state._internalDeleteConnector);
   const getShape = useDesignStudioEntityStore((state) => state._internalGetShape);
   const getConnector = useDesignStudioEntityStore((state) => state._internalGetConnector);
-  const diagrams = useDesignStudioEntityStore((state) => state.diagrams);
   const addShapesBatch = useDesignStudioEntityStore((state) => state._internalAddShapesBatch);
   const addConnectorsBatch = useDesignStudioEntityStore((state) => state._internalAddConnectorsBatch);
   const deleteShapesBatch = useDesignStudioEntityStore((state) => state._internalDeleteShapesBatch);
   const deleteConnectorsBatch = useDesignStudioEntityStore((state) => state._internalDeleteConnectorsBatch);
   const commandFactory = useDesignStudioEntityStore((state) => state.commandFactory);
-
-  // Create stable getDiagram function
-  const getDiagram = useCallback((id: string) => diagrams[id] ?? null, [diagrams]);
 
   // Parse shape data - the preview shapes and connectors are already in the diagram
   const previewData = (shape.data || {}) as unknown as LLMPreviewShapeData;
@@ -95,12 +91,6 @@ export function PreviewRenderer({
 
   const handleApply = async () => {
     try {
-      // Create refresh activations callback for sequence diagrams
-      const refreshActivations = async (diagramId: string) => {
-        const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
-        await commandManager.execute(refreshCommand, diagramId);
-      };
-
       const command = new ApplyPreviewCommand(
         diagramId,
         shape.id,
@@ -113,12 +103,14 @@ export function PreviewRenderer({
         addShapesBatch,
         addConnectorsBatch,
         deleteShapesBatch,
-        deleteConnectorsBatch,
-        refreshActivations,
-        getDiagram
+        deleteConnectorsBatch
       );
 
       await commandManager.execute(command, diagramId);
+
+      // Apply sequence diagram post-processing (lifeline heights and activation boxes)
+      await applySequenceDiagramPostProcessing(diagramId, commandFactory);
+
       toast.success('Diagram applied successfully!');
     } catch (error) {
       console.error('Error applying preview:', error);

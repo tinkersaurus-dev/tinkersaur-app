@@ -17,6 +17,7 @@ import { useCanvasController } from '~/design-studio/components/canvas/core/Canv
 import { commandManager } from '~/core/commands/CommandManager';
 import { ReplaceWithPreviewCommand } from '~/core/commands/canvas/ReplaceWithPreviewCommand';
 import { toast } from 'sonner';
+import { applySequenceDiagramPostProcessing } from '~/design-studio/utils/sequenceDiagramPostProcessing';
 
 export function GenerateDiagramRenderer({
   shape,
@@ -111,12 +112,6 @@ export function GenerateDiagramRenderer({
 
       console.log('[GenerateDiagramRenderer] Creating ReplaceWithPreviewCommand...');
 
-      // Create refresh activations callback for sequence diagrams
-      const refreshActivations = async (diagramId: string) => {
-        const refreshCommand = commandFactory.createRefreshSequenceActivations(diagramId);
-        await commandManager.execute(refreshCommand, diagramId);
-      };
-
       const command = new ReplaceWithPreviewCommand(
         diagramId,
         diagramType,
@@ -129,13 +124,16 @@ export function GenerateDiagramRenderer({
         deleteConnector,
         getShape,
         addShapesBatch,
-        addConnectorsBatch,
-        refreshActivations
+        addConnectorsBatch
       );
 
       console.log('[GenerateDiagramRenderer] Executing command...');
       await commandManager.execute(command, diagramId);
       console.log('[GenerateDiagramRenderer] Command executed successfully');
+
+      // Apply sequence diagram post-processing (lifeline heights and activation boxes)
+      await applySequenceDiagramPostProcessing(diagramId, commandFactory);
+
       toast.success('Diagram generated successfully!');
     } catch (err) {
       console.error('[GenerateDiagramRenderer] Error caught:', err);
@@ -194,7 +192,8 @@ export function GenerateDiagramRenderer({
         disabled={isLoading}
         style={{
           width: '100%',
-          flex: 1,
+          minHeight: '100px',
+          //flex: 1,
           padding: '6px',
           fontSize: '10px',
           fontFamily: 'inherit',

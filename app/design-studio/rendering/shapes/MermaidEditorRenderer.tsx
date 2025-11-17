@@ -17,6 +17,7 @@ import { useCanvasController } from '~/design-studio/components/canvas/core/Canv
 import { commandManager } from '~/core/commands/CommandManager';
 import { UpdatePreviewCommand } from '~/core/commands/canvas/UpdatePreviewCommand';
 import { toast } from 'sonner';
+import { applySequenceDiagramPostProcessing } from '~/design-studio/utils/sequenceDiagramPostProcessing';
 
 export function MermaidEditorRenderer({
   shape,
@@ -39,6 +40,7 @@ export function MermaidEditorRenderer({
   const addConnectorsBatch = useDesignStudioEntityStore((state) => state._internalAddConnectorsBatch);
   const deleteShapesBatch = useDesignStudioEntityStore((state) => state._internalDeleteShapesBatch);
   const deleteConnectorsBatch = useDesignStudioEntityStore((state) => state._internalDeleteConnectorsBatch);
+  const commandFactory = useDesignStudioEntityStore((state) => state.commandFactory);
 
   const diagramType = diagram?.type as DiagramType | undefined;
 
@@ -100,6 +102,10 @@ export function MermaidEditorRenderer({
       );
 
       await commandManager.execute(command, diagramId);
+
+      // Apply sequence diagram post-processing (lifeline heights and activation boxes)
+      await applySequenceDiagramPostProcessing(diagramId, commandFactory);
+
       toast.success('Diagram updated successfully!');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update diagram';

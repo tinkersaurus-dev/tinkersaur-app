@@ -34,8 +34,7 @@ export class ReplaceWithPreviewCommand implements Command {
     private readonly deleteConnectorFn: (diagramId: string, connectorId: string) => Promise<Diagram | null>,
     private readonly getShapeFn: (diagramId: string, shapeId: string) => Promise<Shape | null>,
     private readonly addShapesBatchFn?: (diagramId: string, shapes: CreateShapeDTO[]) => Promise<Diagram>,
-    private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>,
-    private readonly refreshActivationsFn?: (diagramId: string) => Promise<void>
+    private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>
   ) {
     this.description = 'Replace generator with preview';
   }
@@ -159,11 +158,6 @@ export class ReplaceWithPreviewCommand implements Command {
           this.previewContentConnectorIds.push(newConnectorId);
         }
       }
-    }
-
-    // Refresh activation boxes for sequence diagrams
-    if (this.diagramType === 'sequence' && this.refreshActivationsFn) {
-      await this.refreshActivationsFn(this.diagramId);
     }
 
     // Create the preview container shape with metadata
