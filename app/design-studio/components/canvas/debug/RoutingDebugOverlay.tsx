@@ -1,33 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import type { OrthogonalVisibilityGraph } from '../../../utils/orthogonalRouting';
+import { getDebugState } from './routingDebugState';
 
 /**
  * Debug overlay to visualize the routing graph
  * Shows nodes and edges for debugging obstacle avoidance
  */
-
-// Global debug state
-let debugGraph: OrthogonalVisibilityGraph | null = null;
-let debugStart: { x: number; y: number } | null = null;
-let debugEnd: { x: number; y: number } | null = null;
-let debugPath: Array<{ x: number; y: number }> | null = null;
-let debugVisitedNodes: Array<{ x: number; y: number; order: number }> = [];
-
-export function setDebugGraph(
-  graph: OrthogonalVisibilityGraph | null,
-  start?: { x: number; y: number },
-  end?: { x: number; y: number },
-  path?: Array<{ x: number; y: number }>,
-  visitedNodes?: Array<{ x: number; y: number; order: number }>
-) {
-  debugGraph = graph;
-  debugStart = start || null;
-  debugEnd = end || null;
-  debugPath = path || null;
-  debugVisitedNodes = visitedNodes || [];
-  // Trigger re-render of any mounted debug overlays
-  window.dispatchEvent(new CustomEvent('routing-debug-update'));
-}
 
 export function RoutingDebugOverlay() {
   const [, forceUpdate] = useState(0);
@@ -61,6 +38,8 @@ export function RoutingDebugOverlay() {
     window.addEventListener('mousemove', handler);
     return () => window.removeEventListener('mousemove', handler);
   }, [enabled]);
+
+  const { debugGraph, debugStart, debugEnd, debugPath, debugVisitedNodes } = getDebugState();
 
   if (!enabled || !debugGraph) {
     return enabled ? (

@@ -14,7 +14,8 @@ import { CanvasConnectorsList } from '../rendering/CanvasConnectorsList';
 import CanvasToolbar from '../../toolbar/CanvasToolbar';
 import CanvasTextToolbar from '../../toolbar/CanvasTextToolbar';
 import { MermaidViewer } from '../../mermaid/MermaidViewer';
-import { RoutingDebugOverlay, setDebugGraph } from '../debug/RoutingDebugOverlay';
+import { RoutingDebugOverlay } from '../debug/RoutingDebugOverlay';
+import { setDebugGraph } from '../debug/routingDebugState';
 
 /**
  * Canvas View Component
@@ -327,5 +328,5 @@ export function CanvasView() {
 
 // Expose debug function globally
 if (typeof window !== 'undefined') {
-  (window as any).setRoutingDebugGraph = setDebugGraph;
+  (window as Window & { setRoutingDebugGraph?: typeof setDebugGraph }).setRoutingDebugGraph = setDebugGraph;
 }

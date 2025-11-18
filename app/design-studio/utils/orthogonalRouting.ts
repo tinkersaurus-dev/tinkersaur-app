@@ -518,23 +518,84 @@ export function findOptimalRoute(
 
   // Create nudged start and end points that are offset in the specified direction
   // This ensures connectors leave/enter in the correct direction with spacing
-  const getNudgedPoint = (point: Point, direction: Direction): Point => {
+  const getNudgedPoint = (point: Point, direction: Direction, distance: number): Point => {
     switch (direction) {
-      case 'N': return { x: point.x, y: point.y - NUDGE_DISTANCE };
-      case 'S': return { x: point.x, y: point.y + NUDGE_DISTANCE };
-      case 'E': return { x: point.x + NUDGE_DISTANCE, y: point.y };
-      case 'W': return { x: point.x - NUDGE_DISTANCE, y: point.y };
+      case 'N': return { x: point.x, y: point.y - distance };
+      case 'S': return { x: point.x, y: point.y + distance };
+      case 'E': return { x: point.x + distance, y: point.y };
+      case 'W': return { x: point.x - distance, y: point.y };
     }
   };
 
-  const nudgedStart = getNudgedPoint(start, startDir);
-  const nudgedEnd = getNudgedPoint(end, endDir);
+  // Calculate halfway distance between start and end in the perpendicular direction
+  const getHalfwayDistance = (start: Point, end: Point, direction: Direction): number => {
+    switch (direction) {
+      case 'N':
+      case 'S':
+        return Math.abs(end.y - start.y) / 2;
+      case 'E':
+      case 'W':
+        return Math.abs(end.x - start.x) / 2;
+    }
+  };
+
+  // Helper to check if a nudge segment is blocked
+  const isNudgeSegmentBlocked = (p1: Point, p2: Point): boolean => {
+    for (const shape of shapes) {
+      // Check if horizontal segment
+      if (p1.y === p2.y) {
+        if (horizontalSegmentIntersectsShape(Math.min(p1.x, p2.x), Math.max(p1.x, p2.x), p1.y, shape)) {
+          return true;
+        }
+      }
+      // Check if vertical segment
+      if (p1.x === p2.x) {
+        if (verticalSegmentIntersectsShape(p1.x, Math.min(p1.y, p2.y), Math.max(p1.y, p2.y), shape)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  // Calculate safe nudge distances, checking for obstacles
+  const calculateSafeNudgeDistance = (point: Point, direction: Direction): number => {
+    const maxDistance = getHalfwayDistance(start, end, direction);
+
+    // Try the halfway distance first
+    const halfwayDist = Math.max(NUDGE_DISTANCE * 2, maxDistance);
+    const halfwayPoint = getNudgedPoint(point, direction, halfwayDist);
+
+    // Check if the path to halfway point is clear
+    if (!isNudgeSegmentBlocked(point, halfwayPoint)) {
+      return halfwayDist;
+    }
+
+    // If halfway is blocked, just use the minimum nudge distance
+    return NUDGE_DISTANCE;
+  };
+
+  const halfwayStartDist = calculateSafeNudgeDistance(start, startDir);
+  const halfwayEndDist = calculateSafeNudgeDistance(end, endDir);
+
+  // Create nudge points at two distances: initial nudge and halfway point (or minimum if blocked)
+  const nudgedStart1 = getNudgedPoint(start, startDir, NUDGE_DISTANCE);
+  const nudgedEnd1 = getNudgedPoint(end, endDir, NUDGE_DISTANCE);
+
+  // Only create second nudge points if they're different from first (i.e., halfway wasn't blocked)
+  const useStartNudge2 = halfwayStartDist > NUDGE_DISTANCE;
+  const useEndNudge2 = halfwayEndDist > NUDGE_DISTANCE;
+
+  const nudgedStart2 = useStartNudge2 ? getNudgedPoint(start, startDir, halfwayStartDist) : nudgedStart1;
+  const nudgedEnd2 = useEndNudge2 ? getNudgedPoint(end, endDir, halfwayEndDist) : nudgedEnd1;
 
   // Find or create start and end nodes in graph
   const startId = nodeId(start.x, start.y);
-  const nudgedStartId = nodeId(nudgedStart.x, nudgedStart.y);
+  const nudgedStart1Id = nodeId(nudgedStart1.x, nudgedStart1.y);
+  const nudgedStart2Id = nodeId(nudgedStart2.x, nudgedStart2.y);
   const endId = nodeId(end.x, end.y);
-  const nudgedEndId = nodeId(nudgedEnd.x, nudgedEnd.y);
+  const nudgedEnd1Id = nodeId(nudgedEnd1.x, nudgedEnd1.y);
+  const nudgedEnd2Id = nodeId(nudgedEnd2.x, nudgedEnd2.y);
 
   // Add the actual connection points to the graph
   if (!graph.nodes.has(startId)) {
@@ -546,29 +607,61 @@ export function findOptimalRoute(
     graph.edges.set(endId, []);
   }
 
-  // Add the nudged points to the graph
-  if (!graph.nodes.has(nudgedStartId)) {
-    graph.nodes.set(nudgedStartId, { x: nudgedStart.x, y: nudgedStart.y, id: nudgedStartId });
-    graph.edges.set(nudgedStartId, []);
+  // Add the first nudged points to the graph
+  if (!graph.nodes.has(nudgedStart1Id)) {
+    graph.nodes.set(nudgedStart1Id, { x: nudgedStart1.x, y: nudgedStart1.y, id: nudgedStart1Id });
+    graph.edges.set(nudgedStart1Id, []);
   }
-  if (!graph.nodes.has(nudgedEndId)) {
-    graph.nodes.set(nudgedEndId, { x: nudgedEnd.x, y: nudgedEnd.y, id: nudgedEndId });
-    graph.edges.set(nudgedEndId, []);
+  if (!graph.nodes.has(nudgedEnd1Id)) {
+    graph.nodes.set(nudgedEnd1Id, { x: nudgedEnd1.x, y: nudgedEnd1.y, id: nudgedEnd1Id });
+    graph.edges.set(nudgedEnd1Id, []);
   }
 
-  // Connect start to nudged start (initial exit from shape)
+  // Add the second nudged points to the graph
+  if (!graph.nodes.has(nudgedStart2Id)) {
+    graph.nodes.set(nudgedStart2Id, { x: nudgedStart2.x, y: nudgedStart2.y, id: nudgedStart2Id });
+    graph.edges.set(nudgedStart2Id, []);
+  }
+  if (!graph.nodes.has(nudgedEnd2Id)) {
+    graph.nodes.set(nudgedEnd2Id, { x: nudgedEnd2.x, y: nudgedEnd2.y, id: nudgedEnd2Id });
+    graph.edges.set(nudgedEnd2Id, []);
+  }
+
+  // Connect start -> nudgedStart1 (-> nudgedStart2 if different)
   const startEdges = graph.edges.get(startId)!;
   startEdges.push({
     from: startId,
-    to: nudgedStartId,
+    to: nudgedStart1Id,
     direction: startDir,
     length: NUDGE_DISTANCE
   });
 
-  // Connect nudged end to end (final entry to shape)
-  const nudgedEndEdges = graph.edges.get(nudgedEndId)!;
-  nudgedEndEdges.push({
-    from: nudgedEndId,
+  // Only add the second segment if nudgedStart2 is different from nudgedStart1
+  if (useStartNudge2) {
+    const nudgedStart1Edges = graph.edges.get(nudgedStart1Id)!;
+    nudgedStart1Edges.push({
+      from: nudgedStart1Id,
+      to: nudgedStart2Id,
+      direction: startDir,
+      length: halfwayStartDist - NUDGE_DISTANCE
+    });
+  }
+
+  // Connect (nudgedEnd2 ->) nudgedEnd1 -> end
+  // Only add the first segment if nudgedEnd2 is different from nudgedEnd1
+  if (useEndNudge2) {
+    const nudgedEnd2Edges = graph.edges.get(nudgedEnd2Id)!;
+    nudgedEnd2Edges.push({
+      from: nudgedEnd2Id,
+      to: nudgedEnd1Id,
+      direction: endDir,
+      length: halfwayEndDist - NUDGE_DISTANCE
+    });
+  }
+
+  const nudgedEnd1Edges = graph.edges.get(nudgedEnd1Id)!;
+  nudgedEnd1Edges.push({
+    from: nudgedEnd1Id,
     to: endId,
     direction: endDir,
     length: NUDGE_DISTANCE
@@ -593,7 +686,7 @@ export function findOptimalRoute(
       return dist < maxDistance;
     });
 
-    let edgesCreated = 0;
+    let _edgesCreated = 0;
     // For each existing node, create a perpendicular connection via an intermediate point
     for (const other of nodeList) {
       // Verify other still exists in graph
@@ -629,7 +722,7 @@ export function findOptimalRoute(
         if (point.x !== other.x && point.y !== other.y) {
           // Add intermediate node if it doesn't exist
           if (!graph.nodes.has(intermediateHId)) {
-            graph.nodes.set(intermediateHId, intermediateH);
+            graph.nodes.set(intermediateHId, { x: intermediateH.x, y: intermediateH.y, id: intermediateHId });
             graph.edges.set(intermediateHId, []);
           }
 
@@ -669,7 +762,7 @@ export function findOptimalRoute(
             length: Math.abs(other.y - point.y)
           });
 
-          edgesCreated += 4;
+          _edgesCreated += 4;
         } else if (point.y !== other.y) {
           // Direct vertical connection (same x)
           const vDir: Direction = other.y > point.y ? 'S' : 'N';
@@ -689,7 +782,7 @@ export function findOptimalRoute(
             direction: reverseVDir,
             length: Math.abs(other.y - point.y)
           });
-          edgesCreated += 2;
+          _edgesCreated += 2;
         } else if (point.x !== other.x) {
           // Direct horizontal connection (same y)
           const hDir: Direction = other.x > point.x ? 'E' : 'W';
@@ -709,7 +802,7 @@ export function findOptimalRoute(
             direction: reverseHDir,
             length: Math.abs(other.x - point.x)
           });
-          edgesCreated += 2;
+          _edgesCreated += 2;
         }
       }
 
@@ -738,7 +831,7 @@ export function findOptimalRoute(
         if (!v2Blocked && !h2Blocked && point.x !== other.x && point.y !== other.y) {
           // Add intermediate node if it doesn't exist
           if (!graph.nodes.has(intermediateVId)) {
-            graph.nodes.set(intermediateVId, intermediateV);
+            graph.nodes.set(intermediateVId, { x: intermediateV.x, y: intermediateV.y, id: intermediateVId });
             graph.edges.set(intermediateVId, []);
           }
 
@@ -778,29 +871,25 @@ export function findOptimalRoute(
             length: Math.abs(other.x - point.x)
           });
 
-          edgesCreated += 4;
+          _edgesCreated += 4;
         }
       }
     }
   };
 
-  // Connect the nudged start and end points to the visibility graph
+  // Connect the outer nudged points to the visibility graph
   // These are the points that route through the graph (not the actual connection points)
-  connectPointToGraph(nudgedStart, nudgedStartId, shapes);
-  connectPointToGraph(nudgedEnd, nudgedEndId, shapes);
-
-  console.log('='.repeat(80));
-  console.log('[A* START] New pathfinding attempt');
-  console.log('[A* Init] Nudged start edges:', graph.edges.get(nudgedStartId)?.length || 0, 'Nudged end edges:', graph.edges.get(nudgedEndId)?.length || 0);
+  connectPointToGraph(nudgedStart2, nudgedStart2Id, shapes);
+  connectPointToGraph(nudgedEnd2, nudgedEnd2Id, shapes);
 
   // Priority queue for A* (min-heap by cost)
   const openSet: SearchState[] = [];
   const closedSet = new Set<string>(); // Set of nodeId only (no direction)
 
-  // Initialize with nudged start state (not the actual connection point)
-  // The first segment from start -> nudged start will be added at the end
+  // Initialize with the outer nudged start point
+  // The path will be: start -> nudgedStart1 -> nudgedStart2 -> [graph route] -> nudgedEnd2 -> nudgedEnd1 -> end
   const initialState: SearchState = {
-    nodeId: nudgedStartId,
+    nodeId: nudgedStart2Id,
     entryDirection: startDir,
     pathLength: 0,
     bendCount: 0,
@@ -833,9 +922,9 @@ export function findOptimalRoute(
       visitedNodes.push({ x: currentNodePos.x, y: currentNodePos.y, order: visitOrder++ });
     }
 
-    // Check if we reached the destination (nudged end point)
-    if (current.nodeId === nudgedEndId) {
-      // Reconstruct path from nudged start to nudged end
+    // Check if we reached the destination (outer nudged end point)
+    if (current.nodeId === nudgedEnd2Id) {
+      // Reconstruct path from nudgedStart2 to nudgedEnd2
       const path: Point[] = [];
       let state: SearchState | null = current;
       while (state) {
@@ -844,34 +933,29 @@ export function findOptimalRoute(
         state = state.parent;
       }
 
-      // Add the actual start point at the beginning
-      path.unshift(start);
-
-      // Add the actual end point at the end
+      // Add the entry sequence: nudgedEnd1 -> end
+      path.push(nudgedEnd1);
       path.push(end);
 
+      // Add the exit sequence at the beginning: start -> nudgedStart1
+      path.unshift(nudgedStart1);
+      path.unshift(start);
+
       // Store visited nodes for debugging
-      console.log('[A* SUCCESS] Path found with', path.length, 'points');
-      console.log('='.repeat(80));
       lastVisitedNodes = visitedNodes;
       return path;
     }
 
     // Expand neighbors
-    const currentNode = graph.nodes.get(current.nodeId)!;
+    const _currentNode = graph.nodes.get(current.nodeId)!;
     const nodeEdges = graph.edges.get(current.nodeId) || [];
-
-    console.log('[A* Expand]', current.nodeId, 'has', nodeEdges.length, 'edges, entryDir:', current.entryDirection);
 
     for (const edge of nodeEdges) {
       const neighbor = graph.nodes.get(edge.to);
       if (!neighbor) {
-        console.error('[A* Search] Edge points to non-existent node:', edge.to, 'from', current.nodeId);
         continue;
       }
       const neighborKey = stateKey(edge.to);
-
-      console.log('  -> Edge to', edge.to, 'dir:', edge.direction, 'closed?', closedSet.has(neighborKey));
 
       if (closedSet.has(neighborKey)) continue;
 
@@ -912,8 +996,6 @@ export function findOptimalRoute(
   }
 
   // No path found - return direct path
-  console.log('[A* FAILED] No path found');
-  console.log('='.repeat(80));
   lastVisitedNodes = visitedNodes;
   return [start, end];
 }
@@ -1199,11 +1281,19 @@ export function findOrthogonalRoute(
   // Debug: Send graph data to debug overlay
   if (typeof window !== 'undefined') {
     try {
-      const setDebugGraph = (window as any).setRoutingDebugGraph;
+      const setDebugGraph = (window as Window & {
+        setRoutingDebugGraph?: (
+          graph: OrthogonalVisibilityGraph,
+          start: Point,
+          end: Point,
+          route: Point[],
+          visitedNodes: Array<{ x: number; y: number; order: number }>
+        ) => void
+      }).setRoutingDebugGraph;
       if (setDebugGraph) {
         setDebugGraph(graph, start, end, route, lastVisitedNodes);
       }
-    } catch (e) {
+    } catch (_e) {
       // Ignore - debug overlay not available
     }
   }
