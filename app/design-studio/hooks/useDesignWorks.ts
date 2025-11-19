@@ -12,8 +12,7 @@ export function useDesignWorks(solutionId: string) {
 
   useEffect(() => {
     fetchDesignWorks(solutionId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [solutionId]); // Only re-fetch when solutionId changes
+  }, [solutionId, fetchDesignWorks]);
 
   // Filter to only this solution's design works
   const filteredDesignWorks = useMemo(

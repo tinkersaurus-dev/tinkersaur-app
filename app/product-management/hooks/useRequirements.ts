@@ -26,8 +26,7 @@ export function useRequirements(changeId: string | undefined) {
     if (changeId) {
       fetchRequirementsByChange(changeId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [changeId]); // Only re-fetch when changeId changes
+  }, [changeId, fetchRequirementsByChange]);
 
   return { requirements, loading, error };
 }

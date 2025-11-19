@@ -115,73 +115,74 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     }
   };
 
-  // Build tree recursively from DesignWorks (folders) using embedded metadata
-  const buildTreeData = (parentDesignWorkId?: string): TreeNodeData[] => {
-    const nodes: TreeNodeData[] = [];
-
-    // Get child design works (folders) at this level
-    const childDesignWorks = parentDesignWorkId
-      ? designWorks.filter((dw) => dw.parentDesignWorkId === parentDesignWorkId)
-      : designWorks.filter((dw) => dw.solutionId === solutionId && !dw.parentDesignWorkId);
-
-    // Add each DesignWork as a folder
-    childDesignWorks.forEach((designWork) => {
-      // Build children (nested folders and content)
-      const children: TreeNodeData[] = [];
-
-      // Add nested folders recursively
-      const nestedFolders = buildTreeData(designWork.id);
-      children.push(...nestedFolders);
-
-      // Combine all content items with their order
-      const allContent: Array<{ order: number; node: TreeNodeData }> = [
-        ...(designWork.diagrams || []).map((diagramRef) => ({
-          order: diagramRef.order,
-          node: {
-            title: diagramRef.name,
-            key: `diagram-${diagramRef.id}`,
-            icon: getContentIcon('diagram'),
-            isLeaf: true,
-          },
-        })),
-        ...(designWork.interfaces || []).map((interfaceRef) => ({
-          order: interfaceRef.order,
-          node: {
-            title: interfaceRef.name,
-            key: `interface-${interfaceRef.id}`,
-            icon: getContentIcon('interface'),
-            isLeaf: true,
-          },
-        })),
-        ...(designWork.documents || []).map((documentRef) => ({
-          order: documentRef.order,
-          node: {
-            title: documentRef.name,
-            key: `document-${documentRef.id}`,
-            icon: getContentIcon('document'),
-            isLeaf: true,
-          },
-        })),
-      ];
-
-      // Sort by order and add to children
-      allContent.sort((a, b) => a.order - b.order);
-      children.push(...allContent.map(item => item.node));
-
-      nodes.push({
-        title: designWork.name,
-        key: `folder-${designWork.id}`,
-        icon: <MdFolder />,
-        children: children.length > 0 ? children : undefined,
-      });
-    });
-
-    return nodes;
-  };
-
   // Memoize tree data to avoid rebuilding on every render
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const treeData = useMemo(() => buildTreeData(), [designWorks, solutionId]);
+  const treeData = useMemo(() => {
+    // Build tree recursively from DesignWorks (folders) using embedded metadata
+    const buildTreeData = (parentDesignWorkId?: string): TreeNodeData[] => {
+      const nodes: TreeNodeData[] = [];
+
+      // Get child design works (folders) at this level
+      const childDesignWorks = parentDesignWorkId
+        ? designWorks.filter((dw) => dw.parentDesignWorkId === parentDesignWorkId)
+        : designWorks.filter((dw) => dw.solutionId === solutionId && !dw.parentDesignWorkId);
+
+      // Add each DesignWork as a folder
+      childDesignWorks.forEach((designWork) => {
+        // Build children (nested folders and content)
+        const children: TreeNodeData[] = [];
+
+        // Add nested folders recursively
+        const nestedFolders = buildTreeData(designWork.id);
+        children.push(...nestedFolders);
+
+        // Combine all content items with their order
+        const allContent: Array<{ order: number; node: TreeNodeData }> = [
+          ...(designWork.diagrams || []).map((diagramRef) => ({
+            order: diagramRef.order,
+            node: {
+              title: diagramRef.name,
+              key: `diagram-${diagramRef.id}`,
+              icon: getContentIcon('diagram'),
+              isLeaf: true,
+            },
+          })),
+          ...(designWork.interfaces || []).map((interfaceRef) => ({
+            order: interfaceRef.order,
+            node: {
+              title: interfaceRef.name,
+              key: `interface-${interfaceRef.id}`,
+              icon: getContentIcon('interface'),
+              isLeaf: true,
+            },
+          })),
+          ...(designWork.documents || []).map((documentRef) => ({
+            order: documentRef.order,
+            node: {
+              title: documentRef.name,
+              key: `document-${documentRef.id}`,
+              icon: getContentIcon('document'),
+              isLeaf: true,
+            },
+          })),
+        ];
+
+        // Sort by order and add to children
+        allContent.sort((a, b) => a.order - b.order);
+        children.push(...allContent.map(item => item.node));
+
+        nodes.push({
+          title: designWork.name,
+          key: `folder-${designWork.id}`,
+          icon: <MdFolder />,
+          children: children.length > 0 ? children : undefined,
+        });
+      });
+
+      return nodes;
+    };
+
+    return buildTreeData();
+  }, [designWorks, solutionId]);
 
   const handleDoubleClick = (key: string) => {
     // Parse key to get type and id

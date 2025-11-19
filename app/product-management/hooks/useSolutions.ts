@@ -16,8 +16,7 @@ export function useSolutions(organizationId: string) {
 
   useEffect(() => {
     fetchSolutions(organizationId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organizationId]); // Only re-fetch when organizationId changes
+  }, [organizationId, fetchSolutions]);
 
   return { solutions, loading, error };
 }

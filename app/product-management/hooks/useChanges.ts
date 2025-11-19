@@ -26,8 +26,7 @@ export function useChanges(featureId: string | undefined) {
     if (featureId) {
       fetchChangesByFeature(featureId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [featureId]); // Only re-fetch when featureId changes
+  }, [featureId, fetchChangesByFeature]);
 
   return { changes, loading, error };
 }

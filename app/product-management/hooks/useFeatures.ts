@@ -26,8 +26,7 @@ export function useFeatures(solutionId: string | undefined) {
     if (solutionId) {
       fetchFeaturesBySolution(solutionId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [solutionId]); // Only re-fetch when solutionId changes
+  }, [solutionId, fetchFeaturesBySolution]);
 
   return { features, loading, error };
 }
