@@ -5,6 +5,7 @@ import { BpmnTaskRenderer } from './BpmnTaskRenderer';
 import { BpmnEventRenderer } from './BpmnEventRenderer';
 import { BpmnGatewayRenderer } from './BpmnGatewayRenderer';
 import { ClassRenderer } from './ClassRenderer';
+import { EnumerationRenderer } from './EnumerationRenderer';
 import { SequenceLifelineRenderer } from './SequenceLifelineRenderer';
 import { SequenceNoteRenderer } from './SequenceNoteRenderer';
 import { GenerateDiagramRenderer } from './GenerateDiagramRenderer';
@@ -26,6 +27,7 @@ const shapeRenderers: Record<string, ShapeRendererComponent> = {
   'bpmn-gateway': BpmnGatewayRenderer,
   // Class diagram shape renderers
   class: ClassRenderer,
+  enumeration: EnumerationRenderer,
   // Sequence diagram shape renderers
   'sequence-lifeline': SequenceLifelineRenderer,
   'sequence-note': SequenceNoteRenderer,

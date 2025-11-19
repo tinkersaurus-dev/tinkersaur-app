@@ -50,6 +50,12 @@ export interface CanvasEventsContext {
   updateMethod: (shapeId: string, methodIndex: number, newValue: string) => void;
   updateMethodLocal: (shapeId: string, methodIndex: number, newValue: string) => void;
 
+  // Event Handlers - Enumeration Shapes
+  addLiteral: (shapeId: string, literal?: string) => void;
+  deleteLiteral: (shapeId: string, literalIndex: number) => void;
+  updateLiteral: (shapeId: string, literalIndex: number, newValue: string) => void;
+  updateLiteralLocal: (shapeId: string, literalIndex: number, newValue: string) => void;
+
   // Menu Management
   menuManager: UseContextMenuManagerReturn;
   handleAddRectangle: () => Promise<void>;

@@ -1,11 +1,11 @@
 import type { Result } from '~/core/lib/utils/result';
-import type { Shape, ClassShapeData } from '~/core/entities/design-studio/types/Shape';
+import type { Shape, ClassShapeData, EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
 import type { Connector } from '~/core/entities/design-studio/types/Connector';
 import type {
   MermaidExportOptions,
   MermaidExportResult,
 } from '../mermaid-exporter';
-import { isClassShapeData } from '~/core/entities/design-studio/types/Shape';
+import { isClassShapeData, isEnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
 import { BaseMermaidExporter } from '../mermaid-exporter';
 
 /**
@@ -149,8 +149,26 @@ export class ClassMermaidExporter extends BaseMermaidExporter {
     const lines: string[] = [];
     const className = classNameMap.get(shape.id) || 'Class';
 
+    // Check if shape has enumeration-specific data
+    if (shape.data && isEnumerationShapeData(shape.data)) {
+      const enumerationData = shape.data as EnumerationShapeData;
+
+      // Add enumeration with stereotype and literals
+      lines.push(`${this.getIndent()}class ${className} {`);
+      lines.push(`${this.getIndent(2)}<<enumeration>>`);
+
+      // Add literals
+      if (enumerationData.literals && enumerationData.literals.length > 0) {
+        for (const literal of enumerationData.literals) {
+          const sanitized = this.sanitizeClassMember(literal);
+          lines.push(`${this.getIndent(2)}${sanitized}`);
+        }
+      }
+
+      lines.push(`${this.getIndent()}}`);
+    }
     // Check if shape has class-specific data
-    if (shape.data && isClassShapeData(shape.data)) {
+    else if (shape.data && isClassShapeData(shape.data)) {
       const classData = shape.data as ClassShapeData;
 
       // Add stereotype annotation if present

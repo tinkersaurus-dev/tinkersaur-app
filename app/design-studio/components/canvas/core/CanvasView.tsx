@@ -86,6 +86,10 @@ export function CanvasView() {
     deleteMethod,
     updateMethod,
     updateMethodLocal,
+    addLiteral,
+    deleteLiteral,
+    updateLiteral,
+    updateLiteralLocal,
     menuManager,
     handleAddRectangle,
     handleBpmnToolSelect,
@@ -170,6 +174,10 @@ export function CanvasView() {
           onClassDeleteMethod={deleteMethod}
           onClassUpdateMethod={updateMethod}
           onClassUpdateMethodLocal={updateMethodLocal}
+          onEnumerationAddLiteral={addLiteral}
+          onEnumerationDeleteLiteral={deleteLiteral}
+          onEnumerationUpdateLiteral={updateLiteral}
+          onEnumerationUpdateLiteralLocal={updateLiteralLocal}
         />
 
         {/* Render all connectors */}

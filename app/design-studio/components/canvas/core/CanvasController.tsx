@@ -13,6 +13,7 @@ import { useConnectorDrawing } from '../../../hooks/useConnectorDrawing';
 import { useShapeDragging } from '../../../hooks/useShapeDragging';
 import { useCanvasKeyboardHandlers } from '../../../hooks/useCanvasKeyboardHandlers';
 import { useClassShapeEditing } from '../../../hooks/useClassShapeEditing';
+import { useEnumerationShapeEditing } from '../../../hooks/useEnumerationShapeEditing';
 import { useShapeInteraction } from '../../../hooks/useShapeInteraction';
 import { useCanvasMouseOrchestration } from '../hooks/useCanvasMouseOrchestration';
 import { useCanvasPasteHandler } from '../hooks/useCanvasPasteHandler';
@@ -231,6 +232,20 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     updateMethod,
     updateMethodLocal,
   } = useClassShapeEditing({
+    diagramId,
+    commandFactory,
+    getShape,
+    updateLocalShape,
+    executeCommand,
+  });
+
+  // Enumeration shape editing hook
+  const {
+    addLiteral,
+    deleteLiteral,
+    updateLiteral,
+    updateLiteralLocal,
+  } = useEnumerationShapeEditing({
     diagramId,
     commandFactory,
     getShape,
@@ -710,6 +725,10 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     deleteMethod,
     updateMethod,
     updateMethodLocal,
+    addLiteral,
+    deleteLiteral,
+    updateLiteral,
+    updateLiteralLocal,
     menuManager,
     handleAddRectangle,
     handleBpmnToolSelect,
@@ -745,6 +764,10 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     deleteMethod,
     updateMethod,
     updateMethodLocal,
+    addLiteral,
+    deleteLiteral,
+    updateLiteral,
+    updateLiteralLocal,
     menuManager,
     handleAddRectangle,
     handleBpmnToolSelect,

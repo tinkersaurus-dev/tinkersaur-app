@@ -1,5 +1,5 @@
 import type { Result } from '~/core/lib/utils/result';
-import type { CreateShapeDTO, ClassShapeData } from '~/core/entities/design-studio/types/Shape';
+import type { CreateShapeDTO, ClassShapeData, EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
@@ -12,6 +12,7 @@ interface ParsedClass {
   stereotype?: string;
   attributes: string[];
   methods: string[];
+  literals?: string[]; // For enumeration types
 }
 
 /**
@@ -155,14 +156,25 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
           // Check for stereotype
           if (line.startsWith('<<') && line.endsWith('>>')) {
             currentClass.stereotype = line.slice(2, -2);
+            // Initialize literals array if this is an enumeration
+            if (currentClass.stereotype === 'enumeration') {
+              currentClass.literals = [];
+            }
             continue;
           }
 
-          // Parse attribute or method
+          // Parse attribute, method, or literal
           const trimmedLine = line.trim();
           if (trimmedLine.length > 0) {
-            // Check if it's a method (has parentheses)
-            if (trimmedLine.includes('(')) {
+            // If this is an enumeration, treat non-method lines as literals
+            if (currentClass.stereotype === 'enumeration') {
+              if (!currentClass.literals) {
+                currentClass.literals = [];
+              }
+              currentClass.literals.push(trimmedLine);
+            }
+            // Otherwise, check if it's a method (has parentheses) or attribute
+            else if (trimmedLine.includes('(')) {
               currentClass.methods.push(trimmedLine);
             } else {
               currentClass.attributes.push(trimmedLine);
@@ -281,24 +293,51 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
       const x = col * horizontal;
       const y = row * vertical;
 
-      const classData: ClassShapeData = {
-        stereotype: cls.stereotype,
-        attributes: cls.attributes,
-        methods: cls.methods,
-      };
+      // Check if this is an enumeration
+      const isEnumeration = cls.stereotype === 'enumeration' && cls.literals !== undefined;
 
-      const shape: CreateShapeDTO = {
-        type: 'class',
-        x,
-        y,
-        width: DESIGN_STUDIO_CONFIG.shapes.class.classBox.width,
-        height: DESIGN_STUDIO_CONFIG.shapes.class.classBox.height,
-        label: cls.name,
-        zIndex: 0,
-        locked: false,
-        isPreview: false,
-        data: classData as unknown as Record<string, unknown>,
-      };
+      let shape: CreateShapeDTO;
+
+      if (isEnumeration) {
+        // Create enumeration shape
+        const enumerationData: EnumerationShapeData = {
+          stereotype: cls.stereotype,
+          literals: cls.literals || [],
+        };
+
+        shape = {
+          type: 'enumeration',
+          x,
+          y,
+          width: DESIGN_STUDIO_CONFIG.shapes.class.classBox.width,
+          height: DESIGN_STUDIO_CONFIG.shapes.class.classBox.height,
+          label: cls.name,
+          zIndex: 0,
+          locked: false,
+          isPreview: false,
+          data: enumerationData as unknown as Record<string, unknown>,
+        };
+      } else {
+        // Create class shape
+        const classData: ClassShapeData = {
+          stereotype: cls.stereotype,
+          attributes: cls.attributes,
+          methods: cls.methods,
+        };
+
+        shape = {
+          type: 'class',
+          x,
+          y,
+          width: DESIGN_STUDIO_CONFIG.shapes.class.classBox.width,
+          height: DESIGN_STUDIO_CONFIG.shapes.class.classBox.height,
+          label: cls.name,
+          zIndex: 0,
+          locked: false,
+          isPreview: false,
+          data: classData as unknown as Record<string, unknown>,
+        };
+      }
 
       shapes.push(shape);
     });

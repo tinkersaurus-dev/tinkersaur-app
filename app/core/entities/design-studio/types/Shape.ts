@@ -67,6 +67,23 @@ export function isClassShapeData(data: unknown): data is ClassShapeData {
   );
 }
 
+// Enumeration shape data (for UML enumerations)
+export interface EnumerationShapeData {
+  stereotype?: string; // Usually 'enumeration' or undefined
+  literals: string[]; // Array of enumeration literal strings (e.g., 'MONDAY', 'TUESDAY')
+}
+
+// Type guard for enumeration shape data
+export function isEnumerationShapeData(data: unknown): data is EnumerationShapeData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    (d.stereotype === undefined || typeof d.stereotype === 'string') &&
+    Array.isArray(d.literals) &&
+    d.literals.every((lit) => typeof lit === 'string')
+  );
+}
+
 // Sequence diagram lifeline activation box
 export interface ActivationBox {
   startY: number; // Y-coordinate where activation starts (relative to lifeline)

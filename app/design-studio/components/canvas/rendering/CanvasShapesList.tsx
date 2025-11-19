@@ -28,6 +28,11 @@ interface CanvasShapesListProps {
   onClassDeleteMethod?: (shapeId: string, methodIndex: number) => void;
   onClassUpdateMethod?: (shapeId: string, methodIndex: number, newValue: string) => void;
   onClassUpdateMethodLocal?: (shapeId: string, methodIndex: number, newValue: string) => void;
+  // Enumeration shape editing callbacks
+  onEnumerationAddLiteral?: (shapeId: string) => void;
+  onEnumerationDeleteLiteral?: (shapeId: string, literalIndex: number) => void;
+  onEnumerationUpdateLiteral?: (shapeId: string, literalIndex: number, newValue: string) => void;
+  onEnumerationUpdateLiteralLocal?: (shapeId: string, literalIndex: number, newValue: string) => void;
 }
 
 /**
@@ -57,6 +62,10 @@ export function CanvasShapesList({
   onClassDeleteMethod,
   onClassUpdateMethod,
   onClassUpdateMethodLocal,
+  onEnumerationAddLiteral,
+  onEnumerationDeleteLiteral,
+  onEnumerationUpdateLiteral,
+  onEnumerationUpdateLiteralLocal,
 }: CanvasShapesListProps) {
   return (
     <>
@@ -93,6 +102,10 @@ export function CanvasShapesList({
             onClassDeleteMethod={onClassDeleteMethod}
             onClassUpdateMethod={onClassUpdateMethod}
             onClassUpdateMethodLocal={onClassUpdateMethodLocal}
+            onEnumerationAddLiteral={onEnumerationAddLiteral}
+            onEnumerationDeleteLiteral={onEnumerationDeleteLiteral}
+            onEnumerationUpdateLiteral={onEnumerationUpdateLiteral}
+            onEnumerationUpdateLiteralLocal={onEnumerationUpdateLiteralLocal}
           />
         );
       })}

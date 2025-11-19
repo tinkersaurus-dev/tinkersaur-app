@@ -18,6 +18,9 @@ import { UpdateClassAttributeCommand } from './canvas/class-diagram/UpdateClassA
 import { UpdateClassMethodCommand } from './canvas/class-diagram/UpdateClassMethodCommand';
 import { DeleteClassAttributeCommand } from './canvas/class-diagram/DeleteClassAttributeCommand';
 import { DeleteClassMethodCommand } from './canvas/class-diagram/DeleteClassMethodCommand';
+import { AddEnumerationLiteralCommand } from './canvas/enumeration/AddEnumerationLiteralCommand';
+import { DeleteEnumerationLiteralCommand } from './canvas/enumeration/DeleteEnumerationLiteralCommand';
+import { UpdateEnumerationLiteralCommand } from './canvas/enumeration/UpdateEnumerationLiteralCommand';
 import { BatchDeleteShapesCommand } from './canvas/shapes/BatchDeleteShapesCommand';
 import { BatchDeleteConnectorsCommand } from './canvas/connectors/BatchDeleteConnectorsCommand';
 import { UpdateLifelineActivationsCommand } from './canvas/sequence-diagram/UpdateLifelineActivationsCommand';
@@ -330,6 +333,65 @@ export class CommandFactory {
       diagramId,
       shapeId,
       methodIndex,
+      oldValue,
+      newValue,
+      this.deps._internalUpdateShape,
+      getShapeFn,
+      updateLocalShape
+    );
+  }
+
+  // ============================================================================
+  // Enumeration Diagram Commands
+  // ============================================================================
+
+  createAddEnumerationLiteral(
+    diagramId: string,
+    shapeId: string,
+    literal: string,
+    getShapeFn: (shapeId: string) => Shape | undefined
+  ): Command {
+    const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
+    return new AddEnumerationLiteralCommand(
+      diagramId,
+      shapeId,
+      literal,
+      this.deps._internalUpdateShape,
+      getShapeFn,
+      updateLocalShape
+    );
+  }
+
+  createDeleteEnumerationLiteral(
+    diagramId: string,
+    shapeId: string,
+    literalIndex: number,
+    getShapeFn: (shapeId: string) => Shape | undefined
+  ): Command {
+    const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
+    return new DeleteEnumerationLiteralCommand(
+      diagramId,
+      shapeId,
+      literalIndex,
+      this.deps._internalUpdateShape,
+      getShapeFn,
+      updateLocalShape
+    );
+  }
+
+  createUpdateEnumerationLiteral(
+    diagramId: string,
+    shapeId: string,
+    literalIndex: number,
+    oldValue: string,
+    newValue: string,
+    getShapeFn: (shapeId: string) => Shape | undefined
+  ): Command {
+    const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
+    return new UpdateEnumerationLiteralCommand(
+      diagramId,
+      shapeId,
+      literalIndex,
       oldValue,
       newValue,
       this.deps._internalUpdateShape,

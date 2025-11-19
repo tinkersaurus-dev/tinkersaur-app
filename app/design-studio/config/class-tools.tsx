@@ -4,7 +4,7 @@
  */
 
 import type { ComponentType } from 'react';
-import { FaSquare } from 'react-icons/fa';
+import { FaSquare, FaListOl } from 'react-icons/fa';
 import { globalToolGroup } from './global-tools';
 
 /**
@@ -64,6 +64,17 @@ const classTools: Tool[] = [
       stereotype: undefined,
       attributes: [],
       methods: [],
+    },
+  },
+  {
+    id: 'enumeration',
+    name: 'Enumeration',
+    icon: FaListOl,
+    shapeType: 'enumeration',
+    defaultSize: { width: 180, height: 120 },
+    initialData: {
+      stereotype: 'enumeration',
+      literals: [],
     },
   },
 ];
