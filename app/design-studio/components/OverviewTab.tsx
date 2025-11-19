@@ -5,14 +5,16 @@
 
 import { useEffect, useState } from 'react';
 import { Card, Tag, Descriptions, VStack, type TagColor } from '~/core/components/ui';
-import { useSolutionManagementEntityStore, type Change, type Solution } from '~/core/entities/product-management';
+import { useSolutionStore, useFeatureStore, useChangeStore, type Change, type Solution } from '~/core/entities/product-management';
 
 interface OverviewTabProps {
   solutionId: string;
 }
 
 export function OverviewTab({ solutionId }: OverviewTabProps) {
-  const { fetchSolution, getFeaturesBySolutionId, getChangesByFeatureId } = useSolutionManagementEntityStore();
+  const fetchSolution = useSolutionStore((state) => state.fetchSolution);
+  const getFeaturesBySolutionId = useFeatureStore((state) => state.getFeaturesBySolutionId);
+  const getChangesByFeatureId = useChangeStore((state) => state.getChangesByFeatureId);
   const [solution, setSolution] = useState<Solution | null>(null);
   const features = solution ? getFeaturesBySolutionId(solutionId) : [];
 

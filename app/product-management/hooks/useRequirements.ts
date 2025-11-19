@@ -3,16 +3,16 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import { useSolutionManagementEntityStore } from '~/core/entities/product-management';
+import { useRequirementStore } from '~/core/entities/product-management';
 
 /**
  * Hook to fetch and access requirements for a change
  */
 export function useRequirements(changeId: string | undefined) {
-  const allRequirements = useSolutionManagementEntityStore((state) => state.requirements);
-  const loading = useSolutionManagementEntityStore((state) => state.loading.requirements);
-  const error = useSolutionManagementEntityStore((state) => state.errors.requirements);
-  const fetchRequirementsByChange = useSolutionManagementEntityStore(
+  const allRequirements = useRequirementStore((state) => state.entities);
+  const loading = useRequirementStore((state) => state.loading);
+  const error = useRequirementStore((state) => state.error);
+  const fetchRequirementsByChange = useRequirementStore(
     (state) => state.fetchRequirementsByChange
   );
 
@@ -35,11 +35,11 @@ export function useRequirements(changeId: string | undefined) {
  * Hook to access a single requirement by ID
  */
 export function useRequirement(requirementId: string | undefined) {
-  const requirement = useSolutionManagementEntityStore((state) =>
-    requirementId ? state.requirements.find((r) => r.id === requirementId) : undefined
+  const requirement = useRequirementStore((state) =>
+    requirementId ? state.entities.find((r) => r.id === requirementId) : undefined
   );
-  const loading = useSolutionManagementEntityStore((state) => state.loading.requirements);
-  const error = useSolutionManagementEntityStore((state) => state.errors.requirements);
+  const loading = useRequirementStore((state) => state.loading);
+  const error = useRequirementStore((state) => state.error);
 
   return { requirement, loading, error };
 }

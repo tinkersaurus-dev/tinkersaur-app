@@ -19,6 +19,16 @@ class RequirementApi {
   }
 
   /**
+   * Alias for listByChange to match generic store interface
+   */
+  async list(changeId?: string): Promise<Requirement[]> {
+    if (!changeId) {
+      return [];
+    }
+    return this.listByChange(changeId);
+  }
+
+  /**
    * Get a single requirement by ID
    */
   async get(id: string): Promise<Requirement | null> {

@@ -19,6 +19,16 @@ class FeatureApi {
   }
 
   /**
+   * Alias for listBySolution to match generic store interface
+   */
+  async list(solutionId?: string): Promise<Feature[]> {
+    if (!solutionId) {
+      return [];
+    }
+    return this.listBySolution(solutionId);
+  }
+
+  /**
    * Get a single feature by ID
    */
   async get(id: string): Promise<Feature | null> {

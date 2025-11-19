@@ -12,9 +12,12 @@ class SolutionApi {
   /**
    * Get all solutions for an organization
    */
-  async list(organizationId: string): Promise<Solution[]> {
+  async list(organizationId?: string): Promise<Solution[]> {
     await simulateDelay();
     const solutions = getFromStorage<Solution>(STORAGE_KEY);
+    if (!organizationId) {
+      return [];
+    }
     return solutions.filter((s) => s.organizationId === organizationId);
   }
 

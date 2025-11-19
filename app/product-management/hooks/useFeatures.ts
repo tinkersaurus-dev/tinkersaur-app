@@ -3,16 +3,16 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import { useSolutionManagementEntityStore } from '~/core/entities/product-management';
+import { useFeatureStore } from '~/core/entities/product-management';
 
 /**
  * Hook to fetch and access features for a solution
  */
 export function useFeatures(solutionId: string | undefined) {
-  const allFeatures = useSolutionManagementEntityStore((state) => state.features);
-  const loading = useSolutionManagementEntityStore((state) => state.loading.features);
-  const error = useSolutionManagementEntityStore((state) => state.errors.features);
-  const fetchFeaturesBySolution = useSolutionManagementEntityStore(
+  const allFeatures = useFeatureStore((state) => state.entities);
+  const loading = useFeatureStore((state) => state.loading);
+  const error = useFeatureStore((state) => state.error);
+  const fetchFeaturesBySolution = useFeatureStore(
     (state) => state.fetchFeaturesBySolution
   );
 
@@ -35,11 +35,11 @@ export function useFeatures(solutionId: string | undefined) {
  * Hook to access a single feature by ID
  */
 export function useFeature(featureId: string | undefined) {
-  const feature = useSolutionManagementEntityStore((state) =>
-    featureId ? state.features.find((f) => f.id === featureId) : undefined
+  const feature = useFeatureStore((state) =>
+    featureId ? state.entities.find((f) => f.id === featureId) : undefined
   );
-  const loading = useSolutionManagementEntityStore((state) => state.loading.features);
-  const error = useSolutionManagementEntityStore((state) => state.errors.features);
+  const loading = useFeatureStore((state) => state.loading);
+  const error = useFeatureStore((state) => state.error);
 
   return { feature, loading, error };
 }

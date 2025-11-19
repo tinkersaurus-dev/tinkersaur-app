@@ -19,6 +19,16 @@ class ChangeApi {
   }
 
   /**
+   * Alias for listByFeature to match generic store interface
+   */
+  async list(featureId?: string): Promise<Change[]> {
+    if (!featureId) {
+      return [];
+    }
+    return this.listByFeature(featureId);
+  }
+
+  /**
    * Get a single change by ID
    */
   async get(id: string): Promise<Change | null> {

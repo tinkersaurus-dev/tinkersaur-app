@@ -4,7 +4,10 @@
 
 import { useCallback } from 'react';
 import {
-  useSolutionManagementEntityStore,
+  useSolutionStore,
+  useFeatureStore,
+  useChangeStore,
+  useRequirementStore,
   type CreateSolutionDto,
   type CreateFeatureDto,
   type CreateChangeDto,
@@ -19,9 +22,9 @@ import {
  * Solution CRUD operations
  */
 export function useSolutionCRUD() {
-  const createSolution = useSolutionManagementEntityStore((state) => state.createSolution);
-  const updateSolution = useSolutionManagementEntityStore((state) => state.updateSolution);
-  const deleteSolution = useSolutionManagementEntityStore((state) => state.deleteSolution);
+  const createSolution = useSolutionStore((state) => state.create);
+  const updateSolution = useSolutionStore((state) => state.update);
+  const deleteSolution = useSolutionStore((state) => state.delete);
 
   const handleCreate = useCallback(
     async (data: CreateSolutionDto) => {
@@ -52,9 +55,9 @@ export function useSolutionCRUD() {
  * Feature CRUD operations
  */
 export function useFeatureCRUD() {
-  const createFeature = useSolutionManagementEntityStore((state) => state.createFeature);
-  const updateFeature = useSolutionManagementEntityStore((state) => state.updateFeature);
-  const deleteFeature = useSolutionManagementEntityStore((state) => state.deleteFeature);
+  const createFeature = useFeatureStore((state) => state.createFeature);
+  const updateFeature = useFeatureStore((state) => state.updateFeature);
+  const deleteFeature = useFeatureStore((state) => state.deleteFeature);
 
   const handleCreate = useCallback(
     async (data: CreateFeatureDto) => {
@@ -85,9 +88,9 @@ export function useFeatureCRUD() {
  * Change CRUD operations
  */
 export function useChangeCRUD() {
-  const createChange = useSolutionManagementEntityStore((state) => state.createChange);
-  const updateChange = useSolutionManagementEntityStore((state) => state.updateChange);
-  const deleteChange = useSolutionManagementEntityStore((state) => state.deleteChange);
+  const createChange = useChangeStore((state) => state.createChange);
+  const updateChange = useChangeStore((state) => state.updateChange);
+  const deleteChange = useChangeStore((state) => state.deleteChange);
 
   const handleCreate = useCallback(
     async (data: CreateChangeDto) => {
@@ -118,9 +121,9 @@ export function useChangeCRUD() {
  * Requirement CRUD operations
  */
 export function useRequirementCRUD() {
-  const createRequirement = useSolutionManagementEntityStore((state) => state.createRequirement);
-  const updateRequirement = useSolutionManagementEntityStore((state) => state.updateRequirement);
-  const deleteRequirement = useSolutionManagementEntityStore((state) => state.deleteRequirement);
+  const createRequirement = useRequirementStore((state) => state.createRequirement);
+  const updateRequirement = useRequirementStore((state) => state.updateRequirement);
+  const deleteRequirement = useRequirementStore((state) => state.deleteRequirement);
 
   const handleCreate = useCallback(
     async (data: CreateRequirementDto) => {

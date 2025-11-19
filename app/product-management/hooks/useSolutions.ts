@@ -3,16 +3,16 @@
  */
 
 import { useEffect } from 'react';
-import { useSolutionManagementEntityStore } from '~/core/entities/product-management';
+import { useSolutionStore } from '~/core/entities/product-management';
 
 /**
  * Hook to fetch and access all solutions for an organization
  */
 export function useSolutions(organizationId: string) {
-  const solutions = useSolutionManagementEntityStore((state) => state.solutions);
-  const loading = useSolutionManagementEntityStore((state) => state.loading.solutions);
-  const error = useSolutionManagementEntityStore((state) => state.errors.solutions);
-  const fetchSolutions = useSolutionManagementEntityStore((state) => state.fetchSolutions);
+  const solutions = useSolutionStore((state) => state.entities);
+  const loading = useSolutionStore((state) => state.loading);
+  const error = useSolutionStore((state) => state.error);
+  const fetchSolutions = useSolutionStore((state) => state.fetchSolutions);
 
   useEffect(() => {
     fetchSolutions(organizationId);
@@ -25,11 +25,11 @@ export function useSolutions(organizationId: string) {
  * Hook to access a single solution by ID
  */
 export function useSolution(solutionId: string | undefined) {
-  const solution = useSolutionManagementEntityStore((state) =>
-    solutionId ? state.solutions.find((s) => s.id === solutionId) : undefined
+  const solution = useSolutionStore((state) =>
+    solutionId ? state.entities.find((s) => s.id === solutionId) : undefined
   );
-  const loading = useSolutionManagementEntityStore((state) => state.loading.solutions);
-  const error = useSolutionManagementEntityStore((state) => state.errors.solutions);
+  const loading = useSolutionStore((state) => state.loading);
+  const error = useSolutionStore((state) => state.error);
 
   return { solution, loading, error };
 }

@@ -11,7 +11,7 @@ import { AppLayout } from '~/core/components';
 import { Layout, Tabs } from '~/core/components/ui';
 import { useDesignStudioUIStore } from '../store';
 import { useDesignWorks } from '../hooks';
-import { useSolutionManagementEntityStore } from '~/core/entities/product-management';
+import { useSolutionStore } from '~/core/entities/product-management';
 import type { Solution } from '~/core/entities/product-management';
 import { StudioSidebar } from '../components/StudioSidebar';
 import { OverviewTab } from '../components/OverviewTab';
@@ -21,7 +21,7 @@ import { DocumentView } from '../components/DocumentView';
 
 export default function StudioPage() {
   const { solutionId } = useParams();
-  const { fetchSolution } = useSolutionManagementEntityStore();
+  const fetchSolution = useSolutionStore((state) => state.fetchSolution);
   const [solution, setSolution] = useState<Solution | null>(null);
 
   // Use UI store for tab management
