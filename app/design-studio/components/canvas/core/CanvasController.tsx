@@ -276,8 +276,15 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   }, [loading, entityShapesLength, entityConnectorsLength, initializeContent, isInitialized, entityShapes, entityConnectors]);
 
   // Render from local state (working copy), fallback to entity state if local not initialized
-  const shapes = localShapes.length > 0 ? localShapes : entityShapes;
-  const connectors = localConnectors.length > 0 ? localConnectors : entityConnectors;
+  // Use useMemo to avoid unnecessary reference changes when switching between local and entity state
+  const shapes = useMemo(
+    () => (localShapes.length > 0 ? localShapes : entityShapes),
+    [localShapes, entityShapes]
+  );
+  const connectors = useMemo(
+    () => (localConnectors.length > 0 ? localConnectors : entityConnectors),
+    [localConnectors, entityConnectors]
+  );
 
   // Use connector type manager hook for all connector type management
   const connectorTypeManager = useConnectorTypeManager({

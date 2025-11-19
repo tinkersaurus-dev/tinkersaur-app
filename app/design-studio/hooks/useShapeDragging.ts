@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import type { Shape } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../utils/viewport';
 import { snapToGrid } from '../utils/canvas';
@@ -36,6 +36,8 @@ export function useShapeDragging({
   dragData,
 }: UseShapeDraggingProps): UseShapeDraggingReturn {
   const shapesStartPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const rafIdRef = useRef<number | null>(null);
+  const pendingUpdatesRef = useRef<Map<string, Partial<Shape>> | null>(null);
 
   const startDragging = useCallback(
     (canvasX: number, canvasY: number, shapesToDrag: string[]): DragData => {
@@ -92,8 +94,22 @@ export function useShapeDragging({
         });
       });
 
-      // Single batch update to local state
-      updateLocalShapes(updates);
+      // Store pending updates
+      pendingUpdatesRef.current = updates;
+
+      // Cancel any pending RAF
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+
+      // Schedule update on next animation frame (batches updates to ~60fps max)
+      rafIdRef.current = requestAnimationFrame(() => {
+        if (pendingUpdatesRef.current) {
+          updateLocalShapes(pendingUpdatesRef.current);
+          pendingUpdatesRef.current = null;
+        }
+        rafIdRef.current = null;
+      });
 
       // Return delta for state machine
       return { x: deltaX, y: deltaY };
@@ -102,6 +118,18 @@ export function useShapeDragging({
   );
 
   const finishDragging = useCallback(() => {
+    // Cancel any pending RAF and flush final update
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+
+    // Flush any pending updates immediately to ensure final position is accurate
+    if (pendingUpdatesRef.current) {
+      updateLocalShapes(pendingUpdatesRef.current);
+      pendingUpdatesRef.current = null;
+    }
+
     // Create composite command for undo/redo if there was any drag
     if (dragData?.delta && (dragData.delta.x !== 0 || dragData.delta.y !== 0) && updateShapes) {
       // Batch all shape updates into a single composite command
@@ -123,7 +151,16 @@ export function useShapeDragging({
 
     // Clear internal refs
     shapesStartPositionsRef.current.clear();
-  }, [dragData, updateShapes, localShapes]);
+  }, [dragData, updateShapes, localShapes, updateLocalShapes]);
+
+  // Cleanup RAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
+  }, []);
 
   return {
     startDragging,
