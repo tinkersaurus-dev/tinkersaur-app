@@ -104,46 +104,120 @@ function nodeId(x: number, y: number): string {
 
 /**
  * Check if a horizontal line segment intersects with a shape
+ * Optionally excludes "corridors" around connection points to allow routing to them
  */
 function horizontalSegmentIntersectsShape(
   x1: number,
   x2: number,
   y: number,
-  shape: Shape
+  shape: Shape,
+  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
 ): boolean {
   const minX = Math.min(x1, x2);
   const maxX = Math.max(x1, x2);
 
   // Check if segment passes THROUGH shape (not just touching edge)
   // Allow segments along the boundary
-  return !(
+  const intersects = !(
     maxX <= shape.x ||
     minX >= shape.x + shape.width ||
     y <= shape.y ||
     y >= shape.y + shape.height
   );
+
+  // If no intersection with shape, return false
+  if (!intersects) return false;
+
+  // If there are connection corridors, check if segment is in a corridor
+  if (connectionCorridors) {
+    const CORRIDOR_WIDTH = 40; // Width of corridor extending from connection point
+
+    for (const corridor of connectionCorridors) {
+      // For horizontal segments, check if they're in a vertical corridor (N/S connection)
+      // or aligned with a horizontal corridor (E/W connection)
+      if (corridor.direction === 'N' || corridor.direction === 'S') {
+        // Vertical corridor - allow horizontal segments near the connection point
+        const corridorMinX = corridor.x - CORRIDOR_WIDTH / 2;
+        const corridorMaxX = corridor.x + CORRIDOR_WIDTH / 2;
+
+        if (y >= corridor.y - CORRIDOR_WIDTH && y <= corridor.y + CORRIDOR_WIDTH &&
+            maxX >= corridorMinX && minX <= corridorMaxX) {
+          return false; // Segment is in corridor, don't block it
+        }
+      } else if (corridor.direction === 'E' || corridor.direction === 'W') {
+        // Horizontal corridor - allow segments aligned with the connection point
+        if (Math.abs(y - corridor.y) < CORRIDOR_WIDTH / 2) {
+          const corridorStart = corridor.direction === 'E' ? corridor.x : corridor.x - CORRIDOR_WIDTH;
+          const corridorEnd = corridor.direction === 'E' ? corridor.x + CORRIDOR_WIDTH : corridor.x;
+
+          if (maxX >= corridorStart && minX <= corridorEnd) {
+            return false; // Segment is in corridor, don't block it
+          }
+        }
+      }
+    }
+  }
+
+  return true;
 }
 
 /**
  * Check if a vertical line segment intersects with a shape
+ * Optionally excludes "corridors" around connection points to allow routing to them
  */
 function verticalSegmentIntersectsShape(
   x: number,
   y1: number,
   y2: number,
-  shape: Shape
+  shape: Shape,
+  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
 ): boolean {
   const minY = Math.min(y1, y2);
   const maxY = Math.max(y1, y2);
 
   // Check if segment passes THROUGH shape (not just touching edge)
   // Allow segments along the boundary
-  return !(
+  const intersects = !(
     x <= shape.x ||
     x >= shape.x + shape.width ||
     maxY <= shape.y ||
     minY >= shape.y + shape.height
   );
+
+  // If no intersection with shape, return false
+  if (!intersects) return false;
+
+  // If there are connection corridors, check if segment is in a corridor
+  if (connectionCorridors) {
+    const CORRIDOR_WIDTH = 40; // Width of corridor extending from connection point
+
+    for (const corridor of connectionCorridors) {
+      // For vertical segments, check if they're in a horizontal corridor (E/W connection)
+      // or aligned with a vertical corridor (N/S connection)
+      if (corridor.direction === 'E' || corridor.direction === 'W') {
+        // Horizontal corridor - allow vertical segments near the connection point
+        const corridorMinY = corridor.y - CORRIDOR_WIDTH / 2;
+        const corridorMaxY = corridor.y + CORRIDOR_WIDTH / 2;
+
+        if (x >= corridor.x - CORRIDOR_WIDTH && x <= corridor.x + CORRIDOR_WIDTH &&
+            maxY >= corridorMinY && minY <= corridorMaxY) {
+          return false; // Segment is in corridor, don't block it
+        }
+      } else if (corridor.direction === 'N' || corridor.direction === 'S') {
+        // Vertical corridor - allow segments aligned with the connection point
+        if (Math.abs(x - corridor.x) < CORRIDOR_WIDTH / 2) {
+          const corridorStart = corridor.direction === 'S' ? corridor.y : corridor.y - CORRIDOR_WIDTH;
+          const corridorEnd = corridor.direction === 'S' ? corridor.y + CORRIDOR_WIDTH : corridor.y;
+
+          if (maxY >= corridorStart && minY <= corridorEnd) {
+            return false; // Segment is in corridor, don't block it
+          }
+        }
+      }
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -173,7 +247,8 @@ function getInterestingPoints(shapes: Shape[]): Point[] {
  */
 function generateHorizontalSegments(
   interestingPoints: Point[],
-  shapes: Shape[]
+  shapes: Shape[],
+  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
 ): Array<{ from: Point; to: Point }> {
   const segments: Array<{ from: Point; to: Point }> = [];
 
@@ -199,7 +274,7 @@ function generateHorizontalSegments(
       // Check if segment is blocked by any shape
       let blocked = false;
       for (const shape of shapes) {
-        if (horizontalSegmentIntersectsShape(p1.x, p2.x, y, shape)) {
+        if (horizontalSegmentIntersectsShape(p1.x, p2.x, y, shape, connectionCorridors)) {
           blocked = true;
           break;
         }
@@ -220,7 +295,8 @@ function generateHorizontalSegments(
  */
 function generateVerticalSegments(
   interestingPoints: Point[],
-  shapes: Shape[]
+  shapes: Shape[],
+  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
 ): Array<{ from: Point; to: Point }> {
   const segments: Array<{ from: Point; to: Point }> = [];
 
@@ -246,7 +322,7 @@ function generateVerticalSegments(
       // Check if segment is blocked by any shape
       let blocked = false;
       for (const shape of shapes) {
-        if (verticalSegmentIntersectsShape(x, p1.y, p2.y, shape)) {
+        if (verticalSegmentIntersectsShape(x, p1.y, p2.y, shape, connectionCorridors)) {
           blocked = true;
           break;
         }
@@ -269,7 +345,10 @@ function generateVerticalSegments(
  * 2. Generate interesting vertical segments
  * 3. Compute intersections to create nodes and edges
  */
-export function constructVisibilityGraph(shapes: Shape[]): OrthogonalVisibilityGraph {
+export function constructVisibilityGraph(
+  shapes: Shape[],
+  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
+): OrthogonalVisibilityGraph {
   const nodes = new Map<string, VisibilityNode>();
   const edges = new Map<string, VisibilityEdge[]>();
 
@@ -277,8 +356,8 @@ export function constructVisibilityGraph(shapes: Shape[]): OrthogonalVisibilityG
   const interestingPoints = getInterestingPoints(shapes);
 
   // Generate horizontal and vertical segments
-  const horizontalSegments = generateHorizontalSegments(interestingPoints, shapes);
-  const verticalSegments = generateVerticalSegments(interestingPoints, shapes);
+  const horizontalSegments = generateHorizontalSegments(interestingPoints, shapes, connectionCorridors);
+  const verticalSegments = generateVerticalSegments(interestingPoints, shapes, connectionCorridors);
 
   // First, add all interesting points as nodes (shape corners)
   // This ensures we have routing points even with a single obstacle
@@ -1210,21 +1289,30 @@ function getShapeCacheKey(shapes: Shape[]): string {
 /**
  * Get visibility graph from cache or construct new one
  */
-function getCachedVisibilityGraph(shapes: Shape[]): OrthogonalVisibilityGraph {
+function getCachedVisibilityGraph(
+  shapes: Shape[],
+  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
+): OrthogonalVisibilityGraph {
   const key = getShapeCacheKey(shapes);
   const now = Date.now();
 
-  // Check cache
-  const cached = visibilityGraphCache.get(key);
-  if (cached && (now - cached.timestamp) < CACHE_TTL) {
-    return cached.graph;
+  // Only use cache if there are no connection corridors
+  // (corridors vary per connector, so we can't cache them)
+  if (!connectionCorridors) {
+    // Check cache
+    const cached = visibilityGraphCache.get(key);
+    if (cached && (now - cached.timestamp) < CACHE_TTL) {
+      return cached.graph;
+    }
   }
 
   // Construct new graph
-  const graph = constructVisibilityGraph(shapes);
+  const graph = constructVisibilityGraph(shapes, connectionCorridors);
 
-  // Add to cache
-  visibilityGraphCache.set(key, { graph, timestamp: now });
+  // Add to cache only if no connection corridors
+  if (!connectionCorridors) {
+    visibilityGraphCache.set(key, { graph, timestamp: now });
+  }
 
   // Evict old entries if cache is too large
   if (visibilityGraphCache.size > MAX_CACHE_SIZE) {
@@ -1264,10 +1352,11 @@ export function findOrthogonalRoute(
   endDir: Direction = 'W',
   bendPenalty: number = 50,
   refine: boolean = true,
-  useCache: boolean = true
+  useCache: boolean = true,
+  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
 ): Point[] {
   // Construct or get cached visibility graph
-  const cachedGraph = useCache ? getCachedVisibilityGraph(shapes) : constructVisibilityGraph(shapes);
+  const cachedGraph = useCache ? getCachedVisibilityGraph(shapes, connectionCorridors) : constructVisibilityGraph(shapes, connectionCorridors);
 
   // IMPORTANT: Clone the graph to avoid mutating the cached version
   const graph: OrthogonalVisibilityGraph = {

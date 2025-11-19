@@ -9,6 +9,8 @@ export interface ContextMenuWrapperProps {
   onClose: () => void;
   children: ReactNode;
   className?: string;
+  centered?: boolean;
+  anchorBottom?: boolean;
 }
 
 /**
@@ -28,6 +30,8 @@ export function ContextMenuWrapper({
   onClose,
   children,
   className = '',
+  centered = false,
+  anchorBottom = false,
 }: ContextMenuWrapperProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -75,6 +79,12 @@ export function ContextMenuWrapper({
     e.stopPropagation();
   };
 
+  // Build transform for centering and bottom anchoring
+  const transforms = [];
+  if (centered) transforms.push('translateX(-50%)');
+  if (anchorBottom) transforms.push('translateY(-100%)');
+  const transform = transforms.length > 0 ? transforms.join(' ') : undefined;
+
   return (
     <div
       ref={menuRef}
@@ -83,6 +93,7 @@ export function ContextMenuWrapper({
       style={{
         left: `${x}px`,
         top: `${y}px`,
+        transform,
       }}
       onContextMenu={handleContextMenu}
     >

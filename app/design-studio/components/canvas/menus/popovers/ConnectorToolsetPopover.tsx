@@ -47,6 +47,8 @@ export function ConnectorToolsetPopover({
       y={y}
       onClose={onClose}
       className="bg-[var(--bg-light)] border border-[var(--border)] rounded-sm [box-shadow:var(--shadow)] p-2"
+      centered
+      anchorBottom
     >
       {/* Connector tools in a single row */}
       <div className="flex gap-1 py-1">

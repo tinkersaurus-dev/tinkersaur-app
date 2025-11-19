@@ -191,20 +191,36 @@ export function getAdvancedOrthogonalPath(
   startDirection: ConnectionPointDirection,
   endDirection: ConnectionPointDirection,
   allShapes: Shape[],
-  excludeShapeIds: string[]
+  _excludeShapeIds: string[]
 ): { pathData: string; pathPoints: Point[] } {
-  // Filter out the source and target shapes from obstacles
-  const obstacles = allShapes.filter(shape => !excludeShapeIds.includes(shape.id));
+  // Instead of excluding shapes entirely, create "connection corridors" around
+  // the start and end points to allow routing to reach them while still
+  // treating the shapes as obstacles
+  const connectionCorridors = [
+    {
+      x: start.x,
+      y: start.y,
+      direction: startDirection as Direction
+    },
+    {
+      x: end.x,
+      y: end.y,
+      direction: endDirection as Direction
+    }
+  ];
 
   // Use the Wybrow algorithm to find optimal route
+  // Now we pass ALL shapes as obstacles, but with connection corridors
   const pathPoints = findOrthogonalRoute(
     start,
     end,
-    obstacles,
+    allShapes, // Use all shapes, not just filtered ones
     startDirection as Direction,
     endDirection as Direction,
     50, // Bend penalty weight
-    true // Enable path refinement
+    true, // Enable path refinement
+    true, // Use cache
+    connectionCorridors // Pass connection corridors to allow routing to connection points
   );
 
   // Build SVG path string from points

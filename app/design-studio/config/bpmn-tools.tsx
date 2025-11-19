@@ -38,6 +38,11 @@ export interface Tool {
     width: number;
     height: number;
   };
+  /** Position offset for shape creation (in pixels) */
+  creationOffset?: {
+    x?: number;
+    y?: number;
+  };
 }
 
 /**

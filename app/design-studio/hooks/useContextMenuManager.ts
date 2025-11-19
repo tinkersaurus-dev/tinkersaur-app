@@ -23,6 +23,15 @@ export const MENU_IDS = {
 } as const;
 
 /**
+ * Pending connector information for shape creation after connector drag
+ */
+export interface PendingConnector {
+  sourceShapeId: string;
+  sourceConnectionPointId: string;
+  sourceDirection: 'N' | 'S' | 'E' | 'W';
+}
+
+/**
  * Return type for the useContextMenuManager hook
  */
 export interface UseContextMenuManagerReturn {
@@ -43,6 +52,14 @@ export interface UseContextMenuManagerReturn {
   openCanvasContextMenu: (screenX: number, screenY: number, canvasX: number, canvasY: number) => void;
   openConnectorToolbarPopover: (buttonRef?: RefObject<HTMLElement>) => void;
   openConnectorContextMenu: (connectorId: string, screenX: number, screenY: number) => void;
+  openToolsetPopoverWithConnector: (
+    menuId: string,
+    screenX: number,
+    screenY: number,
+    canvasX: number,
+    canvasY: number,
+    pendingConnector: PendingConnector
+  ) => void;
 }
 
 /**
@@ -113,14 +130,15 @@ export function useContextMenuManager(): UseContextMenuManagerReturn {
   // Specialized opener for connector toolbar popover
   const openConnectorToolbarPopover = useCallback(
     (buttonRef?: RefObject<HTMLElement>) => {
-      let x = window.innerWidth / 2 - 100;
+      let x = window.innerWidth / 2;
       let y = window.innerHeight - 100;
 
-      // If button ref is provided, position relative to button
+      // If button ref is provided, position relative to button center
       if (buttonRef?.current) {
         const rect = buttonRef.current.getBoundingClientRect();
-        x = rect.left + rect.width / 2 - 100;
-        y = rect.bottom + 10;
+        x = rect.left + rect.width / 2;
+        // Position above the button instead of below (subtract spacing from top)
+        y = rect.top - 10;
       }
 
       openMenu({
@@ -143,6 +161,27 @@ export function useContextMenuManager(): UseContextMenuManagerReturn {
     [openMenu]
   );
 
+  // Specialized opener for toolset popover with pending connector
+  // Used when dragging a connector from a connection point and releasing on empty canvas
+  const openToolsetPopoverWithConnector = useCallback(
+    (
+      menuId: string,
+      screenX: number,
+      screenY: number,
+      canvasX: number,
+      canvasY: number,
+      pendingConnector: PendingConnector
+    ) => {
+      openMenu({
+        id: menuId,
+        screenPosition: { x: screenX, y: screenY },
+        canvasPosition: { x: canvasX, y: canvasY },
+        metadata: { pendingConnector },
+      });
+    },
+    [openMenu]
+  );
+
   return {
     activeMenuId: activeMenuConfig?.id ?? null,
     activeMenuConfig,
@@ -154,5 +193,6 @@ export function useContextMenuManager(): UseContextMenuManagerReturn {
     openCanvasContextMenu,
     openConnectorToolbarPopover,
     openConnectorContextMenu,
+    openToolsetPopoverWithConnector,
   };
 }

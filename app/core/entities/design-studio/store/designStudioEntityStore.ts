@@ -67,7 +67,7 @@ interface DesignStudioEntityStore {
   deleteDocument: (id: string) => Promise<void>;
 
   // Shape manipulation actions (work with diagram.shapes[])
-  addShape: (diagramId: string, shape: CreateShapeDTO) => Promise<void>;
+  addShape: (diagramId: string, shape: CreateShapeDTO) => Promise<string>;
   updateShape: (diagramId: string, shapeId: string, updates: Partial<Shape>) => Promise<void>;
   updateShapes: (diagramId: string, updates: Array<{ shapeId: string; updates: Partial<Shape> }>) => Promise<void>;
   updateShapeLabel: (diagramId: string, shapeId: string, newLabel: string) => Promise<void>;
@@ -1082,6 +1082,15 @@ export const useDesignStudioEntityStore = create<DesignStudioEntityStore>((set, 
       // Create and execute command
       const command = commandFactory.createAddShape(diagramId, shape);
       await commandManager.execute(command, diagramId);
+
+      // Get the diagram to find the newly created shape ID
+      const diagram = get().diagrams[diagramId];
+      if (!diagram || !diagram.shapes || diagram.shapes.length === 0) {
+        throw new Error('Failed to retrieve created shape');
+      }
+
+      // Return the ID of the last added shape
+      return diagram.shapes[diagram.shapes.length - 1].id;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to add shape');
       set((state) => ({

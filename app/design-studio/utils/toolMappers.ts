@@ -12,6 +12,7 @@ import type { Tool as GlobalTool } from '../config/global-tools';
 /**
  * Maps a BPMN tool to a CreateShapeDTO
  * Centers the shape at the canvas coordinates
+ * Applies optional creationOffset for positioning adjustment
  *
  * @param tool - The BPMN tool to map
  * @param canvasX - X coordinate on the canvas
@@ -23,11 +24,14 @@ export function mapBpmnToolToShape(
   canvasX: number,
   canvasY: number
 ): CreateShapeDTO {
+  const offsetX = tool.creationOffset?.x ?? 0;
+  const offsetY = tool.creationOffset?.y ?? 0;
+
   return {
     type: tool.shapeType,
     subtype: tool.shapeSubtype,
-    x: canvasX - tool.defaultSize.width / 2,
-    y: canvasY - tool.defaultSize.height / 2,
+    x: canvasX - tool.defaultSize.width / 2 + offsetX,
+    y: canvasY - tool.defaultSize.height / 2 + offsetY,
     width: tool.defaultSize.width,
     height: tool.defaultSize.height,
     label: tool.name,
@@ -40,6 +44,7 @@ export function mapBpmnToolToShape(
 /**
  * Maps a Class diagram tool to a CreateShapeDTO
  * Centers the shape at the canvas coordinates and includes initial data
+ * Applies optional creationOffset for positioning adjustment
  *
  * @param tool - The Class tool to map
  * @param canvasX - X coordinate on the canvas
@@ -51,11 +56,14 @@ export function mapClassToolToShape(
   canvasX: number,
   canvasY: number
 ): CreateShapeDTO {
+  const offsetX = tool.creationOffset?.x ?? 0;
+  const offsetY = tool.creationOffset?.y ?? 0;
+
   return {
     type: tool.shapeType,
     subtype: tool.shapeSubtype,
-    x: canvasX - tool.defaultSize.width / 2,
-    y: canvasY - tool.defaultSize.height / 2,
+    x: canvasX - tool.defaultSize.width / 2 + offsetX,
+    y: canvasY - tool.defaultSize.height / 2 + offsetY,
     width: tool.defaultSize.width,
     height: tool.defaultSize.height,
     label: tool.name,
@@ -69,6 +77,7 @@ export function mapClassToolToShape(
 /**
  * Maps a Sequence diagram tool to a CreateShapeDTO
  * Centers the shape at the canvas coordinates and includes initial data
+ * Applies optional creationOffset for positioning adjustment
  *
  * @param tool - The Sequence tool to map
  * @param canvasX - X coordinate on the canvas
@@ -80,11 +89,14 @@ export function mapSequenceToolToShape(
   canvasX: number,
   canvasY: number
 ): CreateShapeDTO {
+  const offsetX = tool.creationOffset?.x ?? 0;
+  const offsetY = tool.creationOffset?.y ?? 0;
+
   return {
     type: tool.shapeType,
     subtype: tool.shapeSubtype,
-    x: canvasX - tool.defaultSize.width / 2,
-    y: canvasY - tool.defaultSize.height / 2,
+    x: canvasX - tool.defaultSize.width / 2 + offsetX,
+    y: canvasY - tool.defaultSize.height / 2 + offsetY,
     width: tool.defaultSize.width,
     height: tool.defaultSize.height,
     label: tool.name,
@@ -99,6 +111,7 @@ export function mapSequenceToolToShape(
  * Maps a Global tool to a CreateShapeDTO
  * Global tools are available in all diagram types (e.g., Generate Diagram)
  * Centers the shape at the canvas coordinates and includes initial data
+ * Applies optional creationOffset for positioning adjustment
  *
  * @param tool - The Global tool to map
  * @param canvasX - X coordinate on the canvas
@@ -110,13 +123,16 @@ export function mapGlobalToolToShape(
   canvasX: number,
   canvasY: number
 ): CreateShapeDTO {
+  const offsetX = tool.creationOffset?.x ?? 0;
+  const offsetY = tool.creationOffset?.y ?? 0;
+
   // Special handling for LLM generator tool
   if (tool.shapeType === 'llm-generator') {
     return {
       type: tool.shapeType,
       subtype: tool.shapeSubtype,
-      x: canvasX - tool.defaultSize.width / 2,
-      y: canvasY - tool.defaultSize.height / 2,
+      x: canvasX - tool.defaultSize.width / 2 + offsetX,
+      y: canvasY - tool.defaultSize.height / 2 + offsetY,
       width: tool.defaultSize.width,
       height: tool.defaultSize.height,
       label: undefined, // No label for generator shape
@@ -135,8 +151,8 @@ export function mapGlobalToolToShape(
   return {
     type: tool.shapeType,
     subtype: tool.shapeSubtype,
-    x: canvasX - tool.defaultSize.width / 2,
-    y: canvasY - tool.defaultSize.height / 2,
+    x: canvasX - tool.defaultSize.width / 2 + offsetX,
+    y: canvasY - tool.defaultSize.height / 2 + offsetY,
     width: tool.defaultSize.width,
     height: tool.defaultSize.height,
     label: tool.name,

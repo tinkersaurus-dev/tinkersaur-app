@@ -31,6 +31,7 @@ export interface UseCanvasMouseOrchestrationProps {
   updateDrawingConnector: (screenX: number, screenY: number) => { currentX: number; currentY: number };
   onUpdateDrawingConnector: (currentX: number, currentY: number) => void;
   onCancelDrawingConnector: () => void;
+  onReleaseConnectorOnCanvas: (screenX: number, screenY: number, canvasX: number, canvasY: number) => void;
 
   // Shape dragging controls
   updateDragging: (screenX: number, screenY: number, rect: DOMRect) => { x: number; y: number };
@@ -78,7 +79,7 @@ export function useCanvasMouseOrchestration(
     onUpdateSelecting,
     updateDrawingConnector,
     onUpdateDrawingConnector,
-    onCancelDrawingConnector,
+    onReleaseConnectorOnCanvas,
     updateDragging,
     finishDragging,
     onUpdateDragging,
@@ -168,10 +169,17 @@ export function useCanvasMouseOrchestration(
       if (!container) return;
 
       switch (mode) {
-        case 'drawing-connector':
-          // Cancel if released on canvas (not on a connection point)
-          onCancelDrawingConnector();
+        case 'drawing-connector': {
+          // Released on canvas (not on a connection point)
+          // Open toolset popover to create shape and connector
+          const rect = container.getBoundingClientRect();
+          const screenX = e.clientX - rect.left;
+          const screenY = e.clientY - rect.top;
+          const { currentX, currentY } = updateDrawingConnector(screenX, screenY);
+
+          onReleaseConnectorOnCanvas(screenX, screenY, currentX, currentY);
           break;
+        }
 
         case 'panning':
           stopPanning();
@@ -204,7 +212,8 @@ export function useCanvasMouseOrchestration(
     [
       mode,
       stopPanning,
-      onCancelDrawingConnector,
+      updateDrawingConnector,
+      onReleaseConnectorOnCanvas,
       finishSelection,
       finishDragging,
       onFinishInteraction,

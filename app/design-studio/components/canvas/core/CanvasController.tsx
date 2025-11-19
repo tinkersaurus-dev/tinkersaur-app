@@ -296,6 +296,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   // These handlers check if the tool is a global tool and use the appropriate mapper
   const { handleToolSelect: handleBpmnToolSelect } = useToolHandler<BpmnTool>({
     addShape,
+    addConnector,
+    activeConnectorType,
     menuManager,
     toolToShapeMapper: (tool, canvasX, canvasY) => {
       // Check if this is a global tool
@@ -309,6 +311,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
 
   const { handleToolSelect: handleClassToolSelect } = useToolHandler<ClassTool>({
     addShape,
+    addConnector,
+    activeConnectorType,
     menuManager,
     toolToShapeMapper: (tool, canvasX, canvasY) => {
       // Check if this is a global tool
@@ -322,6 +326,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
 
   const { handleToolSelect: handleSequenceToolSelect } = useToolHandler<SequenceTool>({
     addShape,
+    addConnector,
+    activeConnectorType,
     menuManager,
     toolToShapeMapper: (tool, canvasX, canvasY) => {
       // Check if this is a global tool
@@ -466,6 +472,50 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     shapes: diagram?.shapes ?? [],
   });
 
+  // Handle connector drag released on canvas (not on connection point)
+  // Opens toolset popover for shape creation with pending connector
+  // IMPORTANT: Must be defined before useCanvasMouseOrchestration
+  const handleReleaseConnectorOnCanvas = useCallback(
+    (screenX: number, screenY: number, canvasX: number, canvasY: number) => {
+      if (!drawingConnector) return;
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      // Get the absolute screen coordinates for the popover
+      const rect = container.getBoundingClientRect();
+      const absoluteScreenX = rect.left + screenX;
+      const absoluteScreenY = rect.top + screenY;
+
+      // Determine which toolset popover to open based on diagram type
+      let menuId: string = MENU_IDS.BPMN_TOOLSET_POPOVER;
+      if (diagram?.type === 'class') {
+        menuId = MENU_IDS.CLASS_TOOLSET_POPOVER;
+      } else if (diagram?.type === 'sequence') {
+        menuId = MENU_IDS.SEQUENCE_TOOLSET_POPOVER;
+      }
+
+      // Open toolset popover with pending connector information
+      // Use absolute screen coordinates for popover positioning
+      menuManager.openToolsetPopoverWithConnector(
+        menuId,
+        absoluteScreenX,
+        absoluteScreenY,
+        canvasX,
+        canvasY,
+        {
+          sourceShapeId: drawingConnector.fromShapeId,
+          sourceConnectionPointId: drawingConnector.fromConnectionPointId,
+          sourceDirection: drawingConnector.sourceDirection || 'N',
+        }
+      );
+
+      // Reset the drawing connector state
+      resetInteraction();
+    },
+    [drawingConnector, diagram?.type, menuManager, resetInteraction, containerRef]
+  );
+
   // Orchestrate mouse events with state machine-based routing
   const { handleMouseDown, handleMouseMove, handleMouseUp } = useCanvasMouseOrchestration({
     containerRef,
@@ -483,6 +533,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     updateDrawingConnector,
     onUpdateDrawingConnector: updateDrawingConnectorData,
     onCancelDrawingConnector: resetInteraction,
+    onReleaseConnectorOnCanvas: handleReleaseConnectorOnCanvas,
     updateDragging,
     finishDragging,
     onUpdateDragging: updateDraggingData,
@@ -561,8 +612,10 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   );
 
   // Handle connector toolbar button click
-  const handleConnectorToolbarClick = useCallback(() => {
-    menuManager.openConnectorToolbarPopover();
+  const handleConnectorToolbarClick = useCallback((buttonElement?: HTMLButtonElement) => {
+    // Create a ref object from the button element if provided
+    const buttonRef = buttonElement ? { current: buttonElement } : undefined;
+    menuManager.openConnectorToolbarPopover(buttonRef);
   }, [menuManager]);
 
   // Configure toolbar buttons

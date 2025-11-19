@@ -7,7 +7,7 @@ export interface ToolbarConfigParams {
   gridSnappingEnabled: boolean;
   activeConnectorIcon: React.ReactNode;
   setGridSnappingEnabled: (enabled: boolean) => void;
-  handleConnectorToolbarClick: () => void;
+  handleConnectorToolbarClick: (buttonElement?: HTMLButtonElement) => void;
 }
 
 /**

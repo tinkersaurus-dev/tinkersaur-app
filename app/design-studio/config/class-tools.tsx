@@ -29,6 +29,11 @@ export interface Tool {
   };
   /** Initial shape data */
   initialData?: Record<string, unknown>;
+  /** Position offset for shape creation (in pixels) */
+  creationOffset?: {
+    x?: number;
+    y?: number;
+  };
 }
 
 /**

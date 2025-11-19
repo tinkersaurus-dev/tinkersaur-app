@@ -4,7 +4,7 @@ import { Button } from '~/core/components/ui/Button';
 export interface ToolbarButton {
   id: string;
   icon: React.ReactNode;
-  onClick: () => void;
+  onClick: (buttonElement?: HTMLButtonElement) => void;
   tooltip?: string;
   disabled?: boolean;
   active?: boolean;
@@ -46,7 +46,10 @@ const CanvasToolbar: React.FC<CanvasToolbarProps> = ({ placement, buttons }) => 
             size="small"
             variant="default"
             icon={button.icon}
-            onClick={button.onClick}
+            onClick={(e) => {
+              const buttonElement = e.currentTarget as HTMLButtonElement;
+              button.onClick(buttonElement);
+            }}
             disabled={button.disabled}
             title={button.tooltip}
             className={`

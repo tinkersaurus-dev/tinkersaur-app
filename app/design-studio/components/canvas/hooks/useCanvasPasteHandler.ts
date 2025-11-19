@@ -1,12 +1,10 @@
 import { useEffect, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 import type { CommandFactory } from '~/core/commands/CommandFactory';
-import type { Shape } from '~/core/entities/design-studio/types/Shape';
-import type { Connector } from '~/core/entities/design-studio/types/Connector';
-import { getMermaidImporter } from '~/design-studio/lib/mermaid';
 import { commandManager } from '~/core/commands/CommandManager';
 import { toast } from '~/core/utils/toast';
+import { CreatePreviewFromPasteCommand } from '~/core/commands/canvas/preview-import/CreatePreviewFromPasteCommand';
+import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
 
 interface UseCanvasPasteHandlerProps {
   diagramId: string;
@@ -24,11 +22,18 @@ interface UseCanvasPasteHandlerProps {
 export function useCanvasPasteHandler({
   diagramId,
   diagramType,
-  commandFactory,
   canvasRef,
   getMousePosition,
   enabled,
 }: UseCanvasPasteHandlerProps) {
+  // Get entity store functions for creating the preview command
+  const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
+  const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
+  const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);
+  const deleteConnector = useDesignStudioEntityStore((state) => state._internalDeleteConnector);
+  const addShapesBatch = useDesignStudioEntityStore((state) => state._internalAddShapesBatch);
+  const addConnectorsBatch = useDesignStudioEntityStore((state) => state._internalAddConnectorsBatch);
+
   const handlePaste = useCallback(
     async (event: ClipboardEvent) => {
       if (!enabled) {
@@ -59,84 +64,35 @@ export function useCanvasPasteHandler({
       event.preventDefault();
 
       try {
-        // Get the importer for this diagram type
-        const importerResult = getMermaidImporter(diagramType);
-        if (!importerResult.ok) {
-          toast.error(importerResult.error);
-          return;
-        }
-
-        const importer = importerResult.value;
-
-        // Validate the syntax matches the current diagram type
-        const validationResult = importer.validate(trimmedText);
-        if (!validationResult.ok) {
-          toast.info(validationResult.error);
-          return;
-        }
-
         // Get current mouse position (or center of viewport)
-        const centerPoint = getMousePosition();
+        const pastePosition = getMousePosition();
 
-        // Import the Mermaid syntax
-        const importResult = importer.import(trimmedText, { centerPoint });
-        if (!importResult.ok) {
-          toast.error(importResult.error);
-          return;
-        }
+        // Create preview from pasted mermaid syntax
+        const command = new CreatePreviewFromPasteCommand(
+          diagramId,
+          diagramType,
+          trimmedText,
+          pastePosition,
+          addShape,
+          addConnector,
+          deleteShape,
+          deleteConnector,
+          addShapesBatch,
+          addConnectorsBatch
+        );
 
-        const { shapes: shapeDTOs, connectors: connectorRefs } = importResult.value;
-
-        if (shapeDTOs.length === 0) {
-          toast.info('No shapes to import');
-          return;
-        }
-
-        // Generate IDs for all shapes and build a mapping from indices to IDs
-        const shapeIdMapping = new Map<number, string>();
-        const shapesWithIds: Shape[] = shapeDTOs.map((shapeDTO, index) => {
-          const id = uuidv4();
-          shapeIdMapping.set(index, id);
-          return {
-            id,
-            ...shapeDTO,
-          };
-        });
-
-        // Convert connector refs (using shape indices) to connectors (using shape IDs)
-        const connectorsWithIds: Connector[] = connectorRefs.map((connectorRef) => {
-          const sourceShapeId = shapeIdMapping.get(connectorRef.fromShapeIndex);
-          const targetShapeId = shapeIdMapping.get(connectorRef.toShapeIndex);
-
-          if (!sourceShapeId || !targetShapeId) {
-            throw new Error('Invalid connector reference - shape ID not found');
-          }
-
-          const { fromShapeIndex: _fromShapeIndex, toShapeIndex: _toShapeIndex, ...connectorData } = connectorRef;
-          return {
-            id: uuidv4(),
-            sourceShapeId,
-            targetShapeId,
-            ...connectorData,
-          };
-        });
-
-        // Create and execute import command
-        const command = commandFactory.createImportMermaid(diagramId, shapesWithIds, connectorsWithIds);
         await commandManager.execute(command, diagramId);
 
         // Show success message
-        toast.success(
-          `Imported ${shapesWithIds.length} shape${shapesWithIds.length !== 1 ? 's' : ''} and ${connectorsWithIds.length} connector${connectorsWithIds.length !== 1 ? 's' : ''}`
-        );
+        toast.success('Mermaid diagram pasted. Review and click "Apply" to add to canvas.');
       } catch (error) {
-        console.error('Failed to import Mermaid diagram:', error);
+        console.error('Failed to create preview from pasted Mermaid:', error);
         toast.error(
-          `Failed to import: ${error instanceof Error ? error.message : 'Unknown error'}`
+          `Failed to paste diagram: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
       }
     },
-    [enabled, diagramId, diagramType, commandFactory, getMousePosition]
+    [enabled, diagramId, diagramType, getMousePosition, addShape, addConnector, deleteShape, deleteConnector, addShapesBatch, addConnectorsBatch]
   );
 
   useEffect(() => {

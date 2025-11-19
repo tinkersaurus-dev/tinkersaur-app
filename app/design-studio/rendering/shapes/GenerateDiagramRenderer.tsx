@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * LLM Diagram Generator Renderer
  *
@@ -67,26 +66,22 @@ export function GenerateDiagramRenderer({
   const backgroundColor = isSelected ? 'var(--bg-light)' : 'var(--bg)';
 
   const handleGenerate = async () => {
-    console.log('[GenerateDiagramRenderer] handleGenerate called');
-    console.log('[GenerateDiagramRenderer] isGenerating:', isGenerating);
 
     // Prevent duplicate calls
     if (isGenerating) {
-      console.log('[GenerateDiagramRenderer] Already generating, ignoring duplicate call');
       return;
     }
 
-    console.log('[GenerateDiagramRenderer] prompt:', prompt);
-    console.log('[GenerateDiagramRenderer] diagramType:', diagramType);
+
 
     if (!prompt.trim()) {
-      console.log('[GenerateDiagramRenderer] Error: empty prompt');
+
       setError('Please enter a prompt');
       return;
     }
 
     if (!diagramType) {
-      console.log('[GenerateDiagramRenderer] Error: no diagram type');
+  
       setError('Could not determine diagram type');
       toast.error('Could not determine diagram type');
       return;
@@ -94,23 +89,21 @@ export function GenerateDiagramRenderer({
 
     // Skip dataflow diagrams (not implemented)
     if (diagramType === 'dataflow') {
-      console.log('[GenerateDiagramRenderer] Error: dataflow not supported');
+
       setError('Dataflow diagrams are not supported yet');
       toast.error('Dataflow diagram generation is not available');
       return;
     }
 
     try {
-      console.log('[GenerateDiagramRenderer] Setting loading and generating state...');
+  
       setIsGenerating(true);
       setIsLoading(true);
       setError(undefined);
 
-      console.log('[GenerateDiagramRenderer] Calling generateMermaid API...');
-      const mermaidSyntax = await generateMermaid(prompt, diagramType);
-      console.log('[GenerateDiagramRenderer] Received mermaid syntax:', mermaidSyntax.substring(0, 100) + '...');
 
-      console.log('[GenerateDiagramRenderer] Creating ReplaceWithPreviewCommand...');
+      const mermaidSyntax = await generateMermaid(prompt, diagramType);
+
 
       const command = new ReplaceWithPreviewCommand(
         diagramId,
@@ -127,21 +120,21 @@ export function GenerateDiagramRenderer({
         addConnectorsBatch
       );
 
-      console.log('[GenerateDiagramRenderer] Executing command...');
+
       await commandManager.execute(command, diagramId);
-      console.log('[GenerateDiagramRenderer] Command executed successfully');
+
 
       // Apply sequence diagram post-processing (lifeline heights and activation boxes)
       await applySequenceDiagramPostProcessing(diagramId, commandFactory);
 
       toast.success('Diagram generated successfully!');
     } catch (err) {
-      console.error('[GenerateDiagramRenderer] Error caught:', err);
+
       const errorMessage = err instanceof MermaidGeneratorAPIError
         ? err.message
         : 'Failed to generate diagram';
 
-      console.log('[GenerateDiagramRenderer] Setting error state:', errorMessage);
+
       setError(errorMessage);
       setIsLoading(false);
       setIsGenerating(false);

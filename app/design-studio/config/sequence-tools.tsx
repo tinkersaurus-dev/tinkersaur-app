@@ -37,6 +37,11 @@ export interface Tool {
   };
   /** Initial shape data */
   initialData?: Record<string, unknown>;
+  /** Position offset for shape creation (in pixels) */
+  creationOffset?: {
+    x?: number;
+    y?: number;
+  };
 }
 
 /**
@@ -68,6 +73,7 @@ const participantTools: Tool[] = [
       lifelineStyle: 'dashed',
       activations: [],
     },
+    creationOffset: { y: 180 },
   },
   {
     id: 'object',
@@ -80,6 +86,7 @@ const participantTools: Tool[] = [
       lifelineStyle: 'dashed',
       activations: [],
     },
+    creationOffset: { y: 180 },
   },
   {
     id: 'boundary',
@@ -92,6 +99,7 @@ const participantTools: Tool[] = [
       lifelineStyle: 'dashed',
       activations: [],
     },
+    creationOffset: { y: 180 },
   },
   {
     id: 'control',
@@ -104,6 +112,7 @@ const participantTools: Tool[] = [
       lifelineStyle: 'dashed',
       activations: [],
     },
+    creationOffset: { y: 180 },
   },
   {
     id: 'entity',
@@ -116,6 +125,7 @@ const participantTools: Tool[] = [
       lifelineStyle: 'dashed',
       activations: [],
     },
+    creationOffset: { y: 180 },
   },
   {
     id: 'database',
@@ -128,6 +138,7 @@ const participantTools: Tool[] = [
       lifelineStyle: 'dashed',
       activations: [],
     },
+    creationOffset: { y: 180 },
   },
 ];
 

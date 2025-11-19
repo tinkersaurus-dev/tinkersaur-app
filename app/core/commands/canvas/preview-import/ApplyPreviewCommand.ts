@@ -166,9 +166,19 @@ export class ApplyPreviewCommand implements Command {
       }
 
       connectorDTOs.push({
-        ...connectorInfo.connectorData,
+        type: connectorInfo.connectorData.type,
         sourceShapeId: newSourceShapeId,
         targetShapeId: newTargetShapeId,
+        sourceConnectionPoint: connectorInfo.connectorData.sourceConnectionPoint,
+        targetConnectionPoint: connectorInfo.connectorData.targetConnectionPoint,
+        style: connectorInfo.connectorData.style,
+        arrowType: connectorInfo.connectorData.arrowType,
+        markerStart: connectorInfo.connectorData.markerStart,
+        markerEnd: connectorInfo.connectorData.markerEnd,
+        lineType: connectorInfo.connectorData.lineType,
+        points: connectorInfo.connectorData.points,
+        label: connectorInfo.connectorData.label,
+        zIndex: connectorInfo.connectorData.zIndex,
       });
     }
 
