@@ -329,7 +329,6 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
         fromShapeIndex,
         toShapeIndex,
         style: 'orthogonal',
-        arrowType: 'arrow',
         markerStart: 'none',
         markerEnd: 'arrow',
         lineType,

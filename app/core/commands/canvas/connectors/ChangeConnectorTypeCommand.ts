@@ -31,7 +31,6 @@ export class ChangeConnectorTypeCommand implements Command {
         markerStart: currentConnector.markerStart,
         markerEnd: currentConnector.markerEnd,
         lineType: currentConnector.lineType,
-        arrowType: currentConnector.arrowType, // For backwards compatibility
       };
     }
 
@@ -45,7 +44,6 @@ export class ChangeConnectorTypeCommand implements Command {
       markerStart: this.newConnectorData.markerStart,
       markerEnd: this.newConnectorData.markerEnd,
       lineType: this.newConnectorData.lineType,
-      arrowType: this.newConnectorData.arrowType,
     });
   }
 

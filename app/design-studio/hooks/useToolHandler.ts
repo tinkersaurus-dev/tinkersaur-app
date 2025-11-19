@@ -118,7 +118,6 @@ export function useToolHandler<T extends BaseTool>(
             sourceConnectionPoint,
             targetConnectionPoint,
             style: 'orthogonal',
-            arrowType: 'arrow',
             markerStart: 'none',
             markerEnd: 'arrow',
             lineType: 'solid',

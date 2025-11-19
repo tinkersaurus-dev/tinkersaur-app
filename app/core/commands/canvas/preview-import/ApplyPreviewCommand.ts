@@ -172,7 +172,6 @@ export class ApplyPreviewCommand implements Command {
         sourceConnectionPoint: connectorInfo.connectorData.sourceConnectionPoint,
         targetConnectionPoint: connectorInfo.connectorData.targetConnectionPoint,
         style: connectorInfo.connectorData.style,
-        arrowType: connectorInfo.connectorData.arrowType,
         markerStart: connectorInfo.connectorData.markerStart,
         markerEnd: connectorInfo.connectorData.markerEnd,
         lineType: connectorInfo.connectorData.lineType,

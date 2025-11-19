@@ -81,9 +81,9 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   // Line style
   const strokeDasharray = getStrokeDasharray(connector.lineType, strokeWidth);
 
-  // Marker IDs - use new markerStart/markerEnd if available, fallback to arrowType for backwards compatibility
+  // Marker IDs
   const markerStartType = connector.markerStart || 'none';
-  const markerEndType = connector.markerEnd || connector.arrowType || 'arrow';
+  const markerEndType = connector.markerEnd || 'arrow';
   const markerStartId = `marker-start-${connector.id}`;
   const markerEndId = `marker-end-${connector.id}`;
 

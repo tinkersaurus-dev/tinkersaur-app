@@ -144,7 +144,6 @@ export function useConnectorDrawing({
         targetConnectionPoint: targetConnectionPointId,
       }),
       style,
-      arrowType: markerEnd, // Keep for backwards compatibility
       markerStart,
       markerEnd,
       lineType,

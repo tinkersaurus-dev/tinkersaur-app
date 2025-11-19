@@ -307,7 +307,6 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
         fromShapeIndex,
         toShapeIndex,
         style: 'straight',
-        arrowType: 'arrow',
         markerStart: 'none',
         markerEnd: 'arrow',
         lineType,

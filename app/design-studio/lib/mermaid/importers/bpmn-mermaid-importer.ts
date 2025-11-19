@@ -406,7 +406,6 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
         fromShapeIndex,
         toShapeIndex,
         style: 'orthogonal',
-        arrowType: conn.markerEnd,
         markerStart: 'none',
         markerEnd: conn.markerEnd,
         lineType: conn.lineType,

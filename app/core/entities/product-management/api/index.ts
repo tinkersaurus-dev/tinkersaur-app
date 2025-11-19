@@ -13,6 +13,3 @@ export { solutionApi } from './solutionApi';
 export { featureApi } from './featureApi';
 export { changeApi } from './changeApi';
 export { requirementApi } from './requirementApi';
-
-// Export utilities
-export { clearAllStorage } from './storage';

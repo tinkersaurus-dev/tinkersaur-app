@@ -166,7 +166,6 @@ export class UpdatePreviewCommand implements Command {
         sourceConnectionPoint: connectorRef.sourceConnectionPoint,
         targetConnectionPoint: connectorRef.targetConnectionPoint,
         style: connectorRef.style,
-        arrowType: connectorRef.arrowType,
         markerStart: connectorRef.markerStart,
         markerEnd: connectorRef.markerEnd,
         lineType: connectorRef.lineType,

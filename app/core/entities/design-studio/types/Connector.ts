@@ -24,7 +24,6 @@ export const ConnectorSchema = z.object({
   sourceConnectionPoint: ConnectionPointId.optional(), // Which connection point on source shape
   targetConnectionPoint: ConnectionPointId.optional(), // Which connection point on target shape
   style: z.enum(['straight', 'orthogonal', 'curved']).default('orthogonal'),
-  arrowType: ArrowType.default('arrow'), // Arrow head style (DEPRECATED: use markerEnd)
   markerStart: ArrowType.default('none'), // Marker at the start of the connector (source end)
   markerEnd: ArrowType.default('arrow'), // Marker at the end of the connector (target end)
   lineType: LineType.default('solid'), // Line style

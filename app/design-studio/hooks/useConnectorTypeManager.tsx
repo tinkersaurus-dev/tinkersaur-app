@@ -101,7 +101,6 @@ export function useConnectorTypeManager({
       markerStart: connectorTool.markerStart,
       markerEnd: connectorTool.markerEnd,
       lineType: connectorTool.lineType,
-      arrowType: connectorTool.markerEnd, // For backwards compatibility
     };
 
     // Create and execute the command

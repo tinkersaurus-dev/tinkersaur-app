@@ -10,4 +10,3 @@ export { diagramApi } from './diagramApi';
 export { interfaceApi } from './interfaceApi';
 export { documentApi } from './documentApi';
 export { initializeMockData } from './mockData';
-export { simulateDelay, getFromStorage, saveToStorage, clearAllStorage } from './storage';
