@@ -32,6 +32,14 @@ import { useToolHandler } from '../../../hooks/useToolHandler';
 import { mapBpmnToolToShape, mapClassToolToShape, mapSequenceToolToShape, mapGlobalToolToShape } from '../../../utils/toolMappers';
 import { CanvasContext } from './CanvasControllerContext';
 import type { CanvasControllerContext } from './CanvasControllerContext';
+import { DiagramContext } from './CanvasDiagramContext';
+import type { CanvasDiagramContext } from './CanvasDiagramContext';
+import { ViewportContext } from './CanvasViewportContext';
+import type { CanvasViewportContext } from './CanvasViewportContext';
+import { SelectionContext } from './CanvasSelectionContext';
+import type { CanvasSelectionContext } from './CanvasSelectionContext';
+import { EventsContext } from './CanvasEventsContext';
+import type { CanvasEventsContext } from './CanvasEventsContext';
 
 /**
  * Canvas Controller Component
@@ -637,7 +645,118 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     [diagram?.type, connectorTypeManager.activeConnectorIcon, handleConnectorToolbarClick, gridSnappingEnabled, setGridSnappingEnabled]
   );
 
-  // Build context value
+  // Build individual context values
+  const diagramContextValue: CanvasDiagramContext = useMemo(() => ({
+    diagramId,
+    diagram,
+    loading,
+    shapes,
+    connectors,
+  }), [diagramId, diagram, loading, shapes, connectors]);
+
+  const viewportContextValue: CanvasViewportContext = useMemo(() => ({
+    viewportTransform,
+  }), [viewportTransform]);
+
+  const selectionContextValue: CanvasSelectionContext = useMemo(() => ({
+    selectedShapeIds,
+    hoveredShapeId,
+    selectedConnectorIds,
+    hoveredConnectorId,
+    mode,
+    selectionBox,
+    drawingConnector,
+    editingEntityId,
+    editingEntityType,
+    gridSnappingEnabled,
+    activeConnectorType,
+  }), [
+    selectedShapeIds,
+    hoveredShapeId,
+    selectedConnectorIds,
+    hoveredConnectorId,
+    mode,
+    selectionBox,
+    drawingConnector,
+    editingEntityId,
+    editingEntityType,
+    gridSnappingEnabled,
+    activeConnectorType,
+  ]);
+
+  const eventsContextValue: CanvasEventsContext = useMemo(() => ({
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleContextMenu,
+    handleShapeMouseDown,
+    handleShapeMouseEnter,
+    handleShapeMouseLeave,
+    handleShapeDoubleClick,
+    handleStartDrawingConnector,
+    handleFinishDrawingConnector,
+    handleConnectorMouseDown,
+    handleConnectorMouseEnter,
+    handleConnectorMouseLeave,
+    handleConnectorDoubleClick,
+    handleLabelChange,
+    handleFinishEditing,
+    updateStereotype,
+    addAttribute,
+    deleteAttribute,
+    updateAttribute,
+    updateAttributeLocal,
+    addMethod,
+    deleteMethod,
+    updateMethod,
+    updateMethodLocal,
+    menuManager,
+    handleAddRectangle,
+    handleBpmnToolSelect,
+    handleClassToolSelect,
+    handleSequenceToolSelect,
+    handleConnectorToolbarClick,
+    connectorTypeManager,
+    toolbarButtons,
+    containerRef,
+  }), [
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleContextMenu,
+    handleShapeMouseDown,
+    handleShapeMouseEnter,
+    handleShapeMouseLeave,
+    handleShapeDoubleClick,
+    handleStartDrawingConnector,
+    handleFinishDrawingConnector,
+    handleConnectorMouseDown,
+    handleConnectorMouseEnter,
+    handleConnectorMouseLeave,
+    handleConnectorDoubleClick,
+    handleLabelChange,
+    handleFinishEditing,
+    updateStereotype,
+    addAttribute,
+    deleteAttribute,
+    updateAttribute,
+    updateAttributeLocal,
+    addMethod,
+    deleteMethod,
+    updateMethod,
+    updateMethodLocal,
+    menuManager,
+    handleAddRectangle,
+    handleBpmnToolSelect,
+    handleClassToolSelect,
+    handleSequenceToolSelect,
+    handleConnectorToolbarClick,
+    connectorTypeManager,
+    toolbarButtons,
+    containerRef,
+  ]);
+
+  // Build legacy context value (for backwards compatibility)
   const contextValue: CanvasControllerContext = useMemo(() => ({
     // Diagram Data
     diagramId,
@@ -772,8 +891,16 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   ]);
 
   return (
-    <CanvasContext.Provider value={contextValue}>
-      {children}
-    </CanvasContext.Provider>
+    <DiagramContext.Provider value={diagramContextValue}>
+      <ViewportContext.Provider value={viewportContextValue}>
+        <SelectionContext.Provider value={selectionContextValue}>
+          <EventsContext.Provider value={eventsContextValue}>
+            <CanvasContext.Provider value={contextValue}>
+              {children}
+            </CanvasContext.Provider>
+          </EventsContext.Provider>
+        </SelectionContext.Provider>
+      </ViewportContext.Provider>
+    </DiagramContext.Provider>
   );
 }

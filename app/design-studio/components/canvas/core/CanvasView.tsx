@@ -1,4 +1,7 @@
-import { useCanvasController } from './CanvasControllerContext';
+import { useCanvasDiagram } from './CanvasDiagramContext';
+import { useCanvasViewport } from './CanvasViewportContext';
+import { useCanvasSelection } from './CanvasSelectionContext';
+import { useCanvasEvents } from './CanvasEventsContext';
 import { MENU_IDS } from '../../../hooks/useContextMenuManager';
 import { GridBackground } from '../ui/GridBackground';
 import { ContextMenu } from '../menus/ContextMenu';
@@ -31,20 +34,20 @@ import { setDebugGraph } from '../debug/routingDebugState';
  */
 
 export function CanvasView() {
+  // Consume focused contexts
   const {
-    // Diagram Data
     diagramId,
     diagram,
     loading,
-
-    // Viewport
-    viewportTransform,
-
-    // Content
     shapes,
     connectors,
+  } = useCanvasDiagram();
 
-    // Selection & Interaction
+  const {
+    viewportTransform,
+  } = useCanvasViewport();
+
+  const {
     selectedShapeIds,
     hoveredShapeId,
     selectedConnectorIds,
@@ -52,37 +55,28 @@ export function CanvasView() {
     mode,
     selectionBox,
     drawingConnector,
-
-    // Editing State
     editingEntityId,
     editingEntityType,
     activeConnectorType,
+  } = useCanvasSelection();
 
-    // Event Handlers - Canvas
+  const {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
     handleContextMenu,
-
-    // Event Handlers - Shapes
     handleShapeMouseDown,
     handleShapeMouseEnter,
     handleShapeMouseLeave,
     handleShapeDoubleClick,
     handleStartDrawingConnector,
     handleFinishDrawingConnector,
-
-    // Event Handlers - Connectors
     handleConnectorMouseDown,
     handleConnectorMouseEnter,
     handleConnectorMouseLeave,
     handleConnectorDoubleClick,
-
-    // Event Handlers - Editing
     handleLabelChange,
     handleFinishEditing,
-
-    // Event Handlers - Class Shapes
     updateStereotype,
     addAttribute,
     deleteAttribute,
@@ -92,23 +86,15 @@ export function CanvasView() {
     deleteMethod,
     updateMethod,
     updateMethodLocal,
-
-    // Menu Management
     menuManager,
     handleAddRectangle,
     handleBpmnToolSelect,
     handleClassToolSelect,
     handleSequenceToolSelect,
-
-    // Connector Type Management
     connectorTypeManager,
-
-    // Toolbar Configuration
     toolbarButtons,
-
-    // Refs
     containerRef,
-  } = useCanvasController();
+  } = useCanvasEvents();
 
   if (loading) {
     return (

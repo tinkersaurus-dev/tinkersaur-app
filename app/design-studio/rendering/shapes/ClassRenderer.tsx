@@ -15,6 +15,7 @@ import { ShapeDropdown } from '../../components/canvas/editors/ShapeDropdown';
 import { ClassItemEditor } from '../../components/canvas/editors/ClassItemEditor';
 import { ShapeWrapper } from './ShapeWrapper';
 import { CLASS_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
+import { THEME_CONFIG } from '~/core/config/theme-config';
 
 const STEREOTYPE_OPTIONS = [
   { value: 'interface', label: '<<interface>>' },
@@ -79,11 +80,11 @@ export function ClassRenderer({
   const [editingMethodOriginal, setEditingMethodOriginal] = useState<string>('');
 
   // Calculate zoom-compensated values
-  let borderWidth = 2 / zoom;
-  const borderRadius = 2;
-  const padding = 8;
-  const fontSize = 12;
-  const itemFontSize = 11;
+  let borderWidth = THEME_CONFIG.stroke.shapeBorder / zoom;
+  const borderRadius = THEME_CONFIG.classRenderer.borderRadius;
+  const padding = THEME_CONFIG.classRenderer.padding;
+  const fontSize = THEME_CONFIG.classRenderer.fontSize;
+  const itemFontSize = THEME_CONFIG.classRenderer.itemFontSize;
 
   // Determine border color based on state
   let borderColor = 'var(--border)';

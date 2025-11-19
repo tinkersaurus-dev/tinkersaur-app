@@ -1,6 +1,7 @@
 import type { Result } from '~/core/lib/utils/result';
 import type { Shape, CreateShapeDTO } from '~/core/entities/design-studio/types/Shape';
 import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Connector reference that uses shape indices instead of IDs
@@ -72,8 +73,8 @@ export interface MermaidImporter {
 export abstract class BaseMermaidImporter implements MermaidImporter {
   protected defaultOptions: Required<MermaidImportOptions> = {
     centerPoint: { x: 0, y: 0 },
-    nodeSpacing: { horizontal: 160, vertical: 120 },
-    defaultShapeDimensions: { width: 120, height: 80 },
+    nodeSpacing: { horizontal: 100, vertical: 120 },
+    defaultShapeDimensions: DESIGN_STUDIO_CONFIG.shapes.default,
   };
 
   abstract import(

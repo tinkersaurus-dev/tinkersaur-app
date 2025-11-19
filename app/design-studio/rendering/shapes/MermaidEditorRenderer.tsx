@@ -13,7 +13,7 @@ import type { ShapeRendererProps } from './types';
 import type { MermaidEditorShapeData, DiagramType } from '~/core/entities/design-studio/types';
 import { ShapeWrapper } from './ShapeWrapper';
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
-import { useCanvasController } from '~/design-studio/components/canvas/core/CanvasControllerContext';
+import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasDiagramContext';
 import { commandManager } from '~/core/commands/CommandManager';
 import { UpdatePreviewCommand } from '~/core/commands/canvas/preview-import/UpdatePreviewCommand';
 import { toast } from 'sonner';
@@ -30,7 +30,7 @@ export function MermaidEditorRenderer({
   const { isSelected, isHovered, zoom } = context;
 
   // Get diagram info and store functions
-  const { diagramId, diagram } = useCanvasController();
+  const { diagramId, diagram } = useCanvasDiagram();
   const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
   const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
   const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);

@@ -5,6 +5,7 @@ import { getPathMidpoint } from '../../utils/pathUtils';
 import { findOptimalConnectionPoints } from '../../utils/canvas';
 import { getConnectionPointsForShape } from '../../utils/connectionPoints';
 import { getPathData } from './pathUtils';
+import { THEME_CONFIG } from '~/core/config/theme-config';
 
 /**
  * LineConnectorRenderer
@@ -69,7 +70,7 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   const labelPosition = getPathMidpoint(pathPoints);
 
   // Zoom-compensated stroke width (2px at 100% zoom)
-  const strokeWidth = 2 / context.zoom;
+  const strokeWidth = THEME_CONFIG.stroke.connector / context.zoom;
 
   // Base color - darker when selected/hovered
   const strokeColor = context.isSelected
@@ -99,7 +100,7 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
       <path
         d={pathData}
         stroke="transparent"
-        strokeWidth={12 / context.zoom}
+        strokeWidth={THEME_CONFIG.stroke.hitbox / context.zoom}
         fill="none"
         style={{ cursor: context.readOnly ? 'default' : 'pointer', pointerEvents: 'auto' }}
         onMouseDown={(e) => onMouseDown?.(e, connector.id)}

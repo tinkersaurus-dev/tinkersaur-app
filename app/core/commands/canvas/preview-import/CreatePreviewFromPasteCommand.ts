@@ -6,6 +6,7 @@ import type { MermaidImportResult } from '~/design-studio/lib/mermaid/mermaid-im
 import { BpmnMermaidImporter } from '~/design-studio/lib/mermaid/importers/bpmn-mermaid-importer';
 import { ClassMermaidImporter } from '~/design-studio/lib/mermaid/importers/class-mermaid-importer';
 import { SequenceMermaidImporter} from '~/design-studio/lib/mermaid/importers/sequence-mermaid-importer';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Command to create a preview from pasted mermaid syntax
@@ -224,8 +225,8 @@ export class CreatePreviewFromPasteCommand implements Command {
       return {
         x: this.pastePosition.x,
         y: this.pastePosition.y,
-        width: 300,
-        height: 200,
+        width: DESIGN_STUDIO_CONFIG.shapes.preview.width,
+        height: DESIGN_STUDIO_CONFIG.shapes.preview.height,
       };
     }
 

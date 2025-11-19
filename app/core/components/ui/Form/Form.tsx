@@ -147,7 +147,6 @@ function FormItem({
 }
 
 // Hook wrapper for easier usage
-// eslint-disable-next-line react-refresh/only-export-components
 export function useForm<T extends FieldValues = FieldValues>(
   defaultValues?: DefaultValues<T>
 ) {
@@ -161,5 +160,4 @@ export function useForm<T extends FieldValues = FieldValues>(
 Form.Item = FormItem;
 
 // Export useFormContext for advanced usage
-// eslint-disable-next-line react-refresh/only-export-components
 export { useFormContext };

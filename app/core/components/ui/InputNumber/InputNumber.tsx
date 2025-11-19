@@ -38,7 +38,6 @@ export function InputNumber({
   // Sync with controlled value
   useEffect(() => {
     if (controlledValue !== undefined) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInternalValue(controlledValue.toString());
     }
   }, [controlledValue]);

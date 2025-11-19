@@ -4,6 +4,7 @@ import {
   findOrthogonalRoute,
   type Direction
 } from '../../utils/orthogonalRouting';
+import { DESIGN_STUDIO_CONFIG } from '../../config/design-studio-config';
 
 // Connection point direction for routing
 export type ConnectionPointDirection = 'N' | 'S' | 'E' | 'W';
@@ -69,7 +70,7 @@ export function getCurvedPath(
   startDirection: ConnectionPointDirection,
   endDirection: ConnectionPointDirection
 ): { pathData: string; pathPoints: Point[] } {
-  const offset = 50; // Control point offset distance
+  const offset = DESIGN_STUDIO_CONFIG.routing.curveControlPointOffset;
 
   // Calculate control point based on direction
   const getControlOffset = (
@@ -94,9 +95,8 @@ export function getCurvedPath(
   const pathData = `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`;
 
   // Sample points along the Bezier curve for label positioning
-  // We use 10 samples to approximate the curve
   const pathPoints: Point[] = [];
-  const samples = 10;
+  const samples = DESIGN_STUDIO_CONFIG.routing.curveSamples;
   for (let i = 0; i <= samples; i++) {
     const t = i / samples;
     // Cubic Bezier formula: B(t) = (1-t)³P0 + 3(1-t)²tP1 + 3(1-t)t²P2 + t³P3
@@ -217,7 +217,7 @@ export function getAdvancedOrthogonalPath(
     allShapes, // Use all shapes, not just filtered ones
     startDirection as Direction,
     endDirection as Direction,
-    50, // Bend penalty weight
+    DESIGN_STUDIO_CONFIG.routing.bendPenalty,
     true, // Enable path refinement
     true, // Use cache
     connectionCorridors // Pass connection corridors to allow routing to connection points

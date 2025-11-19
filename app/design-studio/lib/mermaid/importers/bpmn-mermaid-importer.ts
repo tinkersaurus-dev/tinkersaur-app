@@ -3,6 +3,7 @@ import type { CreateShapeDTO } from '~/core/entities/design-studio/types/Shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
 import { layoutBpmnGraph } from '../../layout/bpmn-auto-layout';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Parsed node information from Mermaid syntax
@@ -331,14 +332,14 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
       let height = options.defaultShapeDimensions.height;
 
       if (node.shapeType === 'bpmn-event') {
-        width = 40;
-        height = 40;
+        width = DESIGN_STUDIO_CONFIG.shapes.bpmn.startEvent.width;
+        height = DESIGN_STUDIO_CONFIG.shapes.bpmn.startEvent.height;
       } else if (node.shapeType === 'bpmn-gateway') {
-        width = 60;
-        height = 60;
+        width = DESIGN_STUDIO_CONFIG.shapes.bpmn.gateway.width;
+        height = DESIGN_STUDIO_CONFIG.shapes.bpmn.gateway.height;
       } else if (node.shapeType === 'bpmn-task') {
-        width = 120;
-        height = 80;
+        width = DESIGN_STUDIO_CONFIG.shapes.bpmn.task.width;
+        height = DESIGN_STUDIO_CONFIG.shapes.bpmn.task.height;
       }
 
       return {

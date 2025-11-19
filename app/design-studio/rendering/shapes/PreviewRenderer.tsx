@@ -12,7 +12,7 @@ import type { ShapeRendererProps } from './types';
 import type { LLMPreviewShapeData } from '~/core/entities/design-studio/types';
 import { ShapeWrapper } from './ShapeWrapper';
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
-import { useCanvasController } from '~/design-studio/components/canvas/core/CanvasControllerContext';
+import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasDiagramContext';
 import { commandManager } from '~/core/commands/CommandManager';
 import { ReplaceWithEditorCommand } from '~/core/commands/canvas/preview-import/ReplaceWithEditorCommand';
 import { ApplyPreviewCommand } from '~/core/commands/canvas/preview-import/ApplyPreviewCommand';
@@ -29,8 +29,8 @@ export function PreviewRenderer({
   const { width: _width, height } = shape;
   const { isSelected, isHovered, zoom } = context;
 
-  // Get diagram info from canvas controller
-  const { diagramId } = useCanvasController();
+  // Get diagram info from canvas diagram context
+  const { diagramId } = useCanvasDiagram();
   const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
   const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
   const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);

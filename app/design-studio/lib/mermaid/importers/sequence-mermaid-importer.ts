@@ -2,6 +2,7 @@ import type { Result } from '~/core/lib/utils/result';
 import type { CreateShapeDTO, SequenceLifelineData } from '~/core/entities/design-studio/types/Shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Parsed participant information from Mermaid syntax
@@ -260,8 +261,8 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
         subtype: participant.type,
         x,
         y,
-        width: 100,
-        height: 400, // Default lifeline height
+        width: DESIGN_STUDIO_CONFIG.shapes.sequence.lifeline.width,
+        height: DESIGN_STUDIO_CONFIG.shapes.sequence.lifeline.height,
         label: participant.displayLabel,
         zIndex: 0,
         locked: false,

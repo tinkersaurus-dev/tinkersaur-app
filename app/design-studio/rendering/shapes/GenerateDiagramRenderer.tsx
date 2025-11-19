@@ -12,7 +12,7 @@ import type { LLMGeneratorShapeData, DiagramType } from '~/core/entities/design-
 import { ShapeWrapper } from './ShapeWrapper';
 import { generateMermaid, MermaidGeneratorAPIError } from '~/design-studio/lib/llm/mermaid-generator-api';
 import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
-import { useCanvasController } from '~/design-studio/components/canvas/core/CanvasControllerContext';
+import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasDiagramContext';
 import { commandManager } from '~/core/commands/CommandManager';
 import { ReplaceWithPreviewCommand } from '~/core/commands/canvas/preview-import/ReplaceWithPreviewCommand';
 import { toast } from 'sonner';
@@ -28,8 +28,8 @@ export function GenerateDiagramRenderer({
   const { width: _width, height: _height } = shape;
   const { isSelected, isHovered, zoom } = context;
 
-  // Get diagram info from canvas controller
-  const { diagramId, diagram } = useCanvasController();
+  // Get diagram info from canvas diagram context
+  const { diagramId, diagram } = useCanvasDiagram();
   const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
   const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
   const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);

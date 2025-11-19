@@ -14,6 +14,7 @@ import React from 'react';
 import type { ConnectorRendererProps } from './types';
 import { EditableLabel } from '../../components/canvas/editors/EditableLabel';
 import { getConnectionPointsForShape, calculateAbsolutePosition } from '../../utils/connectionPoints';
+import { THEME_CONFIG } from '~/core/config/theme-config';
 
 /**
  * MessageConnectorRenderer Component
@@ -95,7 +96,7 @@ export const MessageConnectorRenderer: React.FC<ConnectorRendererProps> = ({
     : getStraightMessagePath(sourceX, sourceY, targetX, targetY);
 
   // Zoom-compensated stroke width
-  const strokeWidth = 2 / context.zoom;
+  const strokeWidth = THEME_CONFIG.stroke.connector / context.zoom;
 
   // Base color - darker when selected/hovered
   const strokeColor = context.isSelected
@@ -125,7 +126,7 @@ export const MessageConnectorRenderer: React.FC<ConnectorRendererProps> = ({
       <path
         d={pathData}
         stroke="transparent"
-        strokeWidth={12 / context.zoom}
+        strokeWidth={THEME_CONFIG.stroke.hitbox / context.zoom}
         fill="none"
         style={{ cursor: context.readOnly ? 'default' : 'pointer', pointerEvents: 'auto' }}
         onMouseDown={(e) => onMouseDown?.(e, connector.id)}
@@ -236,9 +237,9 @@ function getSelfMessagePath(
 function getStrokeDasharray(lineType: 'solid' | 'dotted' | 'dashed', strokeWidth: number): string | undefined {
   switch (lineType) {
     case 'dashed':
-      return `${8 * strokeWidth} ${4 * strokeWidth}`;
+      return `${THEME_CONFIG.dashPatterns.dashed.dashLength * strokeWidth} ${THEME_CONFIG.dashPatterns.dashed.gapLength * strokeWidth}`;
     case 'dotted':
-      return `${strokeWidth} ${2 * strokeWidth}`;
+      return `${THEME_CONFIG.dashPatterns.dotted.dashLength * strokeWidth} ${THEME_CONFIG.dashPatterns.dotted.gapLength * strokeWidth}`;
     case 'solid':
     default:
       return undefined;

@@ -53,7 +53,6 @@ export function Tree({
   // Use useLayoutEffect to avoid visual flashing
   useLayoutEffect(() => {
     if (defaultExpandAll) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedKeys(allExpandableKeys);
     }
   }, [allExpandableKeys, defaultExpandAll]);

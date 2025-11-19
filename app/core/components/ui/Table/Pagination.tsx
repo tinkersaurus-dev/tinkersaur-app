@@ -1,4 +1,5 @@
 import type { TablePaginationConfig } from './types';
+import { APP_CONFIG } from '~/core/config/app-config';
 
 interface PaginationProps {
   config: TablePaginationConfig;
@@ -8,7 +9,7 @@ interface PaginationProps {
 export function Pagination({ config, total }: PaginationProps) {
   const {
     current = 1,
-    pageSize = 10,
+    pageSize = APP_CONFIG.pagination.defaultPageSize,
     onChange,
   } = config;
 
@@ -24,7 +25,7 @@ export function Pagination({ config, total }: PaginationProps) {
 
   const renderPageNumbers = () => {
     const pages: (number | string)[] = [];
-    const showEllipsis = totalPages > 7;
+    const showEllipsis = totalPages > APP_CONFIG.pagination.ellipsisThreshold;
 
     if (!showEllipsis) {
       // Show all pages if 7 or fewer
@@ -37,14 +38,14 @@ export function Pagination({ config, total }: PaginationProps) {
 
       if (current <= 3) {
         // Near start
-        for (let i = 2; i <= Math.min(5, totalPages - 1); i++) {
+        for (let i = 2; i <= Math.min(APP_CONFIG.pagination.maxMiddleButtons, totalPages - 1); i++) {
           pages.push(i);
         }
         pages.push('...');
       } else if (current >= totalPages - 2) {
         // Near end
         pages.push('...');
-        for (let i = Math.max(2, totalPages - 4); i < totalPages; i++) {
+        for (let i = Math.max(2, totalPages - APP_CONFIG.pagination.endButtonCount); i < totalPages; i++) {
           pages.push(i);
         }
       } else {

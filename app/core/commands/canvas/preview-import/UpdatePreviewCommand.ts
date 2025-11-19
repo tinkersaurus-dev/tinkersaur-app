@@ -7,6 +7,7 @@ import { BpmnMermaidImporter } from '~/design-studio/lib/mermaid/importers/bpmn-
 import { ClassMermaidImporter } from '~/design-studio/lib/mermaid/importers/class-mermaid-importer';
 import { SequenceMermaidImporter } from '~/design-studio/lib/mermaid/importers/sequence-mermaid-importer';
 import { isLLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Command to update a preview shape from a mermaid editor shape
@@ -291,8 +292,8 @@ export class UpdatePreviewCommand implements Command {
       return {
         x: this.editorPosition.x,
         y: this.editorPosition.y,
-        width: 300,
-        height: 200,
+        width: DESIGN_STUDIO_CONFIG.shapes.preview.width,
+        height: DESIGN_STUDIO_CONFIG.shapes.preview.height,
       };
     }
 

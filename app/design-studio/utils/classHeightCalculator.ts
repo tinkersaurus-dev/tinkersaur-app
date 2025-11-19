@@ -4,19 +4,19 @@
  */
 
 import type { ClassShapeData } from '~/core/entities/design-studio/types/Shape';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Constants matching the ClassRenderer component layout
  */
-const LINE_HEIGHT = 28;
-const ITEM_LINE_HEIGHT = 28; // Approximate height of each attribute/method item
+const ITEM_LINE_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.itemLineHeight;
 
 /**
  * Section heights
  */
-const STEREOTYPE_SECTION_HEIGHT = LINE_HEIGHT; // minHeight + top/bottom padding
-const CLASS_NAME_SECTION_HEIGHT = 40; // minHeight + padding
-const EMPTY_SECTION_HEIGHT = LINE_HEIGHT; // minHeight + padding for "No attributes/methods"
+const STEREOTYPE_SECTION_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.stereotypeSectionHeight;
+const CLASS_NAME_SECTION_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.classNameSectionHeight;
+const EMPTY_SECTION_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.emptySectionHeight;
 
 /**
  * Calculate the total height of a UML class shape based on its content.
@@ -51,7 +51,7 @@ export function calculateClassHeight(classData: ClassShapeData): number {
   }
 
   // Add a small buffer for borders
-  totalHeight += 4;
+  totalHeight += DESIGN_STUDIO_CONFIG.classLayout.borderBuffer;
 
-  return Math.max(totalHeight, 150); // Minimum height of 150px
+  return Math.max(totalHeight, DESIGN_STUDIO_CONFIG.classLayout.minHeight);
 }

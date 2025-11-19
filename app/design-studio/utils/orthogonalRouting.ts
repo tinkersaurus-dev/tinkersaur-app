@@ -11,6 +11,7 @@
  */
 
 import type { Shape, Point } from "~/core/entities/design-studio/types/Shape";
+import { DESIGN_STUDIO_CONFIG } from "~/design-studio/config/design-studio-config";
 
 // Cardinal directions for routing
 export type Direction = 'N' | 'S' | 'E' | 'W';
@@ -130,7 +131,7 @@ function horizontalSegmentIntersectsShape(
 
   // If there are connection corridors, check if segment is in a corridor
   if (connectionCorridors) {
-    const CORRIDOR_WIDTH = 40; // Width of corridor extending from connection point
+    const CORRIDOR_WIDTH = DESIGN_STUDIO_CONFIG.routing.corridorWidth;
 
     for (const corridor of connectionCorridors) {
       // For horizontal segments, check if they're in a vertical corridor (N/S connection)
@@ -189,7 +190,7 @@ function verticalSegmentIntersectsShape(
 
   // If there are connection corridors, check if segment is in a corridor
   if (connectionCorridors) {
-    const CORRIDOR_WIDTH = 40; // Width of corridor extending from connection point
+    const CORRIDOR_WIDTH = DESIGN_STUDIO_CONFIG.routing.corridorWidth;
 
     for (const corridor of connectionCorridors) {
       // For vertical segments, check if they're in a horizontal corridor (E/W connection)
@@ -591,9 +592,9 @@ export function findOptimalRoute(
   startDir: Direction,
   endDir: Direction,
   shapes: Shape[],
-  bendPenalty: number = 50 // Weight for bends vs length
+  bendPenalty: number = DESIGN_STUDIO_CONFIG.routing.bendPenalty // Weight for bends vs length
 ): Point[] {
-  const NUDGE_DISTANCE = 20; // Distance from shape boundaries for entry/exit
+  const NUDGE_DISTANCE = DESIGN_STUDIO_CONFIG.routing.nudgeDistance;
 
   // Create nudged start and end points that are offset in the specified direction
   // This ensures connectors leave/enter in the correct direction with spacing
@@ -759,7 +760,7 @@ export function findOptimalRoute(
 
     // Limit connections to reasonable nearby nodes (within a distance threshold)
     // This prevents creating thousands of edges from start/end to every node
-    const maxDistance = 2000; // Reasonable threshold for connection attempts
+    const maxDistance = DESIGN_STUDIO_CONFIG.routing.maxGraphConnectionDistance;
     const nodeList = allNodes.filter(n => {
       const dist = Math.abs(n.x - point.x) + Math.abs(n.y - point.y);
       return dist < maxDistance;
@@ -1088,7 +1089,7 @@ export function findOptimalRoute(
 export function refineRoute(route: Point[], shapes: Shape[]): Point[] {
   if (route.length < 3) return route;
 
-  const NUDGE_DISTANCE = 20; // Minimum distance from shape boundaries
+  const NUDGE_DISTANCE = DESIGN_STUDIO_CONFIG.routing.nudgeDistance;
 
   const refined: Point[] = [route[0]]; // Keep start point
 
@@ -1273,8 +1274,8 @@ const visibilityGraphCache = new Map<string, {
   timestamp: number;
 }>();
 
-const CACHE_TTL = 5000; // 5 seconds cache lifetime
-const MAX_CACHE_SIZE = 10; // Maximum number of cached graphs
+const CACHE_TTL = DESIGN_STUDIO_CONFIG.cache.visibilityGraphTTL;
+const MAX_CACHE_SIZE = DESIGN_STUDIO_CONFIG.cache.maxCacheSize;
 
 /**
  * Generate a cache key from shapes
@@ -1350,7 +1351,7 @@ export function findOrthogonalRoute(
   shapes: Shape[],
   startDir: Direction = 'E',
   endDir: Direction = 'W',
-  bendPenalty: number = 50,
+  bendPenalty: number = DESIGN_STUDIO_CONFIG.routing.bendPenalty,
   refine: boolean = true,
   useCache: boolean = true,
   connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>

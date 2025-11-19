@@ -180,7 +180,6 @@ export function Select({
 
       {isOpen && (
         <FloatingPortal>
-          {/* eslint-disable react-hooks/refs */}
           <FloatingFocusManager context={context} modal={false}>
             <div
               ref={refs.setFloating}
@@ -222,7 +221,6 @@ export function Select({
               )}
             </div>
           </FloatingFocusManager>
-          {/* eslint-enable react-hooks/refs */}
         </FloatingPortal>
       )}
     </>

@@ -1,4 +1,3 @@
-/* eslint-disable no-console, @typescript-eslint/no-explicit-any */
 /**
  * React Router API Route for generating Mermaid diagrams using Amazon Bedrock
  * Using AWS SDK with bearer token authentication
@@ -9,17 +8,42 @@ import { getSystemPrompt } from '~/design-studio/lib/llm/system-prompts';
 import {
   BedrockRuntimeClient,
   InvokeModelCommand,
+  type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
+import { logger } from '~/core/utils/logger';
+
+// Type definitions for Bedrock API responses
+interface BedrockMessageContent {
+  text: string;
+}
+
+interface BedrockMessage {
+  content: BedrockMessageContent[];
+}
+
+interface BedrockOutput {
+  message: BedrockMessage;
+  text?: string;
+}
+
+interface BedrockResponseBody {
+  choices?: Array<{ message?: { content?: string } }>;
+  content?: BedrockMessageContent[];
+  output?: BedrockOutput;
+  text?: string;
+}
 
 // Bedrock configuration
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
 const MODEL_ID = process.env.BEDROCK_MODEL_ID || 'qwen.qwen3-coder-30b-a3b-v1:0';
 const BEARER_TOKEN = process.env.AWS_BEARER_TOKEN_BEDROCK;
 
-console.log('[API Route Init] Bearer token exists:', !!BEARER_TOKEN);
-console.log('[API Route Init] Bearer token length:', BEARER_TOKEN?.length);
-console.log('[API Route Init] AWS Region:', AWS_REGION);
-console.log('[API Route Init] Model ID:', MODEL_ID);
+logger.info('API Route initialized', {
+  bearerTokenExists: !!BEARER_TOKEN,
+  bearerTokenLength: BEARER_TOKEN?.length,
+  region: AWS_REGION,
+  modelId: MODEL_ID,
+});
 
 // Create credentials object
 const credentials = BEARER_TOKEN
@@ -39,17 +63,20 @@ const client = new BedrockRuntimeClient({
 });
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log('[API Route] /api/generate-mermaid called');
+  logger.apiRequest(request.method, '/api/generate-mermaid');
 
   try {
     const body = await request.json();
     const { prompt, diagramType = 'bpmn' } = body;
 
-    console.log('[API Route] Request body:', { prompt: prompt.substring(0, 100), diagramType });
+    logger.debug('Request received', {
+      promptPreview: prompt?.substring(0, 100),
+      diagramType,
+    });
 
     // Validate input
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
-      console.error('[API Route] Validation error: empty prompt');
+      logger.warn('Validation error: empty prompt');
       return Response.json(
         {
           success: false,
@@ -60,7 +87,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     if (typeof diagramType !== 'string') {
-      console.error('[API Route] Validation error: invalid diagram type');
+      logger.warn('Validation error: invalid diagram type', { diagramType });
       return Response.json(
         {
           success: false,
@@ -71,7 +98,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Get appropriate system prompt
-    console.log('[API Route] Getting system prompt for:', diagramType);
+    logger.debug('Getting system prompt', { diagramType });
     const systemPrompt = getSystemPrompt(diagramType);
 
     // Prepare the request for Qwen model using messages format
@@ -96,9 +123,11 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     };
 
-    console.log('[API Route] Bedrock request prepared, model:', MODEL_ID);
-    console.log('[API Route] Region:', process.env.AWS_REGION || 'us-east-1');
-    console.log('[API Route] Using bearer token:', !!BEARER_TOKEN);
+    logger.debug('Bedrock request prepared', {
+      modelId: MODEL_ID,
+      region: AWS_REGION,
+      usingBearerToken: !!BEARER_TOKEN,
+    });
 
     const command = new InvokeModelCommand({
       modelId: MODEL_ID,
@@ -108,7 +137,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     // Call Bedrock with timeout
-    console.log('[API Route] Sending request to Bedrock...');
+    logger.info('Sending request to Bedrock');
 
     // Create a timeout promise
     const timeoutPromise = new Promise((_, reject) => {
@@ -121,14 +150,22 @@ export async function action({ request }: ActionFunctionArgs) {
     const response = await Promise.race([
       client.send(command),
       timeoutPromise
-    ]) as any;
+    ]) as InvokeModelCommandOutput;
 
-    console.log('[API Route] ✅ BEDROCK RESPONSE RECEIVED - Starting to process response');
-    console.log('[API Route] Response metadata:', response);
+    logger.info('Bedrock response received', {
+      statusCode: response.$metadata.httpStatusCode,
+    });
 
     // Parse the response
-    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-    console.log('[API Route] Response body structure:', responseBody.output.message.content[0].text);
+    const responseBody: BedrockResponseBody = JSON.parse(
+      new TextDecoder().decode(response.body)
+    );
+
+    logger.debug('Response body parsed', {
+      hasChoices: !!responseBody.choices,
+      hasContent: !!responseBody.content,
+      hasOutput: !!responseBody.output,
+    });
 
     // Extract generated Mermaid code from response
     const generatedMermaid =
@@ -136,13 +173,17 @@ export async function action({ request }: ActionFunctionArgs) {
       responseBody.content?.[0]?.text ||
       responseBody.output?.text ||
       responseBody.text ||
-      responseBody.output.message.content[0].text ||
+      responseBody.output?.message?.content?.[0]?.text ||
       '';
 
-    console.log('[API Route] Extracted mermaid length:', generatedMermaid.length);
+    logger.debug('Extracted mermaid code', { length: generatedMermaid.length });
 
     if (!generatedMermaid) {
-      console.error('[API Route] Failed to extract Mermaid from response:', responseBody);
+      logger.error('Failed to extract Mermaid from response', undefined, {
+        hasChoices: !!responseBody.choices,
+        hasContent: !!responseBody.content,
+        hasOutput: !!responseBody.output,
+      });
       return Response.json(
         {
           success: false,
@@ -159,7 +200,9 @@ export async function action({ request }: ActionFunctionArgs) {
     cleanedMermaid = cleanedMermaid.replace(/^```(?:mermaid)?\n?/gm, '');
     cleanedMermaid = cleanedMermaid.replace(/\n?```$/gm, '');
 
-    console.log('[API Route] Cleaned mermaid preview:', cleanedMermaid.substring(0, 100));
+    logger.debug('Cleaned mermaid preview', {
+      preview: cleanedMermaid.substring(0, 100),
+    });
 
     // Validate that it starts with the expected diagram type
     const expectedStart = diagramType === 'bpmn'
@@ -169,7 +212,10 @@ export async function action({ request }: ActionFunctionArgs) {
       : 'sequenceDiagram';
 
     if (!cleanedMermaid.startsWith(expectedStart)) {
-      console.error(`[API Route] Generated content does not start with "${expectedStart}":`, cleanedMermaid);
+      logger.error('Generated content validation failed', undefined, {
+        expectedStart,
+        actualStart: cleanedMermaid.substring(0, 50),
+      });
       return Response.json(
         {
           success: false,
@@ -179,13 +225,13 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    console.log('[API Route] Successfully generated and validated mermaid diagram');
+    logger.info('Successfully generated and validated mermaid diagram');
     return Response.json({
       success: true,
       mermaid: cleanedMermaid,
     });
   } catch (error) {
-    console.error('Error generating Mermaid diagram:', error);
+    logger.apiError(request.method, '/api/generate-mermaid', error);
 
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';

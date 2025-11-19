@@ -1,6 +1,8 @@
 import React from 'react';
 import type { ConnectionPoint } from '~/design-studio/utils/connectionPoints';
 import { calculateAbsolutePosition } from '~/design-studio/utils/connectionPoints';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { THEME_CONFIG } from '~/core/config/theme-config';
 
 /**
  * ConnectionPointRenderer
@@ -54,7 +56,7 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
     y: absolutePos.y,
   };
 
-  const size = 12; // 8px diameter compensated for zoom
+  const size = DESIGN_STUDIO_CONFIG.connectionPoint.visualSize;
   const borderWidth = 3.5; // 2px border compensated for zoom
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -84,7 +86,7 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
         border: `${borderWidth}px solid var(--canvas-connection-point-border)`,
         transform: 'translate(-50%, -50%)',
         cursor: 'crosshair',
-        zIndex: 100, // High z-index to ensure connection points are above other interactive elements
+        zIndex: THEME_CONFIG.zIndex.connectionPoints,
         boxSizing: 'border-box',
         pointerEvents: 'auto',
       }}

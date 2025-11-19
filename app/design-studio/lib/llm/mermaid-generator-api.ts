@@ -1,7 +1,8 @@
-/* eslint-disable no-console */
 /**
  * Client-side API wrapper for LLM-based Mermaid diagram generation
  */
+
+import { logger } from '~/core/utils/logger';
 
 export interface GenerateMermaidRequest {
   prompt: string;
@@ -39,17 +40,18 @@ export async function generateMermaid(
   prompt: string,
   diagramType: 'bpmn' | 'class' | 'sequence'
 ): Promise<string> {
-  console.log('[mermaid-generator-api] generateMermaid called');
-  console.log('[mermaid-generator-api] prompt:', prompt);
-  console.log('[mermaid-generator-api] diagramType:', diagramType);
+  logger.debug('generateMermaid called', {
+    promptLength: prompt.length,
+    diagramType,
+  });
 
   try {
-    console.log('[mermaid-generator-api] Sending fetch request to /api/generate-mermaid...');
+    logger.info('Sending request to /api/generate-mermaid');
 
     // Create an AbortController with a timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      console.error('[mermaid-generator-api] Request timeout after 120 seconds');
+      logger.error('Request timeout after 120 seconds');
       controller.abort();
     }, 120000);
 
@@ -67,13 +69,18 @@ export async function generateMermaid(
       clearTimeout(timeoutId);
     });
 
-    console.log('[mermaid-generator-api] Response received, status:', response.status);
-    console.log('[mermaid-generator-api] Response headers:', Object.fromEntries(response.headers.entries()));
+    logger.debug('Response received', {
+      status: response.status,
+      ok: response.ok,
+    });
+
     const data: GenerateMermaidResponse = await response.json();
-    console.log('[mermaid-generator-api] Response data:', data);
 
     if (!response.ok || !data.success) {
-      console.error('[mermaid-generator-api] Error in response:', data.error);
+      logger.error('Error in API response', undefined, {
+        error: data.error,
+        status: response.status,
+      });
       throw new MermaidGeneratorAPIError(
         data.error || `Failed to generate diagram (HTTP ${response.status})`,
         response.status
@@ -81,17 +88,19 @@ export async function generateMermaid(
     }
 
     if (!data.mermaid) {
-      console.error('[mermaid-generator-api] No mermaid syntax in response');
+      logger.error('No mermaid syntax in response');
       throw new MermaidGeneratorAPIError(
         'No Mermaid syntax returned from API',
         500
       );
     }
 
-    console.log('[mermaid-generator-api] Successfully received mermaid syntax');
+    logger.info('Successfully received mermaid syntax', {
+      length: data.mermaid.length,
+    });
     return data.mermaid;
   } catch (error) {
-    console.error('[mermaid-generator-api] Exception caught:', error);
+    logger.error('Exception in generateMermaid', error);
     // Re-throw our custom errors
     if (error instanceof MermaidGeneratorAPIError) {
       throw error;

@@ -1,6 +1,5 @@
 import { Navigate } from "react-router";
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function meta() {
   return [
     { title: "Tinkersaur.us" },

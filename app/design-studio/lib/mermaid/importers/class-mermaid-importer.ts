@@ -2,6 +2,7 @@ import type { Result } from '~/core/lib/utils/result';
 import type { CreateShapeDTO, ClassShapeData } from '~/core/entities/design-studio/types/Shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Parsed class information from Mermaid syntax
@@ -290,8 +291,8 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
         type: 'class',
         x,
         y,
-        width: 180,
-        height: 120,
+        width: DESIGN_STUDIO_CONFIG.shapes.class.classBox.width,
+        height: DESIGN_STUDIO_CONFIG.shapes.class.classBox.height,
         label: cls.name,
         zIndex: 0,
         locked: false,
