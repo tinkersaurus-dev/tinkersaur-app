@@ -11,7 +11,7 @@ import { FaEdit, FaCheck } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import type { LLMPreviewShapeData } from '~/core/entities/design-studio/types';
 import { ShapeWrapper } from './ShapeWrapper';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
+import { useDiagramStore } from '~/core/entities/design-studio';
 import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasDiagramContext';
 import { commandManager } from '~/core/commands/CommandManager';
 import { ReplaceWithEditorCommand } from '~/core/commands/canvas/preview-import/ReplaceWithEditorCommand';
@@ -31,17 +31,17 @@ export function PreviewRenderer({
 
   // Get diagram info from canvas diagram context
   const { diagramId } = useCanvasDiagram();
-  const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
-  const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
-  const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);
-  const deleteConnector = useDesignStudioEntityStore((state) => state._internalDeleteConnector);
-  const getShape = useDesignStudioEntityStore((state) => state._internalGetShape);
-  const getConnector = useDesignStudioEntityStore((state) => state._internalGetConnector);
-  const addShapesBatch = useDesignStudioEntityStore((state) => state._internalAddShapesBatch);
-  const addConnectorsBatch = useDesignStudioEntityStore((state) => state._internalAddConnectorsBatch);
-  const deleteShapesBatch = useDesignStudioEntityStore((state) => state._internalDeleteShapesBatch);
-  const deleteConnectorsBatch = useDesignStudioEntityStore((state) => state._internalDeleteConnectorsBatch);
-  const commandFactory = useDesignStudioEntityStore((state) => state.commandFactory);
+  const addShape = useDiagramStore((state) => state._internalAddShape);
+  const addConnector = useDiagramStore((state) => state._internalAddConnector);
+  const deleteShape = useDiagramStore((state) => state._internalDeleteShape);
+  const deleteConnector = useDiagramStore((state) => state._internalDeleteConnector);
+  const getShape = useDiagramStore((state) => state._internalGetShape);
+  const getConnector = useDiagramStore((state) => state._internalGetConnector);
+  const addShapesBatch = useDiagramStore((state) => state._internalAddShapesBatch);
+  const addConnectorsBatch = useDiagramStore((state) => state._internalAddConnectorsBatch);
+  const deleteShapesBatch = useDiagramStore((state) => state._internalDeleteShapesBatch);
+  const deleteConnectorsBatch = useDiagramStore((state) => state._internalDeleteConnectorsBatch);
+  const commandFactory = useDiagramStore((state) => state.commandFactory);
 
   // Parse shape data - the preview shapes and connectors are already in the diagram
   const previewData = (shape.data || {}) as unknown as LLMPreviewShapeData;

@@ -1,14 +1,14 @@
 import { useEffect, useMemo } from 'react';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
+import { useDesignWorkStore } from '~/core/entities/design-studio';
 
 /**
  * Hook to fetch and access all design works for a solution
  */
 export function useDesignWorks(solutionId: string) {
-  const designWorks = useDesignStudioEntityStore((state) => state.designWorks);
-  const loading = useDesignStudioEntityStore((state) => state.loading.designWorks);
-  const error = useDesignStudioEntityStore((state) => state.errors.designWorks);
-  const fetchDesignWorks = useDesignStudioEntityStore((state) => state.fetchDesignWorks);
+  const designWorks = useDesignWorkStore((state) => state.designWorks);
+  const loading = useDesignWorkStore((state) => state.loading);
+  const error = useDesignWorkStore((state) => state.error);
+  const fetchDesignWorks = useDesignWorkStore((state) => state.fetchDesignWorks);
 
   useEffect(() => {
     fetchDesignWorks(solutionId);
@@ -27,7 +27,7 @@ export function useDesignWorks(solutionId: string) {
  * Hook to get child design works (nested folders)
  */
 export function useChildDesignWorks(parentDesignWorkId: string | undefined) {
-  const designWorks = useDesignStudioEntityStore((state) => state.designWorks);
+  const designWorks = useDesignWorkStore((state) => state.designWorks);
 
   const childDesignWorks = useMemo(
     () => (parentDesignWorkId ? designWorks.filter((dw) => dw.parentDesignWorkId === parentDesignWorkId) : []),
@@ -41,7 +41,7 @@ export function useChildDesignWorks(parentDesignWorkId: string | undefined) {
  * Hook to get root design works (top-level folders)
  */
 export function useRootDesignWorks(solutionId: string) {
-  const designWorks = useDesignStudioEntityStore((state) => state.designWorks);
+  const designWorks = useDesignWorkStore((state) => state.designWorks);
 
   const rootDesignWorks = useMemo(
     () => designWorks.filter((dw) => dw.solutionId === solutionId && !dw.parentDesignWorkId),
@@ -55,7 +55,7 @@ export function useRootDesignWorks(solutionId: string) {
  * Hook to get a single design work by ID
  */
 export function useDesignWork(id: string | undefined) {
-  const designWorks = useDesignStudioEntityStore((state) => state.designWorks);
+  const designWorks = useDesignWorkStore((state) => state.designWorks);
 
   const designWork = useMemo(() => (id ? designWorks.find((dw) => dw.id === id) : undefined), [designWorks, id]);
 

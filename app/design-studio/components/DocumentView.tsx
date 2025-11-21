@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Empty } from '~/core/components/ui';
 import { useDocument } from '../hooks';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
+import { useDocumentStore } from '~/core/entities/design-studio';
 import { DocumentEditor } from './document';
 
 interface DocumentViewProps {
@@ -15,7 +15,7 @@ interface DocumentViewProps {
 
 export function DocumentView({ documentId }: DocumentViewProps) {
   const { document, loading } = useDocument(documentId);
-  const updateDocument = useDesignStudioEntityStore((state) => state.updateDocument);
+  const updateDocument = useDocumentStore((state) => state.updateDocument);
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [hasLoaded, setHasLoaded] = useState(false);
 

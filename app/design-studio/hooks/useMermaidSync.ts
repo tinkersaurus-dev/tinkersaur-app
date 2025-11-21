@@ -4,7 +4,7 @@ import type { Connector } from '~/core/entities/design-studio/types/Connector';
 import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 import { getMermaidExporter } from '../lib/mermaid';
 import { useMermaidViewerStore } from '../store/mermaid/mermaidViewerStore';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store/designStudioEntityStore';
+import { useDiagramStore } from '~/core/entities/design-studio';
 
 /**
  * Debounce time in milliseconds for mermaid syntax generation
@@ -51,7 +51,7 @@ export function useMermaidSync({
   enabled = true,
 }: UseMermaidSyncProps) {
   const { setSyntax, setError } = useMermaidViewerStore();
-  const updateDiagramMermaid = useDesignStudioEntityStore((state) => state._internalUpdateDiagramMermaid);
+  const updateDiagramMermaid = useDiagramStore((state) => state._internalUpdateDiagramMermaid);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const persistTimerRef = useRef<NodeJS.Timeout | null>(null);
 

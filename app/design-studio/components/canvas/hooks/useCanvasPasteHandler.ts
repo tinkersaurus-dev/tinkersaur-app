@@ -4,7 +4,7 @@ import type { CommandFactory } from '~/core/commands/CommandFactory';
 import { commandManager } from '~/core/commands/CommandManager';
 import { toast } from '~/core/utils/toast';
 import { CreatePreviewFromPasteCommand } from '~/core/commands/canvas/preview-import/CreatePreviewFromPasteCommand';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
+import { useDiagramStore } from '~/core/entities/design-studio';
 
 interface UseCanvasPasteHandlerProps {
   diagramId: string;
@@ -27,12 +27,12 @@ export function useCanvasPasteHandler({
   enabled,
 }: UseCanvasPasteHandlerProps) {
   // Get entity store functions for creating the preview command
-  const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
-  const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
-  const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);
-  const deleteConnector = useDesignStudioEntityStore((state) => state._internalDeleteConnector);
-  const addShapesBatch = useDesignStudioEntityStore((state) => state._internalAddShapesBatch);
-  const addConnectorsBatch = useDesignStudioEntityStore((state) => state._internalAddConnectorsBatch);
+  const addShape = useDiagramStore((state) => state._internalAddShape);
+  const addConnector = useDiagramStore((state) => state._internalAddConnector);
+  const deleteShape = useDiagramStore((state) => state._internalDeleteShape);
+  const deleteConnector = useDiagramStore((state) => state._internalDeleteConnector);
+  const addShapesBatch = useDiagramStore((state) => state._internalAddShapesBatch);
+  const addConnectorsBatch = useDiagramStore((state) => state._internalAddConnectorsBatch);
 
   const handlePaste = useCallback(
     async (event: ClipboardEvent) => {

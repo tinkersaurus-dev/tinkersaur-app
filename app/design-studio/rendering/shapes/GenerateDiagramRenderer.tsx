@@ -11,7 +11,7 @@ import type { ShapeRendererProps } from './types';
 import type { LLMGeneratorShapeData, DiagramType } from '~/core/entities/design-studio/types';
 import { ShapeWrapper } from './ShapeWrapper';
 import { generateMermaid, MermaidGeneratorAPIError } from '~/design-studio/lib/llm/mermaid-generator-api';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio/store';
+import { useDiagramStore } from '~/core/entities/design-studio';
 import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasDiagramContext';
 import { commandManager } from '~/core/commands/CommandManager';
 import { ReplaceWithPreviewCommand } from '~/core/commands/canvas/preview-import/ReplaceWithPreviewCommand';
@@ -30,14 +30,14 @@ export function GenerateDiagramRenderer({
 
   // Get diagram info from canvas diagram context
   const { diagramId, diagram } = useCanvasDiagram();
-  const addShape = useDesignStudioEntityStore((state) => state._internalAddShape);
-  const addConnector = useDesignStudioEntityStore((state) => state._internalAddConnector);
-  const deleteShape = useDesignStudioEntityStore((state) => state._internalDeleteShape);
-  const deleteConnector = useDesignStudioEntityStore((state) => state._internalDeleteConnector);
-  const getShape = useDesignStudioEntityStore((state) => state._internalGetShape);
-  const addShapesBatch = useDesignStudioEntityStore((state) => state._internalAddShapesBatch);
-  const addConnectorsBatch = useDesignStudioEntityStore((state) => state._internalAddConnectorsBatch);
-  const commandFactory = useDesignStudioEntityStore((state) => state.commandFactory);
+  const addShape = useDiagramStore((state) => state._internalAddShape);
+  const addConnector = useDiagramStore((state) => state._internalAddConnector);
+  const deleteShape = useDiagramStore((state) => state._internalDeleteShape);
+  const deleteConnector = useDiagramStore((state) => state._internalDeleteConnector);
+  const getShape = useDiagramStore((state) => state._internalGetShape);
+  const addShapesBatch = useDiagramStore((state) => state._internalAddShapesBatch);
+  const addConnectorsBatch = useDiagramStore((state) => state._internalAddConnectorsBatch);
+  const commandFactory = useDiagramStore((state) => state.commandFactory);
 
   const diagramType = diagram?.type as DiagramType | undefined;
 

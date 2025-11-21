@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
+import { useDocumentStore } from '~/core/entities/design-studio';
 
 /**
  * Hook to lazy load and access a single document by ID
  */
 export function useDocument(id: string | undefined) {
-  const document = useDesignStudioEntityStore((state) => (id ? state.documents[id] : undefined));
-  const loading = useDesignStudioEntityStore((state) => (id ? state.loading.documents[id] : false));
-  const error = useDesignStudioEntityStore((state) => (id ? state.errors.documents[id] : null));
-  const fetchDocument = useDesignStudioEntityStore((state) => state.fetchDocument);
+  const document = useDocumentStore((state) => (id ? state.documents[id] : undefined));
+  const loading = useDocumentStore((state) => (id ? state.loading[id] : false));
+  const error = useDocumentStore((state) => (id ? state.errors[id] : null));
+  const fetchDocument = useDocumentStore((state) => state.fetchDocument);
 
   useEffect(() => {
     if (id && !document && !loading) {

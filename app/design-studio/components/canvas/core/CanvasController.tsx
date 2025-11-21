@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { useCanvasInstance } from '../../../store/content/useCanvasInstance';
 import { useDiagram } from '../../../hooks/useDiagrams';
 import { useDiagramCRUD } from '../../../hooks/useDiagramCRUD';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
+import { useDiagramStore } from '~/core/entities/design-studio';
 import { useViewportTransform } from '../../../hooks/useViewportTransform';
 import { useCanvasViewport } from '../../../hooks/useCanvasViewport';
 import { useCanvasLabelEditing } from '../../../hooks/useCanvasLabelEditing';
@@ -115,9 +115,9 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
 
   // Get CRUD operations for this diagram
   const { addShape, updateShapes, addConnector, deleteConnector, deleteShape, deleteConnectors, deleteShapes } = useDiagramCRUD(diagramId);
-  const commandFactory = useDesignStudioEntityStore((state) => state.commandFactory);
-  const updateShapeLabel = useDesignStudioEntityStore((state) => state.updateShapeLabel);
-  const updateConnectorLabel = useDesignStudioEntityStore((state) => state.updateConnectorLabel);
+  const commandFactory = useDiagramStore((state) => state.commandFactory);
+  const updateShapeLabel = useDiagramStore((state) => state.updateShapeLabel);
+  const updateConnectorLabel = useDiagramStore((state) => state.updateConnectorLabel);
   const entityShapes = useMemo(() => diagram?.shapes || [], [diagram?.shapes]);
   const entityConnectors = useMemo(() => diagram?.connectors || [], [diagram?.connectors]);
 

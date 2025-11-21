@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
+import { useDiagramStore } from '~/core/entities/design-studio';
 
 /**
  * Hook to lazy load and access a single diagram by ID
@@ -11,10 +11,10 @@ import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
  * canvas UI state managed by the canvas instance store.
  */
 export function useDiagram(id: string | undefined) {
-  const diagram = useDesignStudioEntityStore((state) => (id ? state.diagrams[id] : undefined));
-  const loading = useDesignStudioEntityStore((state) => (id ? state.loading.diagrams[id] : false));
-  const error = useDesignStudioEntityStore((state) => (id ? state.errors.diagrams[id] : null));
-  const fetchDiagram = useDesignStudioEntityStore((state) => state.fetchDiagram);
+  const diagram = useDiagramStore((state) => (id ? state.diagrams[id] : undefined));
+  const loading = useDiagramStore((state) => (id ? state.loading[id] : false));
+  const error = useDiagramStore((state) => (id ? state.errors[id] : null));
+  const fetchDiagram = useDiagramStore((state) => state.fetchDiagram);
 
   useEffect(() => {
     if (id && !diagram && !loading) {

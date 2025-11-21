@@ -1,4 +1,4 @@
-import { useDesignStudioEntityStore } from '~/core/entities/design-studio';
+import { useDiagramStore } from '~/core/entities/design-studio';
 import type { Shape, CreateShapeDTO } from '~/core/entities/design-studio';
 import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
 
@@ -10,16 +10,16 @@ import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Con
  */
 export function useDiagramCRUD(diagramId: string | undefined) {
   // Shape manipulation actions from store
-  const addShapeAction = useDesignStudioEntityStore((state) => state.addShape);
-  const updateShapeAction = useDesignStudioEntityStore((state) => state.updateShape);
-  const updateShapesAction = useDesignStudioEntityStore((state) => state.updateShapes);
-  const deleteShapeAction = useDesignStudioEntityStore((state) => state.deleteShape);
-  const deleteShapesAction = useDesignStudioEntityStore((state) => state.deleteShapes);
+  const addShapeAction = useDiagramStore((state) => state.addShape);
+  const updateShapeAction = useDiagramStore((state) => state.updateShape);
+  const updateShapesAction = useDiagramStore((state) => state.updateShapes);
+  const deleteShapeAction = useDiagramStore((state) => state.deleteShape);
+  const deleteShapesAction = useDiagramStore((state) => state.deleteShapes);
 
   // Connector manipulation actions from store
-  const addConnectorAction = useDesignStudioEntityStore((state) => state.addConnector);
-  const deleteConnectorAction = useDesignStudioEntityStore((state) => state.deleteConnector);
-  const deleteConnectorsAction = useDesignStudioEntityStore((state) => state.deleteConnectors);
+  const addConnectorAction = useDiagramStore((state) => state.addConnector);
+  const deleteConnectorAction = useDiagramStore((state) => state.deleteConnector);
+  const deleteConnectorsAction = useDiagramStore((state) => state.deleteConnectors);
 
   // Wrapper functions that bind the diagram ID
   const addShape = diagramId

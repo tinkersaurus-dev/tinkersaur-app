@@ -11,7 +11,7 @@ import { Tree, Dropdown } from '~/core/components';
 import type { TreeNodeData, DropdownMenuItem } from '~/core/components';
 import { Button } from '~/core/components/ui/Button';
 import { useDesignStudioUIStore } from '../store';
-import { useDesignStudioEntityStore, type DesignContentType, type DiagramType } from '~/core/entities/design-studio';
+import { useDesignWorkStore, type DesignContentType, type DiagramType } from '~/core/entities/design-studio';
 import { useDesignStudioCRUD } from '../hooks/useDesignStudioCRUD';
 import { CreateDiagramModal } from './CreateDiagramModal';
 
@@ -24,7 +24,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
   const { openTab } = useDesignStudioUIStore();
 
   // Get entity data from entity store - only need DesignWorks now
-  const designWorks = useDesignStudioEntityStore((state) => state.designWorks);
+  const designWorks = useDesignWorkStore((state) => state.designWorks);
 
   // CRUD operations
   const {

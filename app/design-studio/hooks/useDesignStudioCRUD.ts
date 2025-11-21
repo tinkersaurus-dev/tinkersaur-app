@@ -1,6 +1,9 @@
 import { useCallback } from 'react';
 import {
-  useDesignStudioEntityStore,
+  useDesignWorkStore,
+  useDiagramStore,
+  useInterfaceStore,
+  useDocumentStore,
   type CreateDesignWorkDto,
   type CreateDiagramDto,
   type CreateInterfaceDto,
@@ -17,24 +20,24 @@ import {
  */
 export function useDesignStudioCRUD() {
   // DesignWork operations
-  const createDesignWork = useDesignStudioEntityStore((state) => state.createDesignWork);
-  const updateDesignWork = useDesignStudioEntityStore((state) => state.updateDesignWork);
-  const deleteDesignWork = useDesignStudioEntityStore((state) => state.deleteDesignWork);
+  const createDesignWork = useDesignWorkStore((state) => state.createDesignWork);
+  const updateDesignWork = useDesignWorkStore((state) => state.updateDesignWork);
+  const deleteDesignWork = useDesignWorkStore((state) => state.deleteDesignWork);
 
   // Diagram operations
-  const createDiagram = useDesignStudioEntityStore((state) => state.createDiagram);
-  const updateDiagram = useDesignStudioEntityStore((state) => state.updateDiagram);
-  const deleteDiagram = useDesignStudioEntityStore((state) => state.deleteDiagram);
+  const createDiagram = useDiagramStore((state) => state.createDiagram);
+  const updateDiagram = useDiagramStore((state) => state.updateDiagram);
+  const deleteDiagram = useDiagramStore((state) => state.deleteDiagram);
 
   // Interface operations
-  const createInterface = useDesignStudioEntityStore((state) => state.createInterface);
-  const updateInterface = useDesignStudioEntityStore((state) => state.updateInterface);
-  const deleteInterface = useDesignStudioEntityStore((state) => state.deleteInterface);
+  const createInterface = useInterfaceStore((state) => state.createInterface);
+  const updateInterface = useInterfaceStore((state) => state.updateInterface);
+  const deleteInterface = useInterfaceStore((state) => state.deleteInterface);
 
   // Document operations
-  const createDocument = useDesignStudioEntityStore((state) => state.createDocument);
-  const updateDocument = useDesignStudioEntityStore((state) => state.updateDocument);
-  const deleteDocument = useDesignStudioEntityStore((state) => state.deleteDocument);
+  const createDocument = useDocumentStore((state) => state.createDocument);
+  const updateDocument = useDocumentStore((state) => state.updateDocument);
+  const deleteDocument = useDocumentStore((state) => state.deleteDocument);
 
   // DesignWork handlers
   const handleCreateDesignWork = useCallback(

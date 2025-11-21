@@ -10,9 +10,15 @@ export {
   DesignWorkSchema,
   CreateDesignWorkSchema,
   UpdateDesignWorkSchema,
+  DiagramRefSchema,
+  InterfaceRefSchema,
+  DocumentRefSchema,
   type DesignWork,
   type CreateDesignWorkDto,
   type UpdateDesignWorkDto,
+  type DiagramRef,
+  type InterfaceRef,
+  type DocumentRef,
 } from './DesignWork';
 
 // Diagram

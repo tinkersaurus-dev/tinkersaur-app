@@ -2,11 +2,11 @@
  * Design Studio Entity Module
  *
  * This is the public API for the Design Studio entity layer.
- * Import from this module to access types, schemas, API clients, and entity store.
+ * Import from this module to access types, schemas, API clients, and entity stores.
  *
  * @example
  * ```ts
- * import { useDesignStudioEntityStore, type DesignWork } from '~/core/entities/design-studio';
+ * import { useDesignWorkStore, useDiagramStore, type DesignWork } from '~/core/entities/design-studio';
  * ```
  */
 
