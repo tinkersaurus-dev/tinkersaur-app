@@ -163,6 +163,14 @@ export const DESIGN_STUDIO_CONFIG = {
   },
 
   /**
+   * Connector Label Configuration
+   */
+  connectorLabel: {
+    /** Distance from connector endpoint for cardinality labels (pixels) */
+    cardinalityOffset: 20,
+  },
+
+  /**
    * Mermaid Editor Configuration
    */
   mermaidEditor: {

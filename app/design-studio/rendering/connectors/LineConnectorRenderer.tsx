@@ -6,6 +6,8 @@ import { findOptimalConnectionPoints } from '../../utils/canvas';
 import { getConnectionPointsForShape } from '../../utils/connectionPoints';
 import { getPathData } from './pathUtils';
 import { THEME_CONFIG } from '~/core/config/theme-config';
+import { DESIGN_STUDIO_CONFIG } from '../../config/design-studio-config';
+import { getClassConnectorToolByType } from '../../config/class-connectors';
 
 /**
  * LineConnectorRenderer
@@ -88,6 +90,15 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   const markerStartId = `marker-start-${connector.id}`;
   const markerEndId = `marker-end-${connector.id}`;
 
+  // Check if connector supports cardinality
+  const connectorConfig = getClassConnectorToolByType(connector.type);
+  const supportsCardinality = connectorConfig?.supportsCardinality ?? false;
+
+  // Calculate cardinality label positions
+  const cardinalityOffset = DESIGN_STUDIO_CONFIG.connectorLabel.cardinalityOffset / context.zoom;
+  const sourceLabelPos = calculateCardinalityLabelPosition(start, sourceDirection, cardinalityOffset);
+  const targetLabelPos = calculateCardinalityLabelPosition(end, targetDirection, cardinalityOffset);
+
   return (
     <g>
       {/* Define markers if needed */}
@@ -151,6 +162,42 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
           />
         </div>
       </foreignObject>
+
+      {/* Source cardinality label (non-editable) */}
+      {supportsCardinality && connector.sourceCardinality && (
+        <text
+          x={sourceLabelPos.x}
+          y={sourceLabelPos.y}
+          fontSize={10 / context.zoom}
+          fill="var(--canvas-label-display-text)"
+          textAnchor={sourceLabelPos.textAnchor}
+          dominantBaseline="middle"
+          pointerEvents="none"
+          style={{
+            userSelect: 'none',
+          }}
+        >
+          {connector.sourceCardinality}
+        </text>
+      )}
+
+      {/* Target cardinality label (non-editable) */}
+      {supportsCardinality && connector.targetCardinality && (
+        <text
+          x={targetLabelPos.x}
+          y={targetLabelPos.y}
+          fontSize={10 / context.zoom}
+          fill="var(--canvas-label-display-text)"
+          textAnchor={targetLabelPos.textAnchor}
+          dominantBaseline="middle"
+          pointerEvents="none"
+          style={{
+            userSelect: 'none',
+          }}
+        >
+          {connector.targetCardinality}
+        </text>
+      )}
     </g>
   );
 };
@@ -279,5 +326,41 @@ function getMarker(
     default:
       return null;
   }
+}
+
+/**
+ * Calculate position for cardinality label near an endpoint
+ * @param point - The endpoint coordinates
+ * @param direction - The direction from the endpoint (N, S, E, W)
+ * @param offset - Distance from endpoint (in pixels)
+ * @returns Position for the label
+ */
+function calculateCardinalityLabelPosition(
+  point: { x: number; y: number },
+  direction: string,
+  offset: number
+): { x: number; y: number; textAnchor: 'start' | 'middle' | 'end' } {
+  let x = point.x;
+  let y = point.y;
+  let textAnchor: 'start' | 'middle' | 'end' = 'middle';
+
+  switch (direction) {
+    case 'N': // North - offset upward
+      y -= offset;
+      break;
+    case 'S': // South - offset downward
+      y += offset;
+      break;
+    case 'E': // East - offset to the right
+      x += offset;
+      textAnchor = 'start';
+      break;
+    case 'W': // West - offset to the left
+      x -= offset;
+      textAnchor = 'end';
+      break;
+  }
+
+  return { x, y, textAnchor };
 }
 

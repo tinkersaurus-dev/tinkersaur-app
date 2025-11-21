@@ -36,6 +36,8 @@ export interface ConnectorTool {
   markerEnd: ArrowType;
   /** Line style */
   lineType: LineType;
+  /** Whether this connector type supports cardinality/multiplicity labels */
+  supportsCardinality?: boolean;
 }
 
 /**
@@ -51,6 +53,7 @@ const classConnectorTools: ConnectorTool[] = [
     markerStart: 'none',
     markerEnd: 'none',
     lineType: 'solid',
+    supportsCardinality: true,
   },
   {
     id: 'directed-association',
@@ -61,6 +64,7 @@ const classConnectorTools: ConnectorTool[] = [
     markerStart: 'none',
     markerEnd: 'arrow',
     lineType: 'solid',
+    supportsCardinality: true,
   },
   {
     id: 'aggregation',
@@ -71,6 +75,7 @@ const classConnectorTools: ConnectorTool[] = [
     markerStart: 'diamond',
     markerEnd: 'none',
     lineType: 'solid',
+    supportsCardinality: true,
   },
   {
     id: 'composition',
@@ -81,6 +86,7 @@ const classConnectorTools: ConnectorTool[] = [
     markerStart: 'filled-diamond',
     markerEnd: 'none',
     lineType: 'solid',
+    supportsCardinality: true,
   },
   {
     id: 'dependency',
@@ -91,6 +97,7 @@ const classConnectorTools: ConnectorTool[] = [
     markerStart: 'none',
     markerEnd: 'arrow',
     lineType: 'dashed',
+    supportsCardinality: true,
   },
   {
     id: 'inheritance',
@@ -101,6 +108,7 @@ const classConnectorTools: ConnectorTool[] = [
     markerStart: 'none',
     markerEnd: 'triangle',
     lineType: 'solid',
+    supportsCardinality: true,
   },
   {
     id: 'realization',
@@ -111,6 +119,7 @@ const classConnectorTools: ConnectorTool[] = [
     markerStart: 'none',
     markerEnd: 'triangle',
     lineType: 'dashed',
+    supportsCardinality: true,
   },
 ];
 

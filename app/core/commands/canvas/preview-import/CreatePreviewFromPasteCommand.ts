@@ -119,6 +119,8 @@ export class CreatePreviewFromPasteCommand implements Command {
         lineType: connectorRef.lineType,
         points: connectorRef.points,
         label: connectorRef.label,
+        sourceCardinality: connectorRef.sourceCardinality,
+        targetCardinality: connectorRef.targetCardinality,
         zIndex: connectorRef.zIndex,
       });
     }

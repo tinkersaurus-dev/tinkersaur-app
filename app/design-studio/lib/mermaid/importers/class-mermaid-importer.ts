@@ -3,6 +3,7 @@ import type { CreateShapeDTO, ClassShapeData, EnumerationShapeData } from '~/cor
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../mermaid-importer';
 import { BaseMermaidImporter } from '../mermaid-importer';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import type { CardinalityType } from '~/core/entities/design-studio/types/Connector';
 
 /**
  * Parsed class information from Mermaid syntax
@@ -23,6 +24,8 @@ interface ParsedRelationship {
   targetClass: string;
   relationshipType: string;
   label?: string;
+  sourceCardinality?: string;
+  targetCardinality?: string;
 }
 
 /**
@@ -220,57 +223,60 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
   }
 
   /**
-   * Parse a relationship line (e.g., "ClassA <|-- ClassB : inherits")
+   * Parse a relationship line with flexible cardinality support
+   * Supports: ClassA "1" --> "0..*" ClassB : label (both)
+   *           ClassA "1" --> ClassB : label (source only)
+   *           ClassA --> "0..*" ClassB : label (target only)
+   *           ClassA --> ClassB : label (neither)
    */
   private parseRelationshipLine(
     line: string,
     classes: Map<string, ParsedClass>
   ): ParsedRelationship | null {
-    // Match relationship patterns
-    const relationshipPatterns = [
-      /^([A-Za-z0-9_]+)\s+(<\|--)\s+([A-Za-z0-9_]+)(?:\s*:\s*(.+))?$/, // Inheritance
-      /^([A-Za-z0-9_]+)\s+(\.\.>\|>)\s+([A-Za-z0-9_]+)(?:\s*:\s*(.+))?$/, // Realization
-      /^([A-Za-z0-9_]+)\s+(\*--)\s+([A-Za-z0-9_]+)(?:\s*:\s*(.+))?$/, // Composition
-      /^([A-Za-z0-9_]+)\s+(o--)\s+([A-Za-z0-9_]+)(?:\s*:\s*(.+))?$/, // Aggregation
-      /^([A-Za-z0-9_]+)\s+(\.\.>)\s+([A-Za-z0-9_]+)(?:\s*:\s*(.+))?$/, // Dependency
-      /^([A-Za-z0-9_]+)\s+(-->)\s+([A-Za-z0-9_]+)(?:\s*:\s*(.+))?$/, // Directed Association
-      /^([A-Za-z0-9_]+)\s+(--)\s+([A-Za-z0-9_]+)(?:\s*:\s*(.+))?$/, // Association
-    ];
+    // Define all relationship symbols
+    const relationshipSymbols = ['<\\|--', '\\.\\.|>', '\\*--', 'o--', '\\.\\.|>\\|>', '\\.\\.\\.>', '-->', '--'];
 
-    for (const pattern of relationshipPatterns) {
-      const match = line.match(pattern);
-      if (match) {
-        const sourceClass = match[1];
-        const relationshipType = match[2];
-        const targetClass = match[3];
-        const label = match[4]?.trim();
+    // Build a flexible regex that handles all cardinality combinations
+    // Pattern: ClassName [optional "card"] relationship [optional "card"] ClassName [: label]
+    const regexPattern = `^([A-Za-z0-9_]+)(?:\\s+"([^"]+)")?\\s+(${relationshipSymbols.join('|')})(?:\\s+"([^"]+)")?\\s+([A-Za-z0-9_]+)(?:\\s*:\\s*(.+))?$`;
+    const regex = new RegExp(regexPattern);
 
-        // Ensure both classes exist (create simple classes if they don't)
-        if (!classes.has(sourceClass)) {
-          classes.set(sourceClass, {
-            name: sourceClass,
-            attributes: [],
-            methods: [],
-          });
-        }
-        if (!classes.has(targetClass)) {
-          classes.set(targetClass, {
-            name: targetClass,
-            attributes: [],
-            methods: [],
-          });
-        }
-
-        return {
-          sourceClass,
-          targetClass,
-          relationshipType,
-          label: label ? this.unsanitizeText(label) : undefined,
-        };
-      }
+    const match = line.match(regex);
+    if (!match) {
+      return null;
     }
 
-    return null;
+    const sourceClass = match[1];
+    const sourceCardinality = match[2]; // May be undefined
+    const relationshipType = match[3];
+    const targetCardinality = match[4]; // May be undefined
+    const targetClass = match[5];
+    const label = match[6]?.trim();
+
+    // Ensure both classes exist (create simple classes if they don't)
+    if (!classes.has(sourceClass)) {
+      classes.set(sourceClass, {
+        name: sourceClass,
+        attributes: [],
+        methods: [],
+      });
+    }
+    if (!classes.has(targetClass)) {
+      classes.set(targetClass, {
+        name: targetClass,
+        attributes: [],
+        methods: [],
+      });
+    }
+
+    return {
+      sourceClass,
+      targetClass,
+      relationshipType,
+      label: label ? this.unsanitizeText(label) : undefined,
+      sourceCardinality,
+      targetCardinality,
+    };
   }
 
   /**
@@ -347,6 +353,21 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
   }
 
   /**
+   * Validate and convert cardinality string to CardinalityType
+   */
+  private validateCardinality(cardinality: string | undefined): CardinalityType | undefined {
+    if (!cardinality) return undefined;
+
+    const validValues: CardinalityType[] = ['1', '0..1', '1..*', '*', 'n', '0..n', '1..n'];
+    if (validValues.includes(cardinality as CardinalityType)) {
+      return cardinality as CardinalityType;
+    }
+
+    // If invalid, return undefined (ignore invalid cardinality)
+    return undefined;
+  }
+
+  /**
    * Create connector refs from parsed relationships (using shape indices instead of IDs)
    */
   private createConnectors(
@@ -373,6 +394,8 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
         markerEnd: 'arrow',
         lineType,
         label: rel.label,
+        sourceCardinality: this.validateCardinality(rel.sourceCardinality),
+        targetCardinality: this.validateCardinality(rel.targetCardinality),
         zIndex: 0,
       };
 
@@ -390,42 +413,44 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
     switch (relationshipSymbol) {
       case '<|--': // Inheritance
         return {
-          type: 'class-inheritance',
+          type: 'inheritance',
           lineType: 'solid',
         };
       case '..|>': // Realization
+      case '...|>': // Alternative realization syntax
         return {
-          type: 'class-realization',
+          type: 'realization',
           lineType: 'dashed',
         };
       case '*--': // Composition
         return {
-          type: 'class-composition',
+          type: 'composition',
           lineType: 'solid',
         };
       case 'o--': // Aggregation
         return {
-          type: 'class-aggregation',
+          type: 'aggregation',
           lineType: 'solid',
         };
       case '..>': // Dependency
+      case '...>': // Alternative dependency syntax
         return {
-          type: 'class-dependency',
+          type: 'dependency',
           lineType: 'dotted',
         };
       case '-->': // Directed Association
         return {
-          type: 'class-association',
+          type: 'directed-association',
           lineType: 'solid',
         };
       case '--': // Association
         return {
-          type: 'class-association',
+          type: 'association',
           lineType: 'solid',
         };
       default:
         return {
-          type: 'class-association',
+          type: 'association',
           lineType: 'solid',
         };
     }

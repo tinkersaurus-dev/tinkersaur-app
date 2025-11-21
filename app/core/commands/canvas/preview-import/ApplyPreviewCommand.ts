@@ -177,6 +177,8 @@ export class ApplyPreviewCommand implements Command {
         lineType: connectorInfo.connectorData.lineType,
         points: connectorInfo.connectorData.points,
         label: connectorInfo.connectorData.label,
+        sourceCardinality: connectorInfo.connectorData.sourceCardinality,
+        targetCardinality: connectorInfo.connectorData.targetCardinality,
         zIndex: connectorInfo.connectorData.zIndex,
       });
     }

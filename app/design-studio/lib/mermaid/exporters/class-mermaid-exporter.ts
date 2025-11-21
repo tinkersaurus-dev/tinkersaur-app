@@ -236,10 +236,29 @@ export class ClassMermaidExporter extends BaseMermaidExporter {
     // Determine relationship type based on connector properties
     const relationshipSymbol = this.getRelationshipSymbol(connector);
 
-    // Add label if present
-    const label = connector.label ? ` : ${this.sanitizeText(connector.label)}` : '';
+    // Build relationship string with optional cardinality
+    let result = sourceClass;
 
-    return `${sourceClass} ${relationshipSymbol} ${targetClass}${label}`;
+    // Add source cardinality if present
+    if (connector.sourceCardinality) {
+      result += ` "${connector.sourceCardinality}"`;
+    }
+
+    result += ` ${relationshipSymbol}`;
+
+    // Add target cardinality if present
+    if (connector.targetCardinality) {
+      result += ` "${connector.targetCardinality}"`;
+    }
+
+    result += ` ${targetClass}`;
+
+    // Add label if present
+    if (connector.label) {
+      result += ` : ${this.sanitizeText(connector.label)}`;
+    }
+
+    return result;
   }
 
   /**

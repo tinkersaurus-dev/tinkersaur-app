@@ -13,6 +13,10 @@ export type ArrowType = z.infer<typeof ArrowType>;
 export const LineType = z.enum(['solid', 'dotted', 'dashed']);
 export type LineType = z.infer<typeof LineType>;
 
+// Cardinality/multiplicity types for connectors (used in UML class diagrams)
+export const CardinalityType = z.enum(['1', '0..1', '1..*', '*', 'n', '0..n', '1..n']);
+export type CardinalityType = z.infer<typeof CardinalityType>;
+
 // Connector entity - represents connections between shapes
 export const ConnectorSchema = z.object({
   id: z.string(),
@@ -29,6 +33,8 @@ export const ConnectorSchema = z.object({
   lineType: LineType.default('solid'), // Line style
   points: z.array(PointSchema).optional(), // For custom routing
   label: z.string().optional(), // Optional text label for the connector
+  sourceCardinality: CardinalityType.optional(), // Cardinality label at source end
+  targetCardinality: CardinalityType.optional(), // Cardinality label at target end
   zIndex: z.number().default(0),
 });
 
