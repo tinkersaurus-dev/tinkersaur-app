@@ -23,6 +23,7 @@ export interface CanvasSelectionContext {
   editingEntityId: string | null;
   editingEntityType: 'shape' | 'connector' | null;
   gridSnappingEnabled: boolean;
+  gridDisplayMode: 'dots' | 'lines';
   activeConnectorType: string;
 }
 

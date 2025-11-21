@@ -45,6 +45,9 @@ export interface CanvasInstanceState {
   // Grid snapping
   gridSnappingEnabled: boolean;
 
+  // Grid display mode (ephemeral - dots vs lines)
+  gridDisplayMode: 'dots' | 'lines';
+
   // Active connector type (ephemeral - for new connectors being drawn)
   activeConnectorType: string;
 
@@ -73,6 +76,7 @@ export interface CanvasInstanceState {
   setEditingEntity: (id: string, type: 'shape' | 'connector', originalLabel: string | undefined) => void;
   clearEditingEntity: () => void;
   setGridSnappingEnabled: (enabled: boolean) => void;
+  setGridDisplayMode: (mode: 'dots' | 'lines') => void;
   setActiveConnectorType: (connectorType: string) => void;
   reset: () => void;
 }
@@ -99,7 +103,8 @@ export function createCanvasInstanceStore(diagramId: string, initialConnectorTyp
     editingEntityId: null,
     editingEntityType: null,
     editingOriginalLabel: undefined,
-    gridSnappingEnabled: false,
+    gridSnappingEnabled: true,
+    gridDisplayMode: 'lines',
     activeConnectorType: initialConnectorType,
 
     // Content initialization - load from entity store
@@ -222,6 +227,11 @@ export function createCanvasInstanceStore(diagramId: string, initialConnectorTyp
         gridSnappingEnabled: enabled,
       }),
 
+    setGridDisplayMode: (mode) =>
+      set({
+        gridDisplayMode: mode,
+      }),
+
     // Active connector type actions
     setActiveConnectorType: (connectorType) =>
       set({
@@ -243,7 +253,8 @@ export function createCanvasInstanceStore(diagramId: string, initialConnectorTyp
         editingEntityId: null,
         editingEntityType: null,
         editingOriginalLabel: undefined,
-        gridSnappingEnabled: false,
+        gridSnappingEnabled: true,
+        gridDisplayMode: 'lines',
         activeConnectorType: initialConnectorType,
       }),
   }));

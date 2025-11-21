@@ -3,11 +3,13 @@ import { Button } from '~/core/components/ui/Button';
 
 export interface ToolbarButton {
   id: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
+  label?: string;
   onClick: (buttonElement?: HTMLButtonElement) => void;
   tooltip?: string;
   disabled?: boolean;
   active?: boolean;
+  className?: string;
 }
 
 export interface CanvasToolbarProps {
@@ -55,9 +57,13 @@ const CanvasToolbar: React.FC<CanvasToolbarProps> = ({ placement, buttons }) => 
             className={`
               bg-transparent hover:bg-[var(--highlight)]
               transition-colors duration-150
-              ${button.active ? 'bg-[var(--highlight)] border-[var(--primary)]' : 'border-transparent'}
+              border-none shadow-sm
+              ${button.active ? 'bg-[var(--highlight)]' : ''}
+              ${button.className || ''}
             `}
-          />
+          >
+            {button.label}
+          </Button>
         ))}
       </div>
     </div>

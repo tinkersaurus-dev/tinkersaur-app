@@ -88,6 +88,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   const selectedConnectorIds = canvasInstance((state) => state.selectedConnectorIds);
   const hoveredConnectorId = canvasInstance((state) => state.hoveredConnectorId);
   const gridSnappingEnabled = canvasInstance((state) => state.gridSnappingEnabled);
+  const gridDisplayMode = canvasInstance((state) => state.gridDisplayMode);
 
   // Get LOCAL editing state (ephemeral, not persisted until commit)
   const localShapes = canvasInstance((state) => state.localShapes);
@@ -110,6 +111,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   const setEditingEntity = canvasInstance((state) => state.setEditingEntity);
   const clearEditingEntity = canvasInstance((state) => state.clearEditingEntity);
   const setGridSnappingEnabled = canvasInstance((state) => state.setGridSnappingEnabled);
+  const setGridDisplayMode = canvasInstance((state) => state.setGridDisplayMode);
   const activeConnectorType = canvasInstance((state) => state.activeConnectorType);
   const setActiveConnectorType = canvasInstance((state) => state.setActiveConnectorType);
 
@@ -648,16 +650,25 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     menuManager.openConnectorToolbarPopover(buttonRef);
   }, [menuManager]);
 
+  // Handle zoom reset button click
+  const handleZoomReset = useCallback(() => {
+    viewportTransform.setViewport(1, 0, 0);
+  }, [viewportTransform]);
+
   // Configure toolbar buttons
   const toolbarButtons = useMemo(() =>
     createToolbarButtons({
       diagramType: diagram?.type,
       gridSnappingEnabled,
+      gridDisplayMode,
       activeConnectorIcon: connectorTypeManager.activeConnectorIcon,
+      zoom: viewportTransform.viewport.zoom,
       setGridSnappingEnabled,
+      setGridDisplayMode,
       handleConnectorToolbarClick,
+      handleZoomReset,
     }),
-    [diagram?.type, connectorTypeManager.activeConnectorIcon, handleConnectorToolbarClick, gridSnappingEnabled, setGridSnappingEnabled]
+    [diagram?.type, connectorTypeManager.activeConnectorIcon, handleConnectorToolbarClick, handleZoomReset, gridSnappingEnabled, gridDisplayMode, viewportTransform.viewport.zoom, setGridSnappingEnabled, setGridDisplayMode]
   );
 
   // Build individual context values
@@ -684,6 +695,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     editingEntityId,
     editingEntityType,
     gridSnappingEnabled,
+    gridDisplayMode,
     activeConnectorType,
   }), [
     selectedShapeIds,
@@ -696,6 +708,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     editingEntityId,
     editingEntityType,
     gridSnappingEnabled,
+    gridDisplayMode,
     activeConnectorType,
   ]);
 

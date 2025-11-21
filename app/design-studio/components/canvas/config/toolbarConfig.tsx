@@ -1,13 +1,17 @@
 import React from 'react';
-import { TbGridDots } from 'react-icons/tb';
+import { TbGridDots, TbLayoutGrid, TbMagnet, TbMagnetOff } from 'react-icons/tb';
 import type { ToolbarButton } from '../../toolbar/CanvasToolbar';
 
 export interface ToolbarConfigParams {
   diagramType: string | undefined;
   gridSnappingEnabled: boolean;
+  gridDisplayMode: 'dots' | 'lines';
   activeConnectorIcon: React.ReactNode;
+  zoom: number;
   setGridSnappingEnabled: (enabled: boolean) => void;
+  setGridDisplayMode: (mode: 'dots' | 'lines') => void;
   handleConnectorToolbarClick: (buttonElement?: HTMLButtonElement) => void;
+  handleZoomReset: () => void;
 }
 
 /**
@@ -19,9 +23,13 @@ export function createToolbarButtons(params: ToolbarConfigParams): ToolbarButton
   const {
     diagramType,
     gridSnappingEnabled,
+    gridDisplayMode,
     activeConnectorIcon,
+    zoom,
     setGridSnappingEnabled,
+    setGridDisplayMode,
     handleConnectorToolbarClick,
+    handleZoomReset,
   } = params;
 
   const buttons: ToolbarButton[] = [];
@@ -39,10 +47,27 @@ export function createToolbarButtons(params: ToolbarConfigParams): ToolbarButton
 
   buttons.push({
     id: 'grid-snap',
-    icon: <TbGridDots size={16} />,
+    icon: gridSnappingEnabled ? <TbMagnetOff size={16} /> : <TbMagnet size={16} />,
     onClick: () => setGridSnappingEnabled(!gridSnappingEnabled),
     tooltip: gridSnappingEnabled ? 'Disable grid snapping' : 'Enable grid snapping (10px)',
     active: gridSnappingEnabled,
+  });
+
+  buttons.push({
+    id: 'grid-display',
+    icon: gridDisplayMode === 'dots' ? <TbLayoutGrid size={16} /> : <TbGridDots size={16} />,
+    onClick: () => setGridDisplayMode(gridDisplayMode === 'dots' ? 'lines' : 'dots'),
+    tooltip: gridDisplayMode === 'dots' ? 'Switch to line grid' : 'Switch to dot grid',
+    active: gridDisplayMode === 'lines',
+  });
+
+  buttons.push({
+    id: 'zoom-reset',
+    label: `${Math.round(zoom * 100)}%`,
+    onClick: handleZoomReset,
+    tooltip: 'Reset zoom and pan to default',
+    active: false,
+    className: 'w-[48px] text-xs font-mono',
   });
 
   return buttons;

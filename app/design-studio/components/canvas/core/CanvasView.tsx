@@ -10,7 +10,6 @@ import { ClassToolsetPopover } from '../menus/popovers/ClassToolsetPopover';
 import { SequenceToolsetPopover } from '../menus/popovers/SequenceToolsetPopover';
 import { ConnectorToolsetPopover } from '../menus/popovers/ConnectorToolsetPopover';
 import { ConnectorContextMenu } from '../menus/ConnectorContextMenu';
-import { CanvasDebugInfo } from '../ui/CanvasDebugInfo';
 import { ConnectorDrawingPreview } from '../rendering/ConnectorDrawingPreview';
 import { CanvasShapesList } from '../rendering/CanvasShapesList';
 import { CanvasConnectorsList } from '../rendering/CanvasConnectorsList';
@@ -36,7 +35,6 @@ import { setDebugGraph } from '../debug/routingDebugState';
 export function CanvasView() {
   // Consume focused contexts
   const {
-    diagramId,
     diagram,
     loading,
     shapes,
@@ -57,6 +55,7 @@ export function CanvasView() {
     drawingConnector,
     editingEntityId,
     editingEntityType,
+    gridDisplayMode,
     activeConnectorType,
   } = useCanvasSelection();
 
@@ -135,9 +134,13 @@ export function CanvasView() {
       {/* Grid Layer (screen space, no transform) */}
       <div className="absolute inset-0 pointer-events-none">
         <svg className="w-full h-full">
-          <g transform={`translate(${viewportTransform.viewport.panX}, ${viewportTransform.viewport.panY}) scale(${viewportTransform.viewport.zoom})`}>
-            <GridBackground gridSize={10} />
-          </g>
+          <GridBackground
+            gridSize={10}
+            panX={viewportTransform.viewport.panX}
+            panY={viewportTransform.viewport.panY}
+            zoom={viewportTransform.viewport.zoom}
+            mode={gridDisplayMode}
+          />
         </svg>
       </div>
 
@@ -311,8 +314,6 @@ export function CanvasView() {
         />
       )}
 
-      {/* Debug info (optional - can be removed) */}
-      <CanvasDebugInfo diagramId={diagramId} zoom={viewportTransform.viewport.zoom} shapesCount={shapes.length} />
 
       {/* Routing Debug Overlay - Press 'D' to toggle */}
       <RoutingDebugOverlay />

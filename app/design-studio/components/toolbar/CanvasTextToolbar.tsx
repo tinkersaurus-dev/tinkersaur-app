@@ -50,7 +50,7 @@ const CanvasTextToolbar: React.FC<CanvasTextToolbarProps> = ({ diagramType }) =>
           }
           className="
             bg-[var(--bg-light)] hover:bg-[var(--highlight)]
-            border border-[var(--border)]
+            border-none
             transition-colors duration-150
             shadow-sm
           "
