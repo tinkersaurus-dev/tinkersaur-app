@@ -105,6 +105,41 @@ function arePropsEqual(prevProps: ConnectorRendererProps, nextProps: ConnectorRe
     return false;
   }
 
+  // Check if allShapes array has changed (for obstacle avoidance routing)
+  // We need to check if shapes have been added/removed or if any shape positions changed
+  const prevShapes = prevContext.allShapes;
+  const nextShapes = nextContext.allShapes;
+
+  if (prevShapes !== nextShapes) {
+    // Arrays are different references - check if content changed
+    if (!prevShapes || !nextShapes || prevShapes.length !== nextShapes.length) {
+      return false;
+    }
+
+    // Check if any shapes (other than source/target) have changed position/size
+    // Source and target are already checked above
+    for (let i = 0; i < prevShapes.length; i++) {
+      const prev = prevShapes[i];
+      const next = nextShapes[i];
+
+      // Skip if this is the source or target shape (already checked)
+      if (prev.id === prevConnector.sourceShapeId || prev.id === prevConnector.targetShapeId) {
+        continue;
+      }
+
+      // Check if shape properties that affect routing have changed
+      if (
+        prev.id !== next.id ||
+        prev.x !== next.x ||
+        prev.y !== next.y ||
+        prev.width !== next.width ||
+        prev.height !== next.height
+      ) {
+        return false;
+      }
+    }
+  }
+
   // Event handlers check
   if (
     prevProps.onMouseDown !== nextProps.onMouseDown ||

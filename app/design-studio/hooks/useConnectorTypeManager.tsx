@@ -17,10 +17,14 @@ import {
   allSequenceConnectorTools,
   getSequenceConnectorToolByType,
 } from '../config/sequence-connectors';
+import {
+  allArchitectureConnectorTools,
+  getArchitectureConnectorToolByType,
+} from '../config/architecture-connectors';
 
 interface UseConnectorTypeManagerProps {
   diagramId: string;
-  diagramType: 'bpmn' | 'dataflow' | 'class' | 'sequence' | undefined;
+  diagramType: 'bpmn' | 'dataflow' | 'class' | 'sequence' | 'architecture' | undefined;
   activeConnectorType: string;
   setActiveConnectorType: (type: string) => void;
   commandFactory: CommandFactory;
@@ -58,6 +62,8 @@ export function useConnectorTypeManager({
       return getClassConnectorToolByType(connectorType);
     } else if (diagramType === 'sequence') {
       return getSequenceConnectorToolByType(connectorType);
+    } else if (diagramType === 'architecture') {
+      return getArchitectureConnectorToolByType(connectorType);
     }
     return undefined;
   }, [diagramType]);
@@ -70,6 +76,8 @@ export function useConnectorTypeManager({
       return allClassConnectorTools;
     } else if (diagramType === 'sequence') {
       return allSequenceConnectorTools;
+    } else if (diagramType === 'architecture') {
+      return allArchitectureConnectorTools;
     }
     return [];
   }, [diagramType]);

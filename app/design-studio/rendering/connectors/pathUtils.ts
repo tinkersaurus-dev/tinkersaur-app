@@ -26,6 +26,8 @@ export function getPathData(
     excludeShapeIds?: string[];
     /** Use advanced routing algorithm */
     useAdvancedRouting?: boolean;
+    /** All connection points from source and target shapes for visibility extensions */
+    allConnectionPoints?: Array<{ x: number; y: number; direction: Direction }>;
   }
 ): { pathData: string; pathPoints: Point[] } {
   switch (style) {
@@ -49,7 +51,8 @@ export function getPathData(
             startDirection,
             endDirection,
             options.shapes,
-            options.excludeShapeIds || []
+            options.excludeShapeIds || [],
+            options.allConnectionPoints
           );
         } catch (error) {
           console.error('[pathUtils] Advanced routing FAILED:', error);
@@ -191,12 +194,11 @@ export function getAdvancedOrthogonalPath(
   startDirection: ConnectionPointDirection,
   endDirection: ConnectionPointDirection,
   allShapes: Shape[],
-  _excludeShapeIds: string[]
+  _excludeShapeIds: string[],
+  allConnectionPoints?: Array<{ x: number; y: number; direction: Direction }>
 ): { pathData: string; pathPoints: Point[] } {
-  // Instead of excluding shapes entirely, create "connection corridors" around
-  // the start and end points to allow routing to reach them while still
-  // treating the shapes as obstacles
-  const connectionCorridors = [
+  // Use provided connection points or default to just start and end
+  const connectionCorridors = allConnectionPoints || [
     {
       x: start.x,
       y: start.y,
@@ -210,17 +212,16 @@ export function getAdvancedOrthogonalPath(
   ];
 
   // Use the Wybrow algorithm to find optimal route
-  // Now we pass ALL shapes as obstacles, but with connection corridors
+  // Now we pass ALL shapes as obstacles, with visibility extensions from all connection points
   const pathPoints = findOrthogonalRoute(
     start,
     end,
     allShapes, // Use all shapes, not just filtered ones
     startDirection as Direction,
     endDirection as Direction,
-    DESIGN_STUDIO_CONFIG.routing.bendPenalty,
     true, // Enable path refinement
     true, // Use cache
-    connectionCorridors // Pass connection corridors to allow routing to connection points
+    connectionCorridors // Pass all connection points for visibility extensions
   );
 
   // Build SVG path string from points

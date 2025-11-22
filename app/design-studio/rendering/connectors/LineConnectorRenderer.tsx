@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { ConnectorRendererProps } from './types';
 import { EditableLabel } from '../../components/canvas/editors/EditableLabel';
 import { getPathMidpoint } from '../../utils/pathUtils';
@@ -47,25 +47,104 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   const targetConnectionPoints = getConnectionPointsForShape(targetShape.type, targetShape.height);
 
   // Calculate the closest pair to ensure connectors always connect optimally
-  const { sourceDirection, targetDirection, start, end } = findOptimalConnectionPoints(
-    sourceConnectionPoints,
-    targetConnectionPoints,
-    sourceShape,
-    targetShape
+  // Uses smart selection when shapes are available to avoid obstacles
+  // Memoized to only recalculate when shape positions/dimensions or connector style changes
+  const { sourceDirection, targetDirection, start, end } = useMemo(
+    () => findOptimalConnectionPoints(
+      sourceConnectionPoints,
+      targetConnectionPoints,
+      sourceShape,
+      targetShape,
+      {
+        shapes: context.allShapes,
+        excludeShapeIds: [connector.sourceShapeId, connector.targetShapeId],
+        useSmartSelection: connector.style === 'orthogonal' // Only use smart selection for orthogonal connectors
+      }
+    ),
+    [
+      sourceShape.x,
+      sourceShape.y,
+      sourceShape.width,
+      sourceShape.height,
+      targetShape.x,
+      targetShape.y,
+      targetShape.width,
+      targetShape.height,
+      connector.style,
+      connector.sourceShapeId,
+      connector.targetShapeId,
+      sourceConnectionPoints,
+      targetConnectionPoints,
+      context.allShapes,
+    ]
   );
 
-  // Calculate the path based on routing style
-  const { pathData, pathPoints } = getPathData(
-    start,
-    end,
-    sourceDirection,
-    targetDirection,
-    connector.style,
-    {
-      shapes: context.allShapes,
-      excludeShapeIds: [connector.sourceShapeId, connector.targetShapeId],
-      useAdvancedRouting: connector.style === 'orthogonal' && context.allShapes && context.allShapes.length > 2
+  // Build ALL connection points (in absolute coordinates) for visibility extensions
+  // Memoized to avoid recalculating when shapes haven't moved
+  const allConnectionPoints = useMemo(() => {
+    const points: Array<{ x: number; y: number; direction: 'N' | 'S' | 'E' | 'W' }> = [];
+
+    // Add all source connection points
+    for (const point of sourceConnectionPoints) {
+      points.push({
+        x: sourceShape.x + point.position.x * sourceShape.width,
+        y: sourceShape.y + point.position.y * sourceShape.height,
+        direction: point.direction
+      });
     }
+
+    // Add all target connection points
+    for (const point of targetConnectionPoints) {
+      points.push({
+        x: targetShape.x + point.position.x * targetShape.width,
+        y: targetShape.y + point.position.y * targetShape.height,
+        direction: point.direction
+      });
+    }
+
+    return points;
+  }, [
+    sourceShape.x,
+    sourceShape.y,
+    sourceShape.width,
+    sourceShape.height,
+    targetShape.x,
+    targetShape.y,
+    targetShape.width,
+    targetShape.height,
+    sourceConnectionPoints,
+    targetConnectionPoints,
+  ]);
+
+  // Calculate the path based on routing style
+  // Memoized to only recalculate when connection points or shapes change
+  const { pathData, pathPoints } = useMemo(
+    () => getPathData(
+      start,
+      end,
+      sourceDirection,
+      targetDirection,
+      connector.style,
+      {
+        shapes: context.allShapes,
+        excludeShapeIds: [connector.sourceShapeId, connector.targetShapeId],
+        useAdvancedRouting: connector.style === 'orthogonal' && context.allShapes && context.allShapes.length > 2,
+        allConnectionPoints: connector.style === 'orthogonal' ? allConnectionPoints : undefined
+      }
+    ),
+    [
+      start.x,
+      start.y,
+      end.x,
+      end.y,
+      sourceDirection,
+      targetDirection,
+      connector.style,
+      connector.sourceShapeId,
+      connector.targetShapeId,
+      context.allShapes,
+      allConnectionPoints,
+    ]
   );
 
   // Calculate the actual midpoint along the path for label positioning

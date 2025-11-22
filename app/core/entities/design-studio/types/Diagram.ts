@@ -4,7 +4,7 @@ import { ConnectorSchema } from './Connector';
 
 /**
  * Diagram domain model
- * Represents a diagram (BPMN, DataFlow, Class, Sequence)
+ * Represents a diagram (BPMN, DataFlow, Class, Sequence, Architecture)
  * Diagrams belong to a DesignWork (folder) in the tree hierarchy
  *
  * A diagram contains its complete content including shapes and connectors.
@@ -14,7 +14,7 @@ import { ConnectorSchema } from './Connector';
  */
 
 // Diagram type enum
-export const DiagramTypeSchema = z.enum(['bpmn', 'dataflow', 'class', 'sequence']);
+export const DiagramTypeSchema = z.enum(['bpmn', 'dataflow', 'class', 'sequence', 'architecture']);
 export type DiagramType = z.infer<typeof DiagramTypeSchema>;
 
 // Zod schema for runtime validation

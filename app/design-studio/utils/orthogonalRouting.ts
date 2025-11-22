@@ -5,9 +5,10 @@
  *
  * This module implements optimal object-avoiding orthogonal connector routing
  * using a three-stage approach:
- * 1. Construct orthogonal visibility graph
+ * 1. Construct orthogonal visibility graph with offset corner points and
+ *    proper visibility extensions from connection points
  * 2. Find optimal route using A* search
- * 3. Refine visual representation with nudging
+ * 3. Simplify route by removing collinear segments
  */
 
 import type { Shape, Point } from "~/core/entities/design-studio/types/Shape";
@@ -98,9 +99,12 @@ export function manhattanDistance(p1: Point, p2: Point): number {
 
 /**
  * Create a unique node ID from coordinates
+ * Normalizes to 2 decimal places to handle floating point precision
  */
 function nodeId(x: number, y: number): string {
-  return `${x},${y}`;
+  const normalizedX = Math.round(x * 100) / 100;
+  const normalizedY = Math.round(y * 100) / 100;
+  return `${normalizedX},${normalizedY}`;
 }
 
 /**
@@ -112,131 +116,108 @@ function horizontalSegmentIntersectsShape(
   x2: number,
   y: number,
   shape: Shape,
-  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
+  _connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
 ): boolean {
   const minX = Math.min(x1, x2);
   const maxX = Math.max(x1, x2);
 
-  // Check if segment passes THROUGH shape (not just touching edge)
-  // Allow segments along the boundary
+  // Check if segment passes through or touches the shape
+  // Use strict inequalities to block paths that touch shape boundaries
   const intersects = !(
-    maxX <= shape.x ||
-    minX >= shape.x + shape.width ||
-    y <= shape.y ||
-    y >= shape.y + shape.height
+    maxX < shape.x ||
+    minX > shape.x + shape.width ||
+    y < shape.y ||
+    y > shape.y + shape.height
   );
 
-  // If no intersection with shape, return false
-  if (!intersects) return false;
-
-  // If there are connection corridors, check if segment is in a corridor
-  if (connectionCorridors) {
-    const CORRIDOR_WIDTH = DESIGN_STUDIO_CONFIG.routing.corridorWidth;
-
-    for (const corridor of connectionCorridors) {
-      // For horizontal segments, check if they're in a vertical corridor (N/S connection)
-      // or aligned with a horizontal corridor (E/W connection)
-      if (corridor.direction === 'N' || corridor.direction === 'S') {
-        // Vertical corridor - allow horizontal segments near the connection point
-        const corridorMinX = corridor.x - CORRIDOR_WIDTH / 2;
-        const corridorMaxX = corridor.x + CORRIDOR_WIDTH / 2;
-
-        if (y >= corridor.y - CORRIDOR_WIDTH && y <= corridor.y + CORRIDOR_WIDTH &&
-            maxX >= corridorMinX && minX <= corridorMaxX) {
-          return false; // Segment is in corridor, don't block it
-        }
-      } else if (corridor.direction === 'E' || corridor.direction === 'W') {
-        // Horizontal corridor - allow segments aligned with the connection point
-        if (Math.abs(y - corridor.y) < CORRIDOR_WIDTH / 2) {
-          const corridorStart = corridor.direction === 'E' ? corridor.x : corridor.x - CORRIDOR_WIDTH;
-          const corridorEnd = corridor.direction === 'E' ? corridor.x + CORRIDOR_WIDTH : corridor.x;
-
-          if (maxX >= corridorStart && minX <= corridorEnd) {
-            return false; // Segment is in corridor, don't block it
-          }
-        }
-      }
-    }
-  }
-
-  return true;
+  return intersects;
 }
 
 /**
  * Check if a vertical line segment intersects with a shape
- * Optionally excludes "corridors" around connection points to allow routing to them
  */
 function verticalSegmentIntersectsShape(
   x: number,
   y1: number,
   y2: number,
   shape: Shape,
-  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
+  _connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
 ): boolean {
   const minY = Math.min(y1, y2);
   const maxY = Math.max(y1, y2);
 
-  // Check if segment passes THROUGH shape (not just touching edge)
-  // Allow segments along the boundary
+  // Check if segment passes through or touches the shape
+  // Use strict inequalities to block paths that touch shape boundaries
   const intersects = !(
-    x <= shape.x ||
-    x >= shape.x + shape.width ||
-    maxY <= shape.y ||
-    minY >= shape.y + shape.height
+    x < shape.x ||
+    x > shape.x + shape.width ||
+    maxY < shape.y ||
+    minY > shape.y + shape.height
   );
 
-  // If no intersection with shape, return false
-  if (!intersects) return false;
-
-  // If there are connection corridors, check if segment is in a corridor
-  if (connectionCorridors) {
-    const CORRIDOR_WIDTH = DESIGN_STUDIO_CONFIG.routing.corridorWidth;
-
-    for (const corridor of connectionCorridors) {
-      // For vertical segments, check if they're in a horizontal corridor (E/W connection)
-      // or aligned with a vertical corridor (N/S connection)
-      if (corridor.direction === 'E' || corridor.direction === 'W') {
-        // Horizontal corridor - allow vertical segments near the connection point
-        const corridorMinY = corridor.y - CORRIDOR_WIDTH / 2;
-        const corridorMaxY = corridor.y + CORRIDOR_WIDTH / 2;
-
-        if (x >= corridor.x - CORRIDOR_WIDTH && x <= corridor.x + CORRIDOR_WIDTH &&
-            maxY >= corridorMinY && minY <= corridorMaxY) {
-          return false; // Segment is in corridor, don't block it
-        }
-      } else if (corridor.direction === 'N' || corridor.direction === 'S') {
-        // Vertical corridor - allow segments aligned with the connection point
-        if (Math.abs(x - corridor.x) < CORRIDOR_WIDTH / 2) {
-          const corridorStart = corridor.direction === 'S' ? corridor.y : corridor.y - CORRIDOR_WIDTH;
-          const corridorEnd = corridor.direction === 'S' ? corridor.y + CORRIDOR_WIDTH : corridor.y;
-
-          if (maxY >= corridorStart && minY <= corridorEnd) {
-            return false; // Segment is in corridor, don't block it
-          }
-        }
-      }
-    }
-  }
-
-  return true;
+  return intersects;
 }
 
 /**
  * Get all interesting points from shapes
- * (corners and connection points)
+ *
+ * Instead of using exact shape corners, we generate points offset by the nudge distance.
+ * This creates routing paths that naturally maintain spacing from shapes, eliminating
+ * the need for post-processing nudging.
+ *
+ * For each shape, we create routing points at the four corners of an expanded bounding box.
+ * Visibility extensions from connection points handle routing along the sides of shapes.
+ *
+ * IMPORTANT: Only shapes with connection points get corner nodes.
+ * Obstacle shapes (without connection points) do NOT participate in routing lanes.
  */
-function getInterestingPoints(shapes: Shape[]): Point[] {
+function getShapeCornerPointsWithOffset(
+  shapes: Shape[],
+  connectionPoints?: Array<{ x: number; y: number; direction: Direction }>
+): Point[] {
   const points: Point[] = [];
+  const NUDGE = DESIGN_STUDIO_CONFIG.routing.nudgeDistance;
 
-  for (const shape of shapes) {
-    // Add corners of bounding box
-    points.push({ x: shape.x, y: shape.y });
-    points.push({ x: shape.x + shape.width, y: shape.y });
-    points.push({ x: shape.x, y: shape.y + shape.height });
-    points.push({ x: shape.x + shape.width, y: shape.y + shape.height });
+  // If no connection points provided, don't create any corner points
+  if (!connectionPoints || connectionPoints.length === 0) {
+    return points;
+  }
 
-    // TODO: Add connection points if needed
-    // For now, corners provide sufficient granularity
+  // Identify which shapes have connection points (source/target shapes)
+  const shapesWithConnections = new Set<Shape>();
+  for (const cp of connectionPoints) {
+    for (const shape of shapes) {
+      // Check if connection point is on this shape's boundary
+      const onTop = Math.abs(cp.y - shape.y) < 1 && cp.x >= shape.x && cp.x <= shape.x + shape.width;
+      const onBottom = Math.abs(cp.y - (shape.y + shape.height)) < 1 && cp.x >= shape.x && cp.x <= shape.x + shape.width;
+      const onLeft = Math.abs(cp.x - shape.x) < 1 && cp.y >= shape.y && cp.y <= shape.y + shape.height;
+      const onRight = Math.abs(cp.x - (shape.x + shape.width)) < 1 && cp.y >= shape.y && cp.y <= shape.y + shape.height;
+
+      if (onTop || onBottom || onLeft || onRight) {
+        shapesWithConnections.add(shape);
+      }
+    }
+  }
+
+  console.log(`[GRAPH] ${shapesWithConnections.size} shapes have connection points (will create routing lanes)`);
+  console.log(`[GRAPH] ${shapes.length - shapesWithConnections.size} shapes are obstacles (will only block paths)`);
+
+  // Only create corner points for shapes that have connection points
+  for (const shape of shapesWithConnections) {
+    // Create offset bounding box corners only
+    // These are positioned at nudgeDistance away from the actual shape boundaries
+
+    // Top-left corner (NW)
+    points.push({ x: shape.x - NUDGE, y: shape.y - NUDGE });
+
+    // Top-right corner (NE)
+    points.push({ x: shape.x + shape.width + NUDGE, y: shape.y - NUDGE });
+
+    // Bottom-left corner (SW)
+    points.push({ x: shape.x - NUDGE, y: shape.y + shape.height + NUDGE });
+
+    // Bottom-right corner (SE)
+    points.push({ x: shape.x + shape.width + NUDGE, y: shape.y + shape.height + NUDGE });
   }
 
   return points;
@@ -247,7 +228,7 @@ function getInterestingPoints(shapes: Shape[]): Point[] {
  * (segments between interesting points with no intervening objects)
  */
 function generateHorizontalSegments(
-  interestingPoints: Point[],
+  shapeCornerPointsWithOffset: Point[],
   shapes: Shape[],
   connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
 ): Array<{ from: Point; to: Point }> {
@@ -255,7 +236,7 @@ function generateHorizontalSegments(
 
   // Group points by y coordinate
   const pointsByY = new Map<number, Point[]>();
-  for (const point of interestingPoints) {
+  for (const point of shapeCornerPointsWithOffset) {
     if (!pointsByY.has(point.y)) {
       pointsByY.set(point.y, []);
     }
@@ -339,30 +320,347 @@ function generateVerticalSegments(
 }
 
 /**
+ * Extend visibility from a connection point in its port direction
+ * Creates nodes at intersections with existing visibility lines and shape boundaries
+ */
+function extendVisibilityFromConnectionPoint(
+  connectionPoint: { x: number; y: number; direction: Direction },
+  shapes: Shape[],
+  horizontalSegments: Array<{ from: Point; to: Point }>,
+  verticalSegments: Array<{ from: Point; to: Point }>,
+  nodes: Map<string, VisibilityNode>,
+  edges: Map<string, VisibilityEdge[]>,
+  bboxBounds?: { minX: number; minY: number; maxX: number; maxY: number }
+): void {
+  const { x, y, direction } = connectionPoint;
+
+  // Add the connection point itself as a node
+  const connectionPointId = nodeId(x, y);
+  if (!nodes.has(connectionPointId)) {
+    nodes.set(connectionPointId, { x, y, id: connectionPointId });
+    edges.set(connectionPointId, []);
+  }
+
+  // Find the maximum extension distance in the port direction before hitting a shape
+  let maxExtension = Infinity;
+
+  for (const shape of shapes) {
+    switch (direction) {
+      case 'N': // Extending upward (decreasing y)
+        if (x >= shape.x && x <= shape.x + shape.width) {
+          // Ray passes through shape's x range
+          const shapeBottom = shape.y + shape.height;
+          if (shapeBottom < y) {
+            // Shape is above us
+            maxExtension = Math.min(maxExtension, y - shapeBottom);
+          }
+        }
+        break;
+      case 'S': // Extending downward (increasing y)
+        if (x >= shape.x && x <= shape.x + shape.width) {
+          const shapeTop = shape.y;
+          if (shapeTop > y) {
+            // Shape is below us
+            maxExtension = Math.min(maxExtension, shapeTop - y);
+          }
+        }
+        break;
+      case 'E': // Extending right (increasing x)
+        if (y >= shape.y && y <= shape.y + shape.height) {
+          const shapeLeft = shape.x;
+          if (shapeLeft > x) {
+            // Shape is to the right
+            maxExtension = Math.min(maxExtension, shapeLeft - x);
+          }
+        }
+        break;
+      case 'W': // Extending left (decreasing x)
+        if (y >= shape.y && y <= shape.y + shape.height) {
+          const shapeRight = shape.x + shape.width;
+          if (shapeRight < x) {
+            // Shape is to the left
+            maxExtension = Math.min(maxExtension, x - shapeRight);
+          }
+        }
+        break;
+    }
+  }
+
+  // Use a reasonable default extension distance if no obstacle is found
+  const DEFAULT_EXTENSION = DESIGN_STUDIO_CONFIG.routing.maxGraphConnectionDistance;
+  if (maxExtension === Infinity) {
+    maxExtension = DEFAULT_EXTENSION;
+  }
+
+  // Find all intersections with existing visibility segments AND existing nodes
+  const intersections: Array<{ x: number; y: number; distance: number }> = [];
+
+  if (direction === 'N' || direction === 'S') {
+    // Vertical extension - find intersections with horizontal segments
+    for (const seg of horizontalSegments) {
+      if (seg.from.y === seg.to.y) { // Confirm it's horizontal
+        const segY = seg.from.y;
+        const segMinX = Math.min(seg.from.x, seg.to.x);
+        const segMaxX = Math.max(seg.from.x, seg.to.x);
+
+        // Check if our ray intersects this horizontal segment
+        if (x >= segMinX && x <= segMaxX) {
+          const distance = Math.abs(segY - y);
+          if (distance > 0 && distance <= maxExtension) {
+            // Check direction
+            if ((direction === 'N' && segY < y) || (direction === 'S' && segY > y)) {
+              intersections.push({ x, y: segY, distance });
+            }
+          }
+        }
+      }
+    }
+
+    // Also find nodes that lie on the same vertical line
+    for (const [_nodeIdStr, node] of nodes) {
+      if (node.x === x) {
+        const distance = Math.abs(node.y - y);
+        if (distance > 0 && distance <= maxExtension) {
+          if ((direction === 'N' && node.y < y) || (direction === 'S' && node.y > y)) {
+            intersections.push({ x: node.x, y: node.y, distance });
+          }
+        }
+      }
+    }
+
+    // Check for intersection with bounding box edges
+    if (bboxBounds) {
+      if (direction === 'N' && bboxBounds.minY < y) {
+        // Ray going north might hit top edge of bbox
+        const distance = y - bboxBounds.minY;
+        if (distance > 0 && distance <= maxExtension) {
+          intersections.push({ x, y: bboxBounds.minY, distance });
+        }
+      } else if (direction === 'S' && bboxBounds.maxY > y) {
+        // Ray going south might hit bottom edge of bbox
+        const distance = bboxBounds.maxY - y;
+        if (distance > 0 && distance <= maxExtension) {
+          intersections.push({ x, y: bboxBounds.maxY, distance });
+        }
+      }
+    }
+  } else {
+    // Horizontal extension - find intersections with vertical segments
+    for (const seg of verticalSegments) {
+      if (seg.from.x === seg.to.x) { // Confirm it's vertical
+        const segX = seg.from.x;
+        const segMinY = Math.min(seg.from.y, seg.to.y);
+        const segMaxY = Math.max(seg.from.y, seg.to.y);
+
+        // Check if our ray intersects this vertical segment
+        if (y >= segMinY && y <= segMaxY) {
+          const distance = Math.abs(segX - x);
+          if (distance > 0 && distance <= maxExtension) {
+            // Check direction
+            if ((direction === 'W' && segX < x) || (direction === 'E' && segX > x)) {
+              intersections.push({ x: segX, y, distance });
+            }
+          }
+        }
+      }
+    }
+
+    // Also find nodes that lie on the same horizontal line
+    for (const [_nodeIdStr, node] of nodes) {
+      if (node.y === y) {
+        const distance = Math.abs(node.x - x);
+        if (distance > 0 && distance <= maxExtension) {
+          if ((direction === 'W' && node.x < x) || (direction === 'E' && node.x > x)) {
+            intersections.push({ x: node.x, y: node.y, distance });
+          }
+        }
+      }
+    }
+
+    // Check for intersection with bounding box edges
+    if (bboxBounds) {
+      if (direction === 'W' && bboxBounds.minX < x) {
+        // Ray going west might hit left edge of bbox
+        const distance = x - bboxBounds.minX;
+        if (distance > 0 && distance <= maxExtension) {
+          intersections.push({ x: bboxBounds.minX, y, distance });
+        }
+      } else if (direction === 'E' && bboxBounds.maxX > x) {
+        // Ray going east might hit right edge of bbox
+        const distance = bboxBounds.maxX - x;
+        if (distance > 0 && distance <= maxExtension) {
+          intersections.push({ x: bboxBounds.maxX, y, distance });
+        }
+      }
+    }
+  }
+
+  // Sort intersections by distance (closest first) and remove duplicates
+  intersections.sort((a, b) => a.distance - b.distance);
+  const uniqueIntersections: Array<{ x: number; y: number; distance: number }> = [];
+  for (const intersection of intersections) {
+    const isDuplicate = uniqueIntersections.some(
+      ui => ui.x === intersection.x && ui.y === intersection.y
+    );
+    if (!isDuplicate) {
+      uniqueIntersections.push(intersection);
+    }
+  }
+
+  console.log(`[VIS] Connection point (${x},${y}) dir=${direction}: found ${uniqueIntersections.length} intersections, maxExt=${maxExtension.toFixed(1)}`);
+
+  // Create nodes and edges for each intersection
+  let previousNodeId = connectionPointId;
+  let previousPoint = { x, y };
+  let edgesCreated = 0;
+
+  for (const intersection of uniqueIntersections) {
+    const intersectionId = nodeId(intersection.x, intersection.y);
+
+    // Add intersection node if it doesn't exist
+    const nodeExisted = nodes.has(intersectionId);
+    if (!nodeExisted) {
+      nodes.set(intersectionId, { x: intersection.x, y: intersection.y, id: intersectionId });
+      edges.set(intersectionId, []);
+    }
+
+    // Create edge from previous node to this intersection
+    const edgeLength = manhattanDistance(previousPoint, intersection);
+    edges.get(previousNodeId)!.push({
+      from: previousNodeId,
+      to: intersectionId,
+      direction: direction,
+      length: edgeLength
+    });
+
+    // Create reverse edge for bidirectional routing
+    const reverseDir = DirectionHelpers.reverse(direction);
+    edges.get(intersectionId)!.push({
+      from: intersectionId,
+      to: previousNodeId,
+      direction: reverseDir,
+      length: edgeLength
+    });
+
+    edgesCreated += 2;
+    console.log(`[VIS]   → intersection at (${intersection.x},${intersection.y}) dist=${intersection.distance.toFixed(1)} ${nodeExisted ? 'existed' : 'created'}`);
+
+    previousNodeId = intersectionId;
+    previousPoint = intersection;
+  }
+
+  // FALLBACK: If no intersections found, connect to nearest ORTHOGONALLY ALIGNED grid nodes
+  if (uniqueIntersections.length === 0) {
+    console.warn(`[VIS] ⚠️  Connection point (${x},${y}) has ZERO intersections! Finding nearest orthogonally aligned nodes...`);
+
+    // Find nearest nodes in all 4 cardinal directions (must be orthogonally aligned!)
+    const nearestNodes: Array<{ node: VisibilityNode; distance: number; direction: Direction }> = [];
+
+    for (const [_nodeIdStr, node] of nodes) {
+      if (node.id === connectionPointId) continue; // Skip self
+
+      const dist = manhattanDistance({ x, y }, node);
+      if (dist > 0 && dist <= DEFAULT_EXTENSION) {
+        // ONLY connect to orthogonally aligned nodes (same X or same Y)
+        let dir: Direction | null = null;
+
+        if (node.x === x && node.y !== y) {
+          // Vertical alignment
+          dir = node.y > y ? 'S' : 'N';
+        } else if (node.y === y && node.x !== x) {
+          // Horizontal alignment
+          dir = node.x > x ? 'E' : 'W';
+        }
+        // If neither condition met, skip this node (it's diagonal)
+
+        if (dir !== null) {
+          nearestNodes.push({ node, distance: dist, direction: dir });
+        }
+      }
+    }
+
+    // Sort by distance and take closest 4
+    nearestNodes.sort((a, b) => a.distance - b.distance);
+    const closestNodes = nearestNodes.slice(0, 4);
+
+    console.log(`[VIS]   Found ${closestNodes.length} orthogonally aligned nearest nodes for fallback connection`);
+
+    for (const { node, distance, direction: edgeDir } of closestNodes) {
+      // Check if path is clear
+      let blocked = false;
+      if (edgeDir === 'N' || edgeDir === 'S') {
+        for (const shape of shapes) {
+          if (verticalSegmentIntersectsShape(x, Math.min(y, node.y), Math.max(y, node.y), shape)) {
+            blocked = true;
+            break;
+          }
+        }
+      } else {
+        for (const shape of shapes) {
+          if (horizontalSegmentIntersectsShape(Math.min(x, node.x), Math.max(x, node.x), y, shape)) {
+            blocked = true;
+            break;
+          }
+        }
+      }
+
+      if (!blocked) {
+        // Create bidirectional edges
+        edges.get(connectionPointId)!.push({
+          from: connectionPointId,
+          to: node.id,
+          direction: edgeDir,
+          length: distance
+        });
+
+        const reverseDir = DirectionHelpers.reverse(edgeDir);
+        edges.get(node.id)!.push({
+          from: node.id,
+          to: connectionPointId,
+          direction: reverseDir,
+          length: distance
+        });
+
+        edgesCreated += 2;
+        console.log(`[VIS]   → fallback edge to ${node.id} dir=${edgeDir} dist=${distance.toFixed(1)}`);
+      }
+    }
+  }
+
+  const finalEdgeCount = edges.get(connectionPointId)?.length || 0;
+  console.log(`[VIS] Connection point (${x},${y}): ${finalEdgeCount} total edges`);
+
+  if (finalEdgeCount === 0) {
+    console.error(`[VIS] ❌ CRITICAL: Connection point (${x},${y}) has NO EDGES after extension!`);
+  }
+}
+
+/**
  * Construct the orthogonal visibility graph
  *
  * Algorithm from paper:
  * 1. Generate interesting horizontal segments
  * 2. Generate interesting vertical segments
  * 3. Compute intersections to create nodes and edges
+ * 4. Extend visibility from connection points
  */
 export function constructVisibilityGraph(
   shapes: Shape[],
-  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
+  connectionPoints?: Array<{ x: number; y: number; direction: Direction }>
 ): OrthogonalVisibilityGraph {
   const nodes = new Map<string, VisibilityNode>();
   const edges = new Map<string, VisibilityEdge[]>();
 
-  // Get all interesting points
-  const interestingPoints = getInterestingPoints(shapes);
+  // Get all interesting points (offset from shape boundaries)
+  // Only shapes with connection points get corner nodes - obstacles don't participate in routing lanes
+  const shapeCornerPointsWithOffset = getShapeCornerPointsWithOffset(shapes, connectionPoints);
 
   // Generate horizontal and vertical segments
-  const horizontalSegments = generateHorizontalSegments(interestingPoints, shapes, connectionCorridors);
-  const verticalSegments = generateVerticalSegments(interestingPoints, shapes, connectionCorridors);
+  const horizontalSegments = generateHorizontalSegments(shapeCornerPointsWithOffset, shapes, connectionPoints);
+  const verticalSegments = generateVerticalSegments(shapeCornerPointsWithOffset, shapes, connectionPoints);
 
-  // First, add all interesting points as nodes (shape corners)
-  // This ensures we have routing points even with a single obstacle
-  for (const point of interestingPoints) {
+  // Add all interesting points as nodes
+  for (const point of shapeCornerPointsWithOffset) {
     const id = nodeId(point.x, point.y);
     if (!nodes.has(id)) {
       nodes.set(id, { x: point.x, y: point.y, id });
@@ -392,9 +690,305 @@ export function constructVisibilityGraph(
     }
   }
 
-  // Create edges between nodes
+  // Create bounding box around shapes with connection points
+  // This ensures visibility extensions have a proper routing grid to connect to
+  let bboxBounds: { minX: number; minY: number; maxX: number; maxY: number } | undefined;
+
+  if (connectionPoints && connectionPoints.length > 0) {
+    // Find all shapes that have connection points
+    const shapesWithConnections = new Set<Shape>();
+    for (const cp of connectionPoints) {
+      for (const shape of shapes) {
+        const onTop = Math.abs(cp.y - shape.y) < 1 && cp.x >= shape.x && cp.x <= shape.x + shape.width;
+        const onBottom = Math.abs(cp.y - (shape.y + shape.height)) < 1 && cp.x >= shape.x && cp.x <= shape.x + shape.width;
+        const onLeft = Math.abs(cp.x - shape.x) < 1 && cp.y >= shape.y && cp.y <= shape.y + shape.height;
+        const onRight = Math.abs(cp.x - (shape.x + shape.width)) < 1 && cp.y >= shape.y && cp.y <= shape.y + shape.height;
+        if (onTop || onBottom || onLeft || onRight) {
+          shapesWithConnections.add(shape);
+        }
+      }
+    }
+
+    // Calculate bounding box that contains all shapes with connections and their offset corners
+    if (shapesWithConnections.size > 0) {
+      const NUDGE = DESIGN_STUDIO_CONFIG.routing.nudgeDistance;
+
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      for (const shape of shapesWithConnections) {
+        minX = Math.min(minX, shape.x - NUDGE);
+        minY = Math.min(minY, shape.y - NUDGE);
+        maxX = Math.max(maxX, shape.x + shape.width + NUDGE);
+        maxY = Math.max(maxY, shape.y + shape.height + NUDGE);
+      }
+
+      // Expand bounding box by NUDGE distance
+      minX -= NUDGE;
+      minY -= NUDGE;
+      maxX += NUDGE;
+      maxY += NUDGE;
+
+      // Store bbox bounds for visibility extension
+      bboxBounds = { minX, minY, maxX, maxY };
+
+      console.log(`[GRAPH] Creating bounding box: (${minX},${minY}) to (${maxX},${maxY})`);
+
+      // Create nodes at the four corners of the bounding box
+      const bboxCorners = [
+        { x: minX, y: minY }, // NW
+        { x: maxX, y: minY }, // NE
+        { x: minX, y: maxY }, // SW
+        { x: maxX, y: maxY }  // SE
+      ];
+
+      for (const corner of bboxCorners) {
+        const id = nodeId(corner.x, corner.y);
+        if (!nodes.has(id)) {
+          nodes.set(id, { x: corner.x, y: corner.y, id });
+          edges.set(id, []);
+        }
+      }
+
+      // Also create nodes along each edge of the bounding box at the same coordinates
+      // as the connection points and offset corners
+      const boundaryCoords = new Set<number>();
+
+      // Collect all X coordinates
+      for (const cp of connectionPoints) {
+        boundaryCoords.add(cp.x);
+      }
+      for (const shape of shapesWithConnections) {
+        boundaryCoords.add(shape.x - NUDGE);
+        boundaryCoords.add(shape.x + shape.width + NUDGE);
+      }
+
+      // Create nodes on top and bottom edges at these X coordinates
+      for (const x of boundaryCoords) {
+        if (x > minX && x < maxX) {
+          // Top edge
+          const topId = nodeId(x, minY);
+          if (!nodes.has(topId)) {
+            nodes.set(topId, { x, y: minY, id: topId });
+            edges.set(topId, []);
+          }
+          // Bottom edge
+          const bottomId = nodeId(x, maxY);
+          if (!nodes.has(bottomId)) {
+            nodes.set(bottomId, { x, y: maxY, id: bottomId });
+            edges.set(bottomId, []);
+          }
+        }
+      }
+
+      // Collect all Y coordinates
+      boundaryCoords.clear();
+      for (const cp of connectionPoints) {
+        boundaryCoords.add(cp.y);
+      }
+      for (const shape of shapesWithConnections) {
+        boundaryCoords.add(shape.y - NUDGE);
+        boundaryCoords.add(shape.y + shape.height + NUDGE);
+      }
+
+      // Create nodes on left and right edges at these Y coordinates
+      for (const y of boundaryCoords) {
+        if (y > minY && y < maxY) {
+          // Left edge
+          const leftId = nodeId(minX, y);
+          if (!nodes.has(leftId)) {
+            nodes.set(leftId, { x: minX, y, id: leftId });
+            edges.set(leftId, []);
+          }
+          // Right edge
+          const rightId = nodeId(maxX, y);
+          if (!nodes.has(rightId)) {
+            nodes.set(rightId, { x: maxX, y, id: rightId });
+            edges.set(rightId, []);
+          }
+        }
+      }
+    }
+  }
+
+  // First, extend visibility from connection points
+  // This creates nodes at intersections that need to be included in the base grid
+
+  // Track all visibility rays so we can find intersections between them
+  const visibilityRays: Array<{
+    start: Point;
+    end: Point;
+    direction: Direction;
+    isHorizontal: boolean;
+  }> = [];
+
+  if (connectionPoints && connectionPoints.length > 0) {
+    // Helper function to calculate ray endpoint for a given point and direction
+    const calculateRayEndpoint = (x: number, y: number, direction: Direction): Point => {
+      let maxExtension = Infinity;
+      for (const shape of shapes) {
+        switch (direction) {
+          case 'N':
+            if (x >= shape.x && x <= shape.x + shape.width) {
+              const shapeBottom = shape.y + shape.height;
+              if (shapeBottom < y) {
+                maxExtension = Math.min(maxExtension, y - shapeBottom);
+              }
+            }
+            break;
+          case 'S':
+            if (x >= shape.x && x <= shape.x + shape.width) {
+              const shapeTop = shape.y;
+              if (shapeTop > y) {
+                maxExtension = Math.min(maxExtension, shapeTop - y);
+              }
+            }
+            break;
+          case 'E':
+            if (y >= shape.y && y <= shape.y + shape.height) {
+              const shapeLeft = shape.x;
+              if (shapeLeft > x) {
+                maxExtension = Math.min(maxExtension, shapeLeft - x);
+              }
+            }
+            break;
+          case 'W':
+            if (y >= shape.y && y <= shape.y + shape.height) {
+              const shapeRight = shape.x + shape.width;
+              if (shapeRight < x) {
+                maxExtension = Math.min(maxExtension, x - shapeRight);
+              }
+            }
+            break;
+        }
+      }
+
+      const DEFAULT_EXTENSION = DESIGN_STUDIO_CONFIG.routing.maxGraphConnectionDistance;
+      if (maxExtension === Infinity) {
+        maxExtension = DEFAULT_EXTENSION;
+      }
+
+      let endX = x, endY = y;
+      switch (direction) {
+        case 'N':
+          endY = y - maxExtension;
+          if (bboxBounds && endY < bboxBounds.minY) {
+            endY = bboxBounds.minY;
+          }
+          break;
+        case 'S':
+          endY = y + maxExtension;
+          if (bboxBounds && endY > bboxBounds.maxY) {
+            endY = bboxBounds.maxY;
+          }
+          break;
+        case 'E':
+          endX = x + maxExtension;
+          if (bboxBounds && endX > bboxBounds.maxX) {
+            endX = bboxBounds.maxX;
+          }
+          break;
+        case 'W':
+          endX = x - maxExtension;
+          if (bboxBounds && endX < bboxBounds.minX) {
+            endX = bboxBounds.minX;
+          }
+          break;
+      }
+
+      return { x: endX, y: endY };
+    };
+
+    // Collect rays from connection points
+    for (const connectionPoint of connectionPoints) {
+      const { x, y, direction } = connectionPoint;
+      const endpoint = calculateRayEndpoint(x, y, direction);
+
+      visibilityRays.push({
+        start: { x, y },
+        end: endpoint,
+        direction,
+        isHorizontal: direction === 'E' || direction === 'W'
+      });
+    }
+
+    // Also collect rays from offset corner points in all 4 directions
+    for (const point of shapeCornerPointsWithOffset) {
+      // For each corner point, cast rays in all 4 directions
+      for (const dir of ['N', 'S', 'E', 'W'] as Direction[]) {
+        const endpoint = calculateRayEndpoint(point.x, point.y, dir);
+
+        // Only add the ray if it extends beyond the starting point
+        if ((dir === 'N' && endpoint.y < point.y) ||
+            (dir === 'S' && endpoint.y > point.y) ||
+            (dir === 'E' && endpoint.x > point.x) ||
+            (dir === 'W' && endpoint.x < point.x)) {
+          visibilityRays.push({
+            start: { x: point.x, y: point.y },
+            end: endpoint,
+            direction: dir,
+            isHorizontal: dir === 'E' || dir === 'W'
+          });
+        }
+      }
+    }
+
+    // Find all intersections between horizontal and vertical rays
+    const rayIntersections: Array<{ x: number; y: number }> = [];
+
+    for (const ray1 of visibilityRays) {
+      for (const ray2 of visibilityRays) {
+        if (ray1 === ray2) continue;
+
+        // Only check horizontal vs vertical intersections
+        if (ray1.isHorizontal && !ray2.isHorizontal) {
+          // ray1 is horizontal, ray2 is vertical
+          const hY = ray1.start.y;
+          const hMinX = Math.min(ray1.start.x, ray1.end.x);
+          const hMaxX = Math.max(ray1.start.x, ray1.end.x);
+
+          const vX = ray2.start.x;
+          const vMinY = Math.min(ray2.start.y, ray2.end.y);
+          const vMaxY = Math.max(ray2.start.y, ray2.end.y);
+
+          // Check if they intersect
+          if (vX >= hMinX && vX <= hMaxX && hY >= vMinY && hY <= vMaxY) {
+            rayIntersections.push({ x: vX, y: hY });
+          }
+        }
+      }
+    }
+
+    console.log(`[VIS] Found ${rayIntersections.length} ray-to-ray intersections`);
+
+    // Create nodes at all ray intersections
+    for (const intersection of rayIntersections) {
+      const id = nodeId(intersection.x, intersection.y);
+      if (!nodes.has(id)) {
+        nodes.set(id, { x: intersection.x, y: intersection.y, id });
+        edges.set(id, []);
+        console.log(`[VIS]   → Created node at ray intersection (${intersection.x},${intersection.y})`);
+      }
+    }
+
+    // Second pass: extend visibility from connection points (now with all intersection nodes in place)
+    for (const connectionPoint of connectionPoints) {
+      extendVisibilityFromConnectionPoint(
+        connectionPoint,
+        shapes,
+        horizontalSegments,
+        verticalSegments,
+        nodes,
+        edges,
+        bboxBounds
+      );
+    }
+  }
+
+  // NOW create base grid edges between ALL nodes (including ones created by visibility extensions)
   // For each node, find nearest neighbors in each direction
   const nodeList = Array.from(nodes.values());
+
+  console.log(`[GRAPH] Creating base grid edges for ${nodeList.length} nodes...`);
 
   for (const node of nodeList) {
     const nodeEdges = edges.get(node.id)!;
@@ -521,6 +1115,11 @@ export function constructVisibilityGraph(
     }
   }
 
+  // REMOVED: Corner visibility extension code
+  // Obstacles (shapes) now only BLOCK paths via the intersection checks in the edge creation code above
+  // They do NOT create their own visibility edges - this prevents weird routing along obstacle boundaries
+  console.log(`[GRAPH] Built visibility graph with ${nodes.size} nodes, ${Array.from(edges.values()).reduce((sum, e) => sum + e.length, 0)} edges`);
+
   return { nodes, edges };
 }
 
@@ -591,385 +1190,56 @@ export function findOptimalRoute(
   end: Point,
   startDir: Direction,
   endDir: Direction,
-  shapes: Shape[],
-  bendPenalty: number = DESIGN_STUDIO_CONFIG.routing.bendPenalty // Weight for bends vs length
+  _shapes: Shape[],
 ): Point[] {
-  const NUDGE_DISTANCE = DESIGN_STUDIO_CONFIG.routing.nudgeDistance;
+  // Connection points should already have visibility edges in the graph
+  // No nudging needed - route directly from start to end using the visibility graph
 
-  // Create nudged start and end points that are offset in the specified direction
-  // This ensures connectors leave/enter in the correct direction with spacing
-  const getNudgedPoint = (point: Point, direction: Direction, distance: number): Point => {
-    switch (direction) {
-      case 'N': return { x: point.x, y: point.y - distance };
-      case 'S': return { x: point.x, y: point.y + distance };
-      case 'E': return { x: point.x + distance, y: point.y };
-      case 'W': return { x: point.x - distance, y: point.y };
-    }
-  };
-
-  // Calculate halfway distance between start and end in the perpendicular direction
-  const getHalfwayDistance = (start: Point, end: Point, direction: Direction): number => {
-    switch (direction) {
-      case 'N':
-      case 'S':
-        return Math.abs(end.y - start.y) / 2;
-      case 'E':
-      case 'W':
-        return Math.abs(end.x - start.x) / 2;
-    }
-  };
-
-  // Helper to check if a nudge segment is blocked
-  const isNudgeSegmentBlocked = (p1: Point, p2: Point): boolean => {
-    for (const shape of shapes) {
-      // Check if horizontal segment
-      if (p1.y === p2.y) {
-        if (horizontalSegmentIntersectsShape(Math.min(p1.x, p2.x), Math.max(p1.x, p2.x), p1.y, shape)) {
-          return true;
-        }
-      }
-      // Check if vertical segment
-      if (p1.x === p2.x) {
-        if (verticalSegmentIntersectsShape(p1.x, Math.min(p1.y, p2.y), Math.max(p1.y, p2.y), shape)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  // Calculate safe nudge distances, checking for obstacles
-  const calculateSafeNudgeDistance = (point: Point, direction: Direction): number => {
-    const maxDistance = getHalfwayDistance(start, end, direction);
-
-    // Try the halfway distance first
-    const halfwayDist = Math.max(NUDGE_DISTANCE * 2, maxDistance);
-    const halfwayPoint = getNudgedPoint(point, direction, halfwayDist);
-
-    // Check if the path to halfway point is clear
-    if (!isNudgeSegmentBlocked(point, halfwayPoint)) {
-      return halfwayDist;
-    }
-
-    // If halfway is blocked, just use the minimum nudge distance
-    return NUDGE_DISTANCE;
-  };
-
-  const halfwayStartDist = calculateSafeNudgeDistance(start, startDir);
-  const halfwayEndDist = calculateSafeNudgeDistance(end, endDir);
-
-  // Create nudge points at two distances: initial nudge and halfway point (or minimum if blocked)
-  const nudgedStart1 = getNudgedPoint(start, startDir, NUDGE_DISTANCE);
-  const nudgedEnd1 = getNudgedPoint(end, endDir, NUDGE_DISTANCE);
-
-  // Only create second nudge points if they're different from first (i.e., halfway wasn't blocked)
-  const useStartNudge2 = halfwayStartDist > NUDGE_DISTANCE;
-  const useEndNudge2 = halfwayEndDist > NUDGE_DISTANCE;
-
-  const nudgedStart2 = useStartNudge2 ? getNudgedPoint(start, startDir, halfwayStartDist) : nudgedStart1;
-  const nudgedEnd2 = useEndNudge2 ? getNudgedPoint(end, endDir, halfwayEndDist) : nudgedEnd1;
-
-  // Find or create start and end nodes in graph
   const startId = nodeId(start.x, start.y);
-  const nudgedStart1Id = nodeId(nudgedStart1.x, nudgedStart1.y);
-  const nudgedStart2Id = nodeId(nudgedStart2.x, nudgedStart2.y);
   const endId = nodeId(end.x, end.y);
-  const nudgedEnd1Id = nodeId(nudgedEnd1.x, nudgedEnd1.y);
-  const nudgedEnd2Id = nodeId(nudgedEnd2.x, nudgedEnd2.y);
 
-  // Add the actual connection points to the graph
+  console.log(`[A*] Finding route from (${start.x},${start.y}) ${startDir} to (${end.x},${end.y}) ${endDir}`);
+  console.log(`[A*] Start ID: ${startId}, End ID: ${endId}`);
+
+  // Verify start and end nodes exist in graph
   if (!graph.nodes.has(startId)) {
-    graph.nodes.set(startId, { x: start.x, y: start.y, id: startId });
-    graph.edges.set(startId, []);
+    console.error(`[A*] ❌ Start node ${startId} NOT FOUND in graph!`);
+    return [start, end];
   }
   if (!graph.nodes.has(endId)) {
-    graph.nodes.set(endId, { x: end.x, y: end.y, id: endId });
-    graph.edges.set(endId, []);
+    console.error(`[A*] ❌ End node ${endId} NOT FOUND in graph!`);
+    return [start, end];
   }
 
-  // Add the first nudged points to the graph
-  if (!graph.nodes.has(nudgedStart1Id)) {
-    graph.nodes.set(nudgedStart1Id, { x: nudgedStart1.x, y: nudgedStart1.y, id: nudgedStart1Id });
-    graph.edges.set(nudgedStart1Id, []);
-  }
-  if (!graph.nodes.has(nudgedEnd1Id)) {
-    graph.nodes.set(nudgedEnd1Id, { x: nudgedEnd1.x, y: nudgedEnd1.y, id: nudgedEnd1Id });
-    graph.edges.set(nudgedEnd1Id, []);
-  }
+  // CHECK FOR ZERO EDGES (critical!)
+  const startEdges = graph.edges.get(startId) || [];
+  const endEdges = graph.edges.get(endId) || [];
 
-  // Add the second nudged points to the graph
-  if (!graph.nodes.has(nudgedStart2Id)) {
-    graph.nodes.set(nudgedStart2Id, { x: nudgedStart2.x, y: nudgedStart2.y, id: nudgedStart2Id });
-    graph.edges.set(nudgedStart2Id, []);
+  console.log(`[A*] Start node has ${startEdges.length} edges`);
+  console.log(`[A*] End node has ${endEdges.length} edges`);
+
+  if (startEdges.length === 0) {
+    console.error(`[A*] ❌ Start node ${startId} has ZERO edges! Cannot route.`);
+    console.error(`[A*] Graph has ${graph.nodes.size} total nodes and ${Array.from(graph.edges.values()).reduce((sum, e) => sum + e.length, 0)} total edges`);
+    return [start, end];
   }
-  if (!graph.nodes.has(nudgedEnd2Id)) {
-    graph.nodes.set(nudgedEnd2Id, { x: nudgedEnd2.x, y: nudgedEnd2.y, id: nudgedEnd2Id });
-    graph.edges.set(nudgedEnd2Id, []);
+  if (endEdges.length === 0) {
+    console.error(`[A*] ❌ End node ${endId} has ZERO edges! Cannot route.`);
+    console.error(`[A*] Graph has ${graph.nodes.size} total nodes and ${Array.from(graph.edges.values()).reduce((sum, e) => sum + e.length, 0)} total edges`);
+    return [start, end];
   }
 
-  // Connect start -> nudgedStart1 (-> nudgedStart2 if different)
-  const startEdges = graph.edges.get(startId)!;
-  startEdges.push({
-    from: startId,
-    to: nudgedStart1Id,
-    direction: startDir,
-    length: NUDGE_DISTANCE
-  });
-
-  // Only add the second segment if nudgedStart2 is different from nudgedStart1
-  if (useStartNudge2) {
-    const nudgedStart1Edges = graph.edges.get(nudgedStart1Id)!;
-    nudgedStart1Edges.push({
-      from: nudgedStart1Id,
-      to: nudgedStart2Id,
-      direction: startDir,
-      length: halfwayStartDist - NUDGE_DISTANCE
-    });
-  }
-
-  // Connect (nudgedEnd2 ->) nudgedEnd1 -> end
-  // Only add the first segment if nudgedEnd2 is different from nudgedEnd1
-  if (useEndNudge2) {
-    const nudgedEnd2Edges = graph.edges.get(nudgedEnd2Id)!;
-    nudgedEnd2Edges.push({
-      from: nudgedEnd2Id,
-      to: nudgedEnd1Id,
-      direction: endDir,
-      length: halfwayEndDist - NUDGE_DISTANCE
-    });
-  }
-
-  const nudgedEnd1Edges = graph.edges.get(nudgedEnd1Id)!;
-  nudgedEnd1Edges.push({
-    from: nudgedEnd1Id,
-    to: endId,
-    direction: endDir,
-    length: NUDGE_DISTANCE
-  });
-
-  // Helper function to connect a point to the visibility graph
-  // For connector endpoints, we create intermediate nodes at shape corner X/Y coordinates
-  const connectPointToGraph = (point: Point, pointId: string, shapes: Shape[]) => {
-    if (!graph.nodes.has(pointId)) {
-      graph.nodes.set(pointId, { x: point.x, y: point.y, id: pointId });
-      graph.edges.set(pointId, []);
-    }
-
-    const pointEdges = graph.edges.get(pointId)!;
-    const allNodes = Array.from(graph.nodes.values()).filter(n => n.id !== pointId);
-
-    // Limit connections to reasonable nearby nodes (within a distance threshold)
-    // This prevents creating thousands of edges from start/end to every node
-    const maxDistance = DESIGN_STUDIO_CONFIG.routing.maxGraphConnectionDistance;
-    const nodeList = allNodes.filter(n => {
-      const dist = Math.abs(n.x - point.x) + Math.abs(n.y - point.y);
-      return dist < maxDistance;
-    });
-
-    let _edgesCreated = 0;
-    // For each existing node, create a perpendicular connection via an intermediate point
-    for (const other of nodeList) {
-      // Verify other still exists in graph
-      if (!graph.nodes.has(other.id)) continue;
-
-      // Skip if same point
-      if (point.x === other.x && point.y === other.y) continue;
-
-      // Try BOTH orientations: horizontal-then-vertical AND vertical-then-horizontal
-
-      // Option 1: point -> (other.x, point.y) -> other (horizontal first)
-      const intermediateH = { x: other.x, y: point.y };
-      const intermediateHId = nodeId(intermediateH.x, intermediateH.y);
-
-      let hBlocked = false;
-      for (const shape of shapes) {
-        if (horizontalSegmentIntersectsShape(Math.min(point.x, other.x), Math.max(point.x, other.x), point.y, shape)) {
-          hBlocked = true;
-          break;
-        }
-      }
-
-      let vBlocked = false;
-      for (const shape of shapes) {
-        if (verticalSegmentIntersectsShape(other.x, Math.min(point.y, other.y), Math.max(point.y, other.y), shape)) {
-          vBlocked = true;
-          break;
-        }
-      }
-
-      if (!hBlocked && !vBlocked && (point.x !== other.x || point.y !== other.y)) {
-        // Connect point -> intermediate (horizontal) -> other (vertical)
-        if (point.x !== other.x && point.y !== other.y) {
-          // Add intermediate node if it doesn't exist
-          if (!graph.nodes.has(intermediateHId)) {
-            graph.nodes.set(intermediateHId, { x: intermediateH.x, y: intermediateH.y, id: intermediateHId });
-            graph.edges.set(intermediateHId, []);
-          }
-
-          const dir: Direction = other.x > point.x ? 'E' : 'W';
-          pointEdges.push({
-            from: pointId,
-            to: intermediateHId,
-            direction: dir,
-            length: Math.abs(other.x - point.x)
-          });
-
-          // Connect intermediate -> other (vertical)
-          const vDir: Direction = other.y > point.y ? 'S' : 'N';
-          const intermediateEdges = graph.edges.get(intermediateHId)!;
-          intermediateEdges.push({
-            from: intermediateHId,
-            to: other.id,
-            direction: vDir,
-            length: Math.abs(other.y - point.y)
-          });
-
-          // BIDIRECTIONAL: Add reverse edges so the end point can be reached
-          const reverseDir: Direction = other.x > point.x ? 'W' : 'E';
-          intermediateEdges.push({
-            from: intermediateHId,
-            to: pointId,
-            direction: reverseDir,
-            length: Math.abs(other.x - point.x)
-          });
-
-          const reverseVDir: Direction = other.y > point.y ? 'N' : 'S';
-          const otherEdges = graph.edges.get(other.id)!;
-          otherEdges.push({
-            from: other.id,
-            to: intermediateHId,
-            direction: reverseVDir,
-            length: Math.abs(other.y - point.y)
-          });
-
-          _edgesCreated += 4;
-        } else if (point.y !== other.y) {
-          // Direct vertical connection (same x)
-          const vDir: Direction = other.y > point.y ? 'S' : 'N';
-          pointEdges.push({
-            from: pointId,
-            to: other.id,
-            direction: vDir,
-            length: Math.abs(other.y - point.y)
-          });
-
-          // BIDIRECTIONAL: Add reverse edge
-          const reverseVDir: Direction = other.y > point.y ? 'N' : 'S';
-          const otherEdges = graph.edges.get(other.id)!;
-          otherEdges.push({
-            from: other.id,
-            to: pointId,
-            direction: reverseVDir,
-            length: Math.abs(other.y - point.y)
-          });
-          _edgesCreated += 2;
-        } else if (point.x !== other.x) {
-          // Direct horizontal connection (same y)
-          const hDir: Direction = other.x > point.x ? 'E' : 'W';
-          pointEdges.push({
-            from: pointId,
-            to: other.id,
-            direction: hDir,
-            length: Math.abs(other.x - point.x)
-          });
-
-          // BIDIRECTIONAL: Add reverse edge
-          const reverseHDir: Direction = other.x > point.x ? 'W' : 'E';
-          const otherEdges = graph.edges.get(other.id)!;
-          otherEdges.push({
-            from: other.id,
-            to: pointId,
-            direction: reverseHDir,
-            length: Math.abs(other.x - point.x)
-          });
-          _edgesCreated += 2;
-        }
-      }
-
-      // Option 2: point -> (point.x, other.y) -> other (vertical first)
-      const intermediateV = { x: point.x, y: other.y };
-      const intermediateVId = nodeId(intermediateV.x, intermediateV.y);
-
-      // Only try this if it's different from horizontal-first approach
-      if (intermediateVId !== intermediateHId && intermediateVId !== pointId && intermediateVId !== other.id) {
-        let v2Blocked = false;
-        for (const shape of shapes) {
-          if (verticalSegmentIntersectsShape(point.x, Math.min(point.y, other.y), Math.max(point.y, other.y), shape)) {
-            v2Blocked = true;
-            break;
-          }
-        }
-
-        let h2Blocked = false;
-        for (const shape of shapes) {
-          if (horizontalSegmentIntersectsShape(Math.min(point.x, other.x), Math.max(point.x, other.x), other.y, shape)) {
-            h2Blocked = true;
-            break;
-          }
-        }
-
-        if (!v2Blocked && !h2Blocked && point.x !== other.x && point.y !== other.y) {
-          // Add intermediate node if it doesn't exist
-          if (!graph.nodes.has(intermediateVId)) {
-            graph.nodes.set(intermediateVId, { x: intermediateV.x, y: intermediateV.y, id: intermediateVId });
-            graph.edges.set(intermediateVId, []);
-          }
-
-          const vDir: Direction = other.y > point.y ? 'S' : 'N';
-          pointEdges.push({
-            from: pointId,
-            to: intermediateVId,
-            direction: vDir,
-            length: Math.abs(other.y - point.y)
-          });
-
-          // Connect intermediate -> other (horizontal)
-          const hDir: Direction = other.x > point.x ? 'E' : 'W';
-          const intermediateVEdges = graph.edges.get(intermediateVId)!;
-          intermediateVEdges.push({
-            from: intermediateVId,
-            to: other.id,
-            direction: hDir,
-            length: Math.abs(other.x - point.x)
-          });
-
-          // BIDIRECTIONAL: Add reverse edges
-          const reverseVDir: Direction = other.y > point.y ? 'N' : 'S';
-          intermediateVEdges.push({
-            from: intermediateVId,
-            to: pointId,
-            direction: reverseVDir,
-            length: Math.abs(other.y - point.y)
-          });
-
-          const reverseHDir: Direction = other.x > point.x ? 'W' : 'E';
-          const otherEdges = graph.edges.get(other.id)!;
-          otherEdges.push({
-            from: other.id,
-            to: intermediateVId,
-            direction: reverseHDir,
-            length: Math.abs(other.x - point.x)
-          });
-
-          _edgesCreated += 4;
-        }
-      }
-    }
-  };
-
-  // Connect the outer nudged points to the visibility graph
-  // These are the points that route through the graph (not the actual connection points)
-  connectPointToGraph(nudgedStart2, nudgedStart2Id, shapes);
-  connectPointToGraph(nudgedEnd2, nudgedEnd2Id, shapes);
+  // Log ALL edges for debugging
+  console.log(`[A*] Start edges (${startEdges.length}):`, startEdges.map(e => `→${e.to} (${e.direction})`));
+  console.log(`[A*] End edges (${endEdges.length}):`, endEdges.map(e => `→${e.to} (${e.direction})`));
 
   // Priority queue for A* (min-heap by cost)
   const openSet: SearchState[] = [];
-  const closedSet = new Set<string>(); // Set of nodeId only (no direction)
+  const closedSet = new Set<string>();
 
-  // Initialize with the outer nudged start point
-  // The path will be: start -> nudgedStart1 -> nudgedStart2 -> [graph route] -> nudgedEnd2 -> nudgedEnd1 -> end
+  // Initialize with the start point
   const initialState: SearchState = {
-    nodeId: nudgedStart2Id,
+    nodeId: startId,
     entryDirection: startDir,
     pathLength: 0,
     bendCount: 0,
@@ -978,8 +1248,7 @@ export function findOptimalRoute(
   };
   openSet.push(initialState);
 
-  // State key for closed set - ONLY use nodeId, not direction
-  // This allows the same node to be reached from different directions
+  // State key for closed set
   const stateKey = (nodeId: string) => nodeId;
 
   // Track visited nodes for debugging
@@ -987,7 +1256,10 @@ export function findOptimalRoute(
   let visitOrder = 0;
 
   // A* search
-  while (openSet.length > 0) {
+  let iterations = 0;
+  while (openSet.length > 0 && iterations < 1000) {
+    iterations++;
+
     // Get state with lowest cost
     openSet.sort((a, b) => a.cost - b.cost);
     const current = openSet.shift()!;
@@ -1002,9 +1274,14 @@ export function findOptimalRoute(
       visitedNodes.push({ x: currentNodePos.x, y: currentNodePos.y, order: visitOrder++ });
     }
 
-    // Check if we reached the destination (outer nudged end point)
-    if (current.nodeId === nudgedEnd2Id) {
-      // Reconstruct path from nudgedStart2 to nudgedEnd2
+    if (iterations <= 5) {
+      console.log(`[A*] Iteration ${iterations}: visiting ${current.nodeId} (cost=${current.cost.toFixed(1)}, bends=${current.bendCount})`);
+    }
+
+    // Check if we reached the destination
+    if (current.nodeId === endId) {
+      console.log(`[A*] ✅ PATH FOUND in ${iterations} iterations!`);
+      // Reconstruct path from start to end
       const path: Point[] = [];
       let state: SearchState | null = current;
       while (state) {
@@ -1013,22 +1290,18 @@ export function findOptimalRoute(
         state = state.parent;
       }
 
-      // Add the entry sequence: nudgedEnd1 -> end
-      path.push(nudgedEnd1);
-      path.push(end);
-
-      // Add the exit sequence at the beginning: start -> nudgedStart1
-      path.unshift(nudgedStart1);
-      path.unshift(start);
-
       // Store visited nodes for debugging
       lastVisitedNodes = visitedNodes;
+      console.log(`[A*] Path has ${path.length} points`);
       return path;
     }
 
     // Expand neighbors
-    const _currentNode = graph.nodes.get(current.nodeId)!;
     const nodeEdges = graph.edges.get(current.nodeId) || [];
+
+    if (iterations <= 5) {
+      console.log(`[A*]   → has ${nodeEdges.length} edges to explore`);
+    }
 
     for (const edge of nodeEdges) {
       const neighbor = graph.nodes.get(edge.to);
@@ -1049,8 +1322,8 @@ export function findOptimalRoute(
         endDir
       );
       const estimatedRemainingLength = manhattanDistance({ x: neighbor.x, y: neighbor.y }, end);
-      const newCost = newLength + (newBends * bendPenalty) +
-                     estimatedRemainingLength + (estimatedRemaining * bendPenalty);
+      const newCost = newLength + (newBends * 1) +
+                     estimatedRemainingLength + (estimatedRemaining * 1);
 
       // Add to open set
       const newState: SearchState = {
@@ -1062,7 +1335,7 @@ export function findOptimalRoute(
         parent: current
       };
 
-      // Check if we already have this node in open set (regardless of direction)
+      // Check if we already have this node in open set
       const existingIndex = openSet.findIndex(s => s.nodeId === edge.to);
       if (existingIndex >= 0) {
         // Only replace if the new path has lower cost
@@ -1076,6 +1349,10 @@ export function findOptimalRoute(
   }
 
   // No path found - return direct path
+  console.error(`[A*] ❌ NO PATH FOUND! Visited ${visitedNodes.length} nodes, openSet empty`);
+  console.error(`[A*] This means A* exhausted all reachable nodes without finding end node`);
+  console.error(`[A*] Possible causes: end node unreachable, edges missing, or graph disconnected`);
+
   lastVisitedNodes = visitedNodes;
   return [start, end];
 }
@@ -1351,22 +1628,17 @@ export function findOrthogonalRoute(
   shapes: Shape[],
   startDir: Direction = 'E',
   endDir: Direction = 'W',
-  bendPenalty: number = DESIGN_STUDIO_CONFIG.routing.bendPenalty,
   refine: boolean = true,
   useCache: boolean = true,
-  connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
+  connectionPoints?: Array<{ x: number; y: number; direction: Direction }>
 ): Point[] {
-  // Construct or get cached visibility graph
-  const cachedGraph = useCache ? getCachedVisibilityGraph(shapes, connectionCorridors) : constructVisibilityGraph(shapes, connectionCorridors);
-
-  // IMPORTANT: Clone the graph to avoid mutating the cached version
-  const graph: OrthogonalVisibilityGraph = {
-    nodes: new Map(cachedGraph.nodes),
-    edges: new Map(Array.from(cachedGraph.edges.entries()).map(([k, v]) => [k, [...v]]))
-  };
+  // Connection points must always be included, so we can't use cache when they're provided
+  // Build a fresh graph with all connection points integrated
+  const graph = constructVisibilityGraph(shapes, connectionPoints);
 
   // Find optimal route
-  let route = findOptimalRoute(graph, start, end, startDir, endDir, shapes, bendPenalty);
+  let route = findOptimalRoute(graph, start, end, startDir, endDir, shapes);
+
 
   // Debug: Send graph data to debug overlay
   if (typeof window !== 'undefined') {
@@ -1390,9 +1662,13 @@ export function findOrthogonalRoute(
 
 
   // Refine route (centering in alleys)
-  if (refine && route.length > 2) {
-    route = refineRoute(route, shapes);
-  }
+  // NOTE: Refinement is now disabled because we build the nudge offset directly into
+  // the visibility graph construction (see getInterestingPoints). This creates cleaner
+  // routes that naturally maintain spacing from shapes without post-processing.
+  // The refine parameter is kept for backward compatibility but not used.
+  // if (refine && route.length > 2) {
+  //   route = refineRoute(route, shapes);
+  // }
 
   // Simplify by merging collinear segments
   route = simplifyRoute(route);

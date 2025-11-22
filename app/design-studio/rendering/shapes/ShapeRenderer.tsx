@@ -8,6 +8,9 @@ import { ClassRenderer } from './ClassRenderer';
 import { EnumerationRenderer } from './EnumerationRenderer';
 import { SequenceLifelineRenderer } from './SequenceLifelineRenderer';
 import { SequenceNoteRenderer } from './SequenceNoteRenderer';
+import { ArchitectureServiceRenderer } from './ArchitectureServiceRenderer';
+import { ArchitectureGroupRenderer } from './ArchitectureGroupRenderer';
+import { ArchitectureJunctionRenderer } from './ArchitectureJunctionRenderer';
 import { GenerateDiagramRenderer } from './GenerateDiagramRenderer';
 import { PreviewRenderer } from './PreviewRenderer';
 import { MermaidEditorRenderer } from './MermaidEditorRenderer';
@@ -31,6 +34,10 @@ const shapeRenderers: Record<string, ShapeRendererComponent> = {
   // Sequence diagram shape renderers
   'sequence-lifeline': SequenceLifelineRenderer,
   'sequence-note': SequenceNoteRenderer,
+  // Architecture diagram shape renderers
+  'architecture-service': ArchitectureServiceRenderer,
+  'architecture-group': ArchitectureGroupRenderer,
+  'architecture-junction': ArchitectureJunctionRenderer,
   // LLM-powered diagram generation shapes
   'llm-generator': GenerateDiagramRenderer,
   'llm-preview': PreviewRenderer,

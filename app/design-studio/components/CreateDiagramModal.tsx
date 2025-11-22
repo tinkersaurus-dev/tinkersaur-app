@@ -27,6 +27,7 @@ const diagramTypeOptions = [
   { value: 'dataflow', label: 'Data Flow Diagram' },
   { value: 'class', label: 'Class Diagram' },
   { value: 'sequence', label: 'Sequence Diagram' },
+  { value: 'architecture', label: 'Architecture Diagram' },
 ];
 
 export function CreateDiagramModal({

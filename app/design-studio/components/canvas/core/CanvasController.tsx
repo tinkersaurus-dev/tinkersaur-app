@@ -26,11 +26,12 @@ import { createToolbarButtons } from '../config/toolbarConfig';
 import type { Tool as BpmnTool } from '../../../config/bpmn-tools';
 import type { Tool as ClassTool } from '../../../config/class-tools';
 import type { Tool as SequenceTool } from '../../../config/sequence-tools';
+import type { Tool as ArchitectureTool } from '../../../config/architecture-tools';
 import { getGlobalToolById } from '../../../config/global-tools';
 import { useMermaidSync } from '../../../hooks/useMermaidSync';
 import { useMermaidViewerStore } from '../../../store/mermaid/mermaidViewerStore';
 import { useToolHandler } from '../../../hooks/useToolHandler';
-import { mapBpmnToolToShape, mapClassToolToShape, mapSequenceToolToShape, mapGlobalToolToShape } from '../../../utils/toolMappers';
+import { mapBpmnToolToShape, mapClassToolToShape, mapSequenceToolToShape, mapArchitectureToolToShape, mapGlobalToolToShape } from '../../../utils/toolMappers';
 import { CanvasContext } from './CanvasControllerContext';
 import type { CanvasControllerContext } from './CanvasControllerContext';
 import { DiagramContext } from './CanvasDiagramContext';
@@ -371,6 +372,21 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     },
   });
 
+  const { handleToolSelect: handleArchitectureToolSelect } = useToolHandler<ArchitectureTool>({
+    addShape,
+    addConnector,
+    activeConnectorType,
+    menuManager,
+    toolToShapeMapper: (tool, canvasX, canvasY) => {
+      // Check if this is a global tool
+      const globalTool = getGlobalToolById(tool.id);
+      if (globalTool) {
+        return mapGlobalToolToShape(globalTool, canvasX, canvasY);
+      }
+      return mapArchitectureToolToShape(tool, canvasX, canvasY);
+    },
+  });
+
   // Use Phase 2 hooks
   const {
     startSelection,
@@ -427,6 +443,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
       menuId = MENU_IDS.CLASS_TOOLSET_POPOVER;
     } else if (diagram?.type === 'sequence') {
       menuId = MENU_IDS.SEQUENCE_TOOLSET_POPOVER;
+    } else if (diagram?.type === 'architecture') {
+      menuId = MENU_IDS.ARCHITECTURE_TOOLSET_POPOVER;
     }
 
     // Open the appropriate menu
@@ -525,6 +543,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
         menuId = MENU_IDS.CLASS_TOOLSET_POPOVER;
       } else if (diagram?.type === 'sequence') {
         menuId = MENU_IDS.SEQUENCE_TOOLSET_POPOVER;
+      } else if (diagram?.type === 'architecture') {
+        menuId = MENU_IDS.ARCHITECTURE_TOOLSET_POPOVER;
       }
 
       // Open toolset popover with pending connector information
@@ -747,6 +767,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     handleBpmnToolSelect,
     handleClassToolSelect,
     handleSequenceToolSelect,
+    handleArchitectureToolSelect,
     handleConnectorToolbarClick,
     connectorTypeManager,
     toolbarButtons,
@@ -786,6 +807,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     handleBpmnToolSelect,
     handleClassToolSelect,
     handleSequenceToolSelect,
+    handleArchitectureToolSelect,
     handleConnectorToolbarClick,
     connectorTypeManager,
     toolbarButtons,
@@ -862,6 +884,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     handleBpmnToolSelect,
     handleClassToolSelect,
     handleSequenceToolSelect,
+    handleArchitectureToolSelect,
     handleConnectorToolbarClick,
 
     // Connector Type Management
@@ -920,6 +943,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     handleBpmnToolSelect,
     handleClassToolSelect,
     handleSequenceToolSelect,
+    handleArchitectureToolSelect,
     handleConnectorToolbarClick,
     connectorTypeManager,
     toolbarButtons,

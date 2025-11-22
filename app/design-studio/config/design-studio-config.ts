@@ -27,14 +27,14 @@ export const DESIGN_STUDIO_CONFIG = {
     nudgeDistance: 20,
     /** Width of routing corridors for connection points (pixels) */
     corridorWidth: 40,
-    /** Weight for bends vs path length in A* search algorithm */
-    bendPenalty: 50,
     /** Maximum distance threshold for creating graph edges (pixels) */
     maxGraphConnectionDistance: 2000,
     /** Control point offset for curved paths (pixels) */
     curveControlPointOffset: 50,
     /** Number of points to sample along Bezier curves for hit testing */
     curveSamples: 10,
+    /** Maximum number of connection point pairs to evaluate for smart selection */
+    maxConnectionPointTrials: 16,
   },
 
   /**
@@ -110,6 +110,22 @@ export const DESIGN_STUDIO_CONFIG = {
       note: {
         width: 120,
         height: 80,
+      },
+    },
+
+    /** Architecture diagram element dimensions */
+    architecture: {
+      service: {
+        width: 120,
+        height: 80,
+      },
+      group: {
+        width: 300,
+        height: 200,
+      },
+      junction: {
+        width: 20,
+        height: 20,
       },
     },
 

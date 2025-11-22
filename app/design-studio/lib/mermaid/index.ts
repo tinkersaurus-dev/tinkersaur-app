@@ -13,19 +13,23 @@ import {
 import { createBpmnMermaidExporter } from './exporters/bpmn-mermaid-exporter';
 import { createClassMermaidExporter } from './exporters/class-mermaid-exporter';
 import { createSequenceMermaidExporter } from './exporters/sequence-mermaid-exporter';
+import { createArchitectureMermaidExporter } from './exporters/architecture-mermaid-exporter';
 import { createBpmnMermaidImporter } from './importers/bpmn-mermaid-importer';
 import { createClassMermaidImporter } from './importers/class-mermaid-importer';
 import { createSequenceMermaidImporter } from './importers/sequence-mermaid-importer';
+import { createArchitectureMermaidImporter } from './importers/architecture-mermaid-importer';
 
 // Register all available exporters
 registerMermaidExporter('bpmn', createBpmnMermaidExporter);
 registerMermaidExporter('class', createClassMermaidExporter);
 registerMermaidExporter('sequence', createSequenceMermaidExporter);
+registerMermaidExporter('architecture', createArchitectureMermaidExporter);
 
 // Register all available importers
 registerMermaidImporter('bpmn', createBpmnMermaidImporter);
 registerMermaidImporter('class', createClassMermaidImporter);
 registerMermaidImporter('sequence', createSequenceMermaidImporter);
+registerMermaidImporter('architecture', createArchitectureMermaidImporter);
 
 // Re-export public API
 export {

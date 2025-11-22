@@ -6,6 +6,9 @@
  */
 
 import { getConnectionPointsForShape } from './connectionPoints';
+import { findOrthogonalRoute, manhattanDistance, type Direction } from './orthogonalRouting';
+import type { Shape } from '~/core/entities/design-studio/types/Shape';
+import { DESIGN_STUDIO_CONFIG } from '../config/design-studio-config';
 
 /**
  * Snap a coordinate to the nearest grid point
@@ -334,11 +337,14 @@ export function getConnectorBounds(
   const targetConnectionPoints = getConnectionPointsForShape(targetShape.type, targetShape.height);
 
   // Calculate connection points (same logic as LineConnectorRenderer)
+  // Note: For bounding box calculation, we use simple distance-based selection
+  // to avoid performance overhead
   const { start, end } = findOptimalConnectionPoints(
     sourceConnectionPoints,
     targetConnectionPoints,
     sourceShape,
-    targetShape
+    targetShape,
+    { useSmartSelection: false }
   );
 
   // For straight and curved connectors, we can use a simple bounding box
@@ -365,18 +371,252 @@ export function getConnectorBounds(
 }
 
 /**
+ * Score a route based on quality metrics
+ *
+ * Evaluates a route based on two simple factors:
+ * 1. Euclidean distance between connection points (closer is better)
+ * 2. Whether a valid path exists (no obstacles blocking)
+ *
+ * @param pathPoints - The points that make up the route
+ * @param start - Starting point
+ * @param end - Ending point
+ * @returns A score where higher is better (0-1 range, normalized)
+ */
+function scoreRoute(
+  pathPoints: Array<{ x: number; y: number }>,
+  start: { x: number; y: number },
+  end: { x: number; y: number }
+): number {
+  // If no path was found, this route is invalid
+  if (pathPoints.length === 0) {
+    return 0;
+  }
+
+  // If route is just a straight line [start, end], check if it's a valid orthogonal path or a failed diagonal
+  if (pathPoints.length === 2 &&
+      pathPoints[0].x === start.x && pathPoints[0].y === start.y &&
+      pathPoints[1].x === end.x && pathPoints[1].y === end.y) {
+    // Check if it's orthogonal (same X or same Y)
+    const isOrthogonal = (start.x === end.x) || (start.y === end.y);
+    if (!isOrthogonal) {
+      // Diagonal line = routing failed
+      return 0;
+    }
+    // Otherwise it's a valid straight orthogonal path, continue to score it normally
+  }
+
+  // Calculate Euclidean (straight-line) distance between connection points
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const euclideanDistance = Math.sqrt(dx * dx + dy * dy);
+
+  // Avoid division by zero for overlapping points
+  if (euclideanDistance === 0) {
+    return 1;
+  }
+
+  // Score based purely on distance (closer is better)
+  // Normalize by dividing by 1000 to get reasonable scale
+  // Then use exponential decay to map to 0-1 range
+  const distancePenalty = euclideanDistance / 1000;
+  const score = Math.exp(-distancePenalty);
+
+  return score;
+}
+
+/**
  * Find the optimal pair of connection points between two shapes
  *
- * This calculates the shortest distance between all possible connection point pairs
- * and returns the best match, ensuring connectors always connect optimally.
+ * This evaluates all possible connection point pairs and selects the one
+ * that produces the best route quality, considering obstacles and path complexity.
+ * When shapes are not provided, falls back to simple Euclidean distance.
  *
  * @param sourceConnectionPoints - Available connection points on the source shape
  * @param targetConnectionPoints - Available connection points on the target shape
  * @param sourceBounds - The source shape bounds
  * @param targetBounds - The target shape bounds
+ * @param options - Optional configuration for smart routing
  * @returns Object containing optimal connection point IDs, directions, and start/end positions
  */
 export function findOptimalConnectionPoints(
+  sourceConnectionPoints: Array<{
+    id: string;
+    position: { x: number; y: number };
+    direction: 'N' | 'S' | 'E' | 'W';
+  }>,
+  targetConnectionPoints: Array<{
+    id: string;
+    position: { x: number; y: number };
+    direction: 'N' | 'S' | 'E' | 'W';
+  }>,
+  sourceBounds: { x: number; y: number; width: number; height: number },
+  targetBounds: { x: number; y: number; width: number; height: number },
+  options?: {
+    /** All shapes for obstacle-aware routing */
+    shapes?: Shape[];
+    /** Shape IDs to exclude from obstacle detection (typically source and target) */
+    excludeShapeIds?: string[];
+    /** Enable smart connection point selection based on routing quality */
+    useSmartSelection?: boolean;
+  }
+): {
+  sourceConnectionPointId: string;
+  targetConnectionPointId: string;
+  sourceDirection: 'N' | 'S' | 'E' | 'W';
+  targetDirection: 'N' | 'S' | 'E' | 'W';
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+} {
+  // Check if smart selection is enabled and we have shapes to consider
+  const useSmartSelection =
+    options?.useSmartSelection !== false && // Default to true unless explicitly disabled
+    options?.shapes &&
+    options.shapes.length > 2; // Need at least one obstacle shape
+
+  if (!useSmartSelection) {
+    // Fall back to simple Euclidean distance selection
+    return findOptimalConnectionPointsByDistance(
+      sourceConnectionPoints,
+      targetConnectionPoints,
+      sourceBounds,
+      targetBounds
+    );
+  }
+
+  // Smart selection: evaluate route quality for each connection point pair
+  let bestScore = -Infinity;
+  let bestSourcePoint = sourceConnectionPoints[0];
+  let bestTargetPoint = targetConnectionPoints[0];
+  let bestStart = { x: 0, y: 0 };
+  let bestEnd = { x: 0, y: 0 };
+
+  // Filter out excluded shapes (source and target)
+  const obstacleShapes = options.shapes!.filter(
+    shape => !options.excludeShapeIds?.includes(shape.id)
+  );
+
+  // Pre-filter connection point pairs based on relative position
+  // This reduces the number of trial routes we need to calculate
+  const pairsToTest = prefilterConnectionPointPairs(
+    sourceConnectionPoints,
+    targetConnectionPoints,
+    sourceBounds,
+    targetBounds
+  );
+
+  // Limit the number of pairs we test for performance
+  const maxPairsToTest = DESIGN_STUDIO_CONFIG.routing.maxConnectionPointTrials || 16;
+  const limitedPairs = pairsToTest.slice(0, maxPairsToTest);
+  
+
+  // Build ALL connection points for visibility extensions (not just the pair being tested)
+  const allConnectionPoints: Array<{ x: number; y: number; direction: Direction }> = [];
+
+  // Add all source connection points
+  for (const point of sourceConnectionPoints) {
+    allConnectionPoints.push({
+      x: sourceBounds.x + point.position.x * sourceBounds.width,
+      y: sourceBounds.y + point.position.y * sourceBounds.height,
+      direction: point.direction as Direction
+    });
+  }
+
+  // Add all target connection points
+  for (const point of targetConnectionPoints) {
+    allConnectionPoints.push({
+      x: targetBounds.x + point.position.x * targetBounds.width,
+      y: targetBounds.y + point.position.y * targetBounds.height,
+      direction: point.direction as Direction
+    });
+  }
+
+
+  for (const { sourcePoint, targetPoint } of limitedPairs) {
+    
+  
+    
+    const sourcePos = {
+      x: sourceBounds.x + sourcePoint.position.x * sourceBounds.width,
+      y: sourceBounds.y + sourcePoint.position.y * sourceBounds.height,
+    };
+
+    const targetPos = {
+      x: targetBounds.x + targetPoint.position.x * targetBounds.width,
+      y: targetBounds.y + targetPoint.position.y * targetBounds.height,
+    };
+
+    try {
+      // Calculate trial route using orthogonal routing algorithm
+      // Pass ALL connection points so visibility extensions can be created from all of them
+      const pathPoints = findOrthogonalRoute(
+        sourcePos,
+        targetPos,
+        obstacleShapes,
+        sourcePoint.direction as Direction,
+        targetPoint.direction as Direction,
+        true, // refine
+        true, // useCache
+        allConnectionPoints
+      );
+
+
+
+      // Skip pairs where routing completely failed (no path found)
+      if (pathPoints.length === 0) {
+
+        continue;
+      }
+
+      // Score this route
+      const score = scoreRoute(pathPoints, sourcePos, targetPos);
+
+      // Update best if this is better
+      if (score > bestScore) {
+        bestScore = score;
+        bestSourcePoint = sourcePoint;
+        bestTargetPoint = targetPoint;
+        bestStart = sourcePos;
+        bestEnd = targetPos;
+      }
+
+      // Early termination: if we found a near-perfect route, use it
+      if (score > 0.95) {
+        break;
+      }
+    } catch (error) {
+      // If routing fails for this pair, skip it
+      console.warn('Route calculation failed for connection point pair:', error);
+      continue;
+    }
+  }
+
+  // If no valid route was found after trying all pairs, fall back to simple distance-based selection
+  // This ensures we always return a connection, even if routing fails
+  if (bestScore === -Infinity) {
+    console.warn('All route attempts failed, falling back to distance-based selection');
+    return findOptimalConnectionPointsByDistance(
+      sourceConnectionPoints,
+      targetConnectionPoints,
+      sourceBounds,
+      targetBounds
+    );
+  }
+
+  return {
+    sourceConnectionPointId: bestSourcePoint.id,
+    targetConnectionPointId: bestTargetPoint.id,
+    sourceDirection: bestSourcePoint.direction,
+    targetDirection: bestTargetPoint.direction,
+    start: bestStart,
+    end: bestEnd,
+  };
+}
+
+/**
+ * Find optimal connection points using simple Euclidean distance
+ * (Legacy algorithm, used as fallback)
+ */
+function findOptimalConnectionPointsByDistance(
   sourceConnectionPoints: Array<{
     id: string;
     position: { x: number; y: number };
@@ -435,6 +675,60 @@ export function findOptimalConnectionPoints(
     start: bestStart,
     end: bestEnd,
   };
+}
+
+/**
+ * Pre-filter connection point pairs based on distance
+ * Sorts pairs by Euclidean distance (shortest first)
+ * The routing algorithm will try the shortest distance pair first, then move to the next shortest if that fails
+ */
+function prefilterConnectionPointPairs(
+  sourceConnectionPoints: Array<{
+    id: string;
+    position: { x: number; y: number };
+    direction: 'N' | 'S' | 'E' | 'W';
+  }>,
+  targetConnectionPoints: Array<{
+    id: string;
+    position: { x: number; y: number };
+    direction: 'N' | 'S' | 'E' | 'W';
+  }>,
+  sourceBounds: { x: number; y: number; width: number; height: number },
+  targetBounds: { x: number; y: number; width: number; height: number }
+): Array<{
+  sourcePoint: { id: string; position: { x: number; y: number }; direction: 'N' | 'S' | 'E' | 'W' };
+  targetPoint: { id: string; position: { x: number; y: number }; direction: 'N' | 'S' | 'E' | 'W' };
+  score: number;
+}> {
+  const pairs: Array<{
+    sourcePoint: { id: string; position: { x: number; y: number }; direction: 'N' | 'S' | 'E' | 'W' };
+    targetPoint: { id: string; position: { x: number; y: number }; direction: 'N' | 'S' | 'E' | 'W' };
+    score: number;
+  }> = [];
+
+  for (const sourcePoint of sourceConnectionPoints) {
+    for (const targetPoint of targetConnectionPoints) {
+      // Calculate actual Euclidean distance between the connection points
+      const sourcePos = {
+        x: sourceBounds.x + sourcePoint.position.x * sourceBounds.width,
+        y: sourceBounds.y + sourcePoint.position.y * sourceBounds.height,
+      };
+      const targetPos = {
+        x: targetBounds.x + targetPoint.position.x * targetBounds.width,
+        y: targetBounds.y + targetPoint.position.y * targetBounds.height,
+      };
+      const dist = Math.hypot(targetPos.x - sourcePos.x, targetPos.y - sourcePos.y);
+
+      pairs.push({
+        sourcePoint,
+        targetPoint,
+        score: -dist // Negative so that sorting by highest score gives us shortest distance first
+      });
+    }
+  }
+
+  // Sort by score (highest first) = shortest distance first
+  return pairs.sort((a, b) => b.score - a.score);
 }
 
 

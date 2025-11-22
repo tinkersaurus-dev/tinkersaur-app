@@ -4,6 +4,7 @@ import type { UseContextMenuManagerReturn } from '../../../hooks/useContextMenuM
 import type { Tool as BpmnTool } from '../../../config/bpmn-tools';
 import type { Tool as ClassTool } from '../../../config/class-tools';
 import type { Tool as SequenceTool } from '../../../config/sequence-tools';
+import type { Tool as ArchitectureTool } from '../../../config/architecture-tools';
 import type { ToolbarButton } from '../../toolbar/CanvasToolbar';
 import type { JSX } from 'react';
 import type { ConnectorTool } from '../../../config/bpmn-connectors';
@@ -62,6 +63,7 @@ export interface CanvasEventsContext {
   handleBpmnToolSelect: (tool: BpmnTool, canvasX: number, canvasY: number) => Promise<void>;
   handleClassToolSelect: (tool: ClassTool, canvasX: number, canvasY: number) => Promise<void>;
   handleSequenceToolSelect: (tool: SequenceTool, canvasX: number, canvasY: number) => Promise<void>;
+  handleArchitectureToolSelect: (tool: ArchitectureTool, canvasX: number, canvasY: number) => Promise<void>;
   handleConnectorToolbarClick: () => void;
 
   // Connector Type Management

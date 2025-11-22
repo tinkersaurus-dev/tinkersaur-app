@@ -8,6 +8,7 @@ import { ContextMenu } from '../menus/ContextMenu';
 import { BpmnToolsetPopover } from '../menus/popovers/BpmnToolsetPopover';
 import { ClassToolsetPopover } from '../menus/popovers/ClassToolsetPopover';
 import { SequenceToolsetPopover } from '../menus/popovers/SequenceToolsetPopover';
+import { ArchitectureToolsetPopover } from '../menus/popovers/ArchitectureToolsetPopover';
 import { ConnectorToolsetPopover } from '../menus/popovers/ConnectorToolsetPopover';
 import { ConnectorContextMenu } from '../menus/ConnectorContextMenu';
 import { ConnectorDrawingPreview } from '../rendering/ConnectorDrawingPreview';
@@ -94,6 +95,7 @@ export function CanvasView() {
     handleBpmnToolSelect,
     handleClassToolSelect,
     handleSequenceToolSelect,
+    handleArchitectureToolSelect,
     connectorTypeManager,
     toolbarButtons,
     containerRef,
@@ -245,6 +247,18 @@ export function CanvasView() {
           isOpen={true}
           onClose={menuManager.closeMenu}
           onToolSelect={handleSequenceToolSelect}
+          drawingConnector={drawingConnector}
+        />
+      )}
+      {menuManager.isMenuOpen(MENU_IDS.ARCHITECTURE_TOOLSET_POPOVER) && menuManager.activeMenuConfig && (
+        <ArchitectureToolsetPopover
+          x={menuManager.activeMenuConfig.screenPosition.x}
+          y={menuManager.activeMenuConfig.screenPosition.y}
+          canvasX={menuManager.activeMenuConfig.canvasPosition?.x ?? 0}
+          canvasY={menuManager.activeMenuConfig.canvasPosition?.y ?? 0}
+          isOpen={true}
+          onClose={menuManager.closeMenu}
+          onToolSelect={handleArchitectureToolSelect}
           drawingConnector={drawingConnector}
         />
       )}
