@@ -3,12 +3,14 @@ import type { Shape } from '../../../entities/design-studio/types/Shape';
 import type { Connector } from '../../../entities/design-studio/types/Connector';
 import type { Diagram } from '../../../entities/design-studio/types';
 import { isLLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
+import { getAllDescendantIds } from '~/design-studio/utils/containment-utils';
 
 /**
  * Command to delete a shape from a diagram
  * Stores the complete shape data and any connected connectors for restoration on undo
  * Automatically cascades deletion to orphaned connectors in a single atomic operation
  * For preview container shapes, also cascades deletion to all preview shapes and connectors
+ * For container shapes with children, also cascades deletion to all child shapes and their connectors
  */
 export class DeleteShapeCommand implements Command {
   public readonly description: string;
@@ -16,6 +18,8 @@ export class DeleteShapeCommand implements Command {
   private deletedConnectors: Connector[] = [];
   private deletedPreviewShapes: Shape[] = [];
   private deletedPreviewConnectors: Connector[] = [];
+  private deletedChildShapes: Shape[] = [];
+  private deletedChildConnectors: Connector[] = [];
 
   constructor(
     private readonly diagramId: string,
@@ -43,7 +47,7 @@ export class DeleteShapeCommand implements Command {
 
     const diagram = this.getDiagramFn(this.diagramId);
 
-    // If this is a preview container shape, cascade delete all preview shapes and connectors
+    // 1. If this is a preview container shape, cascade delete all preview shapes and connectors
     if (this.deletedShape.type === 'llm-preview' && isLLMPreviewShapeData(this.deletedShape.data)) {
       const previewData = this.deletedShape.data;
 
@@ -77,6 +81,45 @@ export class DeleteShapeCommand implements Command {
       }
     }
 
+    // 2. If this shape has children (parent-child relationships), cascade delete all descendants
+    if (diagram?.shapes && this.deletedShape.children && this.deletedShape.children.length > 0) {
+      // Collect all descendants recursively
+      const descendantIds = getAllDescendantIds(this.deletedShape.id, diagram.shapes);
+
+      if (descendantIds.size > 0) {
+        // Capture all child shapes before deletion
+        this.deletedChildShapes = diagram.shapes.filter((shape) =>
+          descendantIds.has(shape.id)
+        );
+
+        // Capture all connectors connected to any child shape
+        if (diagram.connectors) {
+          this.deletedChildConnectors = diagram.connectors.filter((connector) =>
+            Array.from(descendantIds).some(
+              (childId) =>
+                connector.sourceShapeId === childId || connector.targetShapeId === childId
+            )
+          );
+
+          // Delete child connectors in batch
+          if (this.deletedChildConnectors.length > 0) {
+            const connectorIds = this.deletedChildConnectors.map((c) => c.id);
+            await this.deleteConnectorsBatchFn(this.diagramId, connectorIds);
+          }
+        }
+
+        // Delete child shapes in batch
+        if (this.deletedChildShapes.length > 0 && this.deleteShapesBatchFn) {
+          await this.deleteShapesBatchFn(this.diagramId, Array.from(descendantIds));
+        } else {
+          // Fallback to one-by-one deletion if batch function not available
+          for (const childId of descendantIds) {
+            await this.deleteShapeFn(this.diagramId, childId);
+          }
+        }
+      }
+    }
+
     // Find and capture all connectors connected to this shape
     if (diagram?.connectors) {
       this.deletedConnectors = diagram.connectors.filter(
@@ -102,7 +145,24 @@ export class DeleteShapeCommand implements Command {
       return;
     }
 
-    // Restore preview shapes first (if this was a preview container)
+    // Restore child shapes first (if this was a container with children)
+    if (this.deletedChildShapes.length > 0) {
+      if (this.restoreShapesBatchFn) {
+        await this.restoreShapesBatchFn(this.diagramId, this.deletedChildShapes);
+      } else {
+        // Fallback to one-by-one restoration
+        for (const shape of this.deletedChildShapes) {
+          await this.restoreShapeFn(this.diagramId, shape);
+        }
+      }
+    }
+
+    // Then restore child connectors (if this was a container with children)
+    if (this.deletedChildConnectors.length > 0) {
+      await this.restoreConnectorsBatchFn(this.diagramId, this.deletedChildConnectors);
+    }
+
+    // Restore preview shapes (if this was a preview container)
     if (this.deletedPreviewShapes.length > 0) {
       if (this.restoreShapesBatchFn) {
         await this.restoreShapesBatchFn(this.diagramId, this.deletedPreviewShapes);

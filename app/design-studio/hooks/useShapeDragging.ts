@@ -3,6 +3,11 @@ import type { Shape } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../utils/viewport';
 import { snapToGrid } from '../utils/canvas';
 import type { DragData } from './useInteractionState';
+import {
+  findContainerAtPosition,
+  getAllDescendantIds,
+  getAllAncestorIds,
+} from '../utils/containment-utils';
 
 interface UseShapeDraggingProps {
   viewportTransform: ViewportTransform;
@@ -13,6 +18,10 @@ interface UseShapeDraggingProps {
   shapes: Shape[];
   isActive: boolean; // Driven by state machine
   dragData: DragData | null; // From state machine
+  diagramId: string;
+  commandFactory: import('~/core/commands/CommandFactory').CommandFactory;
+  executeCommand: (command: import('~/core/commands/command.types').Command) => Promise<void>;
+  setHoveredContainerId?: (id: string | null) => void; // For visual feedback
 }
 
 interface UseShapeDraggingReturn {
@@ -24,6 +33,7 @@ interface UseShapeDraggingReturn {
 /**
  * Hook for managing shape dragging interactions
  * State is managed externally by the interaction state machine
+ * Handles parent-child containment relationships on drop
  */
 export function useShapeDragging({
   viewportTransform,
@@ -34,6 +44,10 @@ export function useShapeDragging({
   shapes,
   isActive,
   dragData,
+  diagramId,
+  commandFactory,
+  executeCommand,
+  setHoveredContainerId,
 }: UseShapeDraggingProps): UseShapeDraggingReturn {
   const shapesStartPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const rafIdRef = useRef<number | null>(null);
@@ -78,6 +92,8 @@ export function useShapeDragging({
       // Update LOCAL state only (ephemeral, not persisted)
       // Build batch update map for performance
       const updates = new Map<string, Partial<Shape>>();
+      const draggedShapeIds = Array.from(shapesStartPositionsRef.current.keys());
+
       shapesStartPositionsRef.current.forEach((startPos, shapeId) => {
         let newX = startPos.x + deltaX;
         let newY = startPos.y + deltaY;
@@ -93,6 +109,36 @@ export function useShapeDragging({
           y: newY,
         });
       });
+
+      // Visual feedback: detect which container the first dragged shape is over
+      // Only check the primary shape (first one in the list)
+      if (setHoveredContainerId && draggedShapeIds.length > 0) {
+        const primaryShapeId = draggedShapeIds[0];
+        const updatedPosition = updates.get(primaryShapeId);
+
+        if (updatedPosition) {
+          const currentShape = localShapes.find(s => s.id === primaryShapeId);
+          if (currentShape) {
+            // Create a temporary shape with updated position for containment check
+            const tempShape: Shape = {
+              ...currentShape,
+              x: updatedPosition.x ?? currentShape.x,
+              y: updatedPosition.y ?? currentShape.y,
+            };
+
+            // Build exclusion set: the shape itself and all its descendants/ancestors
+            const excludeIds = new Set<string>([primaryShapeId]);
+            const descendants = getAllDescendantIds(primaryShapeId, localShapes);
+            const ancestors = getAllAncestorIds(primaryShapeId, localShapes);
+            descendants.forEach(id => excludeIds.add(id));
+            ancestors.forEach(id => excludeIds.add(id));
+
+            // Find potential container
+            const container = findContainerAtPosition(tempShape, localShapes, excludeIds);
+            setHoveredContainerId(container?.id ?? null);
+          }
+        }
+      }
 
       // Store pending updates
       pendingUpdatesRef.current = updates;
@@ -114,10 +160,15 @@ export function useShapeDragging({
       // Return delta for state machine
       return { x: deltaX, y: deltaY };
     },
-    [isActive, dragData, viewportTransform, gridSnappingEnabled, updateLocalShapes]
+    [isActive, dragData, viewportTransform, gridSnappingEnabled, updateLocalShapes, localShapes, setHoveredContainerId]
   );
 
-  const finishDragging = useCallback(() => {
+  const finishDragging = useCallback(async () => {
+    // Clear hovered container visual feedback
+    if (setHoveredContainerId) {
+      setHoveredContainerId(null);
+    }
+
     // Cancel any pending RAF and flush final update
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
@@ -146,12 +197,45 @@ export function useShapeDragging({
           };
         }
       );
-      updateShapes(shapeUpdates);
+      await updateShapes(shapeUpdates);
+
+      // After position update, handle parent-child relationships
+      // Only check the first dragged shape (primary shape)
+      const draggedShapeIds = Array.from(shapesStartPositionsRef.current.keys());
+      if (draggedShapeIds.length > 0) {
+        const primaryShapeId = draggedShapeIds[0];
+        const currentShape = localShapes.find(s => s.id === primaryShapeId);
+
+        if (currentShape) {
+          // Build exclusion set: the shape itself and all its descendants/ancestors
+          const excludeIds = new Set<string>([primaryShapeId]);
+          const descendants = getAllDescendantIds(primaryShapeId, localShapes);
+          const ancestors = getAllAncestorIds(primaryShapeId, localShapes);
+          descendants.forEach(id => excludeIds.add(id));
+          ancestors.forEach(id => excludeIds.add(id));
+
+          // Find which container (if any) the shape should belong to
+          const newContainer = findContainerAtPosition(currentShape, localShapes, excludeIds);
+          const newParentId = newContainer?.id;
+
+          // Only update if parent relationship changed
+          if (newParentId !== currentShape.parentId) {
+            // Import command for side effects (ensures command is registered)
+            await import('~/core/commands/canvas/shapes/UpdateParentChildCommand');
+            const command = commandFactory.createUpdateParentChildCommand(
+              diagramId,
+              primaryShapeId,
+              newParentId
+            );
+            await executeCommand(command);
+          }
+        }
+      }
     }
 
     // Clear internal refs
     shapesStartPositionsRef.current.clear();
-  }, [dragData, updateShapes, localShapes, updateLocalShapes]);
+  }, [dragData, updateShapes, localShapes, updateLocalShapes, setHoveredContainerId, diagramId, commandFactory, executeCommand]);
 
   // Cleanup RAF on unmount
   useEffect(() => {

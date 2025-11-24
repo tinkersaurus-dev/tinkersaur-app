@@ -52,6 +52,7 @@ export function CanvasView() {
     hoveredShapeId,
     selectedConnectorIds,
     hoveredConnectorId,
+    hoveredContainerId,
     mode,
     selectionBox,
     drawingConnector,
@@ -170,6 +171,7 @@ export function CanvasView() {
           shapes={shapes}
           selectedShapeIds={selectedShapeIds}
           hoveredShapeId={hoveredShapeId}
+          hoveredContainerId={hoveredContainerId}
           viewportTransform={viewportTransform}
           editingEntityId={editingEntityId}
           editingEntityType={editingEntityType}

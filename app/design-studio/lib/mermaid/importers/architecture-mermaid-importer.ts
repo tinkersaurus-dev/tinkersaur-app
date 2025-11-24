@@ -232,6 +232,8 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
 
   /**
    * Create shapes with auto-layout
+   * Note: Parent-child relationships will be set up after shapes are created
+   * since we need the generated IDs
    */
   private createShapesWithLayout(
     nodes: ParsedNode[],
@@ -242,6 +244,7 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
     const layoutedNodes = layoutArchitectureGraph(nodes, connections);
 
     // Convert to CreateShapeDTO (without IDs - they'll be generated on add)
+    // Note: parentId and children will be set up separately after import
     return layoutedNodes.map((node) => {
       const config = DESIGN_STUDIO_CONFIG.shapes.architecture;
 
@@ -270,6 +273,9 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
         locked: false,
         isPreview: false,
         data: node.icon ? { icon: node.icon } : undefined,
+        // Store parent info temporarily in metadata for post-processing
+        // This will be used after shapes are created with IDs
+        metadata: node.parent ? { parentNodeId: node.parent } : undefined,
       };
     });
   }

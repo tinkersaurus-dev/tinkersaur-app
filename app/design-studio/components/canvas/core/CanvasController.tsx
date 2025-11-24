@@ -479,6 +479,10 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     menuManager.closeMenu();
   }, [addShape, menuManager]);
 
+  // Get hoveredContainerId and setter for visual feedback during drag
+  const hoveredContainerId = canvasInstance((state) => state.hoveredContainerId);
+  const setHoveredContainerId = canvasInstance((state) => state.setHoveredContainerId);
+
   const {
     startDragging,
     updateDragging,
@@ -492,6 +496,10 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     shapes,
     isActive: mode === 'dragging-shapes',
     dragData,
+    diagramId,
+    commandFactory,
+    executeCommand,
+    setHoveredContainerId,
   });
 
   useCanvasKeyboardHandlers({
@@ -709,6 +717,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     hoveredShapeId,
     selectedConnectorIds,
     hoveredConnectorId,
+    hoveredContainerId,
     mode,
     selectionBox,
     drawingConnector,
@@ -722,6 +731,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     hoveredShapeId,
     selectedConnectorIds,
     hoveredConnectorId,
+    hoveredContainerId,
     mode,
     selectionBox,
     drawingConnector,

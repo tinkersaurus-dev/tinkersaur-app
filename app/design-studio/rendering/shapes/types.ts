@@ -20,6 +20,9 @@ export interface RenderContext {
   /** Whether this shape is currently hovered */
   isHovered: boolean;
 
+  /** Whether this container is being hovered during a drag operation (for visual feedback) */
+  isHoveredContainer: boolean;
+
   /** Current zoom level (for adjusting stroke widths, etc.) */
   zoom: number;
 

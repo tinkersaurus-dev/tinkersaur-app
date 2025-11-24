@@ -8,6 +8,7 @@ import { UpdateShapeLabelCommand } from './canvas/shapes/UpdateShapeLabelCommand
 import { UpdateShapeDataCommand } from './canvas/shapes/UpdateShapeDataCommand';
 import { MoveShapeCommand } from './canvas/shapes/MoveShapeCommand';
 import { MoveEntitiesCommand } from './canvas/shapes/MoveEntitiesCommand';
+import { UpdateParentChildCommand } from './canvas/shapes/UpdateParentChildCommand';
 import { AddConnectorCommand } from './canvas/connectors/AddConnectorCommand';
 import { DeleteConnectorCommand } from './canvas/connectors/DeleteConnectorCommand';
 import { UpdateConnectorLabelCommand } from './canvas/connectors/UpdateConnectorLabelCommand';
@@ -165,6 +166,22 @@ export class CommandFactory {
     return new MoveEntitiesCommand(
       diagramId,
       moves,
+      this.deps._internalUpdateShapes,
+      this.deps.getDiagram,
+      updateLocalShape
+    );
+  }
+
+  createUpdateParentChildCommand(
+    diagramId: string,
+    childShapeId: string,
+    newParentId: string | undefined
+  ): Command {
+    const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
+    return new UpdateParentChildCommand(
+      diagramId,
+      childShapeId,
+      newParentId,
       this.deps._internalUpdateShapes,
       this.deps.getDiagram,
       updateLocalShape

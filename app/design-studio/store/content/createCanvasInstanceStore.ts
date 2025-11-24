@@ -36,6 +36,7 @@ export interface CanvasInstanceState {
   hoveredShapeId: string | null;
   selectedConnectorIds: string[];
   hoveredConnectorId: string | null;
+  hoveredContainerId: string | null; // Container being hovered during drag for visual feedback
 
   // Label editing state
   editingEntityId: string | null;
@@ -72,6 +73,7 @@ export interface CanvasInstanceState {
   setSelectedConnectors: (connectorIds: string[]) => void;
   setSelection: (shapeIds: string[], connectorIds: string[]) => void;
   setHoveredConnectorId: (connectorId: string | null) => void;
+  setHoveredContainerId: (containerId: string | null) => void;
   clearSelection: () => void;
   setEditingEntity: (id: string, type: 'shape' | 'connector', originalLabel: string | undefined) => void;
   clearEditingEntity: () => void;
@@ -100,6 +102,7 @@ export function createCanvasInstanceStore(diagramId: string, initialConnectorTyp
     hoveredShapeId: null,
     selectedConnectorIds: [],
     hoveredConnectorId: null,
+    hoveredContainerId: null,
     editingEntityId: null,
     editingEntityType: null,
     editingOriginalLabel: undefined,
@@ -206,6 +209,11 @@ export function createCanvasInstanceStore(diagramId: string, initialConnectorTyp
         hoveredConnectorId: connectorId,
       }),
 
+    setHoveredContainerId: (containerId) =>
+      set({
+        hoveredContainerId: containerId,
+      }),
+
     // Label editing actions
     setEditingEntity: (id, type, originalLabel) =>
       set({
@@ -250,6 +258,7 @@ export function createCanvasInstanceStore(diagramId: string, initialConnectorTyp
         hoveredShapeId: null,
         selectedConnectorIds: [],
         hoveredConnectorId: null,
+        hoveredContainerId: null,
         editingEntityId: null,
         editingEntityType: null,
         editingOriginalLabel: undefined,

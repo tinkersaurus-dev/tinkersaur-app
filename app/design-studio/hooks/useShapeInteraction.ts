@@ -4,6 +4,7 @@ import type { ViewportTransform } from '../utils/viewport';
 import type { DragData } from './useInteractionState';
 import type { Shape } from '~/core/entities/design-studio/types';
 import { isLLMPreviewShapeData } from '~/core/entities/design-studio/types/Shape';
+import { getShapeWithDescendants } from '../utils/containment-utils';
 
 interface UseShapeInteractionProps {
   // Viewport transform for coordinate transformation
@@ -58,16 +59,23 @@ export function useShapeInteraction({
   shapes,
 }: UseShapeInteractionProps): UseShapeInteractionReturn {
 
-  // Helper function to expand shape IDs to include preview shapes
+  // Helper function to expand shape IDs to include preview shapes and descendants
   const expandWithPreviewShapes = useCallback((shapeIds: string[]): string[] => {
     const expanded = new Set(shapeIds);
 
     for (const shapeId of shapeIds) {
       const shape = shapes.find(s => s.id === shapeId);
+
+      // Expand llm-preview containers (legacy support)
       if (shape?.type === 'llm-preview' && isLLMPreviewShapeData(shape.data)) {
         // Add all preview shape IDs
         shape.data.previewShapeIds.forEach(id => expanded.add(id));
       }
+
+      // Expand container descendants (parent-child relationships)
+      // When Shift+clicking a container, include all its children
+      const descendants = getShapeWithDescendants(shapeId, shapes);
+      descendants.forEach(id => expanded.add(id));
     }
 
     return Array.from(expanded);

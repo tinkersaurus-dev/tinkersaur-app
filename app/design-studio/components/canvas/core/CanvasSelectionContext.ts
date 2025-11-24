@@ -13,6 +13,7 @@ export interface CanvasSelectionContext {
   hoveredShapeId: string | null;
   selectedConnectorIds: string[];
   hoveredConnectorId: string | null;
+  hoveredContainerId: string | null; // Container being hovered during drag
 
   // Interaction State
   mode: InteractionMode;

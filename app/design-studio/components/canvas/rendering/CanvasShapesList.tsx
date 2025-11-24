@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { Shape } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
 import { ShapeRenderer } from '../../../rendering/shapes/ShapeRenderer';
@@ -7,6 +8,7 @@ interface CanvasShapesListProps {
   shapes: Shape[];
   selectedShapeIds: string[];
   hoveredShapeId: string | null;
+  hoveredContainerId: string | null;
   viewportTransform: ViewportTransform;
   editingEntityId: string | null;
   editingEntityType: 'shape' | 'connector' | null;
@@ -42,6 +44,7 @@ export function CanvasShapesList({
   shapes,
   selectedShapeIds,
   hoveredShapeId,
+  hoveredContainerId,
   viewportTransform,
   editingEntityId,
   editingEntityType,
@@ -67,12 +70,56 @@ export function CanvasShapesList({
   onEnumerationUpdateLiteral,
   onEnumerationUpdateLiteralLocal,
 }: CanvasShapesListProps) {
+  // Sort shapes to ensure parents render before children (depth-first traversal)
+  // This ensures children appear above their parents in the rendering order
+  const sortedShapes = useMemo(() => {
+    const shapeMap = new Map(shapes.map(s => [s.id, s]));
+    const visited = new Set<string>();
+    const sorted: Shape[] = [];
+
+    // Helper to recursively visit shapes depth-first
+    const visit = (shape: Shape) => {
+      if (visited.has(shape.id)) return;
+      visited.add(shape.id);
+
+      // First render this shape
+      sorted.push(shape);
+
+      // Then render all its children (so they appear on top)
+      if (shape.children) {
+        for (const childId of shape.children) {
+          const child = shapeMap.get(childId);
+          if (child) {
+            visit(child);
+          }
+        }
+      }
+    };
+
+    // Visit shapes that have no parent first (root shapes)
+    for (const shape of shapes) {
+      if (!shape.parentId) {
+        visit(shape);
+      }
+    }
+
+    // Visit any remaining shapes (shouldn't happen in well-formed data)
+    for (const shape of shapes) {
+      if (!visited.has(shape.id)) {
+        visit(shape);
+      }
+    }
+
+    return sorted;
+  }, [shapes]);
+
   return (
     <>
-      {shapes.map((shape) => {
+      {sortedShapes.map((shape) => {
         const shapeContext: RenderContext = {
           isSelected: selectedShapeIds.includes(shape.id),
           isHovered: shape.id === hoveredShapeId,
+          isHoveredContainer: shape.id === hoveredContainerId,
           zoom: viewportTransform.viewport.zoom,
           readOnly: false,
         };

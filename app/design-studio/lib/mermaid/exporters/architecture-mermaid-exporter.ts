@@ -50,10 +50,6 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
       const shapeMap = new Map<string, Shape>();
       shapes.forEach((shape) => shapeMap.set(shape.id, shape));
 
-      // First pass: identify which shapes are inside which groups
-      // (This would require position-based containment logic in a real implementation)
-      // For now, we'll export flat structure
-
       // Export groups first
       const groups = shapes.filter(s => s.type === 'architecture-group');
       for (const group of groups) {
@@ -61,7 +57,14 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
         const icon = (group.data as Record<string, unknown>)?.icon || 'box';
         const label = this.sanitizeText(group.label || 'Group');
 
-        lines.push(`${this.getIndent()}group ${mermaidId}(${icon})[${label}]`);
+        // Check if this group has a parent
+        let parentSuffix = '';
+        if (group.parentId) {
+          const parentMermaidId = idMap.get(group.parentId) || this.sanitizeId(group.parentId);
+          parentSuffix = ` in ${parentMermaidId}`;
+        }
+
+        lines.push(`${this.getIndent()}group ${mermaidId}(${icon})[${label}]${parentSuffix}`);
       }
 
       // Export services
@@ -71,7 +74,14 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
         const icon = (service.data as Record<string, unknown>)?.icon || 'server';
         const label = this.sanitizeText(service.label || 'Service');
 
-        lines.push(`${this.getIndent()}service ${mermaidId}(${icon})[${label}]`);
+        // Check if this service has a parent
+        let parentSuffix = '';
+        if (service.parentId) {
+          const parentMermaidId = idMap.get(service.parentId) || this.sanitizeId(service.parentId);
+          parentSuffix = ` in ${parentMermaidId}`;
+        }
+
+        lines.push(`${this.getIndent()}service ${mermaidId}(${icon})[${label}]${parentSuffix}`);
       }
 
       // Export junctions
@@ -79,7 +89,14 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
       for (const junction of junctions) {
         const mermaidId = idMap.get(junction.id) || this.sanitizeId(junction.id);
 
-        lines.push(`${this.getIndent()}junction ${mermaidId}`);
+        // Check if this junction has a parent
+        let parentSuffix = '';
+        if (junction.parentId) {
+          const parentMermaidId = idMap.get(junction.parentId) || this.sanitizeId(junction.parentId);
+          parentSuffix = ` in ${parentMermaidId}`;
+        }
+
+        lines.push(`${this.getIndent()}junction ${mermaidId}${parentSuffix}`);
       }
 
       // Export connectors (edges)

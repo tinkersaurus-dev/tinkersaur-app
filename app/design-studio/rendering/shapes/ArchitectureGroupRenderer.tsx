@@ -27,7 +27,7 @@ export function ArchitectureGroupRenderer({
   onConnectionPointMouseUp,
 }: ShapeRendererProps): React.ReactElement {
   const { width, height } = shape;
-  const { isSelected, isHovered, zoom } = context;
+  const { isSelected, isHovered, isHoveredContainer, zoom } = context;
 
   // Get icon from shape data
   const icon = (shape.data as Record<string, unknown>)?.icon || 'box';
@@ -36,6 +36,7 @@ export function ArchitectureGroupRenderer({
   const isInteractive = !shape.isPreview;
   const showHover = isInteractive && isHovered;
   const showSelected = isInteractive && isSelected;
+  const showHoveredContainer = isInteractive && isHoveredContainer;
 
   // Wrap connection point handlers to prepend shape ID
   const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
@@ -57,6 +58,10 @@ export function ArchitectureGroupRenderer({
   if (showSelected) {
     borderColor = 'var(--primary)';
     borderWidth = 3 / zoom;
+  } else if (showHoveredContainer) {
+    // Visual feedback during drag - highlighted container
+    borderColor = 'var(--success)';
+    borderWidth = 3 / zoom;
   } else if (showHover) {
     borderColor = 'var(--secondary)';
   }
@@ -65,6 +70,9 @@ export function ArchitectureGroupRenderer({
   let backgroundColor = 'var(--bg-subtle)';
   if (showSelected) {
     backgroundColor = 'var(--bg-subtle)';
+  } else if (showHoveredContainer) {
+    // Visual feedback during drag - highlighted container background
+    backgroundColor = 'var(--bg-success-subtle)';
   } else if (showHover) {
     backgroundColor = 'var(--bg-light)';
   }
