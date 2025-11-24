@@ -36,40 +36,46 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   onLabelChange,
   onFinishEditing,
 }) => {
-  // If shapes are missing, don't render
-  if (!sourceShape || !targetShape) {
-    return null;
-  }
-
   // DYNAMIC CONNECTION POINT SELECTION
   // Get connection points from shapes based on their type
-  const sourceConnectionPoints = getConnectionPointsForShape(sourceShape.type, sourceShape.height);
-  const targetConnectionPoints = getConnectionPointsForShape(targetShape.type, targetShape.height);
+  // Memoized to avoid dependency issues with React hooks
+  const sourceConnectionPoints = useMemo(
+    () => sourceShape ? getConnectionPointsForShape(sourceShape.type, sourceShape.height) : [],
+    [sourceShape]
+  );
+  const targetConnectionPoints = useMemo(
+    () => targetShape ? getConnectionPointsForShape(targetShape.type, targetShape.height) : [],
+    [targetShape]
+  );
 
   // Calculate the closest pair to ensure connectors always connect optimally
   // Uses smart selection when shapes are available to avoid obstacles
   // Memoized to only recalculate when shape positions/dimensions or connector style changes
   const { sourceDirection, targetDirection, start, end } = useMemo(
-    () => findOptimalConnectionPoints(
-      sourceConnectionPoints,
-      targetConnectionPoints,
+    () => {
+      if (!sourceShape || !targetShape) {
+        return {
+          sourceDirection: 'E' as const,
+          targetDirection: 'W' as const,
+          start: { x: 0, y: 0 },
+          end: { x: 0, y: 0 }
+        };
+      }
+      return findOptimalConnectionPoints(
+        sourceConnectionPoints,
+        targetConnectionPoints,
+        sourceShape,
+        targetShape,
+        {
+          shapes: context.allShapes,
+          excludeShapeIds: [connector.sourceShapeId, connector.targetShapeId],
+          useSmartSelection: connector.style === 'orthogonal' // Only use smart selection for orthogonal connectors
+        }
+      );
+    },
+    [
       sourceShape,
       targetShape,
-      {
-        shapes: context.allShapes,
-        excludeShapeIds: [connector.sourceShapeId, connector.targetShapeId],
-        useSmartSelection: connector.style === 'orthogonal' // Only use smart selection for orthogonal connectors
-      }
-    ),
-    [
-      sourceShape.x,
-      sourceShape.y,
-      sourceShape.width,
-      sourceShape.height,
-      targetShape.x,
-      targetShape.y,
-      targetShape.width,
-      targetShape.height,
       connector.style,
       connector.sourceShapeId,
       connector.targetShapeId,
@@ -83,6 +89,10 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   // Memoized to avoid recalculating when shapes haven't moved
   const allConnectionPoints = useMemo(() => {
     const points: Array<{ x: number; y: number; direction: 'N' | 'S' | 'E' | 'W' }> = [];
+
+    if (!sourceShape || !targetShape) {
+      return points;
+    }
 
     // Add all source connection points
     for (const point of sourceConnectionPoints) {
@@ -104,14 +114,8 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
 
     return points;
   }, [
-    sourceShape.x,
-    sourceShape.y,
-    sourceShape.width,
-    sourceShape.height,
-    targetShape.x,
-    targetShape.y,
-    targetShape.width,
-    targetShape.height,
+    sourceShape,
+    targetShape,
     sourceConnectionPoints,
     targetConnectionPoints,
   ]);
@@ -133,10 +137,8 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
       }
     ),
     [
-      start.x,
-      start.y,
-      end.x,
-      end.y,
+      start,
+      end,
       sourceDirection,
       targetDirection,
       connector.style,
@@ -146,6 +148,11 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
       allConnectionPoints,
     ]
   );
+
+  // If shapes are missing, don't render
+  if (!sourceShape || !targetShape) {
+    return null;
+  }
 
   // Calculate the actual midpoint along the path for label positioning
   const labelPosition = getPathMidpoint(pathPoints);

@@ -5,7 +5,9 @@
 
 import { useEffect, useState } from 'react';
 import { Card, Tag, Descriptions, VStack, type TagColor } from '~/core/components/ui';
-import { useSolutionStore, useFeatureStore, useChangeStore, type Change, type Solution } from '~/core/entities/product-management';
+import { useSolutionStore, type Change, type Solution } from '~/core/entities/product-management';
+import { useFeatureStore } from '~/core/entities/product-management/store/feature/useFeatureStore';
+import { useChangeStore } from '~/core/entities/product-management/store/change/useChangeStore';
 
 interface OverviewTabProps {
   solutionId: string;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useDesignWorkStore } from '~/core/entities/design-studio';
+import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
 
 /**
  * Hook to fetch and access all design works for a solution

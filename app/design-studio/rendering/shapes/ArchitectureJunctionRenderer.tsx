@@ -13,7 +13,7 @@ import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/conn
 export function ArchitectureJunctionRenderer({
   shape,
   context,
-  isEditing = false,
+  isEditing: _isEditing = false,
   onMouseDown,
   onMouseEnter,
   onMouseLeave,

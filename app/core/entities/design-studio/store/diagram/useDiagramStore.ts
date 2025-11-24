@@ -5,6 +5,7 @@ import { diagramApi } from '../../api';
 import { commandManager } from '~/core/commands/CommandManager';
 import { CommandFactory } from '~/core/commands/CommandFactory';
 import { canvasInstanceRegistry } from '~/design-studio/store/content/canvasInstanceRegistry';
+import { canShapeBeReferenceSource } from '~/design-studio/config/reference-types';
 
 interface DiagramStore {
   // Command factory for centralized command creation
@@ -323,8 +324,38 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           throw new Error('Failed to retrieve created shape');
         }
 
+        // Get the newly created shape
+        const newShape = diagram.shapes[diagram.shapes.length - 1];
+        const shapeId = newShape.id;
+
+        // Check if this shape should create a reference
+        console.warn('[References] Checking shape:', { type: shape.type, subtype: shape.subtype });
+        const isReferenceSource = canShapeBeReferenceSource(shape.type, shape.subtype);
+        console.warn('[References] Is reference source?', isReferenceSource);
+
+        if (isReferenceSource) {
+          // Create a reference for this shape
+          const { useReferenceStore } = await import('../reference/useReferenceStore');
+          const referenceStore = useReferenceStore.getState();
+
+          console.warn('[References] Creating reference for shape:', shapeId);
+          const createdRef = await referenceStore.createReference({
+            name: shape.label || shape.type,
+            contentType: 'diagram',
+            contentId: diagramId,
+            sourceShapeId: shapeId,
+            referenceType: 'link',
+            metadata: {
+              sourceShapeType: shape.type,
+              sourceShapeSubtype: shape.subtype,
+              diagramType: diagram.type,
+            },
+          });
+          console.warn('[References] Created reference:', createdRef);
+        }
+
         // Return the ID of the last added shape
-        return diagram.shapes[diagram.shapes.length - 1].id;
+        return shapeId;
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Failed to add shape');
         set((state) => ({
@@ -510,6 +541,16 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           newLabel
         );
         await commandManager.execute(command, diagramId);
+
+        // Update associated reference name if this shape has a reference
+        const { useReferenceStore } = await import('../reference/useReferenceStore');
+        const referenceStore = useReferenceStore.getState();
+        const reference = referenceStore.getReferenceBySourceShapeId(shapeId);
+
+        if (reference) {
+          console.warn('[References] Updating reference name from', reference.name, 'to', newLabel);
+          await referenceStore.updateReferenceName(reference.id, newLabel);
+        }
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Failed to update shape label');
         set((state) => ({
@@ -521,6 +562,11 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     deleteShape: async (diagramId: string, shapeId: string) => {
       try {
+        // Delete any associated reference before deleting the shape
+        const { useReferenceStore } = await import('../reference/useReferenceStore');
+        const referenceStore = useReferenceStore.getState();
+        await referenceStore.deleteReferenceBySourceShapeId(shapeId);
+
         // Create and execute command with batch connector deletion support
         const command = commandFactory.createDeleteShape(diagramId, shapeId);
         await commandManager.execute(command, diagramId);
@@ -535,6 +581,13 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     deleteShapes: async (diagramId: string, shapeIds: string[]) => {
       try {
+        // Delete any associated references before deleting the shapes
+        const { useReferenceStore } = await import('../reference/useReferenceStore');
+        const referenceStore = useReferenceStore.getState();
+        for (const shapeId of shapeIds) {
+          await referenceStore.deleteReferenceBySourceShapeId(shapeId);
+        }
+
         // Create and execute batch delete command (single undo operation)
         const command = commandFactory.createBatchDeleteShapes(diagramId, shapeIds);
         await commandManager.execute(command, diagramId);

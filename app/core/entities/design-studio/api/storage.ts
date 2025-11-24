@@ -67,7 +67,7 @@ export function clearAllStorage(): void {
     return;
   }
 
-  const keys = ['designWorks', 'diagrams', 'interfaces', 'documents'];
+  const keys = ['designWorks', 'diagrams', 'interfaces', 'documents', 'references'];
   keys.forEach((key) => {
     localStorage.removeItem(STORAGE_PREFIX + key);
   });

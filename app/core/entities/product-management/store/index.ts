@@ -4,9 +4,9 @@
 
 // Individual entity stores
 export { useSolutionStore } from './solution/useSolutionStore';
-export { useFeatureStore } from './feature/useFeatureStore';
-export { useChangeStore } from './change/useChangeStore';
-export { useRequirementStore } from './requirement/useRequirementStore';
+// Note: useFeatureStore, useChangeStore, and useRequirementStore are not exported here
+// to avoid conflicts with dynamic imports used for circular dependency resolution.
+// Import directly from their respective files when needed.
 
 // Store factory (for advanced use cases)
 export { createEntityStore } from './createEntityStore';

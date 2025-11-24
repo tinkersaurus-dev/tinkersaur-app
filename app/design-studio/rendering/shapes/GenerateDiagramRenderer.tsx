@@ -95,8 +95,16 @@ export function GenerateDiagramRenderer({
       return;
     }
 
+    // Skip architecture diagrams (not implemented)
+    if (diagramType === 'architecture') {
+
+      setError('Architecture diagrams are not supported yet');
+      toast.error('Architecture diagram generation is not available');
+      return;
+    }
+
     try {
-  
+
       setIsGenerating(true);
       setIsLoading(true);
       setError(undefined);

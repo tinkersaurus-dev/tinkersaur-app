@@ -50,9 +50,6 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
       const shapeMap = new Map<string, Shape>();
       shapes.forEach((shape) => shapeMap.set(shape.id, shape));
 
-      // Build parent-child relationships for groups
-      const parentMap = new Map<string, string>(); // childId -> parentId
-
       // First pass: identify which shapes are inside which groups
       // (This would require position-based containment logic in a real implementation)
       // For now, we'll export flat structure
@@ -61,7 +58,7 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
       const groups = shapes.filter(s => s.type === 'architecture-group');
       for (const group of groups) {
         const mermaidId = idMap.get(group.id) || this.sanitizeId(group.id);
-        const icon = (group.data as any)?.icon || 'box';
+        const icon = (group.data as Record<string, unknown>)?.icon || 'box';
         const label = this.sanitizeText(group.label || 'Group');
 
         lines.push(`${this.getIndent()}group ${mermaidId}(${icon})[${label}]`);
@@ -71,7 +68,7 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
       const services = shapes.filter(s => s.type === 'architecture-service');
       for (const service of services) {
         const mermaidId = idMap.get(service.id) || this.sanitizeId(service.id);
-        const icon = (service.data as any)?.icon || 'server';
+        const icon = (service.data as Record<string, unknown>)?.icon || 'server';
         const label = this.sanitizeText(service.label || 'Service');
 
         lines.push(`${this.getIndent()}service ${mermaidId}(${icon})[${label}]`);

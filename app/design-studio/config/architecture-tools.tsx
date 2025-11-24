@@ -33,7 +33,7 @@ export interface Tool {
     y?: number;
   };
   /** Initial data for the shape */
-  initialData?: Record<string, any>;
+  initialData?: Record<string, unknown>;
 }
 
 /**
@@ -59,7 +59,7 @@ const serviceTools: Tool[] = [
     name: 'Cloud Service',
     icon: LuCloud,
     shapeType: 'architecture-service',
-    defaultSize: { width: 120, height: 80 },
+    defaultSize: { width: 100, height: 80 },
     initialData: { icon: 'cloud' },
   },
   {
@@ -67,7 +67,7 @@ const serviceTools: Tool[] = [
     name: 'Database',
     icon: LuDatabase,
     shapeType: 'architecture-service',
-    defaultSize: { width: 120, height: 80 },
+    defaultSize: { width: 100, height: 80 },
     initialData: { icon: 'database' },
   },
   {
@@ -75,7 +75,7 @@ const serviceTools: Tool[] = [
     name: 'Server',
     icon: LuServer,
     shapeType: 'architecture-service',
-    defaultSize: { width: 120, height: 80 },
+    defaultSize: { width: 100, height: 80 },
     initialData: { icon: 'server' },
   },
   {
@@ -83,7 +83,7 @@ const serviceTools: Tool[] = [
     name: 'Disk Storage',
     icon: LuHardDrive,
     shapeType: 'architecture-service',
-    defaultSize: { width: 120, height: 80 },
+    defaultSize: { width: 100, height: 80 },
     initialData: { icon: 'disk' },
   },
   {
@@ -91,7 +91,7 @@ const serviceTools: Tool[] = [
     name: 'Internet',
     icon: LuGlobe,
     shapeType: 'architecture-service',
-    defaultSize: { width: 120, height: 80 },
+    defaultSize: { width: 100, height: 80 },
     initialData: { icon: 'internet' },
   },
 ];

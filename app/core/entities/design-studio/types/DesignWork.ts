@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DiagramTypeSchema } from './Diagram';
 import { InterfaceFidelitySchema } from './Interface';
+import { ReferenceRefSchema } from './Reference';
 
 /**
  * Design Work domain model
@@ -60,6 +61,7 @@ export const DesignWorkSchema = z.object({
   diagrams: z.array(DiagramRefSchema).default([]),
   interfaces: z.array(InterfaceRefSchema).default([]),
   documents: z.array(DocumentRefSchema).default([]),
+  references: z.array(ReferenceRefSchema).default([]),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

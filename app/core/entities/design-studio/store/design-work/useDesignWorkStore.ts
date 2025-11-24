@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { DesignWork, CreateDesignWorkDto, DiagramRef, InterfaceRef, DocumentRef } from '../../types';
+import type { ReferenceRef } from '../../types/Reference';
 import { designWorkApi, diagramApi, interfaceApi, documentApi } from '../../api';
 import { commandManager } from '~/core/commands/CommandManager';
 
@@ -18,12 +19,12 @@ interface DesignWorkStore {
   // Helper actions for cross-store coordination
   addContentReference: (
     designWorkId: string,
-    contentType: 'diagram' | 'interface' | 'document',
+    contentType: 'diagram' | 'interface' | 'document' | 'reference',
     contentRef: { id: string; name: string; order: number; [key: string]: unknown }
   ) => Promise<void>;
   removeContentReference: (
     designWorkId: string,
-    contentType: 'diagram' | 'interface' | 'document',
+    contentType: 'diagram' | 'interface' | 'document' | 'reference',
     contentId: string
   ) => Promise<void>;
 }
@@ -136,7 +137,7 @@ export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
   // Helper action to add content reference (called by content stores when creating)
   addContentReference: async (
     designWorkId: string,
-    contentType: 'diagram' | 'interface' | 'document',
+    contentType: 'diagram' | 'interface' | 'document' | 'reference',
     contentRef: { id: string; name: string; order: number; [key: string]: unknown }
   ) => {
     const designWork = get().designWorks.find((dw) => dw.id === designWorkId);
@@ -150,6 +151,7 @@ export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
       diagrams: contentType === 'diagram' ? [...designWork.diagrams, contentRef as DiagramRef] : designWork.diagrams,
       interfaces: contentType === 'interface' ? [...designWork.interfaces, contentRef as InterfaceRef] : designWork.interfaces,
       documents: contentType === 'document' ? [...designWork.documents, contentRef as DocumentRef] : designWork.documents,
+      references: contentType === 'reference' ? [...(designWork.references || []), contentRef as ReferenceRef] : (designWork.references || []),
     };
 
     // Persist to API
@@ -164,7 +166,7 @@ export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
   // Helper action to remove content reference (called by content stores when deleting)
   removeContentReference: async (
     designWorkId: string,
-    contentType: 'diagram' | 'interface' | 'document',
+    contentType: 'diagram' | 'interface' | 'document' | 'reference',
     contentId: string
   ) => {
     const designWork = get().designWorks.find((dw) => dw.id === designWorkId);
@@ -178,6 +180,7 @@ export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
       diagrams: contentType === 'diagram' ? designWork.diagrams.filter((d) => d.id !== contentId) : designWork.diagrams,
       interfaces: contentType === 'interface' ? designWork.interfaces.filter((i) => i.id !== contentId) : designWork.interfaces,
       documents: contentType === 'document' ? designWork.documents.filter((d) => d.id !== contentId) : designWork.documents,
+      references: contentType === 'reference' ? (designWork.references || []).filter((r) => r.id !== contentId) : (designWork.references || []),
     };
 
     // Persist to API

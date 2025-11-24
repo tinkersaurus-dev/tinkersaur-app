@@ -13,6 +13,8 @@ export interface TreeNodeData {
   icon?: ReactNode;
   children?: TreeNodeData[];
   isLeaf?: boolean;
+  draggable?: boolean;
+  dragData?: Record<string, unknown>;
 }
 
 interface TreeNodeProps {
@@ -73,6 +75,28 @@ export function TreeNode({
     }
   };
 
+  const handleDragStart = (event: React.DragEvent) => {
+    if (node.draggable && node.dragData) {
+      event.dataTransfer.effectAllowed = 'copy';
+      event.dataTransfer.setData('application/json', JSON.stringify(node.dragData));
+
+      // Create custom drag image showing just the title
+      const dragImage = document.createElement('div');
+      dragImage.style.position = 'absolute';
+      dragImage.style.top = '-1000px';
+      dragImage.style.padding = '4px 8px';
+      dragImage.style.backgroundColor = 'var(--bg-light)';
+      dragImage.style.border = '1px solid var(--border)';
+      dragImage.style.borderRadius = '4px';
+      dragImage.style.fontSize = '10px';
+      dragImage.style.color = 'var(--text)';
+      dragImage.textContent = node.title;
+      document.body.appendChild(dragImage);
+      event.dataTransfer.setDragImage(dragImage, 0, 0);
+      setTimeout(() => document.body.removeChild(dragImage), 0);
+    }
+  };
+
   return (
     <div>
       {/* Node row */}
@@ -83,11 +107,13 @@ export function TreeNode({
           height: '24px',
           display: 'flex',
           alignItems: 'center',
-          cursor: 'pointer',
+          cursor: node.draggable ? 'grab' : 'pointer',
           transition: 'background-color 0.2s',
           overflow: 'hidden',
           minWidth: 0,
         }}
+        draggable={node.draggable}
+        onDragStart={handleDragStart}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}

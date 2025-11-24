@@ -30,7 +30,7 @@ export function ArchitectureGroupRenderer({
   const { isSelected, isHovered, zoom } = context;
 
   // Get icon from shape data
-  const icon = (shape.data as any)?.icon || 'box';
+  const icon = (shape.data as Record<string, unknown>)?.icon || 'box';
 
   // Disable interactivity for preview shapes
   const isInteractive = !shape.isPreview;
@@ -72,14 +72,16 @@ export function ArchitectureGroupRenderer({
   const iconSize = 18;
 
   // Icon component mapping
-  const IconComponent = {
+  type IconType = 'cloud' | 'database' | 'server' | 'disk' | 'internet' | 'box';
+  const iconMapping: Record<IconType, typeof LuBox> = {
     cloud: LuCloud,
     database: LuDatabase,
     server: LuServer,
     disk: LuHardDrive,
     internet: LuGlobe,
     box: LuBox,
-  }[icon] || LuBox;
+  };
+  const IconComponent = (icon && iconMapping[icon as IconType]) || LuBox;
 
   return (
     <ShapeWrapper
@@ -136,12 +138,12 @@ export function ArchitectureGroupRenderer({
           onLabelChange={(newLabel) => onLabelChange?.(shape.id, 'shape', newLabel)}
           onFinishEdit={() => onFinishEditing?.()}
           fontSize={13}
-          fontWeight={600}
           style={{
             color: 'var(--text)',
             pointerEvents: (isInteractive && isEditing) ? 'auto' : 'none',
             textAlign: 'left',
             flex: 1,
+            fontWeight: 600,
           }}
         />
       </div>

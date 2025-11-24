@@ -5,9 +5,6 @@
 import { useCallback } from 'react';
 import {
   useSolutionStore,
-  useFeatureStore,
-  useChangeStore,
-  useRequirementStore,
   type CreateSolutionDto,
   type CreateFeatureDto,
   type CreateChangeDto,
@@ -17,6 +14,9 @@ import {
   type Change,
   type Requirement,
 } from '~/core/entities/product-management';
+import { useFeatureStore } from '~/core/entities/product-management/store/feature/useFeatureStore';
+import { useChangeStore } from '~/core/entities/product-management/store/change/useChangeStore';
+import { useRequirementStore } from '~/core/entities/product-management/store/requirement/useRequirementStore';
 
 /**
  * Solution CRUD operations

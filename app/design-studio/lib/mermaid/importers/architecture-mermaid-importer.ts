@@ -236,7 +236,7 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
   private createShapesWithLayout(
     nodes: ParsedNode[],
     connections: ParsedConnection[],
-    options: MermaidImportOptions
+    _options: MermaidImportOptions
   ): CreateShapeDTO[] {
     // Apply auto-layout algorithm
     const layoutedNodes = layoutArchitectureGraph(nodes, connections);
@@ -246,8 +246,8 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
       const config = DESIGN_STUDIO_CONFIG.shapes.architecture;
 
       let shapeType = 'architecture-service';
-      let width = config.service.width;
-      let height = config.service.height;
+      let width: number = config.service.width;
+      let height: number = config.service.height;
 
       if (node.nodeType === 'group') {
         shapeType = 'architecture-group';
@@ -290,13 +290,14 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
       }
 
       return {
-        sourceShapeIndex: sourceIndex,
-        targetShapeIndex: targetIndex,
+        fromShapeIndex: sourceIndex,
+        toShapeIndex: targetIndex,
         type: conn.bidirectional ? 'bidirectional-edge' : 'directed-edge',
         style: 'orthogonal',
         markerStart: conn.bidirectional ? 'arrow' : 'none',
         markerEnd: 'arrow',
         lineType: 'solid',
+        zIndex: 0,
       };
     });
   }
@@ -305,6 +306,6 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
 /**
  * Factory function to create an architecture importer
  */
-export function createArchitectureMermaidImporter(options?: MermaidImportOptions): ArchitectureMermaidImporter {
-  return new ArchitectureMermaidImporter(options);
+export function createArchitectureMermaidImporter(): ArchitectureMermaidImporter {
+  return new ArchitectureMermaidImporter();
 }

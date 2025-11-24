@@ -4,14 +4,16 @@
  * DesignWorks represent folders in the tree hierarchy
  */
 
-import { useMemo, useState, useCallback } from 'react';
-import { MdFolder, MdDescription, MdAccountTree, MdDashboard } from 'react-icons/md';
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import { MdFolder, MdDescription, MdAccountTree, MdDashboard, MdLink } from 'react-icons/md';
 import { FiFolderPlus } from 'react-icons/fi';
 import { Tree, Dropdown } from '~/core/components';
 import type { TreeNodeData, DropdownMenuItem } from '~/core/components';
 import { Button } from '~/core/components/ui/Button';
 import { useDesignStudioUIStore } from '../store';
-import { useDesignWorkStore, type DesignContentType, type DiagramType } from '~/core/entities/design-studio';
+import { type DesignContentType, type DiagramType } from '~/core/entities/design-studio';
+import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
+import { useReferenceStore } from '~/core/entities/design-studio/store/reference/useReferenceStore';
 import { useDesignStudioCRUD } from '../hooks/useDesignStudioCRUD';
 import { CreateDiagramModal } from './CreateDiagramModal';
 
@@ -25,6 +27,27 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
 
   // Get entity data from entity store - only need DesignWorks now
   const designWorks = useDesignWorkStore((state) => state.designWorks);
+
+  // Get all references for enriching tree nodes
+  const references = useReferenceStore((state) => state.references);
+  const fetchReferencesForContent = useReferenceStore((state) => state.fetchReferencesForContent);
+
+  // Load references for all diagrams
+  useEffect(() => {
+    // Collect all diagram IDs from all design works
+    const diagramIds = designWorks.flatMap((dw) => dw.diagrams.map((d) => d.id));
+    console.warn('[References] Loading references for diagrams:', diagramIds);
+
+    // Fetch references for each diagram
+    diagramIds.forEach((diagramId) => {
+      fetchReferencesForContent(diagramId);
+    });
+  }, [designWorks, fetchReferencesForContent]);
+
+  // Log when references change
+  useEffect(() => {
+    console.warn('[References] References in store:', references);
+  }, [references]);
 
   // CRUD operations
   const {
@@ -73,6 +96,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         diagrams: [],
         interfaces: [],
         documents: [],
+        references: [],
       });
     } catch (error) {
       console.error('Failed to create folder:', error);
@@ -104,7 +128,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
   }, []);
 
   // Helper to get icon based on content type
-  const getContentIcon = (type: DesignContentType) => {
+  const getContentIcon = (type: DesignContentType | 'reference') => {
     switch (type) {
       case 'diagram':
         return <MdAccountTree />;
@@ -112,6 +136,8 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         return <MdDashboard />;
       case 'document':
         return <MdDescription />;
+      case 'reference':
+        return <MdLink />;
     }
   };
 
@@ -137,15 +163,40 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
 
         // Combine all content items with their order
         const allContent: Array<{ order: number; node: TreeNodeData }> = [
-          ...(designWork.diagrams || []).map((diagramRef) => ({
-            order: diagramRef.order,
-            node: {
-              title: diagramRef.name,
-              key: `diagram-${diagramRef.id}`,
-              icon: getContentIcon('diagram'),
+          // Diagrams with their references as children
+          ...(designWork.diagrams || []).map((diagramRef) => {
+            // Get references for this diagram
+            const diagramReferences = Object.values(references).filter(
+              (ref) => ref.contentId === diagramRef.id
+            );
+
+            // Build reference nodes
+            const referenceChildren: TreeNodeData[] = diagramReferences.map((fullReference) => ({
+              title: fullReference.name,
+              key: `reference-${fullReference.id}`,
+              icon: getContentIcon('reference'),
               isLeaf: true,
-            },
-          })),
+              draggable: true,
+              dragData: {
+                type: 'reference',
+                referenceId: fullReference.id,
+                contentId: fullReference.contentId,
+                contentType: fullReference.contentType,
+                metadata: fullReference.metadata,
+              },
+            }));
+
+            return {
+              order: diagramRef.order,
+              node: {
+                title: diagramRef.name,
+                key: `diagram-${diagramRef.id}`,
+                icon: getContentIcon('diagram'),
+                isLeaf: referenceChildren.length === 0,
+                children: referenceChildren.length > 0 ? referenceChildren : undefined,
+              },
+            };
+          }),
           ...(designWork.interfaces || []).map((interfaceRef) => ({
             order: interfaceRef.order,
             node: {
@@ -182,7 +233,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     };
 
     return buildTreeData();
-  }, [designWorks, solutionId]);
+  }, [designWorks, solutionId, references]);
 
   const handleDoubleClick = (key: string) => {
     // Parse key to get type and id

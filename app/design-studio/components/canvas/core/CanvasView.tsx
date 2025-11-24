@@ -2,6 +2,7 @@ import { useCanvasDiagram } from './CanvasDiagramContext';
 import { useCanvasViewport } from './CanvasViewportContext';
 import { useCanvasSelection } from './CanvasSelectionContext';
 import { useCanvasEvents } from './CanvasEventsContext';
+import { useCanvasReferenceDrop } from '../../../hooks/useCanvasReferenceDrop';
 import { MENU_IDS } from '../../../hooks/useContextMenuManager';
 import { GridBackground } from '../ui/GridBackground';
 import { ContextMenu } from '../menus/ContextMenu';
@@ -101,6 +102,14 @@ export function CanvasView() {
     containerRef,
   } = useCanvasEvents();
 
+  // Reference drop handling
+  const { handleDragOver, handleDrop } = useCanvasReferenceDrop(
+    diagram?.id,
+    viewportTransform.viewport.zoom,
+    viewportTransform.viewport.panX,
+    viewportTransform.viewport.panY
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
@@ -126,6 +135,8 @@ export function CanvasView() {
       onMouseLeave={handleMouseUp}
       onContextMenu={handleContextMenu}
       onDragStart={(e) => e.preventDefault()}
+      onDragOver={handleDragOver}
+      onDrop={(e) => handleDrop(e, containerRef.current)}
       style={{
         touchAction: 'none',
         cursor: mode === 'panning' ? 'grabbing' : 'default',

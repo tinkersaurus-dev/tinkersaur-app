@@ -9,7 +9,8 @@
  * - useDocumentStore: Manages design documents
  */
 
-export { useDesignWorkStore } from './design-work/useDesignWorkStore';
+// Note: useDesignWorkStore is not exported here to avoid conflicts with dynamic imports
+// used for circular dependency resolution. Import directly from './design-work/useDesignWorkStore' when needed.
 export { useDiagramStore } from './diagram/useDiagramStore';
 export { useInterfaceStore } from './interface/useInterfaceStore';
 export { useDocumentStore } from './document/useDocumentStore';

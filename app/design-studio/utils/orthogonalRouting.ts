@@ -199,8 +199,6 @@ function getShapeCornerPointsWithOffset(
     }
   }
 
-  console.log(`[GRAPH] ${shapesWithConnections.size} shapes have connection points (will create routing lanes)`);
-  console.log(`[GRAPH] ${shapes.length - shapesWithConnections.size} shapes are obstacles (will only block paths)`);
 
   // Only create corner points for shapes that have connection points
   for (const shape of shapesWithConnections) {
@@ -507,12 +505,11 @@ function extendVisibilityFromConnectionPoint(
     }
   }
 
-  console.log(`[VIS] Connection point (${x},${y}) dir=${direction}: found ${uniqueIntersections.length} intersections, maxExt=${maxExtension.toFixed(1)}`);
+  
 
   // Create nodes and edges for each intersection
   let previousNodeId = connectionPointId;
   let previousPoint = { x, y };
-  let edgesCreated = 0;
 
   for (const intersection of uniqueIntersections) {
     const intersectionId = nodeId(intersection.x, intersection.y);
@@ -542,16 +539,13 @@ function extendVisibilityFromConnectionPoint(
       length: edgeLength
     });
 
-    edgesCreated += 2;
-    console.log(`[VIS]   → intersection at (${intersection.x},${intersection.y}) dist=${intersection.distance.toFixed(1)} ${nodeExisted ? 'existed' : 'created'}`);
-
     previousNodeId = intersectionId;
     previousPoint = intersection;
   }
 
   // FALLBACK: If no intersections found, connect to nearest ORTHOGONALLY ALIGNED grid nodes
   if (uniqueIntersections.length === 0) {
-    console.warn(`[VIS] ⚠️  Connection point (${x},${y}) has ZERO intersections! Finding nearest orthogonally aligned nodes...`);
+    
 
     // Find nearest nodes in all 4 cardinal directions (must be orthogonally aligned!)
     const nearestNodes: Array<{ node: VisibilityNode; distance: number; direction: Direction }> = [];
@@ -582,8 +576,6 @@ function extendVisibilityFromConnectionPoint(
     // Sort by distance and take closest 4
     nearestNodes.sort((a, b) => a.distance - b.distance);
     const closestNodes = nearestNodes.slice(0, 4);
-
-    console.log(`[VIS]   Found ${closestNodes.length} orthogonally aligned nearest nodes for fallback connection`);
 
     for (const { node, distance, direction: edgeDir } of closestNodes) {
       // Check if path is clear
@@ -620,19 +612,11 @@ function extendVisibilityFromConnectionPoint(
           direction: reverseDir,
           length: distance
         });
-
-        edgesCreated += 2;
-        console.log(`[VIS]   → fallback edge to ${node.id} dir=${edgeDir} dist=${distance.toFixed(1)}`);
       }
     }
   }
 
-  const finalEdgeCount = edges.get(connectionPointId)?.length || 0;
-  console.log(`[VIS] Connection point (${x},${y}): ${finalEdgeCount} total edges`);
 
-  if (finalEdgeCount === 0) {
-    console.error(`[VIS] ❌ CRITICAL: Connection point (${x},${y}) has NO EDGES after extension!`);
-  }
 }
 
 /**
@@ -730,8 +714,6 @@ export function constructVisibilityGraph(
 
       // Store bbox bounds for visibility extension
       bboxBounds = { minX, minY, maxX, maxY };
-
-      console.log(`[GRAPH] Creating bounding box: (${minX},${minY}) to (${maxX},${maxY})`);
 
       // Create nodes at the four corners of the bounding box
       const bboxCorners = [
@@ -958,7 +940,7 @@ export function constructVisibilityGraph(
       }
     }
 
-    console.log(`[VIS] Found ${rayIntersections.length} ray-to-ray intersections`);
+
 
     // Create nodes at all ray intersections
     for (const intersection of rayIntersections) {
@@ -966,7 +948,6 @@ export function constructVisibilityGraph(
       if (!nodes.has(id)) {
         nodes.set(id, { x: intersection.x, y: intersection.y, id });
         edges.set(id, []);
-        console.log(`[VIS]   → Created node at ray intersection (${intersection.x},${intersection.y})`);
       }
     }
 
@@ -988,7 +969,6 @@ export function constructVisibilityGraph(
   // For each node, find nearest neighbors in each direction
   const nodeList = Array.from(nodes.values());
 
-  console.log(`[GRAPH] Creating base grid edges for ${nodeList.length} nodes...`);
 
   for (const node of nodeList) {
     const nodeEdges = edges.get(node.id)!;
@@ -1118,7 +1098,7 @@ export function constructVisibilityGraph(
   // REMOVED: Corner visibility extension code
   // Obstacles (shapes) now only BLOCK paths via the intersection checks in the edge creation code above
   // They do NOT create their own visibility edges - this prevents weird routing along obstacle boundaries
-  console.log(`[GRAPH] Built visibility graph with ${nodes.size} nodes, ${Array.from(edges.values()).reduce((sum, e) => sum + e.length, 0)} edges`);
+
 
   return { nodes, edges };
 }
@@ -1198,16 +1178,11 @@ export function findOptimalRoute(
   const startId = nodeId(start.x, start.y);
   const endId = nodeId(end.x, end.y);
 
-  console.log(`[A*] Finding route from (${start.x},${start.y}) ${startDir} to (${end.x},${end.y}) ${endDir}`);
-  console.log(`[A*] Start ID: ${startId}, End ID: ${endId}`);
-
   // Verify start and end nodes exist in graph
   if (!graph.nodes.has(startId)) {
-    console.error(`[A*] ❌ Start node ${startId} NOT FOUND in graph!`);
     return [start, end];
   }
   if (!graph.nodes.has(endId)) {
-    console.error(`[A*] ❌ End node ${endId} NOT FOUND in graph!`);
     return [start, end];
   }
 
@@ -1215,23 +1190,14 @@ export function findOptimalRoute(
   const startEdges = graph.edges.get(startId) || [];
   const endEdges = graph.edges.get(endId) || [];
 
-  console.log(`[A*] Start node has ${startEdges.length} edges`);
-  console.log(`[A*] End node has ${endEdges.length} edges`);
-
   if (startEdges.length === 0) {
-    console.error(`[A*] ❌ Start node ${startId} has ZERO edges! Cannot route.`);
-    console.error(`[A*] Graph has ${graph.nodes.size} total nodes and ${Array.from(graph.edges.values()).reduce((sum, e) => sum + e.length, 0)} total edges`);
     return [start, end];
   }
   if (endEdges.length === 0) {
-    console.error(`[A*] ❌ End node ${endId} has ZERO edges! Cannot route.`);
-    console.error(`[A*] Graph has ${graph.nodes.size} total nodes and ${Array.from(graph.edges.values()).reduce((sum, e) => sum + e.length, 0)} total edges`);
     return [start, end];
   }
 
-  // Log ALL edges for debugging
-  console.log(`[A*] Start edges (${startEdges.length}):`, startEdges.map(e => `→${e.to} (${e.direction})`));
-  console.log(`[A*] End edges (${endEdges.length}):`, endEdges.map(e => `→${e.to} (${e.direction})`));
+
 
   // Priority queue for A* (min-heap by cost)
   const openSet: SearchState[] = [];
@@ -1274,13 +1240,9 @@ export function findOptimalRoute(
       visitedNodes.push({ x: currentNodePos.x, y: currentNodePos.y, order: visitOrder++ });
     }
 
-    if (iterations <= 5) {
-      console.log(`[A*] Iteration ${iterations}: visiting ${current.nodeId} (cost=${current.cost.toFixed(1)}, bends=${current.bendCount})`);
-    }
 
     // Check if we reached the destination
     if (current.nodeId === endId) {
-      console.log(`[A*] ✅ PATH FOUND in ${iterations} iterations!`);
       // Reconstruct path from start to end
       const path: Point[] = [];
       let state: SearchState | null = current;
@@ -1292,16 +1254,13 @@ export function findOptimalRoute(
 
       // Store visited nodes for debugging
       lastVisitedNodes = visitedNodes;
-      console.log(`[A*] Path has ${path.length} points`);
       return path;
     }
 
     // Expand neighbors
     const nodeEdges = graph.edges.get(current.nodeId) || [];
 
-    if (iterations <= 5) {
-      console.log(`[A*]   → has ${nodeEdges.length} edges to explore`);
-    }
+
 
     for (const edge of nodeEdges) {
       const neighbor = graph.nodes.get(edge.to);
@@ -1347,11 +1306,6 @@ export function findOptimalRoute(
       }
     }
   }
-
-  // No path found - return direct path
-  console.error(`[A*] ❌ NO PATH FOUND! Visited ${visitedNodes.length} nodes, openSet empty`);
-  console.error(`[A*] This means A* exhausted all reachable nodes without finding end node`);
-  console.error(`[A*] Possible causes: end node unreachable, edges missing, or graph disconnected`);
 
   lastVisitedNodes = visitedNodes;
   return [start, end];
@@ -1567,7 +1521,7 @@ function getShapeCacheKey(shapes: Shape[]): string {
 /**
  * Get visibility graph from cache or construct new one
  */
-function getCachedVisibilityGraph(
+function _getCachedVisibilityGraph(
   shapes: Shape[],
   connectionCorridors?: Array<{ x: number; y: number; direction: Direction }>
 ): OrthogonalVisibilityGraph {
@@ -1628,8 +1582,8 @@ export function findOrthogonalRoute(
   shapes: Shape[],
   startDir: Direction = 'E',
   endDir: Direction = 'W',
-  refine: boolean = true,
-  useCache: boolean = true,
+  _refine: boolean = true,
+  _useCache: boolean = true,
   connectionPoints?: Array<{ x: number; y: number; direction: Direction }>
 ): Point[] {
   // Connection points must always be included, so we can't use cache when they're provided

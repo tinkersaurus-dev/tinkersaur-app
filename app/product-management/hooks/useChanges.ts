@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import { useChangeStore } from '~/core/entities/product-management';
+import { useChangeStore } from '~/core/entities/product-management/store/change/useChangeStore';
 
 /**
  * Hook to fetch and access changes for a feature

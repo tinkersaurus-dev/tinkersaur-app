@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import {
-  useDesignWorkStore,
   useDiagramStore,
   useInterfaceStore,
   useDocumentStore,
@@ -13,6 +12,7 @@ import {
   type Interface,
   type Document,
 } from '~/core/entities/design-studio';
+import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
 
 /**
  * Hook providing CRUD operations for all design studio entities

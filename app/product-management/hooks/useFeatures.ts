@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import { useFeatureStore } from '~/core/entities/product-management';
+import { useFeatureStore } from '~/core/entities/product-management/store/feature/useFeatureStore';
 
 /**
  * Hook to fetch and access features for a solution

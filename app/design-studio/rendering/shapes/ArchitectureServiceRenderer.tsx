@@ -29,7 +29,7 @@ export function ArchitectureServiceRenderer({
   const { isSelected, isHovered, zoom } = context;
 
   // Get icon from shape data
-  const icon = (shape.data as any)?.icon || 'server';
+  const icon = (shape.data as Record<string, unknown>)?.icon || 'server';
 
   // Disable interactivity for preview shapes
   const isInteractive = !shape.isPreview;
@@ -70,13 +70,15 @@ export function ArchitectureServiceRenderer({
   const iconSize = 24;
 
   // Icon component mapping
-  const IconComponent = {
+  type IconType = 'cloud' | 'database' | 'server' | 'disk' | 'internet';
+  const iconMapping: Record<IconType, typeof LuServer> = {
     cloud: LuCloud,
     database: LuDatabase,
     server: LuServer,
     disk: LuHardDrive,
     internet: LuGlobe,
-  }[icon] || LuServer;
+  };
+  const IconComponent = (icon && iconMapping[icon as IconType]) || LuServer;
 
   return (
     <ShapeWrapper

@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import { useRequirementStore } from '~/core/entities/product-management';
+import { useRequirementStore } from '~/core/entities/product-management/store/requirement/useRequirementStore';
 
 /**
  * Hook to fetch and access requirements for a change

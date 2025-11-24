@@ -11,7 +11,12 @@ class DesignWorkApi {
   async list(solutionId: string): Promise<DesignWork[]> {
     await simulateDelay();
     const designWorks = getFromStorage<DesignWork>(STORAGE_KEY);
-    return designWorks.filter((dw) => dw.solutionId === solutionId);
+    // Ensure references array exists for backwards compatibility
+    const migratedDesignWorks = designWorks.map((dw) => ({
+      ...dw,
+      references: dw.references || [],
+    }));
+    return migratedDesignWorks.filter((dw) => dw.solutionId === solutionId);
   }
 
   /**
@@ -20,7 +25,13 @@ class DesignWorkApi {
   async get(id: string): Promise<DesignWork | null> {
     await simulateDelay();
     const designWorks = getFromStorage<DesignWork>(STORAGE_KEY);
-    return designWorks.find((dw) => dw.id === id) || null;
+    const designWork = designWorks.find((dw) => dw.id === id);
+    if (!designWork) return null;
+    // Ensure references array exists for backwards compatibility
+    return {
+      ...designWork,
+      references: designWork.references || [],
+    };
   }
 
   /**
