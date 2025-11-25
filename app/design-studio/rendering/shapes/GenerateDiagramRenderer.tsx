@@ -5,14 +5,16 @@
  * Contains a textarea for input and a play button to trigger generation.
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FaPlay } from 'react-icons/fa';
+import { MdClose } from 'react-icons/md';
 import type { ShapeRendererProps } from './types';
 import type { LLMGeneratorShapeData, DiagramType } from '~/core/entities/design-studio/types';
 import { ShapeWrapper } from './ShapeWrapper';
 import { generateMermaid, MermaidGeneratorAPIError } from '~/design-studio/lib/llm/mermaid-generator-api';
 import { useDiagramStore } from '~/core/entities/design-studio';
 import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasDiagramContext';
+import { useCanvasInstance } from '~/design-studio/store/content/useCanvasInstance';
 import { commandManager } from '~/core/commands/CommandManager';
 import { ReplaceWithPreviewCommand } from '~/core/commands/canvas/preview-import/ReplaceWithPreviewCommand';
 import { toast } from 'sonner';
@@ -30,6 +32,12 @@ export function GenerateDiagramRenderer({
 
   // Get diagram info from canvas diagram context
   const { diagramId, diagram } = useCanvasDiagram();
+
+  // Get canvas instance store for local state updates
+  const canvasInstance = useCanvasInstance(diagramId, diagram?.type);
+  const updateLocalShape = canvasInstance((state) => state.updateLocalShape);
+
+  // Get entity store methods for persistence
   const addShape = useDiagramStore((state) => state._internalAddShape);
   const addConnector = useDiagramStore((state) => state._internalAddConnector);
   const deleteShape = useDiagramStore((state) => state._internalDeleteShape);
@@ -38,15 +46,36 @@ export function GenerateDiagramRenderer({
   const addShapesBatch = useDiagramStore((state) => state._internalAddShapesBatch);
   const addConnectorsBatch = useDiagramStore((state) => state._internalAddConnectorsBatch);
   const commandFactory = useDiagramStore((state) => state.commandFactory);
+  const _internalUpdateShape = useDiagramStore((state) => state._internalUpdateShape);
+  const diagrams = useDiagramStore((state) => state.diagrams);
+  const fetchDiagram = useDiagramStore((state) => state.fetchDiagram);
 
   const diagramType = diagram?.type as DiagramType | undefined;
 
-  // Parse shape data
+  // Parse shape data - this will update when shape.data changes
   const generatorData = (shape.data || {}) as LLMGeneratorShapeData;
   const [prompt, setPrompt] = useState(generatorData.prompt || '');
   const [isLoading, setIsLoading] = useState(generatorData.isLoading || false);
   const [error, setError] = useState(generatorData.error);
   const [isGenerating, setIsGenerating] = useState(false); // Guard to prevent duplicate calls
+
+  // Referenced diagrams - read directly from shape data (reactive)
+  const referencedDiagramIds = useMemo(
+    () => generatorData.referencedDiagramIds || [],
+    [generatorData.referencedDiagramIds]
+  );
+  const referencedDiagrams = referencedDiagramIds
+    .map((id) => diagrams[id])
+    .filter((d) => d !== undefined);
+
+  // Fetch referenced diagrams that aren't loaded yet
+  useEffect(() => {
+    referencedDiagramIds.forEach((id) => {
+      if (!diagrams[id]) {
+        fetchDiagram(id);
+      }
+    });
+  }, [referencedDiagramIds, diagrams, fetchDiagram]);
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
@@ -64,6 +93,84 @@ export function GenerateDiagramRenderer({
 
   // Background color
   const backgroundColor = isSelected ? 'var(--bg-light)' : 'var(--bg)';
+
+  // Handle drag over to allow drop
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // Handle drop of diagram from sidebar
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const dragDataStr = e.dataTransfer.getData('application/json');
+
+      if (!dragDataStr) return;
+
+      const dragData = JSON.parse(dragDataStr);
+
+      // Only handle diagram drops (not reference drops)
+      if (dragData.type !== 'diagram') {
+        return;
+      }
+
+      const { diagramId: droppedDiagramId } = dragData;
+
+      // Don't add if already referenced
+      if (referencedDiagramIds.includes(droppedDiagramId)) {
+        toast.info('This diagram is already referenced');
+        return;
+      }
+
+      // Add to referenced diagrams
+      const updatedReferencedDiagramIds = [...referencedDiagramIds, droppedDiagramId];
+
+      const updatedData = {
+        ...generatorData,
+        referencedDiagramIds: updatedReferencedDiagramIds,
+      };
+
+      // Update BOTH stores: local canvas state (for immediate UI update) and entity store (for persistence)
+      updateLocalShape(shape.id, {
+        data: updatedData,
+      });
+
+      await _internalUpdateShape(diagramId, shape.id, {
+        data: updatedData,
+      });
+
+      toast.success('Diagram reference added');
+    } catch (err) {
+      console.error('Failed to handle diagram drop:', err);
+      toast.error('Failed to add diagram reference');
+    }
+  };
+
+  // Handle removing a reference
+  const handleRemoveReference = async (diagramIdToRemove: string) => {
+    const updatedReferencedDiagramIds = referencedDiagramIds.filter(
+      (id) => id !== diagramIdToRemove
+    );
+
+    const updatedData = {
+      ...generatorData,
+      referencedDiagramIds: updatedReferencedDiagramIds,
+    };
+
+    // Update BOTH stores: local canvas state (for immediate UI update) and entity store (for persistence)
+    updateLocalShape(shape.id, {
+      data: updatedData,
+    });
+
+    await _internalUpdateShape(diagramId, shape.id, {
+      data: updatedData,
+    });
+
+    toast.success('Diagram reference removed');
+  };
 
   const handleGenerate = async () => {
 
@@ -109,8 +216,23 @@ export function GenerateDiagramRenderer({
       setIsLoading(true);
       setError(undefined);
 
+      // Build enhanced prompt with referenced diagrams
+      let enhancedPrompt = prompt;
 
-      const mermaidSyntax = await generateMermaid(prompt, diagramType);
+      if (referencedDiagrams.length > 0) {
+        enhancedPrompt += '\n\n---\n\n';
+        enhancedPrompt += 'REFERENCE DIAGRAMS:\n';
+        enhancedPrompt += 'The following diagrams are provided as context. Use them where necessary and relevant to ensure consistency with the existing product/service design.\n\n';
+
+        referencedDiagrams.forEach((refDiagram, index) => {
+          enhancedPrompt += `Reference ${index + 1}:\n`;
+          enhancedPrompt += `Type: ${refDiagram.type}\n`;
+          enhancedPrompt += `Name: ${refDiagram.name}\n`;
+          enhancedPrompt += `Mermaid:\n\`\`\`\n${refDiagram.mermaidSyntax || '(No mermaid syntax available)'}\n\`\`\`\n\n`;
+        });
+      }
+
+      const mermaidSyntax = await generateMermaid(enhancedPrompt, diagramType);
 
 
       const command = new ReplaceWithPreviewCommand(
@@ -165,6 +287,8 @@ export function GenerateDiagramRenderer({
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -213,6 +337,70 @@ export function GenerateDiagramRenderer({
           e.currentTarget.style.borderColor = 'var(--border)';
         }}
       />
+
+      {/* Referenced Diagrams List */}
+      {referencedDiagrams.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            fontSize: '8px',
+            color: 'var(--text-muted)',
+          }}
+        >
+          <div style={{ fontWeight: 'semibold', color: 'var(--text)' }}>
+            Referenced Diagrams:
+          </div>
+          {referencedDiagrams.map((refDiagram) => (
+            <div
+              key={refDiagram.id}
+              data-interactive="true"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '4px',
+                padding: '4px 6px',
+                backgroundColor: 'var(--bg-light)',
+                border: `${1 / zoom}px solid var(--border)`,
+                borderRadius: '2px',
+              }}
+            >
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                [{refDiagram.type}] {refDiagram.name}
+              </span>
+              <button
+                data-interactive="true"
+                onClick={() => handleRemoveReference(refDiagram.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '14px',
+                  height: '14px',
+                  padding: 0,
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-muted)',
+                  borderRadius: '2px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--error-bg)';
+                  e.currentTarget.style.color = 'var(--error)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--text-muted)';
+                }}
+              >
+                <MdClose size={10} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Error display */}
       {error && (

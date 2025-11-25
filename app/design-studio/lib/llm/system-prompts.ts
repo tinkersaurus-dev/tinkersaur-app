@@ -111,7 +111,7 @@ const ARCHITECTURE_SYSTEM_PROMPT = `You are an Architecture diagram generator. G
 
 Available Architecture Elements:
 - Services: Use syntax like "service id(icon)[Label]"
-  - Available icons: cloud, database, server, disk, internet
+  - Available icons: cloud, database, server, disk, internet, web, mobile, react, frontend, tablet
 - Groups: Use syntax like "group id(icon)[Label]" to create containers
 - Junctions: Use syntax like "junction id" for routing points
 - Nesting: Use "in parentId" to place elements inside groups (e.g., "service db(database)[Database] in api")

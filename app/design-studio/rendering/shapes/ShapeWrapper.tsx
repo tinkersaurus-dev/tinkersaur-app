@@ -26,6 +26,8 @@ interface ShapeWrapperProps {
   onMouseEnter?: (e: React.MouseEvent, shapeId: string) => void;
   onMouseLeave?: (e: React.MouseEvent, shapeId: string) => void;
   onDoubleClick?: (shapeId: string) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
 }
 
 /**
@@ -71,6 +73,8 @@ export function ShapeWrapper({
   onMouseEnter,
   onMouseLeave,
   onDoubleClick,
+  onDragOver,
+  onDrop,
 }: ShapeWrapperProps) {
   const { id, x, y, width, height } = shape;
 
@@ -122,6 +126,8 @@ export function ShapeWrapper({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onDoubleClick={handleDoubleClick}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
         style={{
           position: 'absolute',
           left: `${x}px`,

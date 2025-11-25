@@ -6,7 +6,7 @@
  * Supports icons and labels in the header area.
  */
 
-import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe, LuBox } from "react-icons/lu";
+import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe, LuBox, LuMonitor, LuSmartphone, LuCode, LuTvMinimal, LuTablet } from "react-icons/lu";
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/editors/EditableLabel';
@@ -80,7 +80,7 @@ export function ArchitectureGroupRenderer({
   const iconSize = 18;
 
   // Icon component mapping
-  type IconType = 'cloud' | 'database' | 'server' | 'disk' | 'internet' | 'box';
+  type IconType = 'cloud' | 'database' | 'server' | 'disk' | 'internet' | 'box' | 'web' | 'mobile' | 'react' | 'frontend' | 'tablet';
   const iconMapping: Record<IconType, typeof LuBox> = {
     cloud: LuCloud,
     database: LuDatabase,
@@ -88,6 +88,11 @@ export function ArchitectureGroupRenderer({
     disk: LuHardDrive,
     internet: LuGlobe,
     box: LuBox,
+    web: LuMonitor,
+    mobile: LuSmartphone,
+    react: LuCode,
+    frontend: LuTvMinimal,
+    tablet: LuTablet,
   };
   const IconComponent = (icon && iconMapping[icon as IconType]) || LuBox;
 

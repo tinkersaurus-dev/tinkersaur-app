@@ -4,7 +4,7 @@
  */
 
 import type { ComponentType } from 'react';
-import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe, LuBox, LuCircleDot } from "react-icons/lu";
+import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe, LuBox, LuCircleDot, LuMonitor, LuSmartphone, LuCode, LuTvMinimal, LuTablet } from "react-icons/lu";
 import { globalToolGroup } from './global-tools';
 
 /**
@@ -93,6 +93,46 @@ const serviceTools: Tool[] = [
     shapeType: 'architecture-service',
     defaultSize: { width: 100, height: 80 },
     initialData: { icon: 'internet' },
+  },
+  {
+    id: 'web-service',
+    name: 'Web App',
+    icon: LuMonitor,
+    shapeType: 'architecture-service',
+    defaultSize: { width: 100, height: 80 },
+    initialData: { icon: 'web' },
+  },
+  {
+    id: 'mobile-service',
+    name: 'Mobile App',
+    icon: LuSmartphone,
+    shapeType: 'architecture-service',
+    defaultSize: { width: 100, height: 80 },
+    initialData: { icon: 'mobile' },
+  },
+  {
+    id: 'react-service',
+    name: 'React App',
+    icon: LuCode,
+    shapeType: 'architecture-service',
+    defaultSize: { width: 100, height: 80 },
+    initialData: { icon: 'react' },
+  },
+  {
+    id: 'frontend-service',
+    name: 'Frontend UI',
+    icon: LuTvMinimal,
+    shapeType: 'architecture-service',
+    defaultSize: { width: 100, height: 80 },
+    initialData: { icon: 'frontend' },
+  },
+  {
+    id: 'tablet-service',
+    name: 'Tablet App',
+    icon: LuTablet,
+    shapeType: 'architecture-service',
+    defaultSize: { width: 100, height: 80 },
+    initialData: { icon: 'tablet' },
   },
 ];
 

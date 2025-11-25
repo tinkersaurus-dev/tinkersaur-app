@@ -2,10 +2,10 @@
  * Architecture Service Renderer
  *
  * Renders architectural service shapes as rectangles with icons and labels.
- * Supports icons: cloud, database, server, disk, internet, and custom iconify icons.
+ * Supports icons: cloud, database, server, disk, internet, web, mobile, react, frontend, tablet, and custom iconify icons.
  */
 
-import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe } from "react-icons/lu";
+import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe, LuMonitor, LuSmartphone, LuCode, LuTvMinimal, LuTablet } from "react-icons/lu";
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '../../components/canvas/editors/EditableLabel';
@@ -70,13 +70,18 @@ export function ArchitectureServiceRenderer({
   const iconSize = 24;
 
   // Icon component mapping
-  type IconType = 'cloud' | 'database' | 'server' | 'disk' | 'internet';
+  type IconType = 'cloud' | 'database' | 'server' | 'disk' | 'internet' | 'web' | 'mobile' | 'react' | 'frontend' | 'tablet';
   const iconMapping: Record<IconType, typeof LuServer> = {
     cloud: LuCloud,
     database: LuDatabase,
     server: LuServer,
     disk: LuHardDrive,
     internet: LuGlobe,
+    web: LuMonitor,
+    mobile: LuSmartphone,
+    react: LuCode,
+    frontend: LuTvMinimal,
+    tablet: LuTablet,
   };
   const IconComponent = (icon && iconMapping[icon as IconType]) || LuServer;
 

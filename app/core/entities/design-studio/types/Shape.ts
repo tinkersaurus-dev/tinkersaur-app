@@ -124,6 +124,7 @@ export interface LLMGeneratorShapeData {
   prompt?: string; // User's natural language prompt
   error?: string; // Error message if generation failed
   isLoading?: boolean; // Whether LLM is currently generating
+  referencedDiagramIds?: string[]; // IDs of diagrams to include as context in the prompt
 }
 
 // Type guard for LLM generator shape data
@@ -133,7 +134,10 @@ export function isLLMGeneratorShapeData(data: unknown): data is LLMGeneratorShap
   return (
     (d.prompt === undefined || typeof d.prompt === 'string') &&
     (d.error === undefined || typeof d.error === 'string') &&
-    (d.isLoading === undefined || typeof d.isLoading === 'boolean')
+    (d.isLoading === undefined || typeof d.isLoading === 'boolean') &&
+    (d.referencedDiagramIds === undefined ||
+      (Array.isArray(d.referencedDiagramIds) &&
+       d.referencedDiagramIds.every((id) => typeof id === 'string')))
   );
 }
 

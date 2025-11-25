@@ -194,6 +194,12 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
                 icon: getContentIcon('diagram'),
                 isLeaf: referenceChildren.length === 0,
                 children: referenceChildren.length > 0 ? referenceChildren : undefined,
+                draggable: true,
+                dragData: {
+                  type: 'diagram',
+                  diagramId: diagramRef.id,
+                  diagramName: diagramRef.name,
+                },
               },
             };
           }),

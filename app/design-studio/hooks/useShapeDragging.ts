@@ -6,7 +6,6 @@ import type { DragData } from './useInteractionState';
 import {
   findContainerAtPosition,
   getAllDescendantIds,
-  getAllAncestorIds,
 } from '../utils/containment-utils';
 
 interface UseShapeDraggingProps {
@@ -126,12 +125,10 @@ export function useShapeDragging({
               y: updatedPosition.y ?? currentShape.y,
             };
 
-            // Build exclusion set: the shape itself and all its descendants/ancestors
+            // Build exclusion set: shape itself and descendants (not ancestors - we need to detect current parent)
             const excludeIds = new Set<string>([primaryShapeId]);
             const descendants = getAllDescendantIds(primaryShapeId, localShapes);
-            const ancestors = getAllAncestorIds(primaryShapeId, localShapes);
             descendants.forEach(id => excludeIds.add(id));
-            ancestors.forEach(id => excludeIds.add(id));
 
             // Find potential container
             const container = findContainerAtPosition(tempShape, localShapes, excludeIds);
@@ -207,12 +204,10 @@ export function useShapeDragging({
         const currentShape = localShapes.find(s => s.id === primaryShapeId);
 
         if (currentShape) {
-          // Build exclusion set: the shape itself and all its descendants/ancestors
+          // Build exclusion set: shape itself and descendants (not ancestors - we need to detect current parent)
           const excludeIds = new Set<string>([primaryShapeId]);
           const descendants = getAllDescendantIds(primaryShapeId, localShapes);
-          const ancestors = getAllAncestorIds(primaryShapeId, localShapes);
           descendants.forEach(id => excludeIds.add(id));
-          ancestors.forEach(id => excludeIds.add(id));
 
           // Find which container (if any) the shape should belong to
           const newContainer = findContainerAtPosition(currentShape, localShapes, excludeIds);
