@@ -13,20 +13,24 @@ import { AddConnectorCommand } from './canvas/connectors/AddConnectorCommand';
 import { DeleteConnectorCommand } from './canvas/connectors/DeleteConnectorCommand';
 import { UpdateConnectorLabelCommand } from './canvas/connectors/UpdateConnectorLabelCommand';
 import { ChangeConnectorTypeCommand } from './canvas/connectors/ChangeConnectorTypeCommand';
-import { AddClassAttributeCommand } from './canvas/class-diagram/AddClassAttributeCommand';
-import { AddClassMethodCommand } from './canvas/class-diagram/AddClassMethodCommand';
-import { UpdateClassAttributeCommand } from './canvas/class-diagram/UpdateClassAttributeCommand';
-import { UpdateClassMethodCommand } from './canvas/class-diagram/UpdateClassMethodCommand';
-import { DeleteClassAttributeCommand } from './canvas/class-diagram/DeleteClassAttributeCommand';
-import { DeleteClassMethodCommand } from './canvas/class-diagram/DeleteClassMethodCommand';
-import { AddEnumerationLiteralCommand } from './canvas/enumeration/AddEnumerationLiteralCommand';
-import { DeleteEnumerationLiteralCommand } from './canvas/enumeration/DeleteEnumerationLiteralCommand';
-import { UpdateEnumerationLiteralCommand } from './canvas/enumeration/UpdateEnumerationLiteralCommand';
+// Class diagram commands
+import { AddClassAttributeCommand } from '~/design-studio/diagrams/class/commands/AddClassAttributeCommand';
+import { AddClassMethodCommand } from '~/design-studio/diagrams/class/commands/AddClassMethodCommand';
+import { UpdateClassAttributeCommand } from '~/design-studio/diagrams/class/commands/UpdateClassAttributeCommand';
+import { UpdateClassMethodCommand } from '~/design-studio/diagrams/class/commands/UpdateClassMethodCommand';
+import { DeleteClassAttributeCommand } from '~/design-studio/diagrams/class/commands/DeleteClassAttributeCommand';
+import { DeleteClassMethodCommand } from '~/design-studio/diagrams/class/commands/DeleteClassMethodCommand';
+// Enumeration commands
+import { AddEnumerationLiteralCommand } from '~/design-studio/diagrams/enumeration/commands/AddEnumerationLiteralCommand';
+import { DeleteEnumerationLiteralCommand } from '~/design-studio/diagrams/enumeration/commands/DeleteEnumerationLiteralCommand';
+import { UpdateEnumerationLiteralCommand } from '~/design-studio/diagrams/enumeration/commands/UpdateEnumerationLiteralCommand';
+// Batch operations
 import { BatchDeleteShapesCommand } from './canvas/shapes/BatchDeleteShapesCommand';
 import { BatchDeleteConnectorsCommand } from './canvas/connectors/BatchDeleteConnectorsCommand';
-import { UpdateLifelineActivationsCommand } from './canvas/sequence-diagram/UpdateLifelineActivationsCommand';
-import { RefreshSequenceActivationsCommand } from './canvas/sequence-diagram/RefreshSequenceActivationsCommand';
-import { UpdateLifelineHeightsCommand } from './canvas/sequence-diagram/UpdateLifelineHeightsCommand';
+// Sequence diagram commands
+import { UpdateLifelineActivationsCommand } from '~/design-studio/diagrams/sequence/commands/UpdateLifelineActivationsCommand';
+import { RefreshSequenceActivationsCommand } from '~/design-studio/diagrams/sequence/commands/RefreshSequenceActivationsCommand';
+import { UpdateLifelineHeightsCommand } from '~/design-studio/diagrams/sequence/commands/UpdateLifelineHeightsCommand';
 import { ImportMermaidCommand } from './canvas/preview-import/ImportMermaidCommand';
 import type { ActivationBox } from '../entities/design-studio/types/Shape';
 

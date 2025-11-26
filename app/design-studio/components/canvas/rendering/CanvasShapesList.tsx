@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import type { Shape } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
-import { ShapeRenderer } from '../../../rendering/shapes/ShapeRenderer';
-import type { RenderContext } from '../../../rendering/shapes/types';
+import { ShapeRenderer } from '~/design-studio/diagrams/shared/rendering/ShapeRenderer';
+import type { RenderContext } from '~/design-studio/diagrams/shared/rendering/types';
 
 interface CanvasShapesListProps {
   shapes: Shape[];

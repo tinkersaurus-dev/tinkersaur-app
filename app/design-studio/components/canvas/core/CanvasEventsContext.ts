@@ -1,13 +1,13 @@
 import type { RefObject } from 'react';
 import { createContext, useContext } from 'react';
 import type { UseContextMenuManagerReturn } from '../../../hooks/useContextMenuManager';
-import type { Tool as BpmnTool } from '../../../config/bpmn-tools';
-import type { Tool as ClassTool } from '../../../config/class-tools';
-import type { Tool as SequenceTool } from '../../../config/sequence-tools';
-import type { Tool as ArchitectureTool } from '../../../config/architecture-tools';
+import type { Tool as BpmnTool } from '~/design-studio/diagrams/bpmn/tools';
+import type { Tool as ClassTool } from '~/design-studio/diagrams/class/tools';
+import type { Tool as SequenceTool } from '~/design-studio/diagrams/sequence/tools';
+import type { Tool as ArchitectureTool } from '~/design-studio/diagrams/architecture/tools';
 import type { ToolbarButton } from '../../toolbar/CanvasToolbar';
 import type { JSX } from 'react';
-import type { ConnectorTool } from '../../../config/bpmn-connectors';
+import type { ConnectorTool } from '~/design-studio/diagrams/bpmn/connectors';
 
 /**
  * Canvas Events Context

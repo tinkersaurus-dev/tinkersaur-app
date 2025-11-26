@@ -5,7 +5,7 @@
  * or right-clicks on an existing connector.
  */
 
-import type { ConnectorTool } from '../../../../config/bpmn-connectors';
+import type { ConnectorTool } from '~/design-studio/diagrams/bpmn/connectors';
 import { ContextMenuWrapper } from '../ContextMenuWrapper';
 
 interface ConnectorToolsetPopoverProps {

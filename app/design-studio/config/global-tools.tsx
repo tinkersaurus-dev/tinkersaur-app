@@ -4,7 +4,7 @@
  */
 
 import { FaWandMagicSparkles } from 'react-icons/fa6';
-import type { Tool, ToolGroup } from './bpmn-tools';
+import type { Tool, ToolGroup } from '~/design-studio/diagrams/bpmn/tools';
 
 // Re-export Tool type for use in toolMappers
 export type { Tool };

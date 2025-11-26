@@ -1,7 +1,7 @@
 import { createCanvasInstanceStore, type CanvasInstanceStore } from './createCanvasInstanceStore';
-import { defaultBpmnConnectorType } from '~/design-studio/config/bpmn-connectors';
-import { defaultClassConnectorType } from '~/design-studio/config/class-connectors';
-import { defaultSequenceConnectorType } from '~/design-studio/config/sequence-connectors';
+import { defaultBpmnConnectorType } from '~/design-studio/diagrams/bpmn/connectors';
+import { defaultClassConnectorType } from '~/design-studio/diagrams/class/connectors';
+import { defaultSequenceConnectorType } from '~/design-studio/diagrams/sequence/connectors';
 import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 
 /**

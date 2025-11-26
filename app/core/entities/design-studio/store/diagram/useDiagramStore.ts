@@ -702,7 +702,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         if (diagram?.type === 'sequence' && connector.type.startsWith('sequence-')) {
           // Calculate and update lifeline heights first
           const { calculateRequiredLifelineHeight } = await import(
-            '~/design-studio/utils/lifelineHeightCalculator'
+            '~/design-studio/diagrams/sequence/heightCalculator'
           );
           const requiredHeight = calculateRequiredLifelineHeight(
             diagram.shapes,
@@ -821,7 +821,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           if (updatedDiagram) {
             // Calculate and update lifeline heights first
             const { calculateRequiredLifelineHeight } = await import(
-              '~/design-studio/utils/lifelineHeightCalculator'
+              '~/design-studio/diagrams/sequence/heightCalculator'
             );
             const requiredHeight = calculateRequiredLifelineHeight(
               updatedDiagram.shapes,

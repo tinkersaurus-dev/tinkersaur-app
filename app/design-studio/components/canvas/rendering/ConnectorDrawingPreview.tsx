@@ -2,8 +2,8 @@ import type { Shape } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
 import type { DrawingConnector } from '../../../hooks/useInteractionState';
 import { getConnectionPointsForShape, calculateAbsolutePosition } from '../../../utils/connectionPoints';
-import { getPathData, inferConnectionDirection } from '../../../rendering/connectors/pathUtils';
-import type { ConnectorTool } from '../../../config/bpmn-connectors';
+import { getPathData, inferConnectionDirection } from '~/design-studio/diagrams/shared/rendering/pathUtils';
+import type { ConnectorTool } from '~/design-studio/diagrams/bpmn/connectors';
 
 interface ConnectorDrawingPreviewProps {
   drawingConnector: DrawingConnector;

@@ -6,12 +6,12 @@ import type { Connector } from '~/core/entities/design-studio/types/Connector';
 import type { Diagram } from '~/core/entities/design-studio/types/Diagram';
 import type { InteractionMode, SelectionBox, DrawingConnector } from '../../../hooks/useInteractionState';
 import type { UseContextMenuManagerReturn } from '../../../hooks/useContextMenuManager';
-import type { Tool as BpmnTool } from '../../../config/bpmn-tools';
-import type { Tool as ClassTool } from '../../../config/class-tools';
-import type { Tool as SequenceTool } from '../../../config/sequence-tools';
+import type { Tool as BpmnTool } from '~/design-studio/diagrams/bpmn/tools';
+import type { Tool as ClassTool } from '~/design-studio/diagrams/class/tools';
+import type { Tool as SequenceTool } from '~/design-studio/diagrams/sequence/tools';
 import type { ToolbarButton } from '../../toolbar/CanvasToolbar';
 import type { JSX } from 'react';
-import type { ConnectorTool } from '../../../config/bpmn-connectors';
+import type { ConnectorTool } from '~/design-studio/diagrams/bpmn/connectors';
 
 /**
  * Canvas Controller Context

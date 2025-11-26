@@ -8,19 +8,19 @@ import {
   allBpmnConnectorTools,
   getBpmnConnectorToolByType,
   type ConnectorTool,
-} from '../config/bpmn-connectors';
+} from '~/design-studio/diagrams/bpmn/connectors';
 import {
   allClassConnectorTools,
   getClassConnectorToolByType,
-} from '../config/class-connectors';
+} from '~/design-studio/diagrams/class/connectors';
 import {
   allSequenceConnectorTools,
   getSequenceConnectorToolByType,
-} from '../config/sequence-connectors';
+} from '~/design-studio/diagrams/sequence/connectors';
 import {
   allArchitectureConnectorTools,
   getArchitectureConnectorToolByType,
-} from '../config/architecture-connectors';
+} from '~/design-studio/diagrams/architecture/connectors';
 
 interface UseConnectorTypeManagerProps {
   diagramId: string;

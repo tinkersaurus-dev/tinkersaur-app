@@ -1,7 +1,7 @@
 import type { Shape, Connector } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
-import { ConnectorRenderer } from '../../../rendering/connectors/ConnectorRenderer';
-import type { ConnectorRenderContext } from '../../../rendering/connectors/types';
+import { ConnectorRenderer } from '~/design-studio/diagrams/shared/rendering/ConnectorRenderer';
+import type { ConnectorRenderContext } from '~/design-studio/diagrams/shared/rendering/connector-types';
 
 interface CanvasConnectorsListProps {
   connectors: Connector[];

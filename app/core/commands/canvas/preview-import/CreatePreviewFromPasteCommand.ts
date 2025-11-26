@@ -2,10 +2,10 @@ import type { Command } from '../../command.types';
 import type { CreateShapeDTO } from '../../../entities/design-studio/types/Shape';
 import type { CreateConnectorDTO } from '../../../entities/design-studio/types/Connector';
 import type { Diagram, DiagramType } from '../../../entities/design-studio/types';
-import type { MermaidImportResult } from '~/design-studio/lib/mermaid/mermaid-importer';
-import { BpmnMermaidImporter } from '~/design-studio/lib/mermaid/importers/bpmn-mermaid-importer';
-import { ClassMermaidImporter } from '~/design-studio/lib/mermaid/importers/class-mermaid-importer';
-import { SequenceMermaidImporter} from '~/design-studio/lib/mermaid/importers/sequence-mermaid-importer';
+import type { MermaidImportResult } from '~/design-studio/diagrams/shared/mermaid/importer';
+import { BpmnMermaidImporter } from '~/design-studio/diagrams/bpmn/mermaid/importer';
+import { ClassMermaidImporter } from '~/design-studio/diagrams/class/mermaid/importer';
+import { SequenceMermaidImporter} from '~/design-studio/diagrams/sequence/mermaid/importer';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**

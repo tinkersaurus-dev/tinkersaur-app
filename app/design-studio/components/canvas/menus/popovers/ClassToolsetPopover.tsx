@@ -5,7 +5,7 @@
  * Tools are organized by type with icon buttons.
  */
 
-import { classToolGroups, type Tool } from '../../../../config/class-tools';
+import { classToolGroups, type Tool } from '~/design-studio/diagrams/class/tools';
 import type { DrawingConnector } from '../../../../hooks/useInteractionState';
 import { ContextMenuWrapper } from '../ContextMenuWrapper';
 

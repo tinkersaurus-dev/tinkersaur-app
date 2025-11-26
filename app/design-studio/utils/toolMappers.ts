@@ -4,10 +4,10 @@
  */
 
 import type { CreateShapeDTO } from '../../core/entities/design-studio/types/Shape';
-import type { Tool as BpmnTool } from '../config/bpmn-tools';
-import type { Tool as ClassTool } from '../config/class-tools';
-import type { Tool as SequenceTool } from '../config/sequence-tools';
-import type { Tool as ArchitectureTool } from '../config/architecture-tools';
+import type { Tool as BpmnTool } from '~/design-studio/diagrams/bpmn/tools';
+import type { Tool as ClassTool } from '~/design-studio/diagrams/class/tools';
+import type { Tool as SequenceTool } from '~/design-studio/diagrams/sequence/tools';
+import type { Tool as ArchitectureTool } from '~/design-studio/diagrams/architecture/tools';
 import type { Tool as GlobalTool } from '../config/global-tools';
 
 /**

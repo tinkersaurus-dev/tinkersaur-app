@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 import type { ViewportTransform } from '../utils/viewport';
 import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
-import type { ConnectorTool } from '../config/bpmn-connectors';
+import type { ConnectorTool } from '~/design-studio/diagrams/bpmn/connectors';
 import type { DrawingConnector } from './useInteractionState';
 import { findConnectionPointById, getConnectionPointsForShape } from '../utils/connectionPoints';
 import type { Shape } from '~/core/entities/design-studio/types/Shape';
