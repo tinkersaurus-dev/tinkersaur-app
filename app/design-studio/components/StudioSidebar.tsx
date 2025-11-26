@@ -5,7 +5,7 @@
  */
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import { MdFolder, MdDescription, MdAccountTree, MdDashboard, MdLink } from 'react-icons/md';
+import { MdFolder, MdDescription, MdAccountTree, MdDashboard, MdLink, MdLink as MdLinkIcon } from 'react-icons/md';
 import { FiFolderPlus } from 'react-icons/fi';
 import { Tree, Dropdown } from '~/core/components';
 import type { TreeNodeData, DropdownMenuItem } from '~/core/components';
@@ -16,6 +16,7 @@ import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-w
 import { useReferenceStore } from '~/core/entities/design-studio/store/reference/useReferenceStore';
 import { useDesignStudioCRUD } from '../hooks/useDesignStudioCRUD';
 import { CreateDiagramModal } from './CreateDiagramModal';
+import { LinkUseCaseModal } from './LinkUseCaseModal';
 import { useSolutionStore } from '~/core/entities/product-management/store/solution/useSolutionStore';
 
 interface StudioSidebarProps {
@@ -84,12 +85,24 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
   const [createDiagramModalOpen, setCreateDiagramModalOpen] = useState(false);
   const [selectedDesignWorkId, setSelectedDesignWorkId] = useState<string>();
 
+  // Link use case modal state
+  const [linkUseCaseModalOpen, setLinkUseCaseModalOpen] = useState(false);
+  const [linkUseCaseFolderId, setLinkUseCaseFolderId] = useState<string>();
+
   // Wrapper for createDiagram that matches the modal's expected signature
   const handleCreateDiagram = useCallback(
     async (data: { designWorkId: string; name: string; type: DiagramType }) => {
       await createDiagram(data);
     },
     [createDiagram]
+  );
+
+  // Handler for linking a folder to a use case
+  const handleLinkUseCase = useCallback(
+    async (designWorkId: string, useCaseId: string | undefined) => {
+      await updateDesignWork(designWorkId, { useCaseId });
+    },
+    [updateDesignWork]
   );
 
   // Handle creating a new folder at root level
@@ -233,10 +246,20 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         allContent.sort((a, b) => a.order - b.order);
         children.push(...allContent.map(item => item.node));
 
+        // Create folder icon, with link indicator if linked to a use case
+        const folderIcon = designWork.useCaseId ? (
+          <span className="flex items-center gap-0.5">
+            <MdFolder />
+            <MdLinkIcon className="text-[10px] text-[var(--text-secondary)]" />
+          </span>
+        ) : (
+          <MdFolder />
+        );
+
         nodes.push({
           title: designWork.name,
           key: `folder-${designWork.id}`,
-          icon: <MdFolder />,
+          icon: folderIcon,
           children: children.length > 0 ? children : undefined,
         });
       });
@@ -252,10 +275,22 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     const [type, ...idParts] = key.split('-');
     const id = idParts.join('-'); // Rejoin in case ID contains hyphens
 
-    if (type === 'folder') return; // Don't open folders
+    let title = '';
+
+    // Handle folder double-click - open folder view
+    if (type === 'folder') {
+      const folder = designWorks.find((dw) => dw.id === id);
+      title = folder?.name || 'Folder';
+      openTab({
+        type: 'folder-view',
+        contentId: id,
+        title,
+        closable: true,
+      });
+      return;
+    }
 
     let contentType: DesignContentType;
-    let title = '';
 
     // Find the title from the DesignWork metadata
     switch (type) {
@@ -372,6 +407,15 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
           },
         },
         {
+          key: 'link-use-case',
+          label: 'Link to Use Case',
+          onClick: () => {
+            setLinkUseCaseFolderId(id);
+            setLinkUseCaseModalOpen(true);
+            closeContextMenu();
+          },
+        },
+        {
           key: 'divider-1',
           label: '',
           type: 'divider',
@@ -481,6 +525,15 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         designWorkId={selectedDesignWorkId}
         onClose={() => setCreateDiagramModalOpen(false)}
         onCreate={handleCreateDiagram}
+      />
+
+      <LinkUseCaseModal
+        open={linkUseCaseModalOpen}
+        designWorkId={linkUseCaseFolderId}
+        currentUseCaseId={designWorks.find((dw) => dw.id === linkUseCaseFolderId)?.useCaseId}
+        solutionId={solutionId}
+        onClose={() => setLinkUseCaseModalOpen(false)}
+        onLink={handleLinkUseCase}
       />
     </div>
   );

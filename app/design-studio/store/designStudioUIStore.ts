@@ -13,7 +13,7 @@ import { commandManager } from '~/core/commands/CommandManager';
 
 export interface DesignTab {
   id: string;
-  type: 'overview' | DesignContentType;
+  type: 'overview' | DesignContentType | 'folder-view';
   contentId?: string; // undefined for overview tab
   title: string;
   closable: boolean;

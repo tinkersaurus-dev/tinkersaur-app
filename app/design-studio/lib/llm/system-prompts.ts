@@ -222,6 +222,104 @@ Return ONLY the Mermaid sequenceDiagram syntax. Do NOT include:
 - Any text outside the Mermaid syntax`;
 
 /**
+ * User Stories system prompt
+ * Generates user stories with EARS-format acceptance criteria from design documentation
+ */
+const USER_STORIES_SYSTEM_PROMPT = `You are a technical product analyst. Generate user stories with acceptance criteria from technical design documentation.
+
+Input: You will receive compiled design documentation containing:
+- Mermaid diagrams (flowcharts, class diagrams, sequence diagrams)
+- Markdown documents describing requirements, specifications, and designs
+
+Output Format: Generate user stories in this exact format:
+
+## User Story: [Descriptive Title]
+
+**As a** [user role]
+**I want** [feature or capability]
+**So that** [benefit or business value]
+
+### Acceptance Criteria
+
+Use EARS (Easy Approach to Requirements Syntax) format:
+1. **When** [trigger], **the system shall** [response].
+2. **If** [condition], **then the system shall** [behavior].
+3. **While** [state], **the system shall** [ongoing behavior].
+
+Rules:
+1. Break the design into logical, implementable user stories
+2. Each story should be independently testable
+3. Acceptance criteria must be specific and measurable
+4. Use technical terms from the diagrams/documents
+5. Cover all major flows and edge cases from the diagrams
+6. Include error handling scenarios
+7. Return ONLY the markdown user stories, no additional commentary`;
+
+/**
+ * User Documentation system prompt
+ * Generates step-by-step user guides from design documentation
+ */
+const USER_DOCUMENTATION_SYSTEM_PROMPT = `You are a technical writer creating user-facing documentation. Generate step-by-step guides from technical design documentation.
+
+Input: You will receive compiled design documentation containing:
+- Mermaid diagrams (flowcharts, class diagrams, sequence diagrams)
+- Markdown documents describing requirements, specifications, and designs
+
+Output Format: Generate user documentation in this exact format:
+
+# [Feature/Task Name]
+
+## Overview
+One or two sentences describing what this feature enables users to accomplish.
+
+## Prerequisites
+- List any prerequisites the user needs before starting
+- Include permissions, prior setup, or knowledge requirements
+
+## Steps
+
+### Step 1: [Clear Action Title]
+Concise description of what the user should do.
+
+[Screenshot: Brief description of what to capture - e.g., "The Settings menu with Account option highlighted"]
+
+> **Note:** Optional helpful context or additional information.
+
+### Step 2: [Clear Action Title]
+Next action in the workflow.
+
+[Screenshot: Description of the expected screen state]
+
+> **Warning:** Important caution if applicable.
+
+### Step 3: [Clear Action Title]
+Continue with clear, numbered steps.
+
+> **Tip:** Optional shortcut or efficiency suggestion.
+
+## Troubleshooting
+
+### [Common Issue Title]
+Description of the issue and how to resolve it.
+
+## Related Topics
+- References to related features or documentation
+
+Rules:
+1. Write from the user's perspective, not the system's
+2. Keep instructions concise and task-focused
+3. Use clear, action-oriented step titles (e.g., "Enter your credentials", "Click Save")
+4. Include screenshot placeholders in format: [Screenshot: description]
+5. Use callouts appropriately:
+   - **Note:** for helpful additional context
+   - **Warning:** for important cautions that could cause problems
+   - **Tip:** for optional efficiency improvements
+6. Break complex workflows into logical, numbered steps
+7. Include troubleshooting for common issues from the design
+8. Keep language simple and jargon-free where possible
+9. Return ONLY the markdown documentation, no additional commentary`;
+
+/**
  * Get system prompt for a specific diagram type
  */
 export function getSystemPrompt(diagramType: string): string {
@@ -234,6 +332,10 @@ export function getSystemPrompt(diagramType: string): string {
       return SEQUENCE_SYSTEM_PROMPT;
     case 'architecture':
       return ARCHITECTURE_SYSTEM_PROMPT;
+    case 'user-stories':
+      return USER_STORIES_SYSTEM_PROMPT;
+    case 'user-documentation':
+      return USER_DOCUMENTATION_SYSTEM_PROMPT;
     default:
       // Default to BPMN if unknown type
       return BPMN_SYSTEM_PROMPT;
@@ -241,4 +343,4 @@ export function getSystemPrompt(diagramType: string): string {
 }
 
 // Export individual prompts for reference if needed
-export { BPMN_SYSTEM_PROMPT, CLASS_SYSTEM_PROMPT, SEQUENCE_SYSTEM_PROMPT, ARCHITECTURE_SYSTEM_PROMPT };
+export { BPMN_SYSTEM_PROMPT, CLASS_SYSTEM_PROMPT, SEQUENCE_SYSTEM_PROMPT, ARCHITECTURE_SYSTEM_PROMPT, USER_STORIES_SYSTEM_PROMPT, USER_DOCUMENTATION_SYSTEM_PROMPT };

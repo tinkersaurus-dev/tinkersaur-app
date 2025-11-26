@@ -17,5 +17,8 @@ export { useInterface } from './useInterfaces';
 // Document hooks - now lazy loaded
 export { useDocument } from './useDocuments';
 
+// Folder content hooks
+export { useFolderContent } from './useFolderContent';
+
 // CRUD operations hook
 export { useDesignStudioCRUD } from './useDesignStudioCRUD';

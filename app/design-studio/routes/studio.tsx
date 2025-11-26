@@ -18,6 +18,7 @@ import { OverviewTab } from '../components/OverviewTab';
 import { DiagramView } from '../components/DiagramView';
 import { InterfaceView } from '../components/InterfaceView';
 import { DocumentView } from '../components/DocumentView';
+import { FolderView } from '../components/FolderView';
 
 export default function StudioPage() {
   const { solutionId } = useParams();
@@ -65,6 +66,8 @@ export default function StudioPage() {
         return <InterfaceView interfaceId={contentId} />;
       case 'document':
         return <DocumentView documentId={contentId} />;
+      case 'folder-view':
+        return <FolderView folderId={contentId} />;
       default:
         return <div>Unknown content type</div>;
     }
