@@ -107,9 +107,9 @@
   --text-brand-selected: oklch(72.948% 0.10378 214.881);
   --text-brand-hover: oklch(0.4 0.01 213);
 
-  --bg-dark: oklch(0.92 0.005 213);
-  --bg: oklch(0.96 0.005 213);
-  --bg-light: oklch(1 0.005 213);
+  --bg-dark: oklch(93.989% 0.01005 213.045);
+  --bg: oklch(95.945% 0.008 217.264);
+  --bg-light: oklch(100% 0.00011 271.152);
 
   --text: oklch(0.15 0.01 213);
   --text-muted: oklch(0.4 0.01 213);
