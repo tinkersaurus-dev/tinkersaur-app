@@ -9,7 +9,7 @@ import { toast } from 'sonner';
  * Zustand store for managing Solution entities
  *
  * Provides CRUD operations and cascade delete functionality.
- * When a solution is deleted, all associated features, changes, and requirements are also deleted.
+ * When a solution is deleted, all associated use cases, changes, and requirements are also deleted.
  */
 const baseStore = createEntityStore<Solution, CreateSolutionDto>(
   solutionApi,
@@ -41,24 +41,24 @@ export const useSolutionStore = create<EntityStore<Solution, CreateSolutionDto> 
   // Override delete method with cascade logic
   delete: async (id: string): Promise<boolean> => {
     // Import stores lazily to avoid circular dependency
-    const { useFeatureStore } = await import('../feature/useFeatureStore');
+    const { useUseCaseStore } = await import('../useCase/useUseCaseStore');
     const { useChangeStore } = await import('../change/useChangeStore');
     const { useRequirementStore } = await import('../requirement/useRequirementStore');
 
-    const featureStore = useFeatureStore.getState();
+    const useCaseStore = useUseCaseStore.getState();
     const changeStore = useChangeStore.getState();
     const requirementStore = useRequirementStore.getState();
 
     baseStore.setState({ loading: true, error: null });
 
     try {
-      // Get all features for this solution
-      const features = featureStore.entities.filter(f => f.solutionId === id);
+      // Get all use cases for this solution
+      const useCases = useCaseStore.entities.filter(u => u.solutionId === id);
 
-      // Cascade delete: Delete all features (which will cascade to changes and requirements)
-      for (const feature of features) {
-        // Get all changes for this feature
-        const changes = changeStore.entities.filter(c => c.featureId === feature.id);
+      // Cascade delete: Delete all use cases (which will cascade to changes and requirements)
+      for (const useCase of useCases) {
+        // Get all changes for this use case
+        const changes = changeStore.entities.filter(c => c.useCaseId === useCase.id);
 
         // Delete all requirements for each change
         for (const change of changes) {
@@ -68,13 +68,13 @@ export const useSolutionStore = create<EntityStore<Solution, CreateSolutionDto> 
           }
         }
 
-        // Delete all changes for this feature
+        // Delete all changes for this use case
         for (const change of changes) {
           await changeStore.delete(change.id);
         }
 
-        // Delete the feature
-        await featureStore.delete(feature.id);
+        // Delete the use case
+        await useCaseStore.delete(useCase.id);
       }
 
       // Finally, delete the solution itself

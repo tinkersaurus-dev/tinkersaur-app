@@ -18,8 +18,8 @@ const baseStore = createEntityStore<Change, CreateChangeDto>(
 
 // Create a new store that wraps the base store and adds convenience methods
 export const useChangeStore = create<EntityStore<Change, CreateChangeDto> & {
-  getChangesByFeatureId: (featureId: string) => Change[];
-  fetchChangesByFeature: (featureId: string) => Promise<void>;
+  getChangesByUseCaseId: (useCaseId: string) => Change[];
+  fetchChangesByUseCase: (useCaseId: string) => Promise<void>;
   createChange: (data: CreateChangeDto) => Promise<Change | null>;
   updateChange: (id: string, updates: Partial<Change>) => Promise<Change | null>;
   deleteChange: (id: string) => Promise<boolean>;
@@ -38,13 +38,13 @@ export const useChangeStore = create<EntityStore<Change, CreateChangeDto> & {
   reset: () => baseStore.getState().reset(),
 
   // Convenience method aliases
-  fetchChangesByFeature: (...args) => baseStore.getState().fetchAll(...args),
+  fetchChangesByUseCase: (...args) => baseStore.getState().fetchAll(...args),
   createChange: (...args) => baseStore.getState().create(...args),
   updateChange: (...args) => baseStore.getState().update(...args),
 
   // Relationship query method
-  getChangesByFeatureId: (featureId: string): Change[] => {
-    return baseStore.getState().entities.filter(c => c.featureId === featureId);
+  getChangesByUseCaseId: (useCaseId: string): Change[] => {
+    return baseStore.getState().entities.filter(c => c.useCaseId === useCaseId);
   },
 
   // Override delete method with cascade logic

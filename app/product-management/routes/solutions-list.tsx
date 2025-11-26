@@ -135,7 +135,7 @@ export default function SolutionsListPage() {
             icon={<FiTrash2 />}
             size="small"
             onClick={() => {
-              if (confirm('Are you sure you want to delete this solution? All related features, changes, and requirements will also be deleted.')) {
+              if (confirm('Are you sure you want to delete this solution? All related use cases, changes, and requirements will also be deleted.')) {
                 handleDeleteClick(record);
               }
             }}

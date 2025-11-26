@@ -57,6 +57,12 @@ export function TreeNode({
   }, [isEditing]);
 
   const handleClick = () => {
+    // Row click no longer expands/collapses - only chevron does that
+    // This can be used for selection or other node interactions in the future
+  };
+
+  const handleChevronClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
     if (hasChildren) {
       onToggleExpand(node.key);
     }
@@ -120,7 +126,7 @@ export function TreeNode({
       >
         {/* Expand/collapse icon */}
         <span
-          className='text-xs text-[var(--text-muted)]'
+          className='text-xs text-[var(--text-muted)] hover:text-[var(--text)]'
           style={{
             width: '16px',
             display: 'inline-flex',
@@ -128,7 +134,9 @@ export function TreeNode({
             justifyContent: 'center',
             marginRight: '2px',
             flexShrink: 0,
+            cursor: hasChildren ? 'pointer' : 'default',
           }}
+          onClick={handleChevronClick}
         >
           {hasChildren ? (
             isExpanded ? (

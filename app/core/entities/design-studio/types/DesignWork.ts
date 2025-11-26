@@ -7,7 +7,7 @@ import { ReferenceRefSchema } from './Reference';
  * Design Work domain model
  * Represents a folder in the design studio tree.
  * Design works are the primary organizational unit for design content.
- * They are associated with a solution and can optionally be linked to specific features or changes.
+ * They are associated with a solution and can optionally be linked to specific use cases or changes.
  * Design works can be nested to create a folder hierarchy.
  *
  * Design works now include metadata about their content (diagrams, interfaces, documents)
@@ -53,7 +53,7 @@ export type DocumentRef = z.infer<typeof DocumentRefSchema>;
 export const DesignWorkSchema = z.object({
   id: z.string().uuid(),
   solutionId: z.string().uuid(),
-  featureId: z.string().uuid().optional(),
+  useCaseId: z.string().uuid().optional(),
   changeId: z.string().uuid().optional(),
   parentDesignWorkId: z.string().uuid().optional(),
   name: z.string().min(1, 'Design work name is required').max(200),

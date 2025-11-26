@@ -6,15 +6,15 @@ import { useCallback } from 'react';
 import {
   useSolutionStore,
   type CreateSolutionDto,
-  type CreateFeatureDto,
+  type CreateUseCaseDto,
   type CreateChangeDto,
   type CreateRequirementDto,
   type Solution,
-  type Feature,
+  type UseCase,
   type Change,
   type Requirement,
 } from '~/core/entities/product-management';
-import { useFeatureStore } from '~/core/entities/product-management/store/feature/useFeatureStore';
+import { useUseCaseStore } from '~/core/entities/product-management/store/useCase/useUseCaseStore';
 import { useChangeStore } from '~/core/entities/product-management/store/change/useChangeStore';
 import { useRequirementStore } from '~/core/entities/product-management/store/requirement/useRequirementStore';
 
@@ -52,33 +52,33 @@ export function useSolutionCRUD() {
 }
 
 /**
- * Feature CRUD operations
+ * UseCase CRUD operations
  */
-export function useFeatureCRUD() {
-  const createFeature = useFeatureStore((state) => state.createFeature);
-  const updateFeature = useFeatureStore((state) => state.updateFeature);
-  const deleteFeature = useFeatureStore((state) => state.deleteFeature);
+export function useUseCaseCRUD() {
+  const createUseCase = useUseCaseStore((state) => state.createUseCase);
+  const updateUseCase = useUseCaseStore((state) => state.updateUseCase);
+  const deleteUseCase = useUseCaseStore((state) => state.deleteUseCase);
 
   const handleCreate = useCallback(
-    async (data: CreateFeatureDto) => {
-      const feature = await createFeature(data);
-      return feature;
+    async (data: CreateUseCaseDto) => {
+      const useCase = await createUseCase(data);
+      return useCase;
     },
-    [createFeature]
+    [createUseCase]
   );
 
   const handleUpdate = useCallback(
-    async (id: string, updates: Partial<Feature>) => {
-      await updateFeature(id, updates);
+    async (id: string, updates: Partial<UseCase>) => {
+      await updateUseCase(id, updates);
     },
-    [updateFeature]
+    [updateUseCase]
   );
 
   const handleDelete = useCallback(
     async (id: string) => {
-      await deleteFeature(id);
+      await deleteUseCase(id);
     },
-    [deleteFeature]
+    [deleteUseCase]
   );
 
   return { handleCreate, handleUpdate, handleDelete };

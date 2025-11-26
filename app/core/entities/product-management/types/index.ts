@@ -8,9 +8,9 @@
 export type { Solution, SolutionType, CreateSolutionDto, UpdateSolutionDto } from './Solution';
 export { SolutionSchema, SolutionTypeSchema, CreateSolutionSchema, UpdateSolutionSchema } from './Solution';
 
-// Feature
-export type { Feature, CreateFeatureDto, UpdateFeatureDto } from './Feature';
-export { FeatureSchema, CreateFeatureSchema, UpdateFeatureSchema } from './Feature';
+// UseCase
+export type { UseCase, CreateUseCaseDto, UpdateUseCaseDto } from './UseCase';
+export { UseCaseSchema, CreateUseCaseSchema, UpdateUseCaseSchema } from './UseCase';
 
 // Change
 export type { Change, ChangeStatus, CreateChangeDto, UpdateChangeDto } from './Change';

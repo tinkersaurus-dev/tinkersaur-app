@@ -1,6 +1,6 @@
 /**
- * Feature Detail Page
- * Displays feature details and its changes in a table
+ * Use Case Detail Page
+ * Displays use case details and its changes in a table
  */
 
 import { useState } from 'react';
@@ -10,7 +10,7 @@ import { AppLayout, PageHeader, PageContent } from '~/core/components';
 import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Change, ChangeStatus } from '~/core/entities/product-management';
-import { useSolution, useFeature, useChanges, useChangeCRUD } from '../hooks';
+import { useSolution, useUseCase, useChanges, useChangeCRUD } from '../hooks';
 
 const STATUS_COLORS: Record<ChangeStatus, string> = {
   draft: 'default',
@@ -19,9 +19,9 @@ const STATUS_COLORS: Record<ChangeStatus, string> = {
   implemented: 'green',
 };
 
-export default function FeatureDetailPage() {
+export default function UseCaseDetailPage() {
   const navigate = useNavigate();
-  const { solutionId, featureId } = useParams();
+  const { solutionId, useCaseId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingChange, setEditingChange] = useState<Change | null>(null);
 
@@ -39,15 +39,15 @@ export default function FeatureDetailPage() {
 
   // Use new hooks
   const { solution } = useSolution(solutionId);
-  const { feature } = useFeature(featureId);
-  const { changes, loading } = useChanges(featureId);
+  const { useCase } = useUseCase(useCaseId);
+  const { changes, loading } = useChanges(useCaseId);
   const { handleCreate, handleUpdate, handleDelete } = useChangeCRUD();
 
-  if (!solution || !feature) {
+  if (!solution || !useCase) {
     return (
       <AppLayout>
         <PageContent>
-          <p>Feature not found</p>
+          <p>Use case not found</p>
         </PageContent>
       </AppLayout>
     );
@@ -83,7 +83,7 @@ export default function FeatureDetailPage() {
         await handleUpdate(editingChange.id, values);
       } else {
         await handleCreate({
-          featureId: featureId!,
+          useCaseId: useCaseId!,
           ...values,
         });
       }
@@ -108,7 +108,7 @@ export default function FeatureDetailPage() {
       key: 'name',
       render: (value, record) => (
         <a
-          onClick={() => navigate(`/solutions/${solutionId}/features/${featureId}/changes/${record.id}`)}
+          onClick={() => navigate(`/solutions/${solutionId}/use-cases/${useCaseId}/changes/${record.id}`)}
           className="text-[var(--primary)] hover:underline cursor-pointer"
         >
           {value as string}
@@ -173,7 +173,7 @@ export default function FeatureDetailPage() {
   return (
     <AppLayout>
       <PageHeader
-        title={feature.name}
+        title={useCase.name}
         extra={
           <Breadcrumb
             items={[
@@ -184,7 +184,7 @@ export default function FeatureDetailPage() {
                 title: <Link to={`/solutions/${solutionId}`}>{solution.name}</Link>,
               },
               {
-                title: feature.name,
+                title: useCase.name,
               },
             ]}
           />
@@ -198,7 +198,7 @@ export default function FeatureDetailPage() {
 
       <PageContent>
         <div style={{ marginBottom: '16px' }}>
-          <p style={{ color: '#666' }}>{feature.description}</p>
+          <p style={{ color: '#666' }}>{useCase.description}</p>
         </div>
 
         <Table

@@ -9,8 +9,8 @@ export default [
   // Solution Management routes
   route("solutions", "product-management/routes/solutions-list.tsx"),
   route("solutions/:solutionId", "product-management/routes/solution-detail.tsx"),
-  route("solutions/:solutionId/features/:featureId", "product-management/routes/feature-detail.tsx"),
-  route("solutions/:solutionId/features/:featureId/changes/:changeId", "product-management/routes/change-detail.tsx"),
+  route("solutions/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
+  route("solutions/:solutionId/use-cases/:useCaseId/changes/:changeId", "product-management/routes/change-detail.tsx"),
 
   // Design Studio routes (separate module, solution-based)
   route("studio/:solutionId", "design-studio/routes/studio.tsx"),

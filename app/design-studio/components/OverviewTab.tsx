@@ -1,12 +1,12 @@
 /**
  * OverviewTab Component
- * Displays solution information and lists all features/changes
+ * Displays solution information and lists all use cases/changes
  */
 
 import { useEffect, useState } from 'react';
 import { Card, Tag, Descriptions, VStack, type TagColor } from '~/core/components/ui';
 import { useSolutionStore, type Change, type Solution } from '~/core/entities/product-management';
-import { useFeatureStore } from '~/core/entities/product-management/store/feature/useFeatureStore';
+import { useUseCaseStore } from '~/core/entities/product-management/store/useCase/useUseCaseStore';
 import { useChangeStore } from '~/core/entities/product-management/store/change/useChangeStore';
 
 interface OverviewTabProps {
@@ -15,10 +15,10 @@ interface OverviewTabProps {
 
 export function OverviewTab({ solutionId }: OverviewTabProps) {
   const fetchSolution = useSolutionStore((state) => state.fetchSolution);
-  const getFeaturesBySolutionId = useFeatureStore((state) => state.getFeaturesBySolutionId);
-  const getChangesByFeatureId = useChangeStore((state) => state.getChangesByFeatureId);
+  const getUseCasesBySolutionId = useUseCaseStore((state) => state.getUseCasesBySolutionId);
+  const getChangesByUseCaseId = useChangeStore((state) => state.getChangesByUseCaseId);
   const [solution, setSolution] = useState<Solution | null>(null);
-  const features = solution ? getFeaturesBySolutionId(solutionId) : [];
+  const useCases = solution ? getUseCasesBySolutionId(solutionId) : [];
 
   useEffect(() => {
     fetchSolution(solutionId).then((s) => {
@@ -57,15 +57,15 @@ export function OverviewTab({ solutionId }: OverviewTabProps) {
       </Card>
 
       <Card>
-        <h3 style={{ marginBottom: '16px' }}>Features & Changes</h3>
+        <h3 style={{ marginBottom: '16px' }}>Use Cases & Changes</h3>
         <VStack gap="lg">
-          {features.map((feature) => {
-            const changes = getChangesByFeatureId(feature.id);
+          {useCases.map((useCase) => {
+            const changes = getChangesByUseCaseId(useCase.id);
             return (
-              <div key={feature.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
-                <div style={{ fontWeight: 600, marginBottom: '8px' }}>{feature.name}</div>
+              <div key={useCase.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
+                <div style={{ fontWeight: 600, marginBottom: '8px' }}>{useCase.name}</div>
                 <div style={{ color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                  {feature.description}
+                  {useCase.description}
                 </div>
                 {changes.length > 0 && (
                   <div style={{ paddingLeft: '16px' }}>

@@ -6,27 +6,27 @@ import { useEffect, useMemo } from 'react';
 import { useChangeStore } from '~/core/entities/product-management/store/change/useChangeStore';
 
 /**
- * Hook to fetch and access changes for a feature
+ * Hook to fetch and access changes for a use case
  */
-export function useChanges(featureId: string | undefined) {
+export function useChanges(useCaseId: string | undefined) {
   const allChanges = useChangeStore((state) => state.entities);
   const loading = useChangeStore((state) => state.loading);
   const error = useChangeStore((state) => state.error);
-  const fetchChangesByFeature = useChangeStore(
-    (state) => state.fetchChangesByFeature
+  const fetchChangesByUseCase = useChangeStore(
+    (state) => state.fetchChangesByUseCase
   );
 
   // Memoize the filtered changes to prevent infinite loops
   const changes = useMemo(
-    () => (featureId ? allChanges.filter((c) => c.featureId === featureId) : []),
-    [allChanges, featureId]
+    () => (useCaseId ? allChanges.filter((c) => c.useCaseId === useCaseId) : []),
+    [allChanges, useCaseId]
   );
 
   useEffect(() => {
-    if (featureId) {
-      fetchChangesByFeature(featureId);
+    if (useCaseId) {
+      fetchChangesByUseCase(useCaseId);
     }
-  }, [featureId, fetchChangesByFeature]);
+  }, [useCaseId, fetchChangesByUseCase]);
 
   return { changes, loading, error };
 }

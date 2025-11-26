@@ -1,4 +1,4 @@
-import type { Solution, Feature, Change, Requirement } from '../types';
+import type { Solution, UseCase, Change, Requirement } from '../types';
 
 /**
  * localStorage utilities for mock API persistence
@@ -67,7 +67,7 @@ export function clearAllStorage(): void {
     return;
   }
 
-  const keys = ['solutions', 'features', 'changes', 'requirements'];
+  const keys = ['solutions', 'useCases', 'changes', 'requirements'];
   keys.forEach((key) => {
     localStorage.removeItem(STORAGE_PREFIX + key);
   });
@@ -125,8 +125,8 @@ export function initializeMockData(): void {
     },
   ];
 
-  // Mock features
-  const mockFeatures: Feature[] = [
+  // Mock use cases
+  const mockUseCases: UseCase[] = [
     {
       id: 'feat-1',
       solutionId: 'sol-1',
@@ -157,7 +157,7 @@ export function initializeMockData(): void {
   const mockChanges: Change[] = [
     {
       id: 'change-1',
-      featureId: 'feat-1',
+      useCaseId: 'feat-1',
       name: 'Initial Authentication Implementation',
       description: 'Basic login and logout functionality',
       status: 'implemented',
@@ -167,7 +167,7 @@ export function initializeMockData(): void {
     },
     {
       id: 'change-2',
-      featureId: 'feat-1',
+      useCaseId: 'feat-1',
       name: 'Add Password Reset',
       description: 'Email-based password reset flow',
       status: 'in-design',
@@ -178,7 +178,7 @@ export function initializeMockData(): void {
     },
     {
       id: 'change-3',
-      featureId: 'feat-2',
+      useCaseId: 'feat-2',
       name: 'Profile Page UI',
       description: 'Initial profile page with view mode',
       status: 'draft',
@@ -221,7 +221,7 @@ export function initializeMockData(): void {
 
   // Save all mock data
   saveToStorage('solutions', mockSolutions);
-  saveToStorage('features', mockFeatures);
+  saveToStorage('useCases', mockUseCases);
   saveToStorage('changes', mockChanges);
   saveToStorage('requirements', mockRequirements);
 }

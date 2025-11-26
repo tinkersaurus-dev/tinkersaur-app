@@ -10,7 +10,7 @@ import { AppLayout, PageHeader, PageContent } from '~/core/components';
 import { Button, Input, InputNumber, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
-import { useSolution, useFeature, useChange, useRequirements, useRequirementCRUD } from '../hooks';
+import { useSolution, useUseCase, useChange, useRequirements, useRequirementCRUD } from '../hooks';
 
 const TYPE_COLORS: Record<RequirementType, string> = {
   functional: 'blue',
@@ -19,7 +19,7 @@ const TYPE_COLORS: Record<RequirementType, string> = {
 };
 
 export default function ChangeDetailPage() {
-  const { solutionId, featureId, changeId } = useParams();
+  const { solutionId, useCaseId, changeId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
 
@@ -35,12 +35,12 @@ export default function ChangeDetailPage() {
 
   // Use new hooks
   const { solution } = useSolution(solutionId);
-  const { feature } = useFeature(featureId);
+  const { useCase } = useUseCase(useCaseId);
   const { change } = useChange(changeId);
   const { requirements, loading } = useRequirements(changeId);
   const { handleCreate, handleUpdate, handleDelete } = useRequirementCRUD();
 
-  if (!solution || !feature || !change) {
+  if (!solution || !useCase || !change) {
     return (
       <AppLayout>
         <PageContent>
@@ -168,7 +168,7 @@ export default function ChangeDetailPage() {
                 title: <Link to={`/solutions/${solutionId}`}>{solution.name}</Link>,
               },
               {
-                title: <Link to={`/solutions/${solutionId}/features/${featureId}`}>{feature.name}</Link>,
+                title: <Link to={`/solutions/${solutionId}/use-cases/${useCaseId}`}>{useCase.name}</Link>,
               },
               {
                 title: change.name,

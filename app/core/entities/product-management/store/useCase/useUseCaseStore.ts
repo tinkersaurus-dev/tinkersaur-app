@@ -1,28 +1,28 @@
 import { create } from 'zustand';
-import { featureApi } from '../../api';
-import type { Feature, CreateFeatureDto } from '../../types';
+import { useCaseApi } from '../../api';
+import type { UseCase, CreateUseCaseDto } from '../../types';
 import { createEntityStore } from '../createEntityStore';
 import type { EntityStore } from '../createEntityStore';
 import { toast } from 'sonner';
 
 /**
- * Zustand store for managing Feature entities
+ * Zustand store for managing UseCase entities
  *
  * Provides CRUD operations and relationship queries.
- * When a feature is deleted, all associated changes and requirements are also deleted.
+ * When a use case is deleted, all associated changes and requirements are also deleted.
  */
-const baseStore = createEntityStore<Feature, CreateFeatureDto>(
-  featureApi,
-  'Feature'
+const baseStore = createEntityStore<UseCase, CreateUseCaseDto>(
+  useCaseApi,
+  'UseCase'
 );
 
 // Create a new store that wraps the base store and adds convenience methods
-export const useFeatureStore = create<EntityStore<Feature, CreateFeatureDto> & {
-  getFeaturesBySolutionId: (solutionId: string) => Feature[];
-  fetchFeaturesBySolution: (solutionId: string) => Promise<void>;
-  createFeature: (data: CreateFeatureDto) => Promise<Feature | null>;
-  updateFeature: (id: string, updates: Partial<Feature>) => Promise<Feature | null>;
-  deleteFeature: (id: string) => Promise<boolean>;
+export const useUseCaseStore = create<EntityStore<UseCase, CreateUseCaseDto> & {
+  getUseCasesBySolutionId: (solutionId: string) => UseCase[];
+  fetchUseCasesBySolution: (solutionId: string) => Promise<void>;
+  createUseCase: (data: CreateUseCaseDto) => Promise<UseCase | null>;
+  updateUseCase: (id: string, updates: Partial<UseCase>) => Promise<UseCase | null>;
+  deleteUseCase: (id: string) => Promise<boolean>;
 }>((_set, get) => ({
   // Proxy all base store state
   get entities() { return baseStore.getState().entities; },
@@ -38,13 +38,13 @@ export const useFeatureStore = create<EntityStore<Feature, CreateFeatureDto> & {
   reset: () => baseStore.getState().reset(),
 
   // Convenience method aliases
-  fetchFeaturesBySolution: (...args) => baseStore.getState().fetchAll(...args),
-  createFeature: (...args) => baseStore.getState().create(...args),
-  updateFeature: (...args) => baseStore.getState().update(...args),
+  fetchUseCasesBySolution: (...args) => baseStore.getState().fetchAll(...args),
+  createUseCase: (...args) => baseStore.getState().create(...args),
+  updateUseCase: (...args) => baseStore.getState().update(...args),
 
   // Relationship query method
-  getFeaturesBySolutionId: (solutionId: string): Feature[] => {
-    return baseStore.getState().entities.filter(f => f.solutionId === solutionId);
+  getUseCasesBySolutionId: (solutionId: string): UseCase[] => {
+    return baseStore.getState().entities.filter(u => u.solutionId === solutionId);
   },
 
   // Override delete method with cascade logic
@@ -59,8 +59,8 @@ export const useFeatureStore = create<EntityStore<Feature, CreateFeatureDto> & {
     baseStore.setState({ loading: true, error: null });
 
     try {
-      // Get all changes for this feature
-      const changes = changeStore.entities.filter(c => c.featureId === id);
+      // Get all changes for this use case
+      const changes = changeStore.entities.filter(c => c.useCaseId === id);
 
       // Delete all requirements for each change
       for (const change of changes) {
@@ -70,44 +70,44 @@ export const useFeatureStore = create<EntityStore<Feature, CreateFeatureDto> & {
         }
       }
 
-      // Delete all changes for this feature
+      // Delete all changes for this use case
       for (const change of changes) {
         await changeStore.delete(change.id);
       }
 
-      // Finally, delete the feature itself
-      const success = await featureApi.delete(id);
+      // Finally, delete the use case itself
+      const success = await useCaseApi.delete(id);
 
       if (success) {
         const currentEntities = baseStore.getState().entities;
         baseStore.setState({
-          entities: currentEntities.filter(f => f.id !== id),
+          entities: currentEntities.filter(u => u.id !== id),
           loading: false
         });
-        toast.success('Feature deleted successfully');
+        toast.success('Use case deleted successfully');
       } else {
         baseStore.setState({ loading: false });
-        toast.error('Failed to delete feature');
+        toast.error('Failed to delete use case');
       }
 
       return success;
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to delete feature');
+      const err = error instanceof Error ? error : new Error('Failed to delete use case');
       baseStore.setState({ error: err, loading: false });
-      toast.error('Failed to delete feature');
+      toast.error('Failed to delete use case');
       return false;
     }
   },
 
-  // deleteFeature alias
-  deleteFeature: async (id: string) => get().delete(id),
+  // deleteUseCase alias
+  deleteUseCase: async (id: string) => get().delete(id),
 }));
 
 // Subscribe to base store changes to keep our wrapper in sync
 baseStore.subscribe((state) => {
-  useFeatureStore.setState({
+  useUseCaseStore.setState({
     entities: state.entities,
     loading: state.loading,
     error: state.error,
-  } as Partial<ReturnType<typeof useFeatureStore.getState>>);
+  } as Partial<ReturnType<typeof useUseCaseStore.getState>>);
 });

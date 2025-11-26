@@ -10,22 +10,22 @@ const STORAGE_KEY = 'changes';
  */
 class ChangeApi {
   /**
-   * Get all changes for a feature
+   * Get all changes for a use case
    */
-  async listByFeature(featureId: string): Promise<Change[]> {
+  async listByUseCase(useCaseId: string): Promise<Change[]> {
     await simulateDelay();
     const changes = getFromStorage<Change>(STORAGE_KEY);
-    return changes.filter((c) => c.featureId === featureId);
+    return changes.filter((c) => c.useCaseId === useCaseId);
   }
 
   /**
-   * Alias for listByFeature to match generic store interface
+   * Alias for listByUseCase to match generic store interface
    */
-  async list(featureId?: string): Promise<Change[]> {
-    if (!featureId) {
+  async list(useCaseId?: string): Promise<Change[]> {
+    if (!useCaseId) {
       return [];
     }
-    return this.listByFeature(featureId);
+    return this.listByUseCase(useCaseId);
   }
 
   /**

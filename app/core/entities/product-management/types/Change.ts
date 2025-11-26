@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * Change domain model
- * Represents a versioned change to a feature
+ * Represents a versioned change to a use case
  */
 
 // Change status enum
@@ -12,7 +12,7 @@ export type ChangeStatus = z.infer<typeof ChangeStatusSchema>;
 // Zod schema for runtime validation
 export const ChangeSchema = z.object({
   id: z.string().uuid(),
-  featureId: z.string().uuid(),
+  useCaseId: z.string().uuid(),
   name: z.string().min(1, 'Change name is required').max(200),
   description: z.string().max(2000),
   status: ChangeStatusSchema,

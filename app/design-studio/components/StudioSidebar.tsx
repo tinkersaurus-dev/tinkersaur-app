@@ -16,6 +16,7 @@ import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-w
 import { useReferenceStore } from '~/core/entities/design-studio/store/reference/useReferenceStore';
 import { useDesignStudioCRUD } from '../hooks/useDesignStudioCRUD';
 import { CreateDiagramModal } from './CreateDiagramModal';
+import { useSolutionStore } from '~/core/entities/product-management/store/solution/useSolutionStore';
 
 interface StudioSidebarProps {
   solutionId: string;
@@ -24,6 +25,11 @@ interface StudioSidebarProps {
 export function StudioSidebar({ solutionId }: StudioSidebarProps) {
   // Use UI store for tab management only
   const { openTab } = useDesignStudioUIStore();
+
+  // Get solution name from solution store
+  const solutionName = useSolutionStore((state) =>
+    state.entities.find(s => s.id === solutionId)?.name
+  );
 
   // Get entity data from entity store - only need DesignWorks now
   const designWorks = useDesignWorkStore((state) => state.designWorks);
@@ -436,7 +442,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
 
   return (
     <div className='bg-[var(--bg-dark)]' style={{ padding: '8px', height: '100%', overflow: 'auto' }}>
-      <h3 className='text-[var(--text)]' style={{ marginBottom: '8px' }}>Product Name</h3>
+      <h3 className='text-[var(--text)]' style={{ marginBottom: '8px' }}>{solutionName || 'Product Name'}</h3>
 
       {/* Action bar */}
       <div style={{ marginBottom: '16px' }}>

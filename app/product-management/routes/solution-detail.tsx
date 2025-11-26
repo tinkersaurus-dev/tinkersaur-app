@@ -1,6 +1,6 @@
 /**
  * Solution Detail Page
- * Displays solution details and its features in a table
+ * Displays solution details and its use cases in a table
  */
 
 import { useState } from 'react';
@@ -10,14 +10,14 @@ import { useParams, Link, useNavigate } from 'react-router';
 import { AppLayout, PageHeader, PageContent } from '~/core/components';
 import { Button, Input, HStack, Breadcrumb, Table, Form, useForm, Modal } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
-import type { Feature } from '~/core/entities/product-management';
-import { useSolution, useFeatures, useFeatureCRUD } from '../hooks';
+import type { UseCase } from '~/core/entities/product-management';
+import { useSolution, useUseCases, useUseCaseCRUD } from '../hooks';
 
 export default function SolutionDetailPage() {
   const { solutionId } = useParams();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
+  const [editingUseCase, setEditingUseCase] = useState<UseCase | null>(null);
 
   const form = useForm<{
     name: string;
@@ -29,8 +29,8 @@ export default function SolutionDetailPage() {
 
   // Use new hooks
   const { solution } = useSolution(solutionId);
-  const { features, loading } = useFeatures(solutionId);
-  const { handleCreate, handleUpdate, handleDelete } = useFeatureCRUD();
+  const { useCases, loading } = useUseCases(solutionId);
+  const { handleCreate, handleUpdate, handleDelete } = useUseCaseCRUD();
 
   const handleOpenDesignStudio = () => {
     navigate(`/studio/${solutionId}`);
@@ -47,20 +47,20 @@ export default function SolutionDetailPage() {
   }
 
   const handleAdd = () => {
-    setEditingFeature(null);
+    setEditingUseCase(null);
     form.reset();
     setIsModalOpen(true);
   };
 
-  const handleEdit = (feature: Feature) => {
-    setEditingFeature(feature);
-    form.setValue('name', feature.name);
-    form.setValue('description', feature.description);
+  const handleEdit = (useCase: UseCase) => {
+    setEditingUseCase(useCase);
+    form.setValue('name', useCase.name);
+    form.setValue('description', useCase.description);
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = async (feature: Feature) => {
-    await handleDelete(feature.id);
+  const handleDeleteClick = async (useCase: UseCase) => {
+    await handleDelete(useCase.id);
   };
 
   const handleOk = async () => {
@@ -70,8 +70,8 @@ export default function SolutionDetailPage() {
 
       const values = form.getValues();
 
-      if (editingFeature) {
-        await handleUpdate(editingFeature.id, values);
+      if (editingUseCase) {
+        await handleUpdate(editingUseCase.id, values);
       } else {
         await handleCreate({
           solutionId: solutionId!,
@@ -81,7 +81,7 @@ export default function SolutionDetailPage() {
 
       setIsModalOpen(false);
       form.reset();
-      setEditingFeature(null);
+      setEditingUseCase(null);
     } catch (error) {
       console.error('Operation failed:', error);
     }
@@ -92,13 +92,13 @@ export default function SolutionDetailPage() {
     form.reset();
   };
 
-  const columns: TableColumn<Feature>[] = [
+  const columns: TableColumn<UseCase>[] = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
       render: (value, record) => (
-        <Link to={`/solutions/${solutionId}/features/${record.id}`} className="text-[var(--primary)] hover:underline">
+        <Link to={`/solutions/${solutionId}/use-cases/${record.id}`} className="text-[var(--primary)] hover:underline">
           {value as string}
         </Link>
       ),
@@ -132,7 +132,7 @@ export default function SolutionDetailPage() {
             icon={<FiTrash2 />}
             size="small"
             onClick={() => {
-              if (confirm('Are you sure you want to delete this feature? All related changes and requirements will also be deleted.')) {
+              if (confirm('Are you sure you want to delete this use case? All related changes and requirements will also be deleted.')) {
                 handleDeleteClick(record);
               }
             }}
@@ -164,7 +164,7 @@ export default function SolutionDetailPage() {
               Open Design Studio
             </Button>
             <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
-              Add Feature
+              Add Use Case
             </Button>
           </HStack>
         }
@@ -177,7 +177,7 @@ export default function SolutionDetailPage() {
 
         <Table
           columns={columns}
-          dataSource={features}
+          dataSource={useCases}
           rowKey="id"
           pagination={{ pageSize: 10 }}
           loading={loading}
@@ -185,26 +185,26 @@ export default function SolutionDetailPage() {
       </PageContent>
 
       <Modal
-        title={editingFeature ? 'Edit Feature' : 'Add Feature'}
+        title={editingUseCase ? 'Edit Use Case' : 'Add Use Case'}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
-        okText={editingFeature ? 'Update' : 'Create'}
+        okText={editingUseCase ? 'Update' : 'Create'}
       >
         <Form form={form} layout="vertical">
           <div className="space-y-4 mt-6">
             <Form.Item
               name="name"
-              label="Feature Name"
+              label="Use Case Name"
               required
               rules={{
-                required: 'Please enter a feature name',
+                required: 'Please enter a use case name',
               }}
             >
               {({ field, error }) => (
                 <Input
                   {...field}
-                  placeholder="Enter feature name"
+                  placeholder="Enter use case name"
                   error={!!error}
                 />
               )}
@@ -221,7 +221,7 @@ export default function SolutionDetailPage() {
               {({ field, error }) => (
                 <Input.TextArea
                   {...field}
-                  placeholder="Enter feature description"
+                  placeholder="Enter use case description"
                   rows={4}
                   error={!!error}
                 />
