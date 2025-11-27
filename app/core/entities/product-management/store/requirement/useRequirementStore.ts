@@ -17,8 +17,8 @@ const baseStore = createEntityStore<Requirement, CreateRequirementDto>(
 
 // Create a new store that wraps the base store and adds convenience methods
 export const useRequirementStore = create<EntityStore<Requirement, CreateRequirementDto> & {
-  getRequirementsByChangeId: (changeId: string) => Requirement[];
-  fetchRequirementsByChange: (changeId: string) => Promise<void>;
+  getRequirementsByUseCaseId: (useCaseId: string) => Requirement[];
+  fetchRequirementsByUseCase: (useCaseId: string) => Promise<void>;
   createRequirement: (data: CreateRequirementDto) => Promise<Requirement | null>;
   updateRequirement: (id: string, updates: Partial<Requirement>) => Promise<Requirement | null>;
   deleteRequirement: (id: string) => Promise<boolean>;
@@ -38,14 +38,14 @@ export const useRequirementStore = create<EntityStore<Requirement, CreateRequire
   reset: () => baseStore.getState().reset(),
 
   // Convenience method aliases
-  fetchRequirementsByChange: (...args) => baseStore.getState().fetchAll(...args),
+  fetchRequirementsByUseCase: (...args) => baseStore.getState().fetchAll(...args),
   createRequirement: (...args) => baseStore.getState().create(...args),
   updateRequirement: (...args) => baseStore.getState().update(...args),
   deleteRequirement: (...args) => baseStore.getState().delete(...args),
 
   // Relationship query method
-  getRequirementsByChangeId: (changeId: string): Requirement[] => {
-    return baseStore.getState().entities.filter(r => r.changeId === changeId);
+  getRequirementsByUseCaseId: (useCaseId: string): Requirement[] => {
+    return baseStore.getState().entities.filter(r => r.useCaseId === useCaseId);
   },
 }));
 

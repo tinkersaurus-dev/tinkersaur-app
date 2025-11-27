@@ -12,10 +12,6 @@ export { SolutionSchema, SolutionTypeSchema, CreateSolutionSchema, UpdateSolutio
 export type { UseCase, CreateUseCaseDto, UpdateUseCaseDto } from './UseCase';
 export { UseCaseSchema, CreateUseCaseSchema, UpdateUseCaseSchema } from './UseCase';
 
-// Change
-export type { Change, ChangeStatus, CreateChangeDto, UpdateChangeDto } from './Change';
-export { ChangeSchema, ChangeStatusSchema, CreateChangeSchema, UpdateChangeSchema } from './Change';
-
 // Requirement
 export type { Requirement, RequirementType, CreateRequirementDto, UpdateRequirementDto } from './Requirement';
 export {

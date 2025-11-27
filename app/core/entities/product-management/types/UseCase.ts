@@ -11,7 +11,6 @@ export const UseCaseSchema = z.object({
   solutionId: z.string().uuid(),
   name: z.string().min(1, 'Use case name is required').max(200),
   description: z.string().max(2000),
-  implementedChangeId: z.string().uuid().optional(), // Current "production" state
   createdAt: z.date(),
   updatedAt: z.date(),
 });

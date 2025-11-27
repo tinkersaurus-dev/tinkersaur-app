@@ -1,47 +1,43 @@
 /**
  * Use Case Detail Page
- * Displays use case details and its changes in a table
+ * Displays use case details and its requirements in a table
  */
 
 import { useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
-import { useNavigate, useParams, Link } from 'react-router';
+import { useParams, Link } from 'react-router';
 import { AppLayout, PageHeader, PageContent } from '~/core/components';
 import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
-import type { Change, ChangeStatus } from '~/core/entities/product-management';
-import { useSolution, useUseCase, useChanges, useChangeCRUD } from '../hooks';
+import type { Requirement, RequirementType } from '~/core/entities/product-management';
+import { useSolution, useUseCase, useRequirements, useRequirementCRUD } from '../hooks';
 
-const STATUS_COLORS: Record<ChangeStatus, string> = {
-  draft: 'default',
-  locked: 'blue',
-  'in-design': 'orange',
-  implemented: 'green',
+const TYPE_COLORS: Record<RequirementType, string> = {
+  functional: 'blue',
+  'non-functional': 'orange',
+  constraint: 'default',
 };
 
 export default function UseCaseDetailPage() {
-  const navigate = useNavigate();
   const { solutionId, useCaseId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingChange, setEditingChange] = useState<Change | null>(null);
+  const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
 
   const form = useForm<{
-    name: string;
-    description: string;
-    version: string;
-    status: ChangeStatus;
+    text: string;
+    type: RequirementType;
+    priority: number;
   }>({
-    name: '',
-    description: '',
-    version: '',
-    status: 'draft',
+    text: '',
+    type: 'functional',
+    priority: 1,
   });
 
-  // Use new hooks
+  // Use hooks
   const { solution } = useSolution(solutionId);
   const { useCase } = useUseCase(useCaseId);
-  const { changes, loading } = useChanges(useCaseId);
-  const { handleCreate, handleUpdate, handleDelete } = useChangeCRUD();
+  const { requirements, loading } = useRequirements(useCaseId);
+  const { handleCreate, handleUpdate, handleDelete } = useRequirementCRUD();
 
   if (!solution || !useCase) {
     return (
@@ -54,22 +50,21 @@ export default function UseCaseDetailPage() {
   }
 
   const handleAdd = () => {
-    setEditingChange(null);
+    setEditingRequirement(null);
     form.reset();
     setIsModalOpen(true);
   };
 
-  const handleEdit = (change: Change) => {
-    setEditingChange(change);
-    form.setValue('name', change.name);
-    form.setValue('description', change.description);
-    form.setValue('version', change.version);
-    form.setValue('status', change.status);
+  const handleEdit = (requirement: Requirement) => {
+    setEditingRequirement(requirement);
+    form.setValue('text', requirement.text);
+    form.setValue('type', requirement.type);
+    form.setValue('priority', requirement.priority);
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = async (change: Change) => {
-    await handleDelete(change.id);
+  const handleDeleteClick = async (requirement: Requirement) => {
+    await handleDelete(requirement.id);
   };
 
   const handleOk = async () => {
@@ -79,8 +74,8 @@ export default function UseCaseDetailPage() {
 
       const values = form.getValues();
 
-      if (editingChange) {
-        await handleUpdate(editingChange.id, values);
+      if (editingRequirement) {
+        await handleUpdate(editingRequirement.id, values);
       } else {
         await handleCreate({
           useCaseId: useCaseId!,
@@ -90,7 +85,7 @@ export default function UseCaseDetailPage() {
 
       setIsModalOpen(false);
       form.reset();
-      setEditingChange(null);
+      setEditingRequirement(null);
     } catch (error) {
       console.error('Operation failed:', error);
     }
@@ -101,39 +96,27 @@ export default function UseCaseDetailPage() {
     form.reset();
   };
 
-  const columns: TableColumn<Change>[] = [
+  const columns: TableColumn<Requirement>[] = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (value, record) => (
-        <a
-          onClick={() => navigate(`/solutions/${solutionId}/use-cases/${useCaseId}/changes/${record.id}`)}
-          className="text-[var(--primary)] hover:underline cursor-pointer"
-        >
-          {value as string}
-        </a>
-      ),
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 80,
+      render: (value) => <span style={{ fontWeight: 600 }}>{value as number}</span>,
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
+      title: 'Requirement',
+      dataIndex: 'text',
+      key: 'text',
     },
     {
-      title: 'Version',
-      dataIndex: 'version',
-      key: 'version',
-      width: 100,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      width: 120,
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      width: 140,
       render: (value: unknown) => {
-        const status = value as ChangeStatus;
-        return <Tag color={STATUS_COLORS[status] as 'default' | 'blue' | 'orange' | 'green'}>{status}</Tag>;
+        const type = value as RequirementType;
+        return <Tag color={TYPE_COLORS[type] as 'default' | 'blue' | 'orange'}>{type}</Tag>;
       },
     },
     {
@@ -160,7 +143,7 @@ export default function UseCaseDetailPage() {
             icon={<FiTrash2 />}
             size="small"
             onClick={() => {
-              if (confirm('Are you sure you want to delete this change? All related requirements will also be deleted.')) {
+              if (confirm('Are you sure you want to delete this requirement?')) {
                 handleDeleteClick(record);
               }
             }}
@@ -191,7 +174,7 @@ export default function UseCaseDetailPage() {
         }
         actions={
           <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
-            Add Change
+            Add Requirement
           </Button>
         }
       />
@@ -203,7 +186,7 @@ export default function UseCaseDetailPage() {
 
         <Table
           columns={columns}
-          dataSource={changes}
+          dataSource={requirements}
           rowKey="id"
           pagination={{ pageSize: 10 }}
           loading={loading}
@@ -211,43 +194,26 @@ export default function UseCaseDetailPage() {
       </PageContent>
 
       <Modal
-        title={editingChange ? 'Edit Change' : 'Add Change'}
+        title={editingRequirement ? 'Edit Requirement' : 'Add Requirement'}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
-        okText={editingChange ? 'Update' : 'Create'}
+        okText={editingRequirement ? 'Update' : 'Create'}
       >
         <Form form={form} layout="vertical">
           <div className="space-y-4 mt-6">
             <Form.Item
-              name="name"
-              label="Change Name"
+              name="text"
+              label="Requirement Text"
               required
               rules={{
-                required: 'Please enter a change name',
-              }}
-            >
-              {({ field, error }) => (
-                <Input
-                  {...field}
-                  placeholder="Enter change name"
-                  error={!!error}
-                />
-              )}
-            </Form.Item>
-
-            <Form.Item
-              name="description"
-              label="Description"
-              required
-              rules={{
-                required: 'Please enter a description',
+                required: 'Please enter the requirement text',
               }}
             >
               {({ field, error }) => (
                 <Input.TextArea
                   {...field}
-                  placeholder="Enter change description"
+                  placeholder="Enter requirement text"
                   rows={4}
                   error={!!error}
                 />
@@ -255,42 +221,45 @@ export default function UseCaseDetailPage() {
             </Form.Item>
 
             <Form.Item
-              name="version"
-              label="Version"
+              name="type"
+              label="Type"
               required
               rules={{
-                required: 'Please enter a version',
-              }}
-            >
-              {({ field, error }) => (
-                <Input
-                  {...field}
-                  placeholder="e.g., 1.0.0"
-                  error={!!error}
-                />
-              )}
-            </Form.Item>
-
-            <Form.Item
-              name="status"
-              label="Status"
-              required
-              rules={{
-                required: 'Please select a status',
+                required: 'Please select a type',
               }}
             >
               {({ field, error }) => (
                 <Select
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder="Select status"
+                  placeholder="Select type"
                   error={!!error}
                   options={[
-                    { value: 'draft', label: 'Draft' },
-                    { value: 'locked', label: 'Locked' },
-                    { value: 'in-design', label: 'In Design' },
-                    { value: 'implemented', label: 'Implemented' },
+                    { value: 'functional', label: 'Functional' },
+                    { value: 'non-functional', label: 'Non-Functional' },
+                    { value: 'constraint', label: 'Constraint' },
                   ]}
+                />
+              )}
+            </Form.Item>
+
+            <Form.Item
+              name="priority"
+              label="Priority"
+              required
+              rules={{
+                required: 'Please enter a priority',
+              }}
+            >
+              {({ field, error }) => (
+                <Input
+                  {...field}
+                  type="number"
+                  min={0}
+                  max={100}
+                  placeholder="Enter priority (0-100)"
+                  error={!!error}
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                 />
               )}
             </Form.Item>

@@ -6,27 +6,27 @@ import { useEffect, useMemo } from 'react';
 import { useRequirementStore } from '~/core/entities/product-management/store/requirement/useRequirementStore';
 
 /**
- * Hook to fetch and access requirements for a change
+ * Hook to fetch and access requirements for a use case
  */
-export function useRequirements(changeId: string | undefined) {
+export function useRequirements(useCaseId: string | undefined) {
   const allRequirements = useRequirementStore((state) => state.entities);
   const loading = useRequirementStore((state) => state.loading);
   const error = useRequirementStore((state) => state.error);
-  const fetchRequirementsByChange = useRequirementStore(
-    (state) => state.fetchRequirementsByChange
+  const fetchRequirementsByUseCase = useRequirementStore(
+    (state) => state.fetchRequirementsByUseCase
   );
 
   // Memoize the filtered requirements to prevent infinite loops
   const requirements = useMemo(
-    () => (changeId ? allRequirements.filter((r) => r.changeId === changeId) : []),
-    [allRequirements, changeId]
+    () => (useCaseId ? allRequirements.filter((r) => r.useCaseId === useCaseId) : []),
+    [allRequirements, useCaseId]
   );
 
   useEffect(() => {
-    if (changeId) {
-      fetchRequirementsByChange(changeId);
+    if (useCaseId) {
+      fetchRequirementsByUseCase(useCaseId);
     }
-  }, [changeId, fetchRequirementsByChange]);
+  }, [useCaseId, fetchRequirementsByUseCase]);
 
   return { requirements, loading, error };
 }

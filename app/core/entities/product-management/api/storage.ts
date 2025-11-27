@@ -1,4 +1,4 @@
-import type { Solution, UseCase, Change, Requirement } from '../types';
+import type { Solution, UseCase, Requirement } from '../types';
 
 /**
  * localStorage utilities for mock API persistence
@@ -67,7 +67,7 @@ export function clearAllStorage(): void {
     return;
   }
 
-  const keys = ['solutions', 'useCases', 'changes', 'requirements'];
+  const keys = ['solutions', 'useCases', 'requirements'];
   keys.forEach((key) => {
     localStorage.removeItem(STORAGE_PREFIX + key);
   });
@@ -153,46 +153,11 @@ export function initializeMockData(): void {
     },
   ];
 
-  // Mock changes
-  const mockChanges: Change[] = [
-    {
-      id: 'change-1',
-      useCaseId: 'feat-1',
-      name: 'Initial Authentication Implementation',
-      description: 'Basic login and logout functionality',
-      status: 'implemented',
-      version: '1.0.0',
-      createdAt: new Date('2024-01-20'),
-      updatedAt: new Date('2024-01-20'),
-    },
-    {
-      id: 'change-2',
-      useCaseId: 'feat-1',
-      name: 'Add Password Reset',
-      description: 'Email-based password reset flow',
-      status: 'in-design',
-      version: '1.1.0',
-      parentChangeId: 'change-1',
-      createdAt: new Date('2024-02-10'),
-      updatedAt: new Date('2024-02-10'),
-    },
-    {
-      id: 'change-3',
-      useCaseId: 'feat-2',
-      name: 'Profile Page UI',
-      description: 'Initial profile page with view mode',
-      status: 'draft',
-      version: '1.0.0',
-      createdAt: new Date('2024-02-15'),
-      updatedAt: new Date('2024-02-15'),
-    },
-  ];
-
   // Mock requirements
   const mockRequirements: Requirement[] = [
     {
       id: 'req-1',
-      changeId: 'change-2',
+      useCaseId: 'feat-1',
       text: 'User must be able to request a password reset via email',
       type: 'functional',
       priority: 1,
@@ -201,7 +166,7 @@ export function initializeMockData(): void {
     },
     {
       id: 'req-2',
-      changeId: 'change-2',
+      useCaseId: 'feat-1',
       text: 'Reset link must expire after 24 hours',
       type: 'functional',
       priority: 2,
@@ -210,7 +175,7 @@ export function initializeMockData(): void {
     },
     {
       id: 'req-3',
-      changeId: 'change-2',
+      useCaseId: 'feat-1',
       text: 'System must validate new password meets complexity requirements',
       type: 'constraint',
       priority: 1,
@@ -222,6 +187,5 @@ export function initializeMockData(): void {
   // Save all mock data
   saveToStorage('solutions', mockSolutions);
   saveToStorage('useCases', mockUseCases);
-  saveToStorage('changes', mockChanges);
   saveToStorage('requirements', mockRequirements);
 }

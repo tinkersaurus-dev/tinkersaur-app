@@ -9,7 +9,7 @@ import { toast } from 'sonner';
  * Zustand store for managing UseCase entities
  *
  * Provides CRUD operations and relationship queries.
- * When a use case is deleted, all associated changes and requirements are also deleted.
+ * When a use case is deleted, all associated requirements are also deleted.
  */
 const baseStore = createEntityStore<UseCase, CreateUseCaseDto>(
   useCaseApi,
@@ -50,29 +50,19 @@ export const useUseCaseStore = create<EntityStore<UseCase, CreateUseCaseDto> & {
   // Override delete method with cascade logic
   delete: async (id: string): Promise<boolean> => {
     // Import here to avoid circular dependency
-    const { useChangeStore } = await import('../change/useChangeStore');
     const { useRequirementStore } = await import('../requirement/useRequirementStore');
 
-    const changeStore = useChangeStore.getState();
     const requirementStore = useRequirementStore.getState();
 
     baseStore.setState({ loading: true, error: null });
 
     try {
-      // Get all changes for this use case
-      const changes = changeStore.entities.filter(c => c.useCaseId === id);
+      // Get all requirements for this use case
+      const requirements = requirementStore.entities.filter(r => r.useCaseId === id);
 
-      // Delete all requirements for each change
-      for (const change of changes) {
-        const requirements = requirementStore.entities.filter(r => r.changeId === change.id);
-        for (const requirement of requirements) {
-          await requirementStore.delete(requirement.id);
-        }
-      }
-
-      // Delete all changes for this use case
-      for (const change of changes) {
-        await changeStore.delete(change.id);
+      // Delete all requirements
+      for (const requirement of requirements) {
+        await requirementStore.delete(requirement.id);
       }
 
       // Finally, delete the use case itself

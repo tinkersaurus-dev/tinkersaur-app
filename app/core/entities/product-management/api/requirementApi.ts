@@ -10,22 +10,22 @@ const STORAGE_KEY = 'requirements';
  */
 class RequirementApi {
   /**
-   * Get all requirements for a change
+   * Get all requirements for a use case
    */
-  async listByChange(changeId: string): Promise<Requirement[]> {
+  async listByUseCase(useCaseId: string): Promise<Requirement[]> {
     await simulateDelay();
     const requirements = getFromStorage<Requirement>(STORAGE_KEY);
-    return requirements.filter((r) => r.changeId === changeId);
+    return requirements.filter((r) => r.useCaseId === useCaseId);
   }
 
   /**
-   * Alias for listByChange to match generic store interface
+   * Alias for listByUseCase to match generic store interface
    */
-  async list(changeId?: string): Promise<Requirement[]> {
-    if (!changeId) {
+  async list(useCaseId?: string): Promise<Requirement[]> {
+    if (!useCaseId) {
       return [];
     }
-    return this.listByChange(changeId);
+    return this.listByUseCase(useCaseId);
   }
 
   /**

@@ -7,15 +7,12 @@ import {
   useSolutionStore,
   type CreateSolutionDto,
   type CreateUseCaseDto,
-  type CreateChangeDto,
   type CreateRequirementDto,
   type Solution,
   type UseCase,
-  type Change,
   type Requirement,
 } from '~/core/entities/product-management';
 import { useUseCaseStore } from '~/core/entities/product-management/store/useCase/useUseCaseStore';
-import { useChangeStore } from '~/core/entities/product-management/store/change/useChangeStore';
 import { useRequirementStore } from '~/core/entities/product-management/store/requirement/useRequirementStore';
 
 /**
@@ -79,39 +76,6 @@ export function useUseCaseCRUD() {
       await deleteUseCase(id);
     },
     [deleteUseCase]
-  );
-
-  return { handleCreate, handleUpdate, handleDelete };
-}
-
-/**
- * Change CRUD operations
- */
-export function useChangeCRUD() {
-  const createChange = useChangeStore((state) => state.createChange);
-  const updateChange = useChangeStore((state) => state.updateChange);
-  const deleteChange = useChangeStore((state) => state.deleteChange);
-
-  const handleCreate = useCallback(
-    async (data: CreateChangeDto) => {
-      const change = await createChange(data);
-      return change;
-    },
-    [createChange]
-  );
-
-  const handleUpdate = useCallback(
-    async (id: string, updates: Partial<Change>) => {
-      await updateChange(id, updates);
-    },
-    [updateChange]
-  );
-
-  const handleDelete = useCallback(
-    async (id: string) => {
-      await deleteChange(id);
-    },
-    [deleteChange]
   );
 
   return { handleCreate, handleUpdate, handleDelete };

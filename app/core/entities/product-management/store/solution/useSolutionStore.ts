@@ -9,7 +9,7 @@ import { toast } from 'sonner';
  * Zustand store for managing Solution entities
  *
  * Provides CRUD operations and cascade delete functionality.
- * When a solution is deleted, all associated use cases, changes, and requirements are also deleted.
+ * When a solution is deleted, all associated use cases and requirements are also deleted.
  */
 const baseStore = createEntityStore<Solution, CreateSolutionDto>(
   solutionApi,
@@ -42,11 +42,9 @@ export const useSolutionStore = create<EntityStore<Solution, CreateSolutionDto> 
   delete: async (id: string): Promise<boolean> => {
     // Import stores lazily to avoid circular dependency
     const { useUseCaseStore } = await import('../useCase/useUseCaseStore');
-    const { useChangeStore } = await import('../change/useChangeStore');
     const { useRequirementStore } = await import('../requirement/useRequirementStore');
 
     const useCaseStore = useUseCaseStore.getState();
-    const changeStore = useChangeStore.getState();
     const requirementStore = useRequirementStore.getState();
 
     baseStore.setState({ loading: true, error: null });
@@ -55,22 +53,14 @@ export const useSolutionStore = create<EntityStore<Solution, CreateSolutionDto> 
       // Get all use cases for this solution
       const useCases = useCaseStore.entities.filter(u => u.solutionId === id);
 
-      // Cascade delete: Delete all use cases (which will cascade to changes and requirements)
+      // Cascade delete: Delete all use cases and their requirements
       for (const useCase of useCases) {
-        // Get all changes for this use case
-        const changes = changeStore.entities.filter(c => c.useCaseId === useCase.id);
+        // Get all requirements for this use case
+        const requirements = requirementStore.entities.filter(r => r.useCaseId === useCase.id);
 
-        // Delete all requirements for each change
-        for (const change of changes) {
-          const requirements = requirementStore.entities.filter(r => r.changeId === change.id);
-          for (const requirement of requirements) {
-            await requirementStore.delete(requirement.id);
-          }
-        }
-
-        // Delete all changes for this use case
-        for (const change of changes) {
-          await changeStore.delete(change.id);
+        // Delete all requirements
+        for (const requirement of requirements) {
+          await requirementStore.delete(requirement.id);
         }
 
         // Delete the use case

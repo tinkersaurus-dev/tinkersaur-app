@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * Requirement domain model
- * Represents a requirement within a change
+ * Represents a requirement within a use case
  */
 
 // Requirement type enum
@@ -12,7 +12,7 @@ export type RequirementType = z.infer<typeof RequirementTypeSchema>;
 // Zod schema for runtime validation
 export const RequirementSchema = z.object({
   id: z.string().uuid(),
-  changeId: z.string().uuid(),
+  useCaseId: z.string().uuid(),
   text: z.string().min(1, 'Requirement text is required').max(5000),
   type: RequirementTypeSchema,
   priority: z.number().int().min(0).max(100),

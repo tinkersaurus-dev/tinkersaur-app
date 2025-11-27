@@ -233,13 +233,15 @@ Input: You will receive compiled design documentation containing:
 
 Output Format: Generate user stories in this exact format:
 
-## User Story: [Descriptive Title]
+----
+
+### User Story: [Descriptive Title]
 
 **As a** [user role]
 **I want** [feature or capability]
 **So that** [benefit or business value]
 
-### Acceptance Criteria
+#### Acceptance Criteria
 
 Use EARS (Easy Approach to Requirements Syntax) format:
 1. **When** [trigger], **the system shall** [response].
@@ -247,8 +249,8 @@ Use EARS (Easy Approach to Requirements Syntax) format:
 3. **While** [state], **the system shall** [ongoing behavior].
 
 Rules:
-1. Break the design into logical, implementable user stories
-2. Each story should be independently testable
+1. Break the design into logical, implementable user stories, but ensure that a single feature is not broken up too much
+2. Each story should capture a full piece of functionality that is testable
 3. Acceptance criteria must be specific and measurable
 4. Use technical terms from the diagrams/documents
 5. Cover all major flows and edge cases from the diagrams

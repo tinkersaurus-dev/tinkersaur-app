@@ -39,7 +39,6 @@ export function initializeMockData(): void {
     {
       id: 'dw-1',
       solutionId: 'sol-1', // Customer Portal
-      changeId: 'change-2', // Associated with Password Reset change
       name: 'User Flows',
       version: '1.0.0',
       // Content metadata embedded for tree building
@@ -74,7 +73,6 @@ export function initializeMockData(): void {
     {
       id: 'dw-2',
       solutionId: 'sol-1',
-      changeId: 'change-2',
       name: 'Technical Design',
       version: '1.0.0',
       diagrams: [

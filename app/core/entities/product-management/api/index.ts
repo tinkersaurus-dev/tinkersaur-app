@@ -11,5 +11,4 @@ initializeMockData();
 // Export API clients
 export { solutionApi } from './solutionApi';
 export { useCaseApi } from './useCaseApi';
-export { changeApi } from './changeApi';
 export { requirementApi } from './requirementApi';
