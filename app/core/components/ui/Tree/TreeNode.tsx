@@ -25,6 +25,8 @@ interface TreeNodeProps {
   onToggleExpand: (key: string) => void;
   onDoubleClick?: (key: string) => void;
   onContextMenu?: (event: React.MouseEvent, key: string) => void;
+  onDragOver?: (event: React.DragEvent, key: string) => void;
+  onDrop?: (event: React.DragEvent, key: string) => void;
   isEditing?: boolean;
   editingValue?: string;
   onEditingChange?: (newValue: string) => void;
@@ -39,6 +41,8 @@ export function TreeNode({
   onToggleExpand,
   onDoubleClick,
   onContextMenu,
+  onDragOver,
+  onDrop,
   isEditing = false,
   editingValue,
   onEditingChange,
@@ -103,6 +107,20 @@ export function TreeNode({
     }
   };
 
+  const handleDragOver = (event: React.DragEvent) => {
+    if (onDragOver) {
+      onDragOver(event, node.key);
+    }
+  };
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (onDrop) {
+      onDrop(event, node.key);
+    }
+  };
+
   return (
     <div>
       {/* Node row */}
@@ -120,6 +138,8 @@ export function TreeNode({
         }}
         draggable={node.draggable}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
@@ -214,6 +234,8 @@ export function TreeNode({
               onToggleExpand={onToggleExpand}
               onDoubleClick={onDoubleClick}
               onContextMenu={onContextMenu}
+              onDragOver={onDragOver}
+              onDrop={onDrop}
               isEditing={false}
               editingValue={editingValue}
               onEditingChange={onEditingChange}

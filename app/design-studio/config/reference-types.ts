@@ -2,8 +2,12 @@ import type { CreateShapeDTO } from '~/core/entities/design-studio/types/Shape';
 import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 import type { ContentType } from '~/core/entities/design-studio/types/Reference';
 
+// =============================================================================
+// Canvas Reference Types (for BPMN diagrams - drop onto canvas to create shapes)
+// =============================================================================
+
 /**
- * Configuration for a reference type
+ * Configuration for a canvas-drop reference type (e.g., BPMN events)
  * Defines how a source shape can be used as a reference in other content
  */
 export interface ReferenceTypeConfig {
@@ -37,7 +41,7 @@ export interface ReferenceTypeConfig {
 }
 
 /**
- * Registry of all reference type configurations
+ * Registry of all canvas reference type configurations
  */
 const referenceTypeConfigs: ReferenceTypeConfig[] = [
   // BPMN: Throwing Event -> Catching Event
@@ -101,16 +105,6 @@ export function getReferenceConfigForShape(
 }
 
 /**
- * Check if a shape can be a reference source
- */
-export function canShapeBeReferenceSource(
-  shapeType: string,
-  shapeSubtype?: string
-): boolean {
-  return getReferenceConfigForShape(shapeType, shapeSubtype) !== null;
-}
-
-/**
  * Check if a reference can be dropped into specific content
  */
 export function canReferenceBeDroppedInContent(
@@ -136,8 +130,96 @@ export function canReferenceBeDroppedInContent(
 }
 
 /**
- * Get all reference configs
+ * Get all canvas reference configs
  */
 export function getAllReferenceConfigs(): ReferenceTypeConfig[] {
   return referenceTypeConfigs;
+}
+
+// =============================================================================
+// Folder Reference Types (for Class diagrams - drop onto folders to create documents)
+// =============================================================================
+
+/**
+ * Configuration for a folder-drop reference type (e.g., Class, Enumeration)
+ * These references are dropped onto folders to create documents
+ */
+export interface FolderReferenceTypeConfig {
+  /** Unique identifier for this reference type */
+  id: string;
+
+  /** The shape type that can be a reference source (e.g., 'class', 'enumeration') */
+  sourceShapeType: string;
+
+  /** The shape subtype that can be a reference source (optional) */
+  sourceShapeSubtype?: string;
+}
+
+/**
+ * Registry of folder reference type configurations
+ */
+const folderReferenceTypeConfigs: FolderReferenceTypeConfig[] = [
+  // Class diagram: Class -> Document
+  {
+    id: 'class-to-document',
+    sourceShapeType: 'class',
+  },
+  // Class diagram: Enumeration -> Document
+  {
+    id: 'enumeration-to-document',
+    sourceShapeType: 'enumeration',
+  },
+];
+
+/**
+ * Get folder reference config for a shape type/subtype
+ */
+export function getFolderReferenceConfigForShape(
+  shapeType: string,
+  shapeSubtype?: string
+): FolderReferenceTypeConfig | null {
+  return (
+    folderReferenceTypeConfigs.find(
+      (config) =>
+        config.sourceShapeType === shapeType &&
+        (config.sourceShapeSubtype === undefined ||
+          config.sourceShapeSubtype === shapeSubtype)
+    ) || null
+  );
+}
+
+/**
+ * Check if a shape can be a folder reference source
+ */
+export function canShapeBeFolderReferenceSource(
+  shapeType: string,
+  shapeSubtype?: string
+): boolean {
+  return getFolderReferenceConfigForShape(shapeType, shapeSubtype) !== null;
+}
+
+/**
+ * Get all folder reference configs
+ */
+export function getAllFolderReferenceConfigs(): FolderReferenceTypeConfig[] {
+  return folderReferenceTypeConfigs;
+}
+
+// =============================================================================
+// Combined Reference Source Check
+// =============================================================================
+
+/**
+ * Check if a shape can be a reference source (either canvas or folder)
+ */
+export function canShapeBeReferenceSource(
+  shapeType: string,
+  shapeSubtype?: string
+): boolean {
+  // Check canvas reference configs (BPMN events)
+  if (getReferenceConfigForShape(shapeType, shapeSubtype) !== null) {
+    return true;
+  }
+  // Check folder reference configs (Class/Enumeration)
+  return getFolderReferenceConfigForShape(shapeType, shapeSubtype) !== null;
 }

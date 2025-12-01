@@ -13,6 +13,12 @@ export const ReferenceTypeSchema = z.enum(['link']);
 export type ReferenceType = z.infer<typeof ReferenceTypeSchema>;
 
 /**
+ * Drop target types for references
+ */
+export const DropTargetSchema = z.enum(['canvas', 'folder']);
+export type DropTarget = z.infer<typeof DropTargetSchema>;
+
+/**
  * Full Reference entity
  * Represents a reusable reference that can be dragged into other content
  */
@@ -28,6 +34,7 @@ export const ReferenceSchema = z.object({
       sourceShapeType: z.string(),
       sourceShapeSubtype: z.string().optional(),
       diagramType: z.string().optional(), // For diagram references
+      dropTarget: DropTargetSchema.optional(), // 'canvas' for BPMN, 'folder' for Class
     })
     .optional(),
   createdAt: z.date(),

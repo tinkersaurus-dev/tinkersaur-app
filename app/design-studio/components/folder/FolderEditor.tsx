@@ -13,6 +13,9 @@ import { Tabs } from '~/core/components/ui';
 import { Button } from '~/core/components/ui/Button';
 import { generateUserStories } from '../../lib/llm/user-stories-generator-api';
 import { generateUserDocs } from '../../lib/llm/user-docs-generator-api';
+import { UserStoriesPanel } from './UserStoriesPanel';
+import type { UserStory } from '../../lib/llm/types';
+import { userStoriesToMarkdown } from '../../lib/llm/types';
 
 export interface FolderEditorProps {
   content: string;
@@ -36,7 +39,7 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
   // User stories generation state
-  const [userStories, setUserStories] = useState<string>('');
+  const [userStories, setUserStories] = useState<UserStory[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
@@ -66,9 +69,14 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
   };
 
   const handleCopyUserStories = async () => {
-    if (userStories) {
-      await navigator.clipboard.writeText(userStories);
+    if (userStories.length > 0) {
+      const markdown = userStoriesToMarkdown(userStories);
+      await navigator.clipboard.writeText(markdown);
     }
+  };
+
+  const handleStoriesChange = (newStories: UserStory[]) => {
+    setUserStories(newStories);
   };
 
   const handleGenerateUserDocs = async () => {
@@ -115,14 +123,14 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               size="small"
               icon={<LuCopy />}
               onClick={handleCopyUserStories}
-              disabled={!userStories}
+              disabled={userStories.length === 0}
             >
               Copy
             </Button>
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-auto bg-[var(--bg-light)]">
+          <div className="flex-1 overflow-hidden bg-[var(--bg-light)]">
             {isGenerating ? (
               <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
                 <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
@@ -132,7 +140,57 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               <div className="p-4 text-[var(--danger)]">
                 <strong>Error:</strong> {generateError}
               </div>
-            ) : userStories ? (
+            ) : (
+              <UserStoriesPanel
+                initialStories={userStories}
+                folderContent={content}
+                onStoriesChange={handleStoriesChange}
+              />
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'user-documentation',
+      label: 'User Documentation',
+      children: (
+        <div className="h-full flex flex-col overflow-hidden bg-[var(--bg)]">
+          {/* Button Group */}
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)] bg-[var(--surface)]">
+            <Button
+              variant="primary"
+              size="small"
+              icon={<LuSparkles />}
+              onClick={handleGenerateUserDocs}
+              loading={isGeneratingDocs}
+              disabled={isGeneratingDocs || !content}
+            >
+              Generate
+            </Button>
+            <Button
+              variant="default"
+              size="small"
+              icon={<LuCopy />}
+              onClick={handleCopyUserDocs}
+              disabled={!userDocs}
+            >
+              Copy
+            </Button>
+          </div>
+
+          {/* Content Area */}
+          <div className="flex-1 overflow-auto bg-[var(--bg-light)]">
+            {isGeneratingDocs ? (
+              <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
+                <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                Generating user documentation...
+              </div>
+            ) : docsError ? (
+              <div className="p-4 text-[var(--danger)]">
+                <strong>Error:</strong> {docsError}
+              </div>
+            ) : userDocs ? (
               <div className="p-4 text-[var(--text)] markdown-preview text-xs">
                 <style>{`
                   .markdown-preview {
@@ -243,70 +301,9 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
                   }
                 `}</style>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {userStories}
+                  {userDocs}
                 </ReactMarkdown>
               </div>
-            ) : (
-              <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
-                Click "Generate" to create user stories from the folder content.
-              </div>
-            )}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: 'user-documentation',
-      label: 'User Documentation',
-      children: (
-        <div className="h-full flex flex-col overflow-hidden bg-[var(--bg)]">
-          {/* Button Group */}
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)] bg-[var(--surface)]">
-            <Button
-              variant="primary"
-              size="small"
-              icon={<LuSparkles />}
-              onClick={handleGenerateUserDocs}
-              loading={isGeneratingDocs}
-              disabled={isGeneratingDocs || !content}
-            >
-              Generate
-            </Button>
-            <Button
-              variant="default"
-              size="small"
-              icon={<LuCopy />}
-              onClick={handleCopyUserDocs}
-              disabled={!userDocs}
-            >
-              Copy
-            </Button>
-          </div>
-
-          {/* Content Area */}
-          <div className="flex-1 overflow-auto">
-            {isGeneratingDocs ? (
-              <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
-                <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                Generating user documentation...
-              </div>
-            ) : docsError ? (
-              <div className="p-4 text-[var(--danger)]">
-                <strong>Error:</strong> {docsError}
-              </div>
-            ) : userDocs ? (
-              <pre
-                className="p-4 m-0 bg-[var(--bg-light)] text-[var(--text)] h-full"
-                style={{
-                  fontFamily: 'monospace',
-                  fontSize: '12px',
-                  lineHeight: '1.5',
-                  whiteSpace: 'pre-wrap',
-                  wordWrap: 'break-word',
-                }}
-              >
-                {userDocs}
-              </pre>
             ) : (
               <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
                 Click "Generate" to create user documentation from the folder content.

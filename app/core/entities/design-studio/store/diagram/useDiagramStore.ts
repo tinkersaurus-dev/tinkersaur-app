@@ -5,7 +5,10 @@ import { diagramApi } from '../../api';
 import { commandManager } from '~/core/commands/CommandManager';
 import { CommandFactory } from '~/core/commands/CommandFactory';
 import { canvasInstanceRegistry } from '~/design-studio/store/content/canvasInstanceRegistry';
-import { canShapeBeReferenceSource } from '~/design-studio/config/reference-types';
+import {
+  canShapeBeReferenceSource,
+  canShapeBeFolderReferenceSource,
+} from '~/design-studio/config/reference-types';
 
 interface DiagramStore {
   // Command factory for centralized command creation
@@ -338,6 +341,10 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           const { useReferenceStore } = await import('../reference/useReferenceStore');
           const referenceStore = useReferenceStore.getState();
 
+          // Determine drop target based on reference type
+          const isFolderReference = canShapeBeFolderReferenceSource(shape.type, shape.subtype);
+          const dropTarget = isFolderReference ? 'folder' : 'canvas';
+
           console.warn('[References] Creating reference for shape:', shapeId);
           const createdRef = await referenceStore.createReference({
             name: shape.label || shape.type,
@@ -349,6 +356,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
               sourceShapeType: shape.type,
               sourceShapeSubtype: shape.subtype,
               diagramType: diagram.type,
+              dropTarget,
             },
           });
           console.warn('[References] Created reference:', createdRef);

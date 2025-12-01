@@ -1,8 +1,12 @@
 import type { Command } from '../../command.types';
 import type { CreateShapeDTO, Shape } from '../../../entities/design-studio/types/Shape';
 import type { CreateConnectorDTO, Connector } from '../../../entities/design-studio/types/Connector';
-import type { Diagram } from '../../../entities/design-studio/types';
+import type { Diagram, DiagramType } from '../../../entities/design-studio/types';
 import type { LLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
+import {
+  canShapeBeReferenceSource,
+  canShapeBeFolderReferenceSource,
+} from '../../../../design-studio/config/reference-types';
 
 /**
  * Command to apply a preview shape by converting it to real shapes and connectors
@@ -15,6 +19,7 @@ export class ApplyPreviewCommand implements Command {
   public readonly description: string;
   private createdShapeIds: string[] = [];
   private createdConnectorIds: string[] = [];
+  private createdReferenceIds: string[] = [];
   private previewShapeData: CreateShapeDTO | null = null;
 
   constructor(
@@ -29,7 +34,8 @@ export class ApplyPreviewCommand implements Command {
     private readonly addShapesBatchFn?: (diagramId: string, shapes: CreateShapeDTO[]) => Promise<Diagram>,
     private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>,
     private readonly deleteShapesBatchFn?: (diagramId: string, shapeIds: string[]) => Promise<Diagram | null>,
-    private readonly deleteConnectorsBatchFn?: (diagramId: string, connectorIds: string[]) => Promise<Diagram | null>
+    private readonly deleteConnectorsBatchFn?: (diagramId: string, connectorIds: string[]) => Promise<Diagram | null>,
+    private readonly diagramType?: DiagramType
   ) {
     this.description = 'Apply diagram';
   }
@@ -203,12 +209,85 @@ export class ApplyPreviewCommand implements Command {
         }
       }
     }
+
+    // Step 8: Create references for shapes that are reference sources
+    // This is needed because batch shape creation bypasses the normal addShape flow
+    await this.createReferencesForShapes(shapeDTOs, this.createdShapeIds);
+  }
+
+  /**
+   * Create references for shapes that should be reference sources
+   * This handles class/enumeration shapes that need folder references
+   */
+  private async createReferencesForShapes(
+    shapeDTOs: CreateShapeDTO[],
+    shapeIds: string[]
+  ): Promise<void> {
+    // Only process if we have shapes and diagram type
+    if (shapeDTOs.length === 0 || shapeIds.length === 0) {
+      return;
+    }
+
+    // Dynamically import the reference store to avoid circular dependencies
+    const { useReferenceStore } = await import(
+      '../../../entities/design-studio/store/reference/useReferenceStore'
+    );
+    const referenceStore = useReferenceStore.getState();
+
+    // Process each shape
+    for (let i = 0; i < shapeDTOs.length; i++) {
+      const shapeDTO = shapeDTOs[i];
+      const shapeId = shapeIds[i];
+
+      // Check if this shape should create a reference
+      const isReferenceSource = canShapeBeReferenceSource(shapeDTO.type, shapeDTO.subtype);
+
+      if (isReferenceSource) {
+        // Determine drop target based on reference type
+        const isFolderReference = canShapeBeFolderReferenceSource(shapeDTO.type, shapeDTO.subtype);
+        const dropTarget = isFolderReference ? 'folder' : 'canvas';
+
+        try {
+          const createdRef = await referenceStore.createReference({
+            name: shapeDTO.label || shapeDTO.type,
+            contentType: 'diagram',
+            contentId: this.diagramId,
+            sourceShapeId: shapeId,
+            referenceType: 'link',
+            metadata: {
+              sourceShapeType: shapeDTO.type,
+              sourceShapeSubtype: shapeDTO.subtype,
+              diagramType: this.diagramType,
+              dropTarget,
+            },
+          });
+          this.createdReferenceIds.push(createdRef.id);
+        } catch (error) {
+          console.error('[ApplyPreviewCommand] Failed to create reference for shape:', shapeId, error);
+        }
+      }
+    }
   }
 
   async undo(): Promise<void> {
     if (!this.previewShapeData) {
       console.warn('Cannot undo ApplyPreviewCommand: missing preview shape data');
       return;
+    }
+
+    // Delete all created references first
+    if (this.createdReferenceIds.length > 0) {
+      try {
+        const { useReferenceStore } = await import(
+          '../../../entities/design-studio/store/reference/useReferenceStore'
+        );
+        const referenceStore = useReferenceStore.getState();
+        for (const refId of this.createdReferenceIds) {
+          await referenceStore.deleteReference(refId);
+        }
+      } catch (error) {
+        console.error('[ApplyPreviewCommand] Failed to delete references during undo:', error);
+      }
     }
 
     // Delete all created connectors (in reverse order)
@@ -227,6 +306,7 @@ export class ApplyPreviewCommand implements Command {
     // Clear the arrays
     this.createdShapeIds = [];
     this.createdConnectorIds = [];
+    this.createdReferenceIds = [];
   }
 
   /**

@@ -1,7 +1,7 @@
 /**
- * React Router API Route for generating user stories using Amazon Bedrock
- * Using AWS SDK with bearer token authentication
- * Returns structured JSON for interactive editing
+ * React Router API Route for splitting a user story using Amazon Bedrock
+ * Uses AWS SDK with bearer token authentication
+ * Returns multiple stories as structured JSON
  */
 
 import type { ActionFunctionArgs } from 'react-router';
@@ -12,7 +12,7 @@ import {
   type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
 import { logger } from '~/core/utils/logger';
-import type { UserStoryResponse } from '~/design-studio/lib/llm/types';
+import type { UserStory, UserStoryResponse } from '~/design-studio/lib/llm/types';
 
 // Type definitions for Bedrock API responses
 interface BedrockMessageContent {
@@ -58,33 +58,41 @@ const client = new BedrockRuntimeClient({
 });
 
 export async function action({ request }: ActionFunctionArgs) {
-  logger.apiRequest(request.method, '/api/generate-user-stories');
+  logger.apiRequest(request.method, '/api/user-stories/split');
 
   try {
     const body = await request.json();
-    const { content } = body;
+    const { story, instructions } = body as {
+      story: UserStory;
+      instructions?: string;
+    };
 
     logger.debug('Request received', {
-      contentLength: content?.length,
+      storyId: story?.id,
+      hasInstructions: !!instructions,
     });
 
     // Validate input
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      logger.warn('Validation error: empty content');
+    if (!story || !story.title || !story.story) {
+      logger.warn('Validation error: invalid story structure');
       return Response.json(
         {
           success: false,
-          error: 'Content is required and must be a non-empty string',
+          error: 'A valid story is required for splitting',
         },
         { status: 400 }
       );
     }
 
-    // Get structured user stories system prompt
-    const systemPrompt = getSystemPrompt('user-stories-structured');
+    // Get split system prompt
+    const systemPrompt = getSystemPrompt('user-stories-split');
 
     // Prepare the request for the model
-    const userMessage = `Generate user stories with acceptance criteria as structured JSON from the following design documentation:\n\n${content}`;
+    let userMessage = `Split the following user story into multiple smaller, more focused stories:\n\n${JSON.stringify(story, null, 2)}`;
+
+    if (instructions) {
+      userMessage += `\n\nAdditional instructions: ${instructions}`;
+    }
 
     const bedrockRequest = {
       system: [{ text: systemPrompt }],
@@ -95,7 +103,7 @@ export async function action({ request }: ActionFunctionArgs) {
         },
       ],
       inferenceConfig: {
-        maxTokens: 8192, // Higher limit for user stories output
+        maxTokens: 8192,
         temperature: 0.7,
         topP: 0.9,
       },
@@ -115,7 +123,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     // Call Bedrock with timeout
-    logger.info('Sending request to Bedrock for user stories generation');
+    logger.info('Sending request to Bedrock for story splitting');
 
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
@@ -137,13 +145,7 @@ export async function action({ request }: ActionFunctionArgs) {
       new TextDecoder().decode(response.body)
     );
 
-    logger.debug('Response body parsed', {
-      hasChoices: !!responseBody.choices,
-      hasContent: !!responseBody.content,
-      hasOutput: !!responseBody.output,
-    });
-
-    // Extract generated user stories from response
+    // Extract generated stories from response
     const generatedStories =
       responseBody.choices?.[0]?.message?.content ||
       responseBody.content?.[0]?.text ||
@@ -152,24 +154,20 @@ export async function action({ request }: ActionFunctionArgs) {
       responseBody.output?.message?.content?.[0]?.text ||
       '';
 
-    logger.debug('Extracted user stories', { length: generatedStories.length });
+    logger.debug('Extracted split stories', { length: generatedStories.length });
 
     if (!generatedStories) {
-      logger.error('Failed to extract user stories from response', undefined, {
-        hasChoices: !!responseBody.choices,
-        hasContent: !!responseBody.content,
-        hasOutput: !!responseBody.output,
-      });
+      logger.error('Failed to extract split stories from response');
       return Response.json(
         {
           success: false,
-          error: 'No user stories generated from the model. Check server logs for details.',
+          error: 'No stories generated from the model.',
         },
         { status: 500 }
       );
     }
 
-    // Clean up the generated content and parse JSON
+    // Clean up and parse JSON
     let cleanedStories = generatedStories.trim();
 
     // Remove markdown code blocks if present
@@ -188,42 +186,43 @@ export async function action({ request }: ActionFunctionArgs) {
     try {
       parsedStories = JSON.parse(cleanedStories);
     } catch (parseError) {
-      logger.error('Failed to parse user stories JSON', parseError, {
+      logger.error('Failed to parse split stories JSON', parseError, {
         rawResponse: cleanedStories.substring(0, 500),
       });
       return Response.json(
         {
           success: false,
-          error: 'Failed to parse user stories response as JSON',
+          error: 'Failed to parse split stories response as JSON',
         },
         { status: 500 }
       );
     }
 
     // Validate the structure
-    if (!parsedStories.stories || !Array.isArray(parsedStories.stories)) {
-      logger.error('Invalid user stories structure', undefined, {
+    if (!parsedStories.stories || !Array.isArray(parsedStories.stories) || parsedStories.stories.length === 0) {
+      logger.error('Invalid split stories structure', undefined, {
         hasStories: !!parsedStories.stories,
         isArray: Array.isArray(parsedStories.stories),
+        count: parsedStories.stories?.length,
       });
       return Response.json(
         {
           success: false,
-          error: 'Invalid user stories structure in response',
+          error: 'Invalid split stories structure in response',
         },
         { status: 500 }
       );
     }
 
-    logger.info('Successfully generated user stories', {
-      count: parsedStories.stories.length,
+    logger.info('Successfully split user story', {
+      resultCount: parsedStories.stories.length,
     });
     return Response.json({
       success: true,
       stories: parsedStories.stories,
     });
   } catch (error) {
-    logger.apiError(request.method, '/api/generate-user-stories', error);
+    logger.apiError(request.method, '/api/user-stories/split', error);
 
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';
@@ -231,7 +230,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json(
       {
         success: false,
-        error: `Failed to generate user stories: ${errorMessage}`,
+        error: `Failed to split user story: ${errorMessage}`,
       },
       { status: 500 }
     );

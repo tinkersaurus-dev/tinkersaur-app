@@ -1,7 +1,7 @@
 /**
- * React Router API Route for generating user stories using Amazon Bedrock
- * Using AWS SDK with bearer token authentication
- * Returns structured JSON for interactive editing
+ * React Router API Route for combining user stories using Amazon Bedrock
+ * Uses AWS SDK with bearer token authentication
+ * Returns a single combined story as structured JSON
  */
 
 import type { ActionFunctionArgs } from 'react-router';
@@ -12,7 +12,7 @@ import {
   type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
 import { logger } from '~/core/utils/logger';
-import type { UserStoryResponse } from '~/design-studio/lib/llm/types';
+import type { UserStory, UserStoryResponse } from '~/design-studio/lib/llm/types';
 
 // Type definitions for Bedrock API responses
 interface BedrockMessageContent {
@@ -58,33 +58,41 @@ const client = new BedrockRuntimeClient({
 });
 
 export async function action({ request }: ActionFunctionArgs) {
-  logger.apiRequest(request.method, '/api/generate-user-stories');
+  logger.apiRequest(request.method, '/api/user-stories/combine');
 
   try {
     const body = await request.json();
-    const { content } = body;
+    const { stories, instructions } = body as {
+      stories: UserStory[];
+      instructions?: string;
+    };
 
     logger.debug('Request received', {
-      contentLength: content?.length,
+      storyCount: stories?.length,
+      hasInstructions: !!instructions,
     });
 
     // Validate input
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      logger.warn('Validation error: empty content');
+    if (!stories || !Array.isArray(stories) || stories.length < 2) {
+      logger.warn('Validation error: need at least 2 stories');
       return Response.json(
         {
           success: false,
-          error: 'Content is required and must be a non-empty string',
+          error: 'At least 2 stories are required for combining',
         },
         { status: 400 }
       );
     }
 
-    // Get structured user stories system prompt
-    const systemPrompt = getSystemPrompt('user-stories-structured');
+    // Get combine system prompt
+    const systemPrompt = getSystemPrompt('user-stories-combine');
 
     // Prepare the request for the model
-    const userMessage = `Generate user stories with acceptance criteria as structured JSON from the following design documentation:\n\n${content}`;
+    let userMessage = `Combine the following user stories into a single, cohesive user story:\n\n${JSON.stringify(stories, null, 2)}`;
+
+    if (instructions) {
+      userMessage += `\n\nAdditional instructions: ${instructions}`;
+    }
 
     const bedrockRequest = {
       system: [{ text: systemPrompt }],
@@ -95,7 +103,7 @@ export async function action({ request }: ActionFunctionArgs) {
         },
       ],
       inferenceConfig: {
-        maxTokens: 8192, // Higher limit for user stories output
+        maxTokens: 4096,
         temperature: 0.7,
         topP: 0.9,
       },
@@ -115,7 +123,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     // Call Bedrock with timeout
-    logger.info('Sending request to Bedrock for user stories generation');
+    logger.info('Sending request to Bedrock for story combination');
 
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
@@ -137,14 +145,8 @@ export async function action({ request }: ActionFunctionArgs) {
       new TextDecoder().decode(response.body)
     );
 
-    logger.debug('Response body parsed', {
-      hasChoices: !!responseBody.choices,
-      hasContent: !!responseBody.content,
-      hasOutput: !!responseBody.output,
-    });
-
-    // Extract generated user stories from response
-    const generatedStories =
+    // Extract generated story from response
+    const generatedStory =
       responseBody.choices?.[0]?.message?.content ||
       responseBody.content?.[0]?.text ||
       responseBody.output?.text ||
@@ -152,78 +154,72 @@ export async function action({ request }: ActionFunctionArgs) {
       responseBody.output?.message?.content?.[0]?.text ||
       '';
 
-    logger.debug('Extracted user stories', { length: generatedStories.length });
+    logger.debug('Extracted combined story', { length: generatedStory.length });
 
-    if (!generatedStories) {
-      logger.error('Failed to extract user stories from response', undefined, {
-        hasChoices: !!responseBody.choices,
-        hasContent: !!responseBody.content,
-        hasOutput: !!responseBody.output,
-      });
+    if (!generatedStory) {
+      logger.error('Failed to extract combined story from response');
       return Response.json(
         {
           success: false,
-          error: 'No user stories generated from the model. Check server logs for details.',
+          error: 'No combined story generated from the model.',
         },
         { status: 500 }
       );
     }
 
-    // Clean up the generated content and parse JSON
-    let cleanedStories = generatedStories.trim();
+    // Clean up and parse JSON
+    let cleanedStory = generatedStory.trim();
 
     // Remove markdown code blocks if present
-    if (cleanedStories.startsWith('```json')) {
-      cleanedStories = cleanedStories.slice(7);
-    } else if (cleanedStories.startsWith('```')) {
-      cleanedStories = cleanedStories.slice(3);
+    if (cleanedStory.startsWith('```json')) {
+      cleanedStory = cleanedStory.slice(7);
+    } else if (cleanedStory.startsWith('```')) {
+      cleanedStory = cleanedStory.slice(3);
     }
-    if (cleanedStories.endsWith('```')) {
-      cleanedStories = cleanedStories.slice(0, -3);
+    if (cleanedStory.endsWith('```')) {
+      cleanedStory = cleanedStory.slice(0, -3);
     }
-    cleanedStories = cleanedStories.trim();
+    cleanedStory = cleanedStory.trim();
 
     // Parse the JSON response
-    let parsedStories: { stories: UserStoryResponse[] };
+    let parsedStory: UserStoryResponse;
     try {
-      parsedStories = JSON.parse(cleanedStories);
+      parsedStory = JSON.parse(cleanedStory);
     } catch (parseError) {
-      logger.error('Failed to parse user stories JSON', parseError, {
-        rawResponse: cleanedStories.substring(0, 500),
+      logger.error('Failed to parse combined story JSON', parseError, {
+        rawResponse: cleanedStory.substring(0, 500),
       });
       return Response.json(
         {
           success: false,
-          error: 'Failed to parse user stories response as JSON',
+          error: 'Failed to parse combined story response as JSON',
         },
         { status: 500 }
       );
     }
 
     // Validate the structure
-    if (!parsedStories.stories || !Array.isArray(parsedStories.stories)) {
-      logger.error('Invalid user stories structure', undefined, {
-        hasStories: !!parsedStories.stories,
-        isArray: Array.isArray(parsedStories.stories),
+    if (!parsedStory.title || !parsedStory.story) {
+      logger.error('Invalid combined story structure', undefined, {
+        hasTitle: !!parsedStory.title,
+        hasStory: !!parsedStory.story,
       });
       return Response.json(
         {
           success: false,
-          error: 'Invalid user stories structure in response',
+          error: 'Invalid combined story structure in response',
         },
         { status: 500 }
       );
     }
 
-    logger.info('Successfully generated user stories', {
-      count: parsedStories.stories.length,
-    });
+    logger.info('Successfully combined user stories');
     return Response.json({
       success: true,
-      stories: parsedStories.stories,
+      story: parsedStory,
     });
   } catch (error) {
-    logger.apiError(request.method, '/api/generate-user-stories', error);
+    logger.apiError(request.method, '/api/user-stories/combine', error);
 
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';
@@ -231,7 +227,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json(
       {
         success: false,
-        error: `Failed to generate user stories: ${errorMessage}`,
+        error: `Failed to combine user stories: ${errorMessage}`,
       },
       { status: 500 }
     );

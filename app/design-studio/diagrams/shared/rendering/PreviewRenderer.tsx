@@ -31,6 +31,7 @@ export function PreviewRenderer({
 
   // Get diagram info from canvas diagram context
   const { diagramId } = useCanvasDiagram();
+  const diagram = useDiagramStore((state) => state.diagrams[diagramId]);
   const addShape = useDiagramStore((state) => state._internalAddShape);
   const addConnector = useDiagramStore((state) => state._internalAddConnector);
   const deleteShape = useDiagramStore((state) => state._internalDeleteShape);
@@ -103,7 +104,8 @@ export function PreviewRenderer({
         addShapesBatch,
         addConnectorsBatch,
         deleteShapesBatch,
-        deleteConnectorsBatch
+        deleteConnectorsBatch,
+        diagram?.type
       );
 
       await commandManager.execute(command, diagramId);

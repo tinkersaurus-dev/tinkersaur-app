@@ -1,4 +1,4 @@
-import { Navigate } from "react-router";
+import { redirect } from "react-router";
 
 export function meta() {
   return [
@@ -7,6 +7,10 @@ export function meta() {
   ];
 }
 
+export function loader() {
+  return redirect("/solutions");
+}
+
 export default function Home() {
-  return <Navigate to="/solutions" replace />;
+  return null;
 }

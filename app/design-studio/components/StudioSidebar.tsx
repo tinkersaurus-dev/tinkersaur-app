@@ -15,6 +15,7 @@ import { type DesignContentType, type DiagramType } from '~/core/entities/design
 import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
 import { useReferenceStore } from '~/core/entities/design-studio/store/reference/useReferenceStore';
 import { useDesignStudioCRUD } from '../hooks/useDesignStudioCRUD';
+import { useFolderReferenceDrop } from '../hooks/useFolderReferenceDrop';
 import { CreateDiagramModal } from './CreateDiagramModal';
 import { LinkUseCaseModal } from './LinkUseCaseModal';
 import { useSolutionStore } from '~/core/entities/product-management/store/solution/useSolutionStore';
@@ -68,6 +69,9 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     createDesignWork,
     updateDesignWork,
   } = useDesignStudioCRUD();
+
+  // Folder reference drop handlers (for class/enumeration references)
+  const { canDropOnFolder, handleFolderDrop } = useFolderReferenceDrop(solutionId);
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -362,6 +366,70 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     setContextMenu(null);
   }, []);
 
+  // Handle drag over on tree nodes (for folder reference drops)
+  const handleTreeDragOver = useCallback(
+    (event: React.DragEvent, nodeKey: string) => {
+      // Only allow drop on folder nodes
+      if (!nodeKey.startsWith('folder-')) return;
+
+      try {
+        // Check if this is a folder-droppable reference
+        const jsonData = event.dataTransfer.getData('application/json');
+        if (!jsonData) {
+          // During dragover, getData returns empty string in some browsers
+          // Check types instead
+          if (event.dataTransfer.types.includes('application/json')) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+          }
+          return;
+        }
+
+        const dragData = JSON.parse(jsonData);
+        if (canDropOnFolder(dragData)) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'copy';
+        }
+      } catch {
+        // Ignore parse errors during drag - types check above handles this
+        if (event.dataTransfer.types.includes('application/json')) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'copy';
+        }
+      }
+    },
+    [canDropOnFolder]
+  );
+
+  // Handle drop on tree nodes (for folder reference drops)
+  const handleTreeDrop = useCallback(
+    async (event: React.DragEvent, nodeKey: string) => {
+      event.preventDefault();
+
+      // Only handle drops on folder nodes
+      if (!nodeKey.startsWith('folder-')) return;
+
+      try {
+        const jsonData = event.dataTransfer.getData('application/json');
+        if (!jsonData) return;
+
+        const dragData = JSON.parse(jsonData);
+
+        // Verify this is a folder-droppable reference
+        if (!canDropOnFolder(dragData)) return;
+
+        // Extract folder ID from node key
+        const folderId = nodeKey.replace('folder-', '');
+
+        // Handle the drop
+        await handleFolderDrop(folderId, dragData);
+      } catch (error) {
+        console.error('Failed to handle tree drop:', error);
+      }
+    },
+    [canDropOnFolder, handleFolderDrop]
+  );
+
   // Get context menu items based on node type
   const getContextMenuItems = useCallback((): DropdownMenuItem[] => {
     if (!contextMenu) return [];
@@ -504,6 +572,8 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         indentSize={8}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
+        onDragOver={handleTreeDragOver}
+        onDrop={handleTreeDrop}
         editingNodeKey={editingFolderId ? `folder-${editingFolderId}` : null}
         editingValue={editingFolderName}
         onEditingChange={handleFolderNameChange}

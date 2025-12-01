@@ -7,6 +7,9 @@ export default [
   route("api/generate-mermaid", "routes/api.generate-mermaid.ts"),
   route("api/generate-user-stories", "routes/api.generate-user-stories.ts"),
   route("api/generate-user-docs", "routes/api.generate-user-docs.ts"),
+  route("api/user-stories/combine", "routes/api.user-stories.combine.ts"),
+  route("api/user-stories/split", "routes/api.user-stories.split.ts"),
+  route("api/user-stories/regenerate", "routes/api.user-stories.regenerate.ts"),
 
   // Solution Management routes
   route("solutions", "product-management/routes/solutions-list.tsx"),

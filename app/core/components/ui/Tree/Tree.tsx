@@ -12,6 +12,8 @@ interface TreeProps {
   indentSize?: number; // pixels per depth level
   onDoubleClick?: (key: string) => void;
   onContextMenu?: (event: React.MouseEvent, key: string) => void;
+  onDragOver?: (event: React.DragEvent, key: string) => void;
+  onDrop?: (event: React.DragEvent, key: string) => void;
   editingNodeKey?: string | null;
   editingValue?: string;
   onEditingChange?: (newValue: string) => void;
@@ -24,6 +26,8 @@ export function Tree({
   indentSize = 4,
   onDoubleClick,
   onContextMenu,
+  onDragOver,
+  onDrop,
   editingNodeKey,
   editingValue,
   onEditingChange,
@@ -81,6 +85,8 @@ export function Tree({
           onToggleExpand={handleToggleExpand}
           onDoubleClick={onDoubleClick}
           onContextMenu={onContextMenu}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
           isEditing={editingNodeKey === node.key}
           editingValue={editingValue}
           onEditingChange={onEditingChange}
