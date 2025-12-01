@@ -18,7 +18,7 @@ const baseStore = createEntityStore<Solution, CreateSolutionDto>(
 
 // Create a new store that wraps the base store and adds convenience methods
 export const useSolutionStore = create<EntityStore<Solution, CreateSolutionDto> & {
-  fetchSolutions: (organizationId: string) => Promise<void>;
+  fetchSolutions: (teamId: string) => Promise<void>;
   fetchSolution: (id: string) => Promise<Solution | null>;
 }>((_set, _get) => ({
   // Proxy all base store state

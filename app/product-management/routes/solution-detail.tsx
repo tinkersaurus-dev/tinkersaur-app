@@ -7,7 +7,8 @@ import { useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
 import { MdDesignServices } from 'react-icons/md';
 import { useParams, Link, useNavigate } from 'react-router';
-import { AppLayout, PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '~/core/components';
+import { SolutionManagementLayout } from '../components';
 import { Button, Input, HStack, Breadcrumb, Table, Form, useForm, Modal } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { UseCase } from '~/core/entities/product-management';
@@ -38,11 +39,11 @@ export default function SolutionDetailPage() {
 
   if (!solution) {
     return (
-      <AppLayout>
+      <SolutionManagementLayout>
         <PageContent>
           <p>Solution not found</p>
         </PageContent>
-      </AppLayout>
+      </SolutionManagementLayout>
     );
   }
 
@@ -143,7 +144,7 @@ export default function SolutionDetailPage() {
   ];
 
   return (
-    <AppLayout>
+    <SolutionManagementLayout>
       <PageHeader
         title={solution.name}
         extra={
@@ -230,6 +231,6 @@ export default function SolutionDetailPage() {
           </div>
         </Form>
       </Modal>
-    </AppLayout>
+    </SolutionManagementLayout>
   );
 }

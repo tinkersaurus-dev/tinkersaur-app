@@ -16,6 +16,10 @@ export default [
   route("solutions/:solutionId", "product-management/routes/solution-detail.tsx"),
   route("solutions/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
 
+  // Persona routes
+  route("personas", "product-management/routes/personas-list.tsx"),
+  route("personas/:personaId", "product-management/routes/persona-detail.tsx"),
+
   // Design Studio routes (separate module, solution-based)
   route("studio/:solutionId", "design-studio/routes/studio.tsx"),
 ] satisfies RouteConfig;

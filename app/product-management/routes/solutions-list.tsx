@@ -5,7 +5,8 @@
 
 import { useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
-import { AppLayout, PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '~/core/components';
+import { SolutionManagementLayout } from '../components';
 import { Button, Input, Form, useForm, Modal, Select, Empty } from '~/core/components/ui';
 import type { SolutionType } from '~/core/entities/product-management';
 import { useSolutions, useSolutionCRUD } from '../hooks';
@@ -33,7 +34,7 @@ export default function SolutionsListPage() {
   });
 
   // Use new hooks
-  const { solutions, loading } = useSolutions('org-1'); // Mock organization ID
+  const { solutions, loading } = useSolutions('team-1'); // Mock team ID
   const { handleCreate } = useSolutionCRUD();
 
   const handleAdd = () => {
@@ -49,7 +50,7 @@ export default function SolutionsListPage() {
       const values = form.getValues();
 
       await handleCreate({
-        organizationId: 'org-1', // Mock organization ID
+        teamId: 'team-1', // Mock team ID
         ...values,
       });
 
@@ -66,7 +67,7 @@ export default function SolutionsListPage() {
   };
 
   return (
-    <AppLayout>
+    <SolutionManagementLayout>
       <PageHeader
         title="Solutions"
         actions={
@@ -154,6 +155,6 @@ export default function SolutionsListPage() {
           </div>
         </Form>
       </Modal>
-    </AppLayout>
+    </SolutionManagementLayout>
   );
 }

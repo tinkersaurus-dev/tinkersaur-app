@@ -4,9 +4,22 @@
  */
 
 // Data access hooks
+export { useOrganizations, useOrganization } from './useOrganizations';
+export { useTeams, useTeam } from './useTeams';
+export { useUsers, useUser } from './useUsers';
 export { useSolutions, useSolution } from './useSolutions';
 export { useUseCases, useUseCase } from './useUseCases';
 export { useRequirements, useRequirement } from './useRequirements';
+export { usePersonas, usePersona } from './usePersonas';
+export { usePersonaUseCases, useUseCasePersonas } from './usePersonaUseCases';
 
 // CRUD hooks
-export { useSolutionCRUD, useUseCaseCRUD, useRequirementCRUD } from './useCRUD';
+export {
+  useOrganizationCRUD,
+  useTeamCRUD,
+  useUserCRUD,
+  useSolutionCRUD,
+  useUseCaseCRUD,
+  useRequirementCRUD,
+  usePersonaCRUD,
+} from './useCRUD';

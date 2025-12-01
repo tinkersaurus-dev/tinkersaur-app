@@ -3,6 +3,17 @@
  * Centralized export for all solution management domain types and schemas
  */
 
+// Organization
+export type { Organization, CreateOrganizationDto, UpdateOrganizationDto } from './Organization';
+export { OrganizationSchema, CreateOrganizationSchema, UpdateOrganizationSchema } from './Organization';
+
+// Team
+export type { Team, CreateTeamDto, UpdateTeamDto } from './Team';
+export { TeamSchema, CreateTeamSchema, UpdateTeamSchema } from './Team';
+
+// User
+export type { User, CreateUserDto, UpdateUserDto } from './User';
+export { UserSchema, CreateUserSchema, UpdateUserSchema } from './User';
 
 // Solution
 export type { Solution, SolutionType, CreateSolutionDto, UpdateSolutionDto } from './Solution';
@@ -20,3 +31,16 @@ export {
   CreateRequirementSchema,
   UpdateRequirementSchema,
 } from './Requirement';
+
+// Persona
+export type { Persona, Demographics, CreatePersonaDto, UpdatePersonaDto } from './Persona';
+export {
+  PersonaSchema,
+  DemographicsSchema,
+  CreatePersonaSchema,
+  UpdatePersonaSchema,
+} from './Persona';
+
+// PersonaUseCase (junction)
+export type { PersonaUseCase, CreatePersonaUseCaseDto } from './PersonaUseCase';
+export { PersonaUseCaseSchema, CreatePersonaUseCaseSchema } from './PersonaUseCase';

@@ -6,7 +6,8 @@
 import { useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
 import { useParams, Link } from 'react-router';
-import { AppLayout, PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '~/core/components';
+import { SolutionManagementLayout } from '../components';
 import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
@@ -41,11 +42,11 @@ export default function UseCaseDetailPage() {
 
   if (!solution || !useCase) {
     return (
-      <AppLayout>
+      <SolutionManagementLayout>
         <PageContent>
           <p>Use case not found</p>
         </PageContent>
-      </AppLayout>
+      </SolutionManagementLayout>
     );
   }
 
@@ -154,7 +155,7 @@ export default function UseCaseDetailPage() {
   ];
 
   return (
-    <AppLayout>
+    <SolutionManagementLayout>
       <PageHeader
         title={useCase.name}
         extra={
@@ -266,6 +267,6 @@ export default function UseCaseDetailPage() {
           </div>
         </Form>
       </Modal>
-    </AppLayout>
+    </SolutionManagementLayout>
   );
 }

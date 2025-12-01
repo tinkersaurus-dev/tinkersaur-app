@@ -1,4 +1,4 @@
-import type { Solution, UseCase, Requirement } from '../types';
+import type { Organization, Team, User, Solution, UseCase, Requirement } from '../types';
 
 /**
  * localStorage utilities for mock API persistence
@@ -67,7 +67,7 @@ export function clearAllStorage(): void {
     return;
   }
 
-  const keys = ['solutions', 'useCases', 'requirements'];
+  const keys = ['organizations', 'teams', 'users', 'solutions', 'useCases', 'requirements', 'personas', 'personaUseCases'];
   keys.forEach((key) => {
     localStorage.removeItem(STORAGE_PREFIX + key);
   });
@@ -99,15 +99,50 @@ export function initializeMockData(): void {
   }
 
   // Only initialize if storage is empty
-  if (getFromStorage('solutions').length > 0) {
+  if (getFromStorage('organizations').length > 0) {
     return;
   }
 
-  // Mock solutions
+  // Mock organizations
+  const mockOrganizations: Organization[] = [
+    {
+      id: 'org-1',
+      name: 'Acme Corporation',
+      description: 'Primary development organization',
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
+    },
+  ];
+
+  // Mock teams
+  const mockTeams: Team[] = [
+    {
+      id: 'team-1',
+      organizationId: 'org-1',
+      name: 'Product Team',
+      description: 'Main product development team',
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
+    },
+  ];
+
+  // Mock users
+  const mockUsers: User[] = [
+    {
+      id: 'user-1',
+      teamId: 'team-1',
+      name: 'John Doe',
+      email: 'john@acme.com',
+      createdAt: new Date('2024-01-02'),
+      updatedAt: new Date('2024-01-02'),
+    },
+  ];
+
+  // Mock solutions (now with teamId instead of organizationId)
   const mockSolutions: Solution[] = [
     {
       id: 'sol-1',
-      organizationId: 'org-1',
+      teamId: 'team-1',
       name: 'Customer Portal',
       description: 'Self-service portal for customers to manage their accounts',
       type: 'product',
@@ -116,7 +151,7 @@ export function initializeMockData(): void {
     },
     {
       id: 'sol-2',
-      organizationId: 'org-1',
+      teamId: 'team-1',
       name: 'Admin Dashboard',
       description: 'Internal dashboard for managing users and configurations',
       type: 'product',
@@ -185,6 +220,9 @@ export function initializeMockData(): void {
   ];
 
   // Save all mock data
+  saveToStorage('organizations', mockOrganizations);
+  saveToStorage('teams', mockTeams);
+  saveToStorage('users', mockUsers);
   saveToStorage('solutions', mockSolutions);
   saveToStorage('useCases', mockUseCases);
   saveToStorage('requirements', mockRequirements);

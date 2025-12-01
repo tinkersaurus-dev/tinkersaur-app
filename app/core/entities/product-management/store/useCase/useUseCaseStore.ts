@@ -51,8 +51,10 @@ export const useUseCaseStore = create<EntityStore<UseCase, CreateUseCaseDto> & {
   delete: async (id: string): Promise<boolean> => {
     // Import here to avoid circular dependency
     const { useRequirementStore } = await import('../requirement/useRequirementStore');
+    const { usePersonaUseCaseStore } = await import('../personaUseCase/usePersonaUseCaseStore');
 
     const requirementStore = useRequirementStore.getState();
+    const personaUseCaseStore = usePersonaUseCaseStore.getState();
 
     baseStore.setState({ loading: true, error: null });
 
@@ -64,6 +66,9 @@ export const useUseCaseStore = create<EntityStore<UseCase, CreateUseCaseDto> & {
       for (const requirement of requirements) {
         await requirementStore.delete(requirement.id);
       }
+
+      // Delete all persona-usecase links for this use case
+      await personaUseCaseStore.deleteByUseCaseId(id);
 
       // Finally, delete the use case itself
       const success = await useCaseApi.delete(id);

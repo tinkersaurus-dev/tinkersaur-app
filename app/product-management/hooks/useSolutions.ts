@@ -6,17 +6,17 @@ import { useEffect } from 'react';
 import { useSolutionStore } from '~/core/entities/product-management';
 
 /**
- * Hook to fetch and access all solutions for an organization
+ * Hook to fetch and access all solutions for a team
  */
-export function useSolutions(organizationId: string) {
+export function useSolutions(teamId: string) {
   const solutions = useSolutionStore((state) => state.entities);
   const loading = useSolutionStore((state) => state.loading);
   const error = useSolutionStore((state) => state.error);
   const fetchSolutions = useSolutionStore((state) => state.fetchSolutions);
 
   useEffect(() => {
-    fetchSolutions(organizationId);
-  }, [organizationId, fetchSolutions]);
+    fetchSolutions(teamId);
+  }, [teamId, fetchSolutions]);
 
   return { solutions, loading, error };
 }

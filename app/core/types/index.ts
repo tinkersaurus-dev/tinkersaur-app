@@ -12,19 +12,5 @@ export interface Size {
   height: number;
 }
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  organizationId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Organization {
-  id: string;
-  name: string;
-  users: User[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Note: User, Team, and Organization types are now defined in
+// ~/core/entities/product-management/types/ with Zod schemas

@@ -10,15 +10,15 @@ const STORAGE_KEY = 'solutions';
  */
 class SolutionApi {
   /**
-   * Get all solutions for an organization
+   * Get all solutions for a team
    */
-  async list(organizationId?: string): Promise<Solution[]> {
+  async list(teamId?: string): Promise<Solution[]> {
     await simulateDelay();
     const solutions = getFromStorage<Solution>(STORAGE_KEY);
-    if (!organizationId) {
+    if (!teamId) {
       return [];
     }
-    return solutions.filter((s) => s.organizationId === organizationId);
+    return solutions.filter((s) => s.teamId === teamId);
   }
 
   /**
