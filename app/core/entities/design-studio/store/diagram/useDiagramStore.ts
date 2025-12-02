@@ -347,6 +347,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
           console.warn('[References] Creating reference for shape:', shapeId);
           const createdRef = await referenceStore.createReference({
+            designWorkId: diagram.designWorkId,
             name: shape.label || shape.type,
             contentType: 'diagram',
             contentId: diagramId,

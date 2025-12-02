@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fa';
 import { DEFAULT_LIFELINE_HEIGHT } from './constants';
 import { globalToolGroup } from '~/design-studio/config/global-tools';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Tool definition interface
@@ -57,6 +58,8 @@ export interface ToolGroup {
   tools: Tool[];
 }
 
+const { lifeline: lifelineSize, note: noteSize } = DESIGN_STUDIO_CONFIG.shapes.sequence;
+
 /**
  * Sequence Diagram Participant Tools
  * Different types of participants/lifelines in a sequence diagram
@@ -68,7 +71,7 @@ const participantTools: Tool[] = [
     icon: FaUser,
     shapeType: 'sequence-lifeline',
     shapeSubtype: 'actor',
-    defaultSize: { width: 120, height: DEFAULT_LIFELINE_HEIGHT },
+    defaultSize: { width: lifelineSize.width, height: DEFAULT_LIFELINE_HEIGHT },
     initialData: {
       lifelineStyle: 'dashed',
       activations: [],
@@ -81,7 +84,7 @@ const participantTools: Tool[] = [
     icon: FaSquare,
     shapeType: 'sequence-lifeline',
     shapeSubtype: 'object',
-    defaultSize: { width: 120, height: DEFAULT_LIFELINE_HEIGHT },
+    defaultSize: { width: lifelineSize.width, height: DEFAULT_LIFELINE_HEIGHT },
     initialData: {
       lifelineStyle: 'dashed',
       activations: [],
@@ -94,7 +97,7 @@ const participantTools: Tool[] = [
     icon: FaBorderAll,
     shapeType: 'sequence-lifeline',
     shapeSubtype: 'boundary',
-    defaultSize: { width: 120, height: DEFAULT_LIFELINE_HEIGHT },
+    defaultSize: { width: lifelineSize.width, height: DEFAULT_LIFELINE_HEIGHT },
     initialData: {
       lifelineStyle: 'dashed',
       activations: [],
@@ -107,7 +110,7 @@ const participantTools: Tool[] = [
     icon: FaServer,
     shapeType: 'sequence-lifeline',
     shapeSubtype: 'control',
-    defaultSize: { width: 120, height: DEFAULT_LIFELINE_HEIGHT },
+    defaultSize: { width: lifelineSize.width, height: DEFAULT_LIFELINE_HEIGHT },
     initialData: {
       lifelineStyle: 'dashed',
       activations: [],
@@ -120,7 +123,7 @@ const participantTools: Tool[] = [
     icon: FaDatabase,
     shapeType: 'sequence-lifeline',
     shapeSubtype: 'entity',
-    defaultSize: { width: 120, height: DEFAULT_LIFELINE_HEIGHT },
+    defaultSize: { width: lifelineSize.width, height: DEFAULT_LIFELINE_HEIGHT },
     initialData: {
       lifelineStyle: 'dashed',
       activations: [],
@@ -133,7 +136,7 @@ const participantTools: Tool[] = [
     icon: FaDatabase,
     shapeType: 'sequence-lifeline',
     shapeSubtype: 'database',
-    defaultSize: { width: 120, height: DEFAULT_LIFELINE_HEIGHT },
+    defaultSize: { width: lifelineSize.width, height: DEFAULT_LIFELINE_HEIGHT },
     initialData: {
       lifelineStyle: 'dashed',
       activations: [],
@@ -152,7 +155,7 @@ const annotationTools: Tool[] = [
     name: 'Note',
     icon: FaStickyNote,
     shapeType: 'sequence-note',
-    defaultSize: { width: 120, height: 80 },
+    defaultSize: { width: noteSize.width, height: noteSize.height },
     initialData: {
       noteStyle: 'default',
     },

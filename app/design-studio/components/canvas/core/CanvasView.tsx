@@ -53,7 +53,7 @@ export function CanvasView() {
     selectedConnectorIds,
     hoveredConnectorId,
     hoveredContainerId,
-    mode,
+    mode: _mode,
     selectionBox,
     drawingConnector,
     editingEntityId,
@@ -101,6 +101,8 @@ export function CanvasView() {
     connectorTypeManager,
     toolbarButtons,
     containerRef,
+    handleResizeStart,
+    orchestrationCursor,
   } = useCanvasEvents();
 
   // Reference drop handling
@@ -140,7 +142,7 @@ export function CanvasView() {
       onDrop={(e) => handleDrop(e, containerRef.current)}
       style={{
         touchAction: 'none',
-        cursor: mode === 'panning' ? 'grabbing' : 'default',
+        cursor: orchestrationCursor,
         userSelect: 'none',
         WebkitUserSelect: 'none',
       }}
@@ -196,6 +198,7 @@ export function CanvasView() {
           onEnumerationDeleteLiteral={deleteLiteral}
           onEnumerationUpdateLiteral={updateLiteral}
           onEnumerationUpdateLiteralLocal={updateLiteralLocal}
+          onResizeStart={handleResizeStart}
         />
 
         {/* Render all connectors */}

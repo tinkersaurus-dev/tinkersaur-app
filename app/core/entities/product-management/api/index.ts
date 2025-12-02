@@ -1,12 +1,7 @@
 /**
- * Solution Management API Layer
- * Mock API clients with localStorage persistence
+ * Product Management API Layer
+ * API clients for backend communication
  */
-
-import { initializeMockData } from './storage';
-
-// Initialize mock data on module load
-initializeMockData();
 
 // Export API clients
 export { organizationApi } from './organizationApi';

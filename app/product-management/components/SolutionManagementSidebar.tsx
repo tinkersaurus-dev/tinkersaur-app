@@ -24,7 +24,7 @@ export function SolutionManagementSidebar() {
     {
       key: 'solutions',
       label: (
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2 text-sm">
           <FiBox />
           Solutions
         </span>
@@ -34,7 +34,7 @@ export function SolutionManagementSidebar() {
     {
       key: 'personas',
       label: (
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2 text-sm">
           <FiUsers />
           Personas
         </span>
@@ -45,7 +45,7 @@ export function SolutionManagementSidebar() {
 
   return (
     <div className="p-4 h-full">
-      <h3 className="text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wide mb-4">
+      <h3 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wide mb-4">
         Solution Development
       </h3>
       <Menu

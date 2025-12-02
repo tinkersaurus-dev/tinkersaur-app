@@ -32,7 +32,7 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
       if (this.options.includeComments) {
         lines.push('');
         lines.push(`%% Generated: ${new Date().toISOString()}`);
-        lines.push(`%% Services: ${shapes.filter(s => s.type === 'architecture-service').length}, Groups: ${shapes.filter(s => s.type === 'architecture-group').length}, Junctions: ${shapes.filter(s => s.type === 'architecture-junction').length}`);
+        lines.push(`%% Services: ${shapes.filter(s => s.type === 'architecture-service').length}, Groups: ${shapes.filter(s => s.type === 'architecture-group').length}`);
         lines.push('');
       }
 
@@ -82,21 +82,6 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
         }
 
         lines.push(`${this.getIndent()}service ${mermaidId}(${icon})[${label}]${parentSuffix}`);
-      }
-
-      // Export junctions
-      const junctions = shapes.filter(s => s.type === 'architecture-junction');
-      for (const junction of junctions) {
-        const mermaidId = idMap.get(junction.id) || this.sanitizeId(junction.id);
-
-        // Check if this junction has a parent
-        let parentSuffix = '';
-        if (junction.parentId) {
-          const parentMermaidId = idMap.get(junction.parentId) || this.sanitizeId(junction.parentId);
-          parentSuffix = ` in ${parentMermaidId}`;
-        }
-
-        lines.push(`${this.getIndent()}junction ${mermaidId}${parentSuffix}`);
       }
 
       // Export connectors (edges)

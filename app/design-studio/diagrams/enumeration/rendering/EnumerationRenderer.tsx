@@ -5,7 +5,7 @@
  * Supports editable fields and dynamic add/delete operations for literals.
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import type { ShapeRendererProps } from '../../shared/rendering/types';
 import type { EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
@@ -13,7 +13,7 @@ import { ConnectionPointRenderer } from '../../shared/rendering/ConnectionPointR
 import { EditableLabel } from '~/design-studio/components/canvas/editors/EditableLabel';
 import { ClassItemEditor } from '~/design-studio/diagrams/class/components/ClassItemEditor';
 import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
-import { CLASS_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
+import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 import { THEME_CONFIG } from '~/core/config/theme-config';
 
 export function EnumerationRenderer({
@@ -59,6 +59,24 @@ export function EnumerationRenderer({
   const [editingLiteral, setEditingLiteral] = useState<number | null>(null);
   const [editingLiteralOriginal, setEditingLiteralOriginal] = useState<string>('');
 
+  // Measure actual rendered height for connection point placement
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [measuredHeight, setMeasuredHeight] = useState(height);
+
+  useEffect(() => {
+    const element = wrapperRef.current;
+    if (!element) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setMeasuredHeight(entry.contentRect.height);
+      }
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   // Calculate zoom-compensated values
   let borderWidth = THEME_CONFIG.stroke.shapeBorder / zoom;
   const borderRadius = THEME_CONFIG.classRenderer.borderRadius;
@@ -87,6 +105,7 @@ export function EnumerationRenderer({
 
   return (
     <ShapeWrapper
+      ref={wrapperRef}
       shape={shape}
       isSelected={showSelected}
       isHovered={showHover}
@@ -234,12 +253,12 @@ export function EnumerationRenderer({
       {showHover &&
         onConnectionPointMouseDown &&
         onConnectionPointMouseUp &&
-        CLASS_CONNECTION_POINTS.map((connectionPoint) => (
+        STANDARD_RECTANGLE_CONNECTION_POINTS.map((connectionPoint) => (
           <ConnectionPointRenderer
             key={connectionPoint.id}
             connectionPoint={connectionPoint}
             shapeWidth={width}
-            shapeHeight={height}
+            shapeHeight={measuredHeight}
             onMouseDown={handleConnectionPointMouseDown}
             onMouseUp={handleConnectionPointMouseUp}
           />

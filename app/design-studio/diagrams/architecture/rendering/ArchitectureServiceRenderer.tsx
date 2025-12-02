@@ -47,7 +47,7 @@ export function ArchitectureServiceRenderer({
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
-  const borderRadius = 4;
+  const borderRadius = 2;
   const padding = 8;
 
   // Determine border color based on state

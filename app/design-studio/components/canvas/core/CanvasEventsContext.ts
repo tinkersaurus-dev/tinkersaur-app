@@ -8,6 +8,7 @@ import type { Tool as ArchitectureTool } from '~/design-studio/diagrams/architec
 import type { ToolbarButton } from '../../toolbar/CanvasToolbar';
 import type { JSX } from 'react';
 import type { ConnectorTool } from '~/design-studio/diagrams/bpmn/connectors';
+import type { ResizeHandle } from '../../../utils/resize';
 
 /**
  * Canvas Events Context
@@ -80,6 +81,12 @@ export interface CanvasEventsContext {
 
   // Refs (needed by view for DOM operations)
   containerRef: RefObject<HTMLDivElement | null>;
+
+  // Resize Handlers
+  handleResizeStart: (shapeId: string, handle: ResizeHandle, e: React.MouseEvent) => void;
+
+  // Cursor style based on current interaction mode
+  orchestrationCursor: string;
 }
 
 /**

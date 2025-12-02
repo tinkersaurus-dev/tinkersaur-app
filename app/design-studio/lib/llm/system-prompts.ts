@@ -113,7 +113,6 @@ Available Architecture Elements:
 - Services: Use syntax like "service id(icon)[Label]"
   - Available icons: cloud, database, server, disk, internet, web, mobile, react, frontend, tablet
 - Groups: Use syntax like "group id(icon)[Label]" to create containers
-- Junctions: Use syntax like "junction id" for routing points
 - Nesting: Use "in parentId" to place elements inside groups (e.g., "service db(database)[Database] in api")
 - Connections: Use directional syntax like "sourceId:R --> L:targetId"
   - Direction indicators: L (left), R (right), T (top), B (bottom)
@@ -121,7 +120,7 @@ Available Architecture Elements:
 
 Important Rules:
 1. Start with: architecture-beta
-2. Define all services, groups, and junctions first
+2. Define all services and groups first
 3. Then define connections between them
 4. Use descriptive IDs (lowercase, no spaces)
 5. Use clear, concise labels
@@ -249,13 +248,12 @@ Use EARS (Easy Approach to Requirements Syntax) format:
 3. **While** [state], **the system shall** [ongoing behavior].
 
 Rules:
-1. Break the design into logical, implementable user stories, but ensure that a single feature is not broken up too much
-2. Each story should capture a full piece of functionality that is testable
-3. Acceptance criteria must be specific and measurable
+1. Break the design into logical, implementable user stories, but ensure that a single feature is not broken up too much. For example, do not create a user story for each step in a process map.
+2. Each story should capture a full piece of functionality
+3. Acceptance criteria must be specific and measurable. Do not make up acceptance criteria; ensure that all acceptance criteria comes from the compiled design documentation
 4. Use technical terms from the diagrams/documents
 5. Cover all major flows and edge cases from the diagrams
-6. Include error handling scenarios
-7. Return ONLY the markdown user stories, no additional commentary`;
+6. Return ONLY the markdown user stories, no additional commentary`;
 
 /**
  * User Stories system prompt (structured JSON format)

@@ -5,7 +5,7 @@
  * Supports editable fields and dynamic add/delete operations.
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import type { ShapeRendererProps } from '../../shared/rendering/types';
 import type { ClassShapeData } from '~/core/entities/design-studio/types/Shape';
@@ -14,7 +14,7 @@ import { EditableLabel } from '~/design-studio/components/canvas/editors/Editabl
 import { ShapeDropdown } from '~/design-studio/components/canvas/editors/ShapeDropdown';
 import { ClassItemEditor } from '../components/ClassItemEditor';
 import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
-import { CLASS_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
+import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 import { THEME_CONFIG } from '~/core/config/theme-config';
 
 const STEREOTYPE_OPTIONS = [
@@ -79,6 +79,24 @@ export function ClassRenderer({
   const [editingMethod, setEditingMethod] = useState<number | null>(null);
   const [editingMethodOriginal, setEditingMethodOriginal] = useState<string>('');
 
+  // Measure actual rendered height for connection point placement
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [measuredHeight, setMeasuredHeight] = useState(height);
+
+  useEffect(() => {
+    const element = wrapperRef.current;
+    if (!element) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setMeasuredHeight(entry.contentRect.height);
+      }
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   // Calculate zoom-compensated values
   let borderWidth = THEME_CONFIG.stroke.shapeBorder / zoom;
   const borderRadius = THEME_CONFIG.classRenderer.borderRadius;
@@ -107,6 +125,7 @@ export function ClassRenderer({
 
   return (
     <ShapeWrapper
+      ref={wrapperRef}
       shape={shape}
       isSelected={showSelected}
       isHovered={showHover}
@@ -343,12 +362,12 @@ export function ClassRenderer({
       {showHover &&
         onConnectionPointMouseDown &&
         onConnectionPointMouseUp &&
-        CLASS_CONNECTION_POINTS.map((connectionPoint) => (
+        STANDARD_RECTANGLE_CONNECTION_POINTS.map((connectionPoint) => (
           <ConnectionPointRenderer
             key={connectionPoint.id}
             connectionPoint={connectionPoint}
             shapeWidth={width}
-            shapeHeight={height}
+            shapeHeight={measuredHeight}
             onMouseDown={handleConnectionPointMouseDown}
             onMouseUp={handleConnectionPointMouseUp}
           />

@@ -10,6 +10,7 @@ import { Toaster } from "sonner";
 
 import type { Route } from "./+types/root";
 import { ThemeProvider, useTheme } from "./core/theme/ThemeProvider";
+import { AuthGuard } from "./core/auth";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [];
@@ -37,7 +38,7 @@ function AppContent() {
   /* TODO: Standalone custome CSS file for toast? */
   /* TODO: Popconfirm to replace browser native confirm. */
   return (
-    <>
+    <AuthGuard>
       <Outlet />
       <Toaster
         theme={theme}
@@ -55,7 +56,7 @@ function AppContent() {
           },
         }}
       />
-    </>
+    </AuthGuard>
   );
 }
 

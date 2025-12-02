@@ -40,7 +40,40 @@ export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
 
     try {
       const designWorks = await designWorkApi.list(solutionId);
-      set({ designWorks, loading: false });
+
+      // Fetch content for each design work and populate the embedded arrays
+      const enrichedDesignWorks = await Promise.all(
+        designWorks.map(async (dw) => {
+          const [diagrams, interfaces, documents] = await Promise.all([
+            diagramApi.list(dw.id),
+            interfaceApi.list(dw.id),
+            documentApi.list(dw.id),
+          ]);
+
+          return {
+            ...dw,
+            diagrams: diagrams.map((d, index) => ({
+              id: d.id,
+              name: d.name,
+              type: d.type,
+              order: index,
+            })),
+            interfaces: interfaces.map((i, index) => ({
+              id: i.id,
+              name: i.name,
+              fidelity: i.fidelity,
+              order: index,
+            })),
+            documents: documents.map((doc, index) => ({
+              id: doc.id,
+              name: doc.name,
+              order: index,
+            })),
+          };
+        })
+      );
+
+      set({ designWorks: enrichedDesignWorks, loading: false });
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to fetch design works');
       set({ loading: false, error: err });

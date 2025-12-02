@@ -6,6 +6,7 @@
 import type { ComponentType } from 'react';
 import { FaSquare, FaListOl } from 'react-icons/fa';
 import { globalToolGroup } from '~/design-studio/config/global-tools';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Tool definition interface
@@ -49,6 +50,8 @@ export interface ToolGroup {
   tools: Tool[];
 }
 
+const { toolDefault: classSize, interface: interfaceSize } = DESIGN_STUDIO_CONFIG.shapes.class;
+
 /**
  * Class Diagram Tools
  * UML class shapes with stereotype, attributes, and methods
@@ -59,7 +62,7 @@ const classTools: Tool[] = [
     name: 'Class',
     icon: FaSquare,
     shapeType: 'class',
-    defaultSize: { width: 200, height: 150 },
+    defaultSize: { width: classSize.width, height: classSize.height },
     initialData: {
       stereotype: undefined,
       attributes: [],
@@ -71,7 +74,7 @@ const classTools: Tool[] = [
     name: 'Enumeration',
     icon: FaListOl,
     shapeType: 'enumeration',
-    defaultSize: { width: 180, height: 120 },
+    defaultSize: { width: interfaceSize.width, height: interfaceSize.height },
     initialData: {
       stereotype: 'enumeration',
       literals: [],

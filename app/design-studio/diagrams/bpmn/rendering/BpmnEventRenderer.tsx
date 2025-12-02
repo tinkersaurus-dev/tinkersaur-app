@@ -229,7 +229,8 @@ export function BpmnEventRenderer({
             transform: 'translateX(-50%)',
             fontSize: `${10 / zoom}px`,
             color: 'var(--text)',
-            whiteSpace: 'nowrap',
+            width: `${diameter * 3}px`,
+            wordWrap: 'break-word',
             pointerEvents: 'none',
             textAlign: 'center',
           }}

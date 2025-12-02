@@ -1,21 +1,17 @@
-import { v4 as uuidv4 } from 'uuid';
 import type { Requirement, CreateRequirementDto, UpdateRequirementDto } from '../types';
-import { getFromStorage, saveToStorage, simulateDelay } from './storage';
-
-const STORAGE_KEY = 'requirements';
+import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
 /**
  * Requirement API Client
- * Mock implementation with localStorage persistence
+ * Real implementation with backend API
  */
 class RequirementApi {
   /**
    * Get all requirements for a use case
    */
   async listByUseCase(useCaseId: string): Promise<Requirement[]> {
-    await simulateDelay();
-    const requirements = getFromStorage<Requirement>(STORAGE_KEY);
-    return requirements.filter((r) => r.useCaseId === useCaseId);
+    const data = await httpClient.get<Requirement[]>(`/api/requirements?useCaseId=${useCaseId}`);
+    return deserializeDatesArray(data);
   }
 
   /**
@@ -32,70 +28,44 @@ class RequirementApi {
    * Get a single requirement by ID
    */
   async get(id: string): Promise<Requirement | null> {
-    await simulateDelay();
-    const requirements = getFromStorage<Requirement>(STORAGE_KEY);
-    return requirements.find((r) => r.id === id) || null;
+    try {
+      const data = await httpClient.get<Requirement>(`/api/requirements/${id}`);
+      return deserializeDates(data);
+    } catch {
+      return null;
+    }
   }
 
   /**
    * Create a new requirement
    */
   async create(data: CreateRequirementDto): Promise<Requirement> {
-    await simulateDelay();
-
-    const requirement: Requirement = {
-      ...data,
-      id: uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const requirements = getFromStorage<Requirement>(STORAGE_KEY);
-    requirements.push(requirement);
-    saveToStorage(STORAGE_KEY, requirements);
-
-    return requirement;
+    const result = await httpClient.post<Requirement>('/api/requirements', data);
+    return deserializeDates(result);
   }
 
   /**
    * Update an existing requirement
    */
   async update(id: string, updates: Partial<UpdateRequirementDto>): Promise<Requirement | null> {
-    await simulateDelay();
-
-    const requirements = getFromStorage<Requirement>(STORAGE_KEY);
-    const index = requirements.findIndex((r) => r.id === id);
-
-    if (index === -1) {
+    try {
+      const result = await httpClient.put<Requirement>(`/api/requirements/${id}`, updates);
+      return deserializeDates(result);
+    } catch {
       return null;
     }
-
-    requirements[index] = {
-      ...requirements[index],
-      ...updates,
-      id, // Ensure ID doesn't change
-      updatedAt: new Date(),
-    };
-
-    saveToStorage(STORAGE_KEY, requirements);
-    return requirements[index];
   }
 
   /**
    * Delete a requirement
    */
   async delete(id: string): Promise<boolean> {
-    await simulateDelay();
-
-    const requirements = getFromStorage<Requirement>(STORAGE_KEY);
-    const filtered = requirements.filter((r) => r.id !== id);
-
-    if (filtered.length === requirements.length) {
-      return false; // Requirement not found
+    try {
+      await httpClient.delete(`/api/requirements/${id}`);
+      return true;
+    } catch {
+      return false;
     }
-
-    saveToStorage(STORAGE_KEY, filtered);
-    return true;
   }
 }
 

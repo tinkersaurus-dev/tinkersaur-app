@@ -8,6 +8,7 @@
  * shapes (multiple interactive sub-elements) to work correctly.
  */
 
+import { forwardRef } from 'react';
 import type { Shape } from '~/core/entities/design-studio/types';
 
 interface ShapeWrapperProps {
@@ -19,6 +20,7 @@ interface ShapeWrapperProps {
   borderWidth: number;
   backgroundColor: string;
   borderRadius?: number;
+  borderStyle?: 'solid' | 'dashed' | 'dotted';
   hoverPadding?: number; // Extra padding (in px) for hover detection area
   children: React.ReactNode;
   style?: React.CSSProperties;
@@ -58,7 +60,7 @@ function isInteractiveElement(element: EventTarget | null): boolean {
   return false;
 }
 
-export function ShapeWrapper({
+export const ShapeWrapper = forwardRef<HTMLDivElement, ShapeWrapperProps>(function ShapeWrapper({
   shape,
   isSelected,
   zoom,
@@ -66,6 +68,7 @@ export function ShapeWrapper({
   borderWidth,
   backgroundColor,
   borderRadius = 2 / zoom,
+  borderStyle = 'solid',
   hoverPadding = 0,
   children,
   style,
@@ -75,7 +78,7 @@ export function ShapeWrapper({
   onDoubleClick,
   onDragOver,
   onDrop,
-}: ShapeWrapperProps) {
+}, ref) {
   const { id, x, y, width, height } = shape;
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -121,6 +124,7 @@ export function ShapeWrapper({
       )}
       {/* Actual shape */}
       <div
+        ref={ref}
         data-shape-id={id}
         onMouseDown={handleMouseDown}
         onMouseEnter={handleMouseEnter}
@@ -135,7 +139,7 @@ export function ShapeWrapper({
           width: `${width}px`,
           //minHeight: `${height}px`,
           zIndex: 1,
-          outline: `${borderWidth}px solid ${borderColor}`,
+          outline: `${borderWidth}px ${borderStyle} ${borderColor}`,
           outlineOffset: `-${borderWidth}px`,
           borderRadius: `${borderRadius}px`,
           backgroundColor,
@@ -150,4 +154,4 @@ export function ShapeWrapper({
       </div>
     </>
   );
-}
+});

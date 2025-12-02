@@ -1,18 +1,28 @@
 /**
  * Architecture Diagram Auto-Layout Algorithm
  *
- * Positions architecture diagram nodes (services, groups, junctions)
- * in a hierarchical left-to-right layout.
+ * Positions architecture diagram nodes (services, groups)
+ * with the following rules:
+ * - Top-level groups are arranged horizontally with spacing between edges
+ * - Groups auto-size to fit their contained children
+ * - Children within groups are arranged in a grid (max 3 columns)
+ * - Nested groups follow the same grid pattern as services
+ * - Orphan services (no parent) appear below the groups
+ * - Order is preserved from the mermaid syntax (input array order)
  */
 
-interface LayoutNode {
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+
+export interface LayoutNode {
   id: string;
   label: string;
-  nodeType: 'service' | 'group' | 'junction';
+  nodeType: 'service' | 'group';
   icon?: string;
   parent?: string;
   x: number;
   y: number;
+  width: number;
+  height: number;
 }
 
 interface LayoutConnection {
@@ -26,133 +36,307 @@ interface LayoutConnection {
 interface ParsedNode {
   id: string;
   label: string;
-  nodeType: 'service' | 'group' | 'junction';
+  nodeType: 'service' | 'group';
   icon?: string;
   parent?: string;
 }
 
+interface SizedNode extends ParsedNode {
+  width: number;
+  height: number;
+}
+
+interface LayoutResult {
+  nodes: LayoutNode[];
+  width: number;
+  height: number;
+}
+
 /**
- * Layout architecture graph using a hierarchical approach
+ * Layout architecture graph using hierarchical containment
  */
 export function layoutArchitectureGraph(
   nodes: ParsedNode[],
-  connections: LayoutConnection[]
+  _connections: LayoutConnection[]
 ): LayoutNode[] {
   if (nodes.length === 0) {
     return [];
   }
 
-  // Build adjacency list for connections
-  const adjacencyList = new Map<string, Set<string>>();
-  nodes.forEach((node) => adjacencyList.set(node.id, new Set()));
+  const config = DESIGN_STUDIO_CONFIG.architectureLayout;
+  const shapeConfig = DESIGN_STUDIO_CONFIG.shapes.architecture;
 
-  connections.forEach((conn) => {
-    adjacencyList.get(conn.sourceId)?.add(conn.targetId);
-    if (conn.bidirectional) {
-      adjacencyList.get(conn.targetId)?.add(conn.sourceId);
-    }
-  });
+  // Build parent-to-children map preserving input order
+  const childrenMap = new Map<string | null, ParsedNode[]>();
+  childrenMap.set(null, []); // Root level children
 
-  // Calculate node ranks (layers)
-  const ranks = calculateRanks(nodes, connections, adjacencyList);
-
-  // Group nodes by rank
-  const nodesByRank = new Map<number, ParsedNode[]>();
   nodes.forEach((node) => {
-    const rank = ranks.get(node.id) || 0;
-    if (!nodesByRank.has(rank)) {
-      nodesByRank.set(rank, []);
+    const parentKey = node.parent ?? null;
+    if (!childrenMap.has(parentKey)) {
+      childrenMap.set(parentKey, []);
     }
-    nodesByRank.get(rank)!.push(node);
+    childrenMap.get(parentKey)!.push(node);
   });
 
-  // Layout configuration
-  const horizontalSpacing = 200;
-  const verticalSpacing = 150;
-  const startX = 100;
-  const startY = 100;
+  // Get top-level groups and orphan services
+  const rootChildren = childrenMap.get(null) || [];
+  const topLevelGroups = rootChildren.filter((n) => n.nodeType === 'group');
+  const orphanServices = rootChildren.filter((n) => n.nodeType !== 'group');
 
-  // Position nodes by rank
-  const layoutedNodes: LayoutNode[] = [];
-  const maxRank = Math.max(...Array.from(nodesByRank.keys()));
+  // Create a map of node IDs to nodes for quick lookup
+  const nodeMap = new Map<string, ParsedNode>();
+  nodes.forEach((node) => nodeMap.set(node.id, node));
 
-  for (let rank = 0; rank <= maxRank; rank++) {
-    const nodesInRank = nodesByRank.get(rank) || [];
-    const x = startX + rank * horizontalSpacing;
+  // Layout all positioned nodes
+  const allLayoutedNodes: LayoutNode[] = [];
 
-    nodesInRank.forEach((node, index) => {
-      const y = startY + index * verticalSpacing;
+  // Layout top-level groups horizontally
+  let currentX: number = config.startPosition.x;
+  const startY: number = config.startPosition.y;
+  let maxGroupBottom: number = startY;
 
-      layoutedNodes.push({
-        ...node,
-        x,
-        y,
-      });
-    });
+  for (const group of topLevelGroups) {
+    const result = layoutGroupRecursive(
+      group,
+      childrenMap,
+      nodeMap,
+      currentX,
+      startY,
+      shapeConfig,
+      config
+    );
+    allLayoutedNodes.push(...result.nodes);
+    currentX += result.width + config.groupSpacing;
+    maxGroupBottom = Math.max(maxGroupBottom, startY + result.height);
   }
 
-  return layoutedNodes;
+  // Layout orphan services below the groups
+  if (orphanServices.length > 0) {
+    const orphanY = topLevelGroups.length > 0
+      ? maxGroupBottom + config.orphanSpacing
+      : startY;
+
+    const orphanResult = layoutChildrenInGrid(
+      orphanServices.map((n) => addDimensions(n, shapeConfig)),
+      config.startPosition.x,
+      orphanY,
+      config.maxGridColumns,
+      config.gridSpacing
+    );
+    allLayoutedNodes.push(...orphanResult.nodes);
+  }
+
+  return allLayoutedNodes;
 }
 
 /**
- * Calculate ranks (layers) for nodes using topological ordering
+ * Recursively layout a group and all its children
  */
-function calculateRanks(
-  nodes: ParsedNode[],
-  connections: LayoutConnection[],
-  adjacencyList: Map<string, Set<string>>
-): Map<string, number> {
-  const ranks = new Map<string, number>();
-  const inDegree = new Map<string, number>();
+function layoutGroupRecursive(
+  group: ParsedNode,
+  childrenMap: Map<string | null, ParsedNode[]>,
+  nodeMap: Map<string, ParsedNode>,
+  x: number,
+  y: number,
+  shapeConfig: typeof DESIGN_STUDIO_CONFIG.shapes.architecture,
+  layoutConfig: typeof DESIGN_STUDIO_CONFIG.architectureLayout
+): LayoutResult {
+  const children = childrenMap.get(group.id) || [];
+  const padding = layoutConfig.groupPadding;
 
-  // Initialize in-degrees
-  nodes.forEach((node) => inDegree.set(node.id, 0));
-
-  // Calculate in-degrees
-  connections.forEach((conn) => {
-    const currentDegree = inDegree.get(conn.targetId) || 0;
-    inDegree.set(conn.targetId, currentDegree + 1);
-  });
-
-  // Find source nodes (nodes with no incoming edges)
-  const queue: string[] = [];
-  inDegree.forEach((degree, nodeId) => {
-    if (degree === 0) {
-      queue.push(nodeId);
-      ranks.set(nodeId, 0);
-    }
-  });
-
-  // Process nodes in topological order
-  while (queue.length > 0) {
-    const currentId = queue.shift()!;
-    const currentRank = ranks.get(currentId) || 0;
-
-    const neighbors = adjacencyList.get(currentId) || new Set();
-    neighbors.forEach((neighborId) => {
-      // Update rank
-      const neighborRank = ranks.get(neighborId) || 0;
-      ranks.set(neighborId, Math.max(neighborRank, currentRank + 1));
-
-      // Decrease in-degree
-      const degree = inDegree.get(neighborId) || 0;
-      inDegree.set(neighborId, degree - 1);
-
-      // Add to queue if all incoming edges processed
-      if (degree - 1 === 0) {
-        queue.push(neighborId);
-      }
-    });
+  // If no children, return minimum size group
+  if (children.length === 0) {
+    const groupNode: LayoutNode = {
+      ...group,
+      x,
+      y,
+      width: shapeConfig.group.minWidth,
+      height: shapeConfig.group.minHeight,
+    };
+    return {
+      nodes: [groupNode],
+      width: shapeConfig.group.minWidth,
+      height: shapeConfig.group.minHeight,
+    };
   }
 
-  // Assign rank 0 to nodes not yet ranked (disconnected nodes)
-  nodes.forEach((node) => {
-    if (!ranks.has(node.id)) {
-      ranks.set(node.id, 0);
+  // First pass: recursively size all child groups
+  const sizedChildren: SizedNode[] = children.map((child) => {
+    if (child.nodeType === 'group') {
+      // Recursively calculate size of nested groups
+      const nestedResult = layoutGroupRecursive(
+        child,
+        childrenMap,
+        nodeMap,
+        0, // Position will be set later
+        0,
+        shapeConfig,
+        layoutConfig
+      );
+      return {
+        ...child,
+        width: nestedResult.width,
+        height: nestedResult.height,
+      };
+    } else {
+      // Services use fixed dimensions
+      return addDimensions(child, shapeConfig);
     }
   });
 
-  return ranks;
+  // Layout children in grid within the group content area
+  const contentX = x + padding.left;
+  const contentY = y + padding.top;
+  const gridResult = layoutChildrenInGrid(
+    sizedChildren,
+    contentX,
+    contentY,
+    layoutConfig.maxGridColumns,
+    layoutConfig.gridSpacing
+  );
+
+  // Calculate group size to fit content
+  const groupWidth = Math.max(
+    gridResult.width + padding.left + padding.right,
+    shapeConfig.group.minWidth
+  );
+  const groupHeight = Math.max(
+    gridResult.height + padding.top + padding.bottom,
+    shapeConfig.group.minHeight
+  );
+
+  // Create the group node
+  const groupNode: LayoutNode = {
+    ...group,
+    x,
+    y,
+    width: groupWidth,
+    height: groupHeight,
+  };
+
+  // Now recursively layout nested groups with correct positions
+  const allNodes: LayoutNode[] = [groupNode];
+
+  for (const layoutedChild of gridResult.nodes) {
+    if (layoutedChild.nodeType === 'group') {
+      // Re-layout nested group at correct position to get all its children
+      const nestedResult = layoutGroupRecursive(
+        nodeMap.get(layoutedChild.id)!,
+        childrenMap,
+        nodeMap,
+        layoutedChild.x,
+        layoutedChild.y,
+        shapeConfig,
+        layoutConfig
+      );
+      allNodes.push(...nestedResult.nodes);
+    } else {
+      allNodes.push(layoutedChild);
+    }
+  }
+
+  return {
+    nodes: allNodes,
+    width: groupWidth,
+    height: groupHeight,
+  };
+}
+
+/**
+ * Layout children in a grid pattern
+ */
+function layoutChildrenInGrid(
+  children: SizedNode[],
+  startX: number,
+  startY: number,
+  maxColumns: number,
+  spacing: { horizontal: number; vertical: number }
+): LayoutResult {
+  if (children.length === 0) {
+    return { nodes: [], width: 0, height: 0 };
+  }
+
+  // Calculate dynamic column count
+  const columns = Math.min(children.length, maxColumns);
+  const rows = Math.ceil(children.length / columns);
+
+  // Calculate max dimensions per column/row for alignment
+  const columnWidths: number[] = new Array(columns).fill(0);
+  const rowHeights: number[] = new Array(rows).fill(0);
+
+  children.forEach((child, index) => {
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+    columnWidths[col] = Math.max(columnWidths[col], child.width);
+    rowHeights[row] = Math.max(rowHeights[row], child.height);
+  });
+
+  // Calculate column X positions (left edge of each column)
+  const columnX: number[] = [0];
+  for (let i = 1; i < columns; i++) {
+    columnX[i] = columnX[i - 1] + columnWidths[i - 1] + spacing.horizontal;
+  }
+
+  // Calculate row Y positions (top edge of each row)
+  const rowY: number[] = [0];
+  for (let i = 1; i < rows; i++) {
+    rowY[i] = rowY[i - 1] + rowHeights[i - 1] + spacing.vertical;
+  }
+
+  // Position each child
+  const layoutedNodes: LayoutNode[] = children.map((child, index) => {
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+
+    // Center child within its cell
+    const cellWidth = columnWidths[col];
+    const cellHeight = rowHeights[row];
+    const offsetX = (cellWidth - child.width) / 2;
+    const offsetY = (cellHeight - child.height) / 2;
+
+    return {
+      ...child,
+      x: startX + columnX[col] + offsetX,
+      y: startY + rowY[row] + offsetY,
+    };
+  });
+
+  // Calculate total grid dimensions
+  const totalWidth = columnX[columns - 1] + columnWidths[columns - 1];
+  const totalHeight = rowY[rows - 1] + rowHeights[rows - 1];
+
+  return {
+    nodes: layoutedNodes,
+    width: totalWidth,
+    height: totalHeight,
+  };
+}
+
+/**
+ * Add dimensions to a node based on its type
+ */
+function addDimensions(
+  node: ParsedNode,
+  shapeConfig: typeof DESIGN_STUDIO_CONFIG.shapes.architecture
+): SizedNode {
+  let width: number;
+  let height: number;
+
+  switch (node.nodeType) {
+    case 'service':
+      width = shapeConfig.service.width;
+      height = shapeConfig.service.height;
+      break;
+    case 'group':
+      width = shapeConfig.group.minWidth;
+      height = shapeConfig.group.minHeight;
+      break;
+    default:
+      width = shapeConfig.service.width;
+      height = shapeConfig.service.height;
+  }
+
+  return { ...node, width, height };
 }
 
 /**
@@ -165,9 +349,9 @@ export function centerLayout(nodes: LayoutNode[]): LayoutNode[] {
 
   // Calculate bounding box
   const minX = Math.min(...nodes.map((n) => n.x));
-  const maxX = Math.max(...nodes.map((n) => n.x));
+  const maxX = Math.max(...nodes.map((n) => n.x + n.width));
   const minY = Math.min(...nodes.map((n) => n.y));
-  const maxY = Math.max(...nodes.map((n) => n.y));
+  const maxY = Math.max(...nodes.map((n) => n.y + n.height));
 
   // Calculate center offset
   const centerX = (minX + maxX) / 2;

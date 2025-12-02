@@ -40,6 +40,7 @@ export function MermaidEditorRenderer({
   const addConnectorsBatch = useDiagramStore((state) => state._internalAddConnectorsBatch);
   const deleteShapesBatch = useDiagramStore((state) => state._internalDeleteShapesBatch);
   const deleteConnectorsBatch = useDiagramStore((state) => state._internalDeleteConnectorsBatch);
+  const updateShape = useDiagramStore((state) => state._internalUpdateShape);
   const commandFactory = useDiagramStore((state) => state.commandFactory);
 
   const diagramType = diagram?.type as DiagramType | undefined;
@@ -98,7 +99,8 @@ export function MermaidEditorRenderer({
         addShapesBatch,
         addConnectorsBatch,
         deleteShapesBatch,
-        deleteConnectorsBatch
+        deleteConnectorsBatch,
+        updateShape
       );
 
       await commandManager.execute(command, diagramId);

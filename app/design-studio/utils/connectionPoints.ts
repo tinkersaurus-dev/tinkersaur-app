@@ -151,14 +151,6 @@ export const HORIZONTAL_CONNECTION_POINTS: ConnectionPoint[] = [
 ];
 
 /**
- * Connection points for class shapes (positioned at quarter height)
- */
-export const CLASS_CONNECTION_POINTS: ConnectionPoint[] = [
-  { id: 'e', position: { x: 1, y: 0.35 }, direction: 'E' },
-  { id: 'w', position: { x: 0, y: 0.35 }, direction: 'W' },
-];
-
-/**
  * Generates connection points dynamically for sequence diagram lifelines
  * based on the lifeline height. Uses index-based IDs and fixed pixel offsets
  * for stable positioning.
@@ -213,11 +205,6 @@ export function generateSequenceLifelineConnectionPoints(height: number): Connec
  * @returns Array of connection points for the shape
  */
 export function getConnectionPointsForShape(shapeType: string, height?: number): ConnectionPoint[] {
-  // Class shapes use connection points at quarter height
-  if (shapeType === 'class') {
-    return CLASS_CONNECTION_POINTS;
-  }
-
   // Sequence lifeline shapes use dynamically generated connection points
   if (shapeType === 'sequence-lifeline') {
     if (height === undefined) {

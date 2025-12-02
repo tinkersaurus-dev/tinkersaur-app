@@ -11,6 +11,9 @@ import { useCanvasPanning } from '../../../hooks/useCanvasPanning';
 import { useCanvasSelection } from '../../../hooks/useCanvasSelection';
 import { useConnectorDrawing } from '../../../hooks/useConnectorDrawing';
 import { useShapeDragging } from '../../../hooks/useShapeDragging';
+import { useShapeResizing } from '../../../hooks/useShapeResizing';
+import { isContainerType } from '../../../utils/containment-utils';
+import type { ResizeHandle } from '../../../utils/resize';
 import { useCanvasKeyboardHandlers } from '../../../hooks/useCanvasKeyboardHandlers';
 import { useClassShapeEditing } from '~/design-studio/diagrams/class/hooks';
 import { useEnumerationShapeEditing } from '~/design-studio/diagrams/enumeration/hooks';
@@ -171,6 +174,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     updateSelecting: updateSelectingData,
     startDrawingConnector: transitionToDrawingConnector,
     updateDrawingConnector: updateDrawingConnectorData,
+    startResizing: transitionToResizing,
+    updateResizing: updateResizingData,
   } = useInteractionState();
 
   // Extract mode-specific data with type safety
@@ -180,6 +185,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     mode === 'dragging-shapes' ? (interactionData as import('../../../hooks/useInteractionState').DragData) : null;
   const drawingConnector: import('../../../hooks/useInteractionState').DrawingConnector | null =
     mode === 'drawing-connector' ? (interactionData as import('../../../hooks/useInteractionState').DrawingConnector) : null;
+  const resizeData: import('../../../hooks/useInteractionState').ResizeData | null =
+    mode === 'resizing-shapes' ? (interactionData as import('../../../hooks/useInteractionState').ResizeData) : null;
 
   const { startPanning, updatePanning, stopPanning } = useCanvasPanning({
     viewportTransform,
@@ -502,6 +509,52 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     setHoveredContainerId,
   });
 
+  const {
+    startResizing,
+    updateResizing,
+    finishResizing,
+  } = useShapeResizing({
+    viewportTransform,
+    gridSnappingEnabled,
+    localShapes,
+    updateLocalShapes,
+    updateShapes,
+    shapes,
+    isActive: mode === 'resizing-shapes',
+    resizeData,
+    diagramId,
+    commandFactory,
+    executeCommand,
+  });
+
+  // Handle resize start from resize handles
+  const handleResizeStart = useCallback(
+    (shapeId: string, handle: ResizeHandle, e: React.MouseEvent) => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const screenX = e.clientX - rect.left;
+      const screenY = e.clientY - rect.top;
+      const { x: canvasX, y: canvasY } = viewportTransform.screenToCanvas(screenX, screenY);
+
+      // Get all selected container shapes to resize together
+      const selectedContainers = selectedShapeIds.filter((id) => {
+        const shape = shapes.find((s) => s.id === id);
+        return shape && isContainerType(shape.type);
+      });
+
+      // If the clicked shape is not in selection, resize only that shape
+      const shapesToResize = selectedContainers.includes(shapeId)
+        ? selectedContainers
+        : [shapeId];
+
+      const resizeDataResult = startResizing(canvasX, canvasY, handle, shapesToResize);
+      transitionToResizing(resizeDataResult);
+    },
+    [containerRef, viewportTransform, selectedShapeIds, shapes, startResizing, transitionToResizing]
+  );
+
   useCanvasKeyboardHandlers({
     selectedConnectorIds,
     selectedShapeIds,
@@ -577,7 +630,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   );
 
   // Orchestrate mouse events with state machine-based routing
-  const { handleMouseDown, handleMouseMove, handleMouseUp } = useCanvasMouseOrchestration({
+  const { handleMouseDown, handleMouseMove, handleMouseUp, cursor: orchestrationCursor } = useCanvasMouseOrchestration({
     containerRef,
     mode,
     selectionBox,
@@ -598,6 +651,10 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     finishDragging,
     onUpdateDragging: updateDraggingData,
     onFinishInteraction: resetInteraction,
+    updateResizing,
+    finishResizing,
+    onUpdateResizing: updateResizingData,
+    resizeHandle: resizeData?.handle ?? null,
   });
 
   // Wrap connector drawing functions to handle state machine transitions
@@ -782,6 +839,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     connectorTypeManager,
     toolbarButtons,
     containerRef,
+    handleResizeStart,
+    orchestrationCursor,
   }), [
     handleMouseDown,
     handleMouseMove,
@@ -822,6 +881,8 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     connectorTypeManager,
     toolbarButtons,
     containerRef,
+    handleResizeStart,
+    orchestrationCursor,
   ]);
 
   // Build legacy context value (for backwards compatibility)

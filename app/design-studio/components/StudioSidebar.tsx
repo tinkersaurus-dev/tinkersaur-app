@@ -38,19 +38,15 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
 
   // Get all references for enriching tree nodes
   const references = useReferenceStore((state) => state.references);
-  const fetchReferencesForContent = useReferenceStore((state) => state.fetchReferencesForContent);
+  const fetchReferencesForDesignWork = useReferenceStore((state) => state.fetchReferencesForDesignWork);
 
-  // Load references for all diagrams
+  // Load references for all design works
   useEffect(() => {
-    // Collect all diagram IDs from all design works
-    const diagramIds = designWorks.flatMap((dw) => dw.diagrams.map((d) => d.id));
-    console.warn('[References] Loading references for diagrams:', diagramIds);
-
-    // Fetch references for each diagram
-    diagramIds.forEach((diagramId) => {
-      fetchReferencesForContent(diagramId);
+    // Fetch references for each design work
+    designWorks.forEach((dw) => {
+      fetchReferencesForDesignWork(dw.id);
     });
-  }, [designWorks, fetchReferencesForContent]);
+  }, [designWorks, fetchReferencesForDesignWork]);
 
   // Log when references change
   useEffect(() => {

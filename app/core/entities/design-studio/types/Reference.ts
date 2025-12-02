@@ -24,6 +24,7 @@ export type DropTarget = z.infer<typeof DropTargetSchema>;
  */
 export const ReferenceSchema = z.object({
   id: z.string().uuid(),
+  designWorkId: z.string().uuid(),
   name: z.string(),
   contentType: ContentTypeSchema,
   contentId: z.string().uuid(),

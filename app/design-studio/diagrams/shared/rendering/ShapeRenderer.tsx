@@ -14,7 +14,6 @@ import { SequenceNoteRenderer } from '../../sequence/rendering/SequenceNoteRende
 // Architecture diagram renderers
 import { ArchitectureServiceRenderer } from '../../architecture/rendering/ArchitectureServiceRenderer';
 import { ArchitectureGroupRenderer } from '../../architecture/rendering/ArchitectureGroupRenderer';
-import { ArchitectureJunctionRenderer } from '../../architecture/rendering/ArchitectureJunctionRenderer';
 // LLM/Preview renderers
 import { GenerateDiagramRenderer } from './GenerateDiagramRenderer';
 import { PreviewRenderer } from './PreviewRenderer';
@@ -42,7 +41,6 @@ const shapeRenderers: Record<string, ShapeRendererComponent> = {
   // Architecture diagram shape renderers
   'architecture-service': ArchitectureServiceRenderer,
   'architecture-group': ArchitectureGroupRenderer,
-  'architecture-junction': ArchitectureJunctionRenderer,
   // LLM-powered diagram generation shapes
   'llm-generator': GenerateDiagramRenderer,
   'llm-preview': PreviewRenderer,

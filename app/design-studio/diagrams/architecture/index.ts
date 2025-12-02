@@ -11,7 +11,6 @@ export * from './layout';
 // Rendering
 export { ArchitectureServiceRenderer } from './rendering/ArchitectureServiceRenderer';
 export { ArchitectureGroupRenderer } from './rendering/ArchitectureGroupRenderer';
-export { ArchitectureJunctionRenderer } from './rendering/ArchitectureJunctionRenderer';
 
 // Mermaid Import/Export
 export { ArchitectureMermaidImporter, createArchitectureMermaidImporter } from './mermaid/importer';

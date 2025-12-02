@@ -1,101 +1,78 @@
-import { v4 as uuidv4 } from 'uuid';
 import type { Interface, CreateInterfaceDto, UpdateInterfaceDto } from '../types';
-import { getFromStorage, saveToStorage, simulateDelay } from './storage';
+import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
-const STORAGE_KEY = 'interfaces';
-
+/**
+ * Interface API Client
+ * Real implementation with backend API
+ */
 class InterfaceApi {
   /**
    * Get all interfaces for a design work
    */
   async list(designWorkId: string): Promise<Interface[]> {
-    await simulateDelay();
-    const interfaces = getFromStorage<Interface>(STORAGE_KEY);
-    return interfaces.filter((i) => i.designWorkId === designWorkId);
+    const data = await httpClient.get<Interface[]>(`/api/interfaces?designWorkId=${designWorkId}`);
+    return deserializeDatesArray(data);
   }
 
   /**
    * Get a single interface by ID
    */
   async get(id: string): Promise<Interface | null> {
-    await simulateDelay();
-    const interfaces = getFromStorage<Interface>(STORAGE_KEY);
-    return interfaces.find((i) => i.id === id) || null;
+    try {
+      const data = await httpClient.get<Interface>(`/api/interfaces/${id}`);
+      return deserializeDates(data);
+    } catch {
+      return null;
+    }
   }
 
   /**
    * Create a new interface
    */
   async create(data: CreateInterfaceDto): Promise<Interface> {
-    await simulateDelay();
-
-    const interfaceItem: Interface = {
-      ...data,
-      id: uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const interfaces = getFromStorage<Interface>(STORAGE_KEY);
-    interfaces.push(interfaceItem);
-    saveToStorage(STORAGE_KEY, interfaces);
-
-    return interfaceItem;
+    const result = await httpClient.post<Interface>('/api/interfaces', data);
+    return deserializeDates(result);
   }
 
   /**
    * Update an existing interface
    */
   async update(id: string, updates: Partial<UpdateInterfaceDto>): Promise<Interface | null> {
-    await simulateDelay();
-
-    const interfaces = getFromStorage<Interface>(STORAGE_KEY);
-    const index = interfaces.findIndex((i) => i.id === id);
-
-    if (index === -1) {
+    try {
+      const result = await httpClient.put<Interface>(`/api/interfaces/${id}`, updates);
+      return deserializeDates(result);
+    } catch {
       return null;
     }
-
-    interfaces[index] = {
-      ...interfaces[index],
-      ...updates,
-      id,
-      updatedAt: new Date(),
-    };
-
-    saveToStorage(STORAGE_KEY, interfaces);
-    return interfaces[index];
   }
 
   /**
    * Delete an interface
    */
   async delete(id: string): Promise<boolean> {
-    await simulateDelay();
-
-    const interfaces = getFromStorage<Interface>(STORAGE_KEY);
-    const filtered = interfaces.filter((i) => i.id !== id);
-
-    if (filtered.length === interfaces.length) {
+    try {
+      await httpClient.delete(`/api/interfaces/${id}`);
+      return true;
+    } catch {
       return false;
     }
-
-    saveToStorage(STORAGE_KEY, filtered);
-    return true;
   }
 
   /**
    * Delete all interfaces for a design work
    */
   async deleteByDesignWorkId(designWorkId: string): Promise<number> {
-    await simulateDelay();
-
-    const interfaces = getFromStorage<Interface>(STORAGE_KEY);
-    const filtered = interfaces.filter((i) => i.designWorkId !== designWorkId);
-    const deletedCount = interfaces.length - filtered.length;
-
-    saveToStorage(STORAGE_KEY, filtered);
-    return deletedCount;
+    try {
+      const interfaces = await this.list(designWorkId);
+      let deletedCount = 0;
+      for (const iface of interfaces) {
+        const success = await this.delete(iface.id);
+        if (success) deletedCount++;
+      }
+      return deletedCount;
+    } catch {
+      return 0;
+    }
   }
 }
 

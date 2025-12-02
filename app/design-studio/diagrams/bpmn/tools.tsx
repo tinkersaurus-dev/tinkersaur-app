@@ -17,6 +17,7 @@ import {
 } from 'react-icons/fa';
 import { LuSquareUserRound, LuSettings, LuSquareCode } from "react-icons/lu";
 import { globalToolGroup } from '~/design-studio/config/global-tools';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Tool definition interface
@@ -58,6 +59,8 @@ export interface ToolGroup {
   tools: Tool[];
 }
 
+const { task: taskSize, startEvent: eventSize, gateway: gatewaySize } = DESIGN_STUDIO_CONFIG.shapes.bpmn;
+
 /**
  * BPMN Task Tools
  * Rounded rectangles representing different types of tasks
@@ -69,7 +72,7 @@ const taskTools: Tool[] = [
     icon: LuSquareUserRound,
     shapeType: 'bpmn-task',
     shapeSubtype: 'user',
-    defaultSize: { width: 120, height: 80 },
+    defaultSize: { width: taskSize.width, height: taskSize.height },
   },
   {
     id: 'service-task',
@@ -77,7 +80,7 @@ const taskTools: Tool[] = [
     icon: LuSettings,
     shapeType: 'bpmn-task',
     shapeSubtype: 'service',
-    defaultSize: { width: 120, height: 80 },
+    defaultSize: { width: taskSize.width, height: taskSize.height },
   },
   {
     id: 'script-task',
@@ -85,7 +88,7 @@ const taskTools: Tool[] = [
     icon: LuSquareCode,
     shapeType: 'bpmn-task',
     shapeSubtype: 'script',
-    defaultSize: { width: 120, height: 80 },
+    defaultSize: { width: taskSize.width, height: taskSize.height },
   },
 ];
 
@@ -100,7 +103,7 @@ const eventTools: Tool[] = [
     icon: FaPlay,
     shapeType: 'bpmn-event',
     shapeSubtype: 'start',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: eventSize.width, height: eventSize.height },
   },
   {
     id: 'end-event',
@@ -108,7 +111,7 @@ const eventTools: Tool[] = [
     icon: FaStop,
     shapeType: 'bpmn-event',
     shapeSubtype: 'end',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: eventSize.width, height: eventSize.height },
   },
   {
     id: 'intermediate-catching-event',
@@ -116,7 +119,7 @@ const eventTools: Tool[] = [
     icon: FaCircle,
     shapeType: 'bpmn-event',
     shapeSubtype: 'catching',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: eventSize.width, height: eventSize.height },
   },
   {
     id: 'intermediate-throwing-event',
@@ -124,7 +127,7 @@ const eventTools: Tool[] = [
     icon: FaCircle,
     shapeType: 'bpmn-event',
     shapeSubtype: 'throwing',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: eventSize.width, height: eventSize.height },
   },
   {
     id: 'message-send-event',
@@ -132,7 +135,7 @@ const eventTools: Tool[] = [
     icon: FaPaperPlane,
     shapeType: 'bpmn-event',
     shapeSubtype: 'message-send',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: eventSize.width, height: eventSize.height },
   },
   {
     id: 'message-receive-event',
@@ -140,7 +143,7 @@ const eventTools: Tool[] = [
     icon: FaEnvelope,
     shapeType: 'bpmn-event',
     shapeSubtype: 'message-receive',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: eventSize.width, height: eventSize.height },
   },
   {
     id: 'timer-event',
@@ -148,7 +151,7 @@ const eventTools: Tool[] = [
     icon: FaClock,
     shapeType: 'bpmn-event',
     shapeSubtype: 'timer',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: eventSize.width, height: eventSize.height },
   },
   {
     id: 'error-event',
@@ -156,7 +159,7 @@ const eventTools: Tool[] = [
     icon: FaExclamationTriangle,
     shapeType: 'bpmn-event',
     shapeSubtype: 'error',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: eventSize.width, height: eventSize.height },
   },
 ];
 
@@ -171,7 +174,7 @@ const gatewayTools: Tool[] = [
     icon: FaTimes,
     shapeType: 'bpmn-gateway',
     shapeSubtype: 'exclusive',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: gatewaySize.width, height: gatewaySize.height },
   },
   {
     id: 'inclusive-gateway',
@@ -179,7 +182,7 @@ const gatewayTools: Tool[] = [
     icon: FaCircle,
     shapeType: 'bpmn-gateway',
     shapeSubtype: 'inclusive',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: gatewaySize.width, height: gatewaySize.height },
   },
   {
     id: 'parallel-gateway',
@@ -187,7 +190,7 @@ const gatewayTools: Tool[] = [
     icon: FaStream,
     shapeType: 'bpmn-gateway',
     shapeSubtype: 'parallel',
-    defaultSize: { width: 40, height: 40 },
+    defaultSize: { width: gatewaySize.width, height: gatewaySize.height },
   },
 ];
 

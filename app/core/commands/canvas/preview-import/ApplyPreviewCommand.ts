@@ -35,7 +35,8 @@ export class ApplyPreviewCommand implements Command {
     private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>,
     private readonly deleteShapesBatchFn?: (diagramId: string, shapeIds: string[]) => Promise<Diagram | null>,
     private readonly deleteConnectorsBatchFn?: (diagramId: string, connectorIds: string[]) => Promise<Diagram | null>,
-    private readonly diagramType?: DiagramType
+    private readonly diagramType?: DiagramType,
+    private readonly designWorkId?: string
   ) {
     this.description = 'Apply diagram';
   }
@@ -223,8 +224,8 @@ export class ApplyPreviewCommand implements Command {
     shapeDTOs: CreateShapeDTO[],
     shapeIds: string[]
   ): Promise<void> {
-    // Only process if we have shapes and diagram type
-    if (shapeDTOs.length === 0 || shapeIds.length === 0) {
+    // Only process if we have shapes, diagram type, and designWorkId
+    if (shapeDTOs.length === 0 || shapeIds.length === 0 || !this.designWorkId) {
       return;
     }
 
@@ -249,6 +250,7 @@ export class ApplyPreviewCommand implements Command {
 
         try {
           const createdRef = await referenceStore.createReference({
+            designWorkId: this.designWorkId,
             name: shapeDTO.label || shapeDTO.type,
             contentType: 'diagram',
             contentId: this.diagramId,

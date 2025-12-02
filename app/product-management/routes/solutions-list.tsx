@@ -11,6 +11,7 @@ import { Button, Input, Form, useForm, Modal, Select, Empty } from '~/core/compo
 import type { SolutionType } from '~/core/entities/product-management';
 import { useSolutions, useSolutionCRUD } from '../hooks';
 import { SolutionCard } from '../components';
+import { useAuthStore } from '~/core/auth';
 
 const solutionTypeOptions = [
   { value: 'product', label: 'Product' },
@@ -33,8 +34,9 @@ export default function SolutionsListPage() {
     type: 'product',
   });
 
-  // Use new hooks
-  const { solutions, loading } = useSolutions('team-1'); // Mock team ID
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const teamId = currentUser?.teamId;
+  const { solutions, loading } = useSolutions(teamId);
   const { handleCreate } = useSolutionCRUD();
 
   const handleAdd = () => {
@@ -49,8 +51,13 @@ export default function SolutionsListPage() {
 
       const values = form.getValues();
 
+      if (!teamId) {
+        console.error('No team selected');
+        return;
+      }
+
       await handleCreate({
-        teamId: 'team-1', // Mock team ID
+        teamId,
         ...values,
       });
 
@@ -78,7 +85,9 @@ export default function SolutionsListPage() {
       />
 
       <PageContent>
-        {loading ? (
+        {!teamId ? (
+          <Empty description="No team selected. Please create an organization and team first." />
+        ) : loading ? (
           <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
         ) : solutions.length === 0 ? (
           <Empty description="No solutions yet. Click 'Add Solution' to create one." />

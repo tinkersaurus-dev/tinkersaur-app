@@ -3,6 +3,9 @@ import type { Shape } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
 import { ShapeRenderer } from '~/design-studio/diagrams/shared/rendering/ShapeRenderer';
 import type { RenderContext } from '~/design-studio/diagrams/shared/rendering/types';
+import { ResizeHandles } from '../ui/ResizeHandles';
+import { isContainerType } from '../../../utils/containment-utils';
+import type { ResizeHandle } from '../../../utils/resize';
 
 interface CanvasShapesListProps {
   shapes: Shape[];
@@ -35,6 +38,8 @@ interface CanvasShapesListProps {
   onEnumerationDeleteLiteral?: (shapeId: string, literalIndex: number) => void;
   onEnumerationUpdateLiteral?: (shapeId: string, literalIndex: number, newValue: string) => void;
   onEnumerationUpdateLiteralLocal?: (shapeId: string, literalIndex: number, newValue: string) => void;
+  // Resize callbacks
+  onResizeStart?: (shapeId: string, handle: ResizeHandle, e: React.MouseEvent) => void;
 }
 
 /**
@@ -69,6 +74,7 @@ export function CanvasShapesList({
   onEnumerationDeleteLiteral,
   onEnumerationUpdateLiteral,
   onEnumerationUpdateLiteralLocal,
+  onResizeStart,
 }: CanvasShapesListProps) {
   // Sort shapes to ensure parents render before children (depth-first traversal)
   // This ensures children appear above their parents in the rendering order
@@ -156,6 +162,22 @@ export function CanvasShapesList({
           />
         );
       })}
+
+      {/* Render resize handles for selected container shapes */}
+      {onResizeStart &&
+        sortedShapes
+          .filter(
+            (shape) =>
+              selectedShapeIds.includes(shape.id) && isContainerType(shape.type)
+          )
+          .map((shape) => (
+            <ResizeHandles
+              key={`resize-${shape.id}`}
+              shape={shape}
+              zoom={viewportTransform.viewport.zoom}
+              onResizeStart={onResizeStart}
+            />
+          ))}
     </>
   );
 }

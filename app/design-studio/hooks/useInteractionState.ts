@@ -1,4 +1,8 @@
 import { useState, useCallback } from 'react';
+import type { ResizeHandle, Bounds, DominantAxis } from '../utils/resize';
+
+// Re-export DominantAxis for consumers who import from this module
+export type { DominantAxis } from '../utils/resize';
 
 /**
  * Interaction modes for the canvas
@@ -8,7 +12,8 @@ export type InteractionMode =
   | 'panning'
   | 'dragging-shapes'
   | 'selecting'
-  | 'drawing-connector';
+  | 'drawing-connector'
+  | 'resizing-shapes';
 
 /**
  * Selection box data
@@ -44,6 +49,19 @@ export interface DragData {
 }
 
 /**
+ * Resize data for shape resizing
+ */
+export interface ResizeData {
+  handle: ResizeHandle;
+  startCanvasPos: { x: number; y: number };
+  shapesOriginalBounds: Map<string, Bounds>;
+  aspectRatios: Map<string, number>; // width/height for corner handles
+  childrenBounds: Map<string, Bounds | null>; // constraints per shape
+  delta: { x: number; y: number } | null;
+  dominantAxis: DominantAxis; // locked axis for corner handles (aspect ratio)
+}
+
+/**
  * Mode-specific data for each interaction type
  */
 export type InteractionData =
@@ -51,7 +69,8 @@ export type InteractionData =
   | { mode: 'panning'; data: null }
   | { mode: 'dragging-shapes'; data: DragData }
   | { mode: 'selecting'; data: SelectionBox }
-  | { mode: 'drawing-connector'; data: DrawingConnector };
+  | { mode: 'drawing-connector'; data: DrawingConnector }
+  | { mode: 'resizing-shapes'; data: ResizeData };
 
 /**
  * Unified interaction state machine hook
@@ -142,6 +161,26 @@ export function useInteractionState() {
     });
   }, []);
 
+  /**
+   * Start resizing shapes mode
+   */
+  const startResizing = useCallback((resizeData: ResizeData) => {
+    setState({ mode: 'resizing-shapes', data: resizeData });
+  }, []);
+
+  /**
+   * Update resizing shapes data
+   */
+  const updateResizing = useCallback((delta: { x: number; y: number }) => {
+    setState((prev) => {
+      if (prev.mode !== 'resizing-shapes') return prev;
+      return {
+        mode: 'resizing-shapes',
+        data: { ...prev.data, delta },
+      };
+    });
+  }, []);
+
   return {
     mode: state.mode,
     data: state.data,
@@ -153,5 +192,7 @@ export function useInteractionState() {
     updateSelecting,
     startDrawingConnector,
     updateDrawingConnector,
+    startResizing,
+    updateResizing,
   };
 }

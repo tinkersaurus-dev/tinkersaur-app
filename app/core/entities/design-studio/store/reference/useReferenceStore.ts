@@ -9,7 +9,7 @@ interface ReferenceStore {
   error: Error | null;
 
   // Actions
-  fetchReferencesForContent: (contentId: string) => Promise<void>;
+  fetchReferencesForDesignWork: (designWorkId: string) => Promise<void>;
   createReference: (data: CreateReference) => Promise<Reference>;
   updateReferenceName: (id: string, name: string) => Promise<void>;
   deleteReference: (id: string) => Promise<void>;
@@ -24,12 +24,12 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => ({
   loading: false,
   error: null,
 
-  // Fetch all references for a content item
-  fetchReferencesForContent: async (contentId: string) => {
+  // Fetch all references for a design work
+  fetchReferencesForDesignWork: async (designWorkId: string) => {
     set({ loading: true, error: null });
 
     try {
-      const references = await referenceApi.getByContentId(contentId);
+      const references = await referenceApi.list(designWorkId);
 
       // Index references by ID
       const referencesById = references.reduce(

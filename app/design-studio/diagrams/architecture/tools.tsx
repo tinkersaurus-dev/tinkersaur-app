@@ -4,8 +4,9 @@
  */
 
 import type { ComponentType } from 'react';
-import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe, LuBox, LuCircleDot, LuMonitor, LuSmartphone, LuCode, LuTvMinimal, LuTablet } from "react-icons/lu";
+import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe, LuBox, LuMonitor, LuSmartphone, LuCode, LuTvMinimal, LuTablet } from "react-icons/lu";
 import { globalToolGroup } from '~/design-studio/config/global-tools';
+import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Tool definition interface
@@ -49,6 +50,8 @@ export interface ToolGroup {
   tools: Tool[];
 }
 
+const { service: serviceSize, group: groupSize } = DESIGN_STUDIO_CONFIG.shapes.architecture;
+
 /**
  * Architecture Service Tools
  * Services represent individual nodes/endpoints with different icons
@@ -59,7 +62,7 @@ const serviceTools: Tool[] = [
     name: 'Cloud Service',
     icon: LuCloud,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'cloud' },
   },
   {
@@ -67,7 +70,7 @@ const serviceTools: Tool[] = [
     name: 'Database',
     icon: LuDatabase,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'database' },
   },
   {
@@ -75,7 +78,7 @@ const serviceTools: Tool[] = [
     name: 'Server',
     icon: LuServer,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'server' },
   },
   {
@@ -83,7 +86,7 @@ const serviceTools: Tool[] = [
     name: 'Disk Storage',
     icon: LuHardDrive,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'disk' },
   },
   {
@@ -91,7 +94,7 @@ const serviceTools: Tool[] = [
     name: 'Internet',
     icon: LuGlobe,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'internet' },
   },
   {
@@ -99,7 +102,7 @@ const serviceTools: Tool[] = [
     name: 'Web App',
     icon: LuMonitor,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'web' },
   },
   {
@@ -107,7 +110,7 @@ const serviceTools: Tool[] = [
     name: 'Mobile App',
     icon: LuSmartphone,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'mobile' },
   },
   {
@@ -115,7 +118,7 @@ const serviceTools: Tool[] = [
     name: 'React App',
     icon: LuCode,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'react' },
   },
   {
@@ -123,7 +126,7 @@ const serviceTools: Tool[] = [
     name: 'Frontend UI',
     icon: LuTvMinimal,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'frontend' },
   },
   {
@@ -131,7 +134,7 @@ const serviceTools: Tool[] = [
     name: 'Tablet App',
     icon: LuTablet,
     shapeType: 'architecture-service',
-    defaultSize: { width: 100, height: 80 },
+    defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'tablet' },
   },
 ];
@@ -146,24 +149,11 @@ const containerTools: Tool[] = [
     name: 'Group',
     icon: LuBox,
     shapeType: 'architecture-group',
-    defaultSize: { width: 300, height: 200 },
+    defaultSize: { width: groupSize.minWidth * 2, height: groupSize.minHeight * 2 },
     initialData: { icon: 'box' },
   },
 ];
 
-/**
- * Architecture Utility Tools
- * Junctions and other routing elements
- */
-const utilityTools: Tool[] = [
-  {
-    id: 'junction',
-    name: 'Junction',
-    icon: LuCircleDot,
-    shapeType: 'architecture-junction',
-    defaultSize: { width: 20, height: 20 },
-  },
-];
 
 /**
  * All tool groups for architecture diagrams
@@ -179,11 +169,6 @@ export const architectureToolGroups: ToolGroup[] = [
     type: 'container',
     label: 'Containers',
     tools: containerTools,
-  },
-  {
-    type: 'utility',
-    label: 'Utilities',
-    tools: utilityTools,
   },
   globalToolGroup, // AI-powered diagram generation
 ];

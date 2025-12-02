@@ -88,15 +88,15 @@ export const DESIGN_STUDIO_CONFIG = {
         height: 120,
       },
       interface: {
-        width: 160,
-        height: 100,
+        width: 180,
+        height: 120,
       },
     },
 
     /** Sequence diagram element dimensions */
     sequence: {
       lifeline: {
-        width: 100,
+        width: 120,
         height: 400, // This is the DEFAULT_LIFELINE_HEIGHT
       },
       participantBox: {
@@ -116,16 +116,13 @@ export const DESIGN_STUDIO_CONFIG = {
     /** Architecture diagram element dimensions */
     architecture: {
       service: {
-        width: 120,
+        width: 100,
         height: 80,
       },
       group: {
-        width: 300,
-        height: 200,
-      },
-      junction: {
-        width: 20,
-        height: 20,
+        /** Minimum group dimensions (auto-sized based on contents) */
+        minWidth: 150,
+        minHeight: 100,
       },
     },
 
@@ -139,6 +136,35 @@ export const DESIGN_STUDIO_CONFIG = {
     generateDiagram: {
       width: 280,
       height: 280,
+    },
+  },
+
+  /**
+   * Architecture Diagram Layout Configuration
+   */
+  architectureLayout: {
+    /** Horizontal gap between top-level groups (pixels) */
+    groupSpacing: 50,
+    /** Padding inside groups around children */
+    groupPadding: {
+      top: 40,    // Space for group label
+      right: 20,
+      bottom: 20,
+      left: 20,
+    },
+    /** Spacing between items in grid layout */
+    gridSpacing: {
+      horizontal: 20,
+      vertical: 20,
+    },
+    /** Maximum columns in grid layout */
+    maxGridColumns: 3,
+    /** Gap between groups and orphan services below */
+    orphanSpacing: 50,
+    /** Starting position for layout */
+    startPosition: {
+      x: 100,
+      y: 100,
     },
   },
 

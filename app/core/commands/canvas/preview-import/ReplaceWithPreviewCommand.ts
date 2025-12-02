@@ -1,11 +1,12 @@
 import type { Command } from '../../command.types';
-import type { CreateShapeDTO, Shape } from '../../../entities/design-studio/types/Shape';
+import type { CreateShapeDTO, Shape, UpdateShapeDTO } from '../../../entities/design-studio/types/Shape';
 import type { CreateConnectorDTO } from '../../../entities/design-studio/types/Connector';
 import type { Diagram, DiagramType } from '../../../entities/design-studio/types';
 import type { MermaidImportResult } from '~/design-studio/diagrams/shared/mermaid/importer';
 import { BpmnMermaidImporter } from '~/design-studio/diagrams/bpmn/mermaid/importer';
 import { ClassMermaidImporter } from '~/design-studio/diagrams/class/mermaid/importer';
 import { SequenceMermaidImporter} from '~/design-studio/diagrams/sequence/mermaid/importer';
+import { ArchitectureMermaidImporter } from '~/design-studio/diagrams/architecture/mermaid/importer';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
@@ -35,7 +36,8 @@ export class ReplaceWithPreviewCommand implements Command {
     private readonly deleteConnectorFn: (diagramId: string, connectorId: string) => Promise<Diagram | null>,
     private readonly getShapeFn: (diagramId: string, shapeId: string) => Promise<Shape | null>,
     private readonly addShapesBatchFn?: (diagramId: string, shapes: CreateShapeDTO[]) => Promise<Diagram>,
-    private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>
+    private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>,
+    private readonly updateShapeFn?: (diagramId: string, shapeId: string, updates: Partial<UpdateShapeDTO>) => Promise<Diagram | null>
   ) {
     this.description = 'Replace generator with preview';
   }
@@ -80,11 +82,15 @@ export class ReplaceWithPreviewCommand implements Command {
     const createdShapeIds: string[] = [];
 
     // Create all preview shapes as actual diagram entities (marked with isPreview)
-    // Prepare all shape DTOs with isPreview flag
-    const shapeDTOs = importResult.shapes.map(shapeData => ({
-      ...shapeData,
-      isPreview: true, // Mark as preview to disable interactivity
-    }));
+    // First pass: create shapes without parent relationships
+    const shapeDTOs = importResult.shapes.map(shapeData => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { parentIndex, ...rest } = shapeData;
+      return {
+        ...rest,
+        isPreview: true, // Mark as preview to disable interactivity
+      };
+    });
 
     // Use batch operation if available, otherwise add one by one
     if (this.addShapesBatchFn && shapeDTOs.length > 0) {
@@ -102,6 +108,19 @@ export class ReplaceWithPreviewCommand implements Command {
           const newShapeId = diagram.shapes[diagram.shapes.length - 1].id;
           createdShapeIds.push(newShapeId);
           this.previewContentShapeIds.push(newShapeId);
+        }
+      }
+    }
+
+    // Second pass: update parent relationships using parentIndex
+    for (let i = 0; i < importResult.shapes.length; i++) {
+      const shapeRef = importResult.shapes[i];
+      if (shapeRef.parentIndex !== undefined) {
+        const parentId = createdShapeIds[shapeRef.parentIndex];
+        const shapeId = createdShapeIds[i];
+        if (parentId && shapeId) {
+          // Update the shape with its parent ID
+          await this.updateShapeFn?.(this.diagramId, shapeId, { parentId });
         }
       }
     }
@@ -227,6 +246,8 @@ export class ReplaceWithPreviewCommand implements Command {
         return new ClassMermaidImporter();
       case 'sequence':
         return new SequenceMermaidImporter();
+      case 'architecture':
+        return new ArchitectureMermaidImporter();
       default:
         return null;
     }

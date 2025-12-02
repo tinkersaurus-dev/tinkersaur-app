@@ -13,12 +13,20 @@ export interface MermaidConnectorRef extends Omit<CreateConnectorDTO, 'sourceSha
 }
 
 /**
+ * Shape reference that includes optional parent index for hierarchy
+ * The parentIndex refers to positions in the shapes array of MermaidImportResult
+ */
+export interface MermaidShapeRef extends CreateShapeDTO {
+  parentIndex?: number;
+}
+
+/**
  * Result of a mermaid import operation
  * Returns shape data WITHOUT IDs and connectors with shape INDICES
  * IDs will be generated when shapes are added to the diagram
  */
 export interface MermaidImportResult {
-  shapes: CreateShapeDTO[];
+  shapes: MermaidShapeRef[];
   connectors: MermaidConnectorRef[];
   metadata?: {
     diagramType: string;

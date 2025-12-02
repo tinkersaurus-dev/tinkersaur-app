@@ -49,7 +49,7 @@ export function ArchitectureGroupRenderer({
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
-  const borderRadius = 8; // More rounded for groups
+  const borderRadius = 2; // More rounded for groups
   const headerHeight = 40;
   const padding = 12;
 
@@ -67,15 +67,15 @@ export function ArchitectureGroupRenderer({
   }
 
   // Determine background color - lighter for groups to show containment
-  let backgroundColor = 'var(--bg-subtle)';
-  if (showSelected) {
-    backgroundColor = 'var(--bg-subtle)';
+  const backgroundColor = '';
+  /*if (showSelected) {
+    backgroundColor = '';
   } else if (showHoveredContainer) {
     // Visual feedback during drag - highlighted container background
     backgroundColor = 'var(--bg-success-subtle)';
   } else if (showHover) {
     backgroundColor = 'var(--bg-light)';
-  }
+  }*/
 
   const iconSize = 18;
 
@@ -106,6 +106,7 @@ export function ArchitectureGroupRenderer({
       borderWidth={borderWidth}
       backgroundColor={backgroundColor}
       borderRadius={borderRadius}
+      borderStyle="dashed"
       hoverPadding={15}
       onMouseDown={isInteractive ? onMouseDown : undefined}
       onMouseEnter={isInteractive ? onMouseEnter : undefined}

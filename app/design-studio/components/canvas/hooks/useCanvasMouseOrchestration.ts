@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import type { InteractionMode, SelectionBox } from '../../../hooks/useInteractionState';
+import { getResizeCursor, type ResizeHandle } from '../../../utils/resize';
 
 /**
  * Props for the useCanvasMouseOrchestration hook
@@ -38,6 +39,12 @@ export interface UseCanvasMouseOrchestrationProps {
   finishDragging: () => void;
   onUpdateDragging: (delta: { x: number; y: number }) => void;
   onFinishInteraction: () => void;
+
+  // Shape resizing controls
+  updateResizing: (screenX: number, screenY: number, rect: DOMRect) => { x: number; y: number };
+  finishResizing: () => void;
+  onUpdateResizing: (delta: { x: number; y: number }) => void;
+  resizeHandle: ResizeHandle | null;
 }
 
 /**
@@ -47,6 +54,8 @@ export interface UseCanvasMouseOrchestrationReturn {
   handleMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleMouseUp: (e: React.MouseEvent<HTMLDivElement>) => void;
+  /** Cursor style to apply to the canvas based on current interaction */
+  cursor: string;
 }
 
 /**
@@ -84,6 +93,10 @@ export function useCanvasMouseOrchestration(
     finishDragging,
     onUpdateDragging,
     onFinishInteraction,
+    updateResizing,
+    finishResizing,
+    onUpdateResizing,
+    resizeHandle,
   } = props;
 
   /**
@@ -136,6 +149,12 @@ export function useCanvasMouseOrchestration(
         break;
       }
 
+      case 'resizing-shapes': {
+        const delta = updateResizing(screenX, screenY, rect);
+        onUpdateResizing(delta);
+        break;
+      }
+
       case 'selecting':
         if (selectionBox) {
           const updatedBox = updateSelection(screenX, screenY);
@@ -157,6 +176,8 @@ export function useCanvasMouseOrchestration(
     onUpdateSelecting,
     updateDragging,
     onUpdateDragging,
+    updateResizing,
+    onUpdateResizing,
     containerRef,
   ]);
 
@@ -193,6 +214,13 @@ export function useCanvasMouseOrchestration(
           }
           break;
 
+        case 'resizing-shapes':
+          if (e.button === 0) {
+            finishResizing();
+            onFinishInteraction();
+          }
+          break;
+
         case 'selecting':
           if (e.button === 0) {
             const rect = container.getBoundingClientRect();
@@ -216,14 +244,28 @@ export function useCanvasMouseOrchestration(
       onReleaseConnectorOnCanvas,
       finishSelection,
       finishDragging,
+      finishResizing,
       onFinishInteraction,
       containerRef,
     ]
   );
 
+  // Calculate cursor based on current mode
+  const cursor = (() => {
+    switch (mode) {
+      case 'panning':
+        return 'grabbing';
+      case 'resizing-shapes':
+        return resizeHandle ? getResizeCursor(resizeHandle) : 'default';
+      default:
+        return 'default';
+    }
+  })();
+
   return {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
+    cursor,
   };
 }

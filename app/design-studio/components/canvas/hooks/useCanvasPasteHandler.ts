@@ -33,6 +33,7 @@ export function useCanvasPasteHandler({
   const deleteConnector = useDiagramStore((state) => state._internalDeleteConnector);
   const addShapesBatch = useDiagramStore((state) => state._internalAddShapesBatch);
   const addConnectorsBatch = useDiagramStore((state) => state._internalAddConnectorsBatch);
+  const updateShape = useDiagramStore((state) => state._internalUpdateShape);
 
   const handlePaste = useCallback(
     async (event: ClipboardEvent) => {
@@ -54,7 +55,8 @@ export function useCanvasPasteHandler({
         !trimmedText.startsWith('flowchart') &&
         !trimmedText.startsWith('graph') &&
         !trimmedText.startsWith('classDiagram') &&
-        !trimmedText.startsWith('sequenceDiagram')
+        !trimmedText.startsWith('sequenceDiagram') &&
+        !trimmedText.startsWith('architecture-beta')
       ) {
         // Not Mermaid syntax, ignore
         return;
@@ -78,7 +80,8 @@ export function useCanvasPasteHandler({
           deleteShape,
           deleteConnector,
           addShapesBatch,
-          addConnectorsBatch
+          addConnectorsBatch,
+          updateShape
         );
 
         await commandManager.execute(command, diagramId);
@@ -92,7 +95,7 @@ export function useCanvasPasteHandler({
         );
       }
     },
-    [enabled, diagramId, diagramType, getMousePosition, addShape, addConnector, deleteShape, deleteConnector, addShapesBatch, addConnectorsBatch]
+    [enabled, diagramId, diagramType, getMousePosition, addShape, addConnector, deleteShape, deleteConnector, addShapesBatch, addConnectorsBatch, updateShape]
   );
 
   useEffect(() => {

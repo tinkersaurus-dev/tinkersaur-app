@@ -1,94 +1,64 @@
-import { v4 as uuidv4 } from 'uuid';
 import type { Team, CreateTeamDto, UpdateTeamDto } from '../types';
-import { getFromStorage, saveToStorage, simulateDelay } from './storage';
-
-const STORAGE_KEY = 'teams';
+import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
 /**
  * Team API Client
- * Mock implementation with localStorage persistence
+ * Real implementation with backend API
  */
 class TeamApi {
   /**
    * Get all teams for an organization
    */
   async list(organizationId?: string): Promise<Team[]> {
-    await simulateDelay();
-    const teams = getFromStorage<Team>(STORAGE_KEY);
     if (!organizationId) {
       return [];
     }
-    return teams.filter((t) => t.organizationId === organizationId);
+    const data = await httpClient.get<Team[]>(`/api/teams?organizationId=${organizationId}`);
+    return deserializeDatesArray(data);
   }
 
   /**
    * Get a single team by ID
    */
   async get(id: string): Promise<Team | null> {
-    await simulateDelay();
-    const teams = getFromStorage<Team>(STORAGE_KEY);
-    return teams.find((t) => t.id === id) || null;
+    try {
+      const data = await httpClient.get<Team>(`/api/teams/${id}`);
+      return deserializeDates(data);
+    } catch {
+      return null;
+    }
   }
 
   /**
    * Create a new team
    */
   async create(data: CreateTeamDto): Promise<Team> {
-    await simulateDelay();
-
-    const team: Team = {
-      ...data,
-      id: uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const teams = getFromStorage<Team>(STORAGE_KEY);
-    teams.push(team);
-    saveToStorage(STORAGE_KEY, teams);
-
-    return team;
+    const result = await httpClient.post<Team>('/api/teams', data);
+    return deserializeDates(result);
   }
 
   /**
    * Update an existing team
    */
   async update(id: string, updates: Partial<UpdateTeamDto>): Promise<Team | null> {
-    await simulateDelay();
-
-    const teams = getFromStorage<Team>(STORAGE_KEY);
-    const index = teams.findIndex((t) => t.id === id);
-
-    if (index === -1) {
+    try {
+      const result = await httpClient.put<Team>(`/api/teams/${id}`, updates);
+      return deserializeDates(result);
+    } catch {
       return null;
     }
-
-    teams[index] = {
-      ...teams[index],
-      ...updates,
-      id, // Ensure ID doesn't change
-      updatedAt: new Date(),
-    };
-
-    saveToStorage(STORAGE_KEY, teams);
-    return teams[index];
   }
 
   /**
    * Delete a team
    */
   async delete(id: string): Promise<boolean> {
-    await simulateDelay();
-
-    const teams = getFromStorage<Team>(STORAGE_KEY);
-    const filtered = teams.filter((t) => t.id !== id);
-
-    if (filtered.length === teams.length) {
-      return false; // Team not found
+    try {
+      await httpClient.delete(`/api/teams/${id}`);
+      return true;
+    } catch {
+      return false;
     }
-
-    saveToStorage(STORAGE_KEY, filtered);
-    return true;
   }
 }
 

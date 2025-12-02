@@ -8,14 +8,16 @@ import { usePersonaStore } from '~/core/entities/product-management';
 /**
  * Hook to fetch and access all personas for a team
  */
-export function usePersonas(teamId: string) {
+export function usePersonas(teamId: string | undefined) {
   const personas = usePersonaStore((state) => state.entities);
   const loading = usePersonaStore((state) => state.loading);
   const error = usePersonaStore((state) => state.error);
   const fetchPersonas = usePersonaStore((state) => state.fetchPersonas);
 
   useEffect(() => {
-    fetchPersonas(teamId);
+    if (teamId) {
+      fetchPersonas(teamId);
+    }
   }, [teamId, fetchPersonas]);
 
   return { personas, loading, error };

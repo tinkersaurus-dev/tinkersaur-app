@@ -247,7 +247,8 @@ export function GenerateDiagramRenderer({
         deleteConnector,
         getShape,
         addShapesBatch,
-        addConnectorsBatch
+        addConnectorsBatch,
+        _internalUpdateShape
       );
 
 

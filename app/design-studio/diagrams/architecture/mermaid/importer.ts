@@ -1,9 +1,7 @@
 import type { Result } from '~/core/lib/utils/result';
-import type { CreateShapeDTO } from '~/core/entities/design-studio/types/Shape';
-import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../../shared/mermaid/importer';
+import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef, MermaidShapeRef } from '../../shared/mermaid/importer';
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
 import { layoutArchitectureGraph } from '../layout';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
  * Parsed node information from Mermaid architecture syntax
@@ -11,7 +9,7 @@ import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-confi
 interface ParsedNode {
   id: string;
   label: string;
-  nodeType: 'service' | 'group' | 'junction';
+  nodeType: 'service' | 'group';
   icon?: string;
   parent?: string;
 }
@@ -161,7 +159,6 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
    * Examples:
    *   group api(cloud)[API Layer]
    *   service db(database)[Database] in api
-   *   junction j1
    */
   private parseNodeDefinition(line: string): ParsedNode | null {
     // Match group pattern: group id(icon)[label] (in parent)?
@@ -185,17 +182,6 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
         nodeType: 'service',
         icon: serviceMatch[2],
         parent: serviceMatch[4],
-      };
-    }
-
-    // Match junction pattern: junction id (in parent)?
-    const junctionMatch = line.match(/^junction\s+(\w+)(?:\s+in\s+(\w+))?/);
-    if (junctionMatch) {
-      return {
-        id: junctionMatch[1],
-        label: '',
-        nodeType: 'junction',
-        parent: junctionMatch[2],
       };
     }
 
@@ -232,50 +218,42 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
 
   /**
    * Create shapes with auto-layout
-   * Note: Parent-child relationships will be set up after shapes are created
-   * since we need the generated IDs
+   * Parent-child relationships are expressed via parentIndex
    */
   private createShapesWithLayout(
     nodes: ParsedNode[],
     connections: ParsedConnection[],
     _options: MermaidImportOptions
-  ): CreateShapeDTO[] {
+  ): MermaidShapeRef[] {
     // Apply auto-layout algorithm
     const layoutedNodes = layoutArchitectureGraph(nodes, connections);
 
-    // Convert to CreateShapeDTO (without IDs - they'll be generated on add)
-    // Note: parentId and children will be set up separately after import
+    // Create a mapping from node ID to index for parent lookups
+    const nodeIdToIndex = new Map<string, number>();
+    layoutedNodes.forEach((node, index) => {
+      nodeIdToIndex.set(node.id, index);
+    });
+
+    // Convert to MermaidShapeRef (without IDs - they'll be generated on add)
+    // Layout now provides width/height for all nodes (auto-sized for groups)
     return layoutedNodes.map((node) => {
-      const config = DESIGN_STUDIO_CONFIG.shapes.architecture;
+      const shapeType = node.nodeType === 'group' ? 'architecture-group' : 'architecture-service';
 
-      let shapeType = 'architecture-service';
-      let width: number = config.service.width;
-      let height: number = config.service.height;
-
-      if (node.nodeType === 'group') {
-        shapeType = 'architecture-group';
-        width = config.group.width;
-        height = config.group.height;
-      } else if (node.nodeType === 'junction') {
-        shapeType = 'architecture-junction';
-        width = config.junction.width;
-        height = config.junction.height;
-      }
+      // Look up parent index if parent exists
+      const parentIndex = node.parent ? nodeIdToIndex.get(node.parent) : undefined;
 
       return {
         type: shapeType,
         x: node.x,
         y: node.y,
-        width,
-        height,
+        width: node.width,
+        height: node.height,
         label: node.label,
         zIndex: 0,
         locked: false,
         isPreview: false,
         data: node.icon ? { icon: node.icon } : undefined,
-        // Store parent info temporarily in metadata for post-processing
-        // This will be used after shapes are created with IDs
-        metadata: node.parent ? { parentNodeId: node.parent } : undefined,
+        parentIndex,
       };
     });
   }

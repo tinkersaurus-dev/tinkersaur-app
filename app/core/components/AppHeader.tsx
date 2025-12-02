@@ -6,12 +6,21 @@
 import { Layout, Menu, Dropdown, Avatar, HStack, Button } from '~/core/components/ui';
 import type { MenuItemType, DropdownMenuItem } from '~/core/components/ui';
 import { FaUser, FaRegLightbulb, FaLightbulb } from 'react-icons/fa';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { useTheme } from '../theme/ThemeProvider';
+import { useAuthStore } from '~/core/auth';
 
 export function AppHeader() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   // User menu items
   const userMenuItems: DropdownMenuItem[] = [
@@ -31,6 +40,7 @@ export function AppHeader() {
     {
       key: 'logout',
       label: 'Logout',
+      onClick: handleLogout,
     },
   ];
 
@@ -88,7 +98,7 @@ export function AppHeader() {
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
           <HStack gap="sm" align="center" className="cursor-pointer text-white">
             <Avatar size="small" icon={<FaUser />} />
-            <span>Mock User</span>
+            <span>{currentUser?.name ?? 'Guest'}</span>
           </HStack>
         </Dropdown>
       </HStack>

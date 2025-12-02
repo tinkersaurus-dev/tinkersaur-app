@@ -33,6 +33,7 @@ import { RefreshSequenceActivationsCommand } from '~/design-studio/diagrams/sequ
 import { UpdateLifelineHeightsCommand } from '~/design-studio/diagrams/sequence/commands/UpdateLifelineHeightsCommand';
 import { ImportMermaidCommand } from './canvas/preview-import/ImportMermaidCommand';
 import type { ActivationBox } from '../entities/design-studio/types/Shape';
+import { ResizeShapesCommand, type ShapeBoundsUpdate } from './canvas/shapes/ResizeShapesCommand';
 
 /**
  * Command Factory - Centralized command creation with dependency injection
@@ -188,6 +189,19 @@ export class CommandFactory {
       newParentId,
       this.deps._internalUpdateShapes,
       this.deps.getDiagram,
+      updateLocalShape
+    );
+  }
+
+  createResizeShapes(
+    diagramId: string,
+    shapeUpdates: ShapeBoundsUpdate[]
+  ): Command {
+    const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
+    return new ResizeShapesCommand(
+      diagramId,
+      shapeUpdates,
+      this.deps._internalUpdateShapes,
       updateLocalShape
     );
   }

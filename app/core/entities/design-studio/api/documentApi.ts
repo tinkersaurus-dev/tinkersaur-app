@@ -1,101 +1,78 @@
-import { v4 as uuidv4 } from 'uuid';
 import type { Document, CreateDocumentDto, UpdateDocumentDto } from '../types';
-import { getFromStorage, saveToStorage, simulateDelay } from './storage';
+import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
-const STORAGE_KEY = 'documents';
-
+/**
+ * Document API Client
+ * Real implementation with backend API
+ */
 class DocumentApi {
   /**
    * Get all documents for a design work
    */
   async list(designWorkId: string): Promise<Document[]> {
-    await simulateDelay();
-    const documents = getFromStorage<Document>(STORAGE_KEY);
-    return documents.filter((d) => d.designWorkId === designWorkId);
+    const data = await httpClient.get<Document[]>(`/api/documents?designWorkId=${designWorkId}`);
+    return deserializeDatesArray(data);
   }
 
   /**
    * Get a single document by ID
    */
   async get(id: string): Promise<Document | null> {
-    await simulateDelay();
-    const documents = getFromStorage<Document>(STORAGE_KEY);
-    return documents.find((d) => d.id === id) || null;
+    try {
+      const data = await httpClient.get<Document>(`/api/documents/${id}`);
+      return deserializeDates(data);
+    } catch {
+      return null;
+    }
   }
 
   /**
    * Create a new document
    */
   async create(data: CreateDocumentDto): Promise<Document> {
-    await simulateDelay();
-
-    const document: Document = {
-      ...data,
-      id: uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const documents = getFromStorage<Document>(STORAGE_KEY);
-    documents.push(document);
-    saveToStorage(STORAGE_KEY, documents);
-
-    return document;
+    const result = await httpClient.post<Document>('/api/documents', data);
+    return deserializeDates(result);
   }
 
   /**
    * Update an existing document
    */
   async update(id: string, updates: Partial<UpdateDocumentDto>): Promise<Document | null> {
-    await simulateDelay();
-
-    const documents = getFromStorage<Document>(STORAGE_KEY);
-    const index = documents.findIndex((d) => d.id === id);
-
-    if (index === -1) {
+    try {
+      const result = await httpClient.put<Document>(`/api/documents/${id}`, updates);
+      return deserializeDates(result);
+    } catch {
       return null;
     }
-
-    documents[index] = {
-      ...documents[index],
-      ...updates,
-      id,
-      updatedAt: new Date(),
-    };
-
-    saveToStorage(STORAGE_KEY, documents);
-    return documents[index];
   }
 
   /**
    * Delete a document
    */
   async delete(id: string): Promise<boolean> {
-    await simulateDelay();
-
-    const documents = getFromStorage<Document>(STORAGE_KEY);
-    const filtered = documents.filter((d) => d.id !== id);
-
-    if (filtered.length === documents.length) {
+    try {
+      await httpClient.delete(`/api/documents/${id}`);
+      return true;
+    } catch {
       return false;
     }
-
-    saveToStorage(STORAGE_KEY, filtered);
-    return true;
   }
 
   /**
    * Delete all documents for a design work
    */
   async deleteByDesignWorkId(designWorkId: string): Promise<number> {
-    await simulateDelay();
-
-    const documents = getFromStorage<Document>(STORAGE_KEY);
-    const filtered = documents.filter((d) => d.designWorkId !== designWorkId);
-    const deletedCount = documents.length - filtered.length;
-
-    saveToStorage(STORAGE_KEY, filtered);
-    return deletedCount;
+    try {
+      const documents = await this.list(designWorkId);
+      let deletedCount = 0;
+      for (const doc of documents) {
+        const success = await this.delete(doc.id);
+        if (success) deletedCount++;
+      }
+      return deletedCount;
+    } catch {
+      return 0;
+    }
   }
 }
 

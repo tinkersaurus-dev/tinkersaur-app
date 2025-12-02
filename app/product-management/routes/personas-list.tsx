@@ -11,6 +11,7 @@ import { Button, Input, Form, useForm, Modal, Empty } from '~/core/components/ui
 import type { Demographics } from '~/core/entities/product-management';
 import { usePersonas, usePersonaCRUD } from '../hooks';
 import { PersonaCard } from '../components';
+import { useAuthStore } from '~/core/auth';
 
 export default function PersonasListPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,8 +36,9 @@ export default function PersonasListPage() {
     industry: '',
   });
 
-  // Use hooks - mock team ID
-  const { personas, loading } = usePersonas('team-1');
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const teamId = currentUser?.teamId;
+  const { personas, loading } = usePersonas(teamId);
   const { handleCreate } = usePersonaCRUD();
 
   const handleAdd = () => {
@@ -68,8 +70,13 @@ export default function PersonasListPage() {
       if (values.experience.trim()) demographics.experience = values.experience.trim();
       if (values.industry.trim()) demographics.industry = values.industry.trim();
 
+      if (!teamId) {
+        console.error('No team selected');
+        return;
+      }
+
       await handleCreate({
-        teamId: 'team-1', // Mock team ID
+        teamId,
         name: values.name,
         role: values.role,
         description: values.description,
@@ -102,7 +109,9 @@ export default function PersonasListPage() {
       />
 
       <PageContent>
-        {loading ? (
+        {!teamId ? (
+          <Empty description="No team selected. Please create an organization and team first." />
+        ) : loading ? (
           <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
         ) : personas.length === 0 ? (
           <Empty description="No personas yet. Click 'Add Persona' to create one." />
