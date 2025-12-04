@@ -2,6 +2,10 @@ import type { Shape, Connector } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
 import { ConnectorRenderer } from '~/design-studio/diagrams/shared/rendering/ConnectorRenderer';
 import type { ConnectorRenderContext } from '~/design-studio/diagrams/shared/rendering/connector-types';
+import {
+  useOverlayVisibilityStore,
+  isOverlayElementVisible,
+} from '../../../store/overlay/overlayVisibilityStore';
 
 interface CanvasConnectorsListProps {
   connectors: Connector[];
@@ -37,9 +41,16 @@ export function CanvasConnectorsList({
   onLabelChange,
   onFinishEditing,
 }: CanvasConnectorsListProps) {
+  // Get overlay visibility state
+  const visibleOverlays = useOverlayVisibilityStore((state) => state.visibleOverlays);
+
   return (
     <>
       {connectors.map((connector) => {
+        // Skip rendering if connector's overlay is hidden
+        if (!isOverlayElementVisible(connector.overlayTag, visibleOverlays)) {
+          return null;
+        }
         const sourceShape = shapes.find((s) => s.id === connector.sourceShapeId);
         const targetShape = shapes.find((s) => s.id === connector.targetShapeId);
 

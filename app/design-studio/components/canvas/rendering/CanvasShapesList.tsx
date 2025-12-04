@@ -6,6 +6,10 @@ import type { RenderContext } from '~/design-studio/diagrams/shared/rendering/ty
 import { ResizeHandles } from '../ui/ResizeHandles';
 import { isContainerType } from '../../../utils/containment-utils';
 import type { ResizeHandle } from '../../../utils/resize';
+import {
+  useOverlayVisibilityStore,
+  isOverlayElementVisible,
+} from '../../../store/overlay/overlayVisibilityStore';
 
 interface CanvasShapesListProps {
   shapes: Shape[];
@@ -76,8 +80,12 @@ export function CanvasShapesList({
   onEnumerationUpdateLiteralLocal,
   onResizeStart,
 }: CanvasShapesListProps) {
+  // Get overlay visibility state
+  const visibleOverlays = useOverlayVisibilityStore((state) => state.visibleOverlays);
+
   // Sort shapes to ensure parents render before children (depth-first traversal)
   // This ensures children appear above their parents in the rendering order
+  // Also filter out shapes whose overlay is hidden
   const sortedShapes = useMemo(() => {
     const shapeMap = new Map(shapes.map(s => [s.id, s]));
     const visited = new Set<string>();
@@ -88,8 +96,10 @@ export function CanvasShapesList({
       if (visited.has(shape.id)) return;
       visited.add(shape.id);
 
-      // First render this shape
-      sorted.push(shape);
+      // Only include shape if its overlay is visible (or it has no overlay)
+      if (isOverlayElementVisible(shape.overlayTag, visibleOverlays)) {
+        sorted.push(shape);
+      }
 
       // Then render all its children (so they appear on top)
       if (shape.children) {
@@ -117,7 +127,7 @@ export function CanvasShapesList({
     }
 
     return sorted;
-  }, [shapes]);
+  }, [shapes, visibleOverlays]);
 
   return (
     <>

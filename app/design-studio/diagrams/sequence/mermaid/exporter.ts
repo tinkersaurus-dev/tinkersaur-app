@@ -19,7 +19,11 @@ export class SequenceMermaidExporter extends BaseMermaidExporter {
   }
 
   export(shapes: Shape[], connectors: Connector[]): Result<MermaidExportResult> {
-    const validationResult = this.validate(shapes, connectors);
+    // Filter out overlay elements (e.g., suggestions) before export
+    const filteredShapes = this.filterOverlayElements(shapes);
+    const filteredConnectors = this.filterOverlayConnectors(connectors);
+
+    const validationResult = this.validate(filteredShapes, filteredConnectors);
     if (!validationResult.ok) {
       return validationResult;
     }
@@ -34,16 +38,16 @@ export class SequenceMermaidExporter extends BaseMermaidExporter {
       if (this.options.includeComments) {
         lines.push('');
         lines.push(`    %% Generated: ${new Date().toISOString()}`);
-        lines.push(`    %% Participants: ${shapes.filter(s => s.type === 'sequence-lifeline').length}, Messages: ${connectors.length}`);
+        lines.push(`    %% Participants: ${filteredShapes.filter(s => s.type === 'sequence-lifeline').length}, Messages: ${filteredConnectors.length}`);
         lines.push('');
       }
 
       // Create shape lookup for quick access
       const shapeMap = new Map<string, Shape>();
-      shapes.forEach((shape) => shapeMap.set(shape.id, shape));
+      filteredShapes.forEach((shape) => shapeMap.set(shape.id, shape));
 
       // Filter lifeline shapes and create participant name mapping
-      const lifelineShapes = shapes.filter((shape) => shape.type === 'sequence-lifeline');
+      const lifelineShapes = filteredShapes.filter((shape) => shape.type === 'sequence-lifeline');
       const participantNameMap = this.createParticipantNameMap(lifelineShapes);
 
       // Export participant declarations
@@ -55,14 +59,14 @@ export class SequenceMermaidExporter extends BaseMermaidExporter {
       }
 
       // Add spacing between participants and messages
-      if (connectors.length > 0 && lifelineShapes.length > 0) {
+      if (filteredConnectors.length > 0 && lifelineShapes.length > 0) {
         lines.push('');
       }
 
       // Sort connectors by connection point index to maintain chronological order
       // The connection point index (e.g., e-0, e-1, e-2) represents the visual
       // position on the lifeline, which corresponds to the chronological order
-      const sortedConnectors = [...connectors].sort((a, b) => {
+      const sortedConnectors = [...filteredConnectors].sort((a, b) => {
         const aOrder = this.getMessageSequenceOrder(a);
         const bOrder = this.getMessageSequenceOrder(b);
         return aOrder - bOrder;
@@ -95,7 +99,7 @@ export class SequenceMermaidExporter extends BaseMermaidExporter {
       }
 
       // Export notes (sequence notes are rendered as mermaid notes)
-      const noteShapes = shapes.filter((shape) => shape.type === 'sequence-note');
+      const noteShapes = filteredShapes.filter((shape) => shape.type === 'sequence-note');
       for (const note of noteShapes) {
         const noteLine = this.getNoteSyntax(note);
         if (noteLine) {
@@ -108,8 +112,8 @@ export class SequenceMermaidExporter extends BaseMermaidExporter {
       const metadata = this.options.includeMetadata
         ? {
             diagramType: this.getDiagramType(),
-            nodeCount: shapes.length,
-            edgeCount: connectors.length,
+            nodeCount: filteredShapes.length,
+            edgeCount: filteredConnectors.length,
             exportedAt: new Date(),
           }
         : undefined;

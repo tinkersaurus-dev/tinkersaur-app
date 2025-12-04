@@ -37,8 +37,16 @@ interface DiagramStore {
   deleteShapes: (diagramId: string, shapeIds: string[]) => Promise<void>;
 
   // Internal shape actions (used by commands, not wrapped)
-  _internalAddShape: (diagramId: string, shape: CreateShapeDTO) => Promise<Diagram>;
-  _internalAddShapesBatch: (diagramId: string, shapes: CreateShapeDTO[]) => Promise<Diagram>;
+  _internalAddShape: (
+    diagramId: string,
+    shape: CreateShapeDTO,
+    options?: { skipReferenceCreation?: boolean }
+  ) => Promise<Diagram>;
+  _internalAddShapesBatch: (
+    diagramId: string,
+    shapes: CreateShapeDTO[],
+    options?: { skipReferenceCreation?: boolean }
+  ) => Promise<Diagram>;
   _internalUpdateShape: (
     diagramId: string,
     shapeId: string,
@@ -315,9 +323,10 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     // Shape actions - public (wrapped in commands)
+    // Reference creation is now handled in _internalAddShape, called by the command
     addShape: async (diagramId: string, shape: CreateShapeDTO) => {
       try {
-        // Create and execute command
+        // Create and execute command (which calls _internalAddShape, handling references)
         const command = commandFactory.createAddShape(diagramId, shape);
         await commandManager.execute(command, diagramId);
 
@@ -327,44 +336,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
           throw new Error('Failed to retrieve created shape');
         }
 
-        // Get the newly created shape
-        const newShape = diagram.shapes[diagram.shapes.length - 1];
-        const shapeId = newShape.id;
-
-        // Check if this shape should create a reference
-        console.warn('[References] Checking shape:', { type: shape.type, subtype: shape.subtype });
-        const isReferenceSource = canShapeBeReferenceSource(shape.type, shape.subtype);
-        console.warn('[References] Is reference source?', isReferenceSource);
-
-        if (isReferenceSource) {
-          // Create a reference for this shape
-          const { useReferenceStore } = await import('../reference/useReferenceStore');
-          const referenceStore = useReferenceStore.getState();
-
-          // Determine drop target based on reference type
-          const isFolderReference = canShapeBeFolderReferenceSource(shape.type, shape.subtype);
-          const dropTarget = isFolderReference ? 'folder' : 'canvas';
-
-          console.warn('[References] Creating reference for shape:', shapeId);
-          const createdRef = await referenceStore.createReference({
-            designWorkId: diagram.designWorkId,
-            name: shape.label || shape.type,
-            contentType: 'diagram',
-            contentId: diagramId,
-            sourceShapeId: shapeId,
-            referenceType: 'link',
-            metadata: {
-              sourceShapeType: shape.type,
-              sourceShapeSubtype: shape.subtype,
-              diagramType: diagram.type,
-              dropTarget,
-            },
-          });
-          console.warn('[References] Created reference:', createdRef);
-        }
-
         // Return the ID of the last added shape
-        return shapeId;
+        return diagram.shapes[diagram.shapes.length - 1].id;
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Failed to add shape');
         set((state) => ({
@@ -374,7 +347,11 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       }
     },
 
-    _internalAddShape: async (diagramId: string, shape: CreateShapeDTO) => {
+    _internalAddShape: async (
+      diagramId: string,
+      shape: CreateShapeDTO,
+      options?: { skipReferenceCreation?: boolean }
+    ) => {
       const updatedDiagram = await diagramApi.addShape(diagramId, shape);
 
       if (!updatedDiagram) {
@@ -387,15 +364,43 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
       // Update canvas instance local state to ensure immediate rendering
       const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
-      if (updatedDiagram.shapes.length > 0) {
-        const newShape = updatedDiagram.shapes[updatedDiagram.shapes.length - 1];
+      const newShape = updatedDiagram.shapes[updatedDiagram.shapes.length - 1];
+      if (newShape) {
         canvasInstance.getState().addLocalShape(newShape);
+      }
+
+      // Create reference if eligible (skip for preview shapes or explicit opt-out)
+      if (!options?.skipReferenceCreation && !shape.isPreview && newShape) {
+        if (canShapeBeReferenceSource(shape.type, shape.subtype)) {
+          const { useReferenceStore } = await import('../reference/useReferenceStore');
+          const referenceStore = useReferenceStore.getState();
+          const isFolderReference = canShapeBeFolderReferenceSource(shape.type, shape.subtype);
+
+          await referenceStore.createReference({
+            designWorkId: updatedDiagram.designWorkId,
+            name: shape.label || shape.type,
+            contentType: 'diagram',
+            contentId: diagramId,
+            sourceShapeId: newShape.id,
+            referenceType: 'link',
+            metadata: {
+              sourceShapeType: shape.type,
+              sourceShapeSubtype: shape.subtype,
+              diagramType: updatedDiagram.type,
+              dropTarget: isFolderReference ? 'folder' : 'canvas',
+            },
+          });
+        }
       }
 
       return updatedDiagram;
     },
 
-    _internalAddShapesBatch: async (diagramId: string, shapes: CreateShapeDTO[]) => {
+    _internalAddShapesBatch: async (
+      diagramId: string,
+      shapes: CreateShapeDTO[],
+      options?: { skipReferenceCreation?: boolean }
+    ) => {
       // Add all shapes sequentially to the API but only trigger one set() at the end
       let currentDiagram = get().diagrams[diagramId];
       if (!currentDiagram) {
@@ -421,6 +426,38 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
       for (let i = 0; i < shapes.length; i++) {
         const newShape = currentDiagram.shapes[startIndex + i];
         canvasInstance.getState().addLocalShape(newShape);
+      }
+
+      // Create references for eligible shapes (skip preview or explicit opt-out)
+      if (!options?.skipReferenceCreation) {
+        const { useReferenceStore } = await import('../reference/useReferenceStore');
+        const referenceStore = useReferenceStore.getState();
+
+        for (let i = 0; i < shapes.length; i++) {
+          const shapeDTO = shapes[i];
+          const newShape = currentDiagram.shapes[startIndex + i];
+
+          // Skip preview shapes and non-reference-source shapes
+          if (shapeDTO.isPreview) continue;
+          if (!canShapeBeReferenceSource(shapeDTO.type, shapeDTO.subtype)) continue;
+
+          const isFolderReference = canShapeBeFolderReferenceSource(shapeDTO.type, shapeDTO.subtype);
+
+          await referenceStore.createReference({
+            designWorkId: currentDiagram.designWorkId,
+            name: shapeDTO.label || shapeDTO.type,
+            contentType: 'diagram',
+            contentId: diagramId,
+            sourceShapeId: newShape.id,
+            referenceType: 'link',
+            metadata: {
+              sourceShapeType: shapeDTO.type,
+              sourceShapeSubtype: shapeDTO.subtype,
+              diagramType: currentDiagram.type,
+              dropTarget: isFolderReference ? 'folder' : 'canvas',
+            },
+          });
+        }
       }
 
       return currentDiagram;

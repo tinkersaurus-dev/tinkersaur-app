@@ -1,5 +1,5 @@
 import React from 'react';
-import { LuFileCode } from 'react-icons/lu';
+import { LuFileCode, LuLightbulb, LuLoader } from 'react-icons/lu';
 import { Button } from '~/core/components/ui/Button';
 import { useMermaidViewerStore } from '../../store/mermaid/mermaidViewerStore';
 import { hasMermaidExporter } from '~/design-studio/diagrams/shared/mermaid';
@@ -7,6 +7,8 @@ import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 
 export interface CanvasTextToolbarProps {
   diagramType: DiagramType | undefined;
+  onGenerateSuggestions?: () => void;
+  isSuggestionsLoading?: boolean;
 }
 
 /**
@@ -17,12 +19,13 @@ export interface CanvasTextToolbarProps {
  *
  * Currently includes:
  * - Mermaid syntax viewer button
- *
- * Future additions:
- * - AI prompt button for diagram generation
- * - Import diagram from text
+ * - AI suggestions button
  */
-const CanvasTextToolbar: React.FC<CanvasTextToolbarProps> = ({ diagramType }) => {
+const CanvasTextToolbar: React.FC<CanvasTextToolbarProps> = ({
+  diagramType,
+  onGenerateSuggestions,
+  isSuggestionsLoading = false,
+}) => {
   const { toggleOpen } = useMermaidViewerStore();
 
   // Check if mermaid export is available for this diagram type
@@ -56,15 +59,33 @@ const CanvasTextToolbar: React.FC<CanvasTextToolbarProps> = ({ diagramType }) =>
           "
         />
 
-        {/* Future: AI Prompt Button */}
-        {/* <Button
+        {/* AI Suggestions Button */}
+        <Button
           size="small"
           variant="default"
-          icon={<RiChat4Line size={16} />}
-          onClick={handleAIPrompt}
-          title="Generate diagram from AI prompt"
-          className="..."
-        /> */}
+          icon={
+            isSuggestionsLoading ? (
+              <LuLoader size={16} className="animate-spin" />
+            ) : (
+              <LuLightbulb size={16} />
+            )
+          }
+          onClick={onGenerateSuggestions}
+          disabled={!isMermaidAvailable || isSuggestionsLoading || !onGenerateSuggestions}
+          title={
+            isSuggestionsLoading
+              ? 'Generating suggestions...'
+              : isMermaidAvailable
+              ? 'Get AI improvement suggestions'
+              : 'Suggestions not available for this diagram type'
+          }
+          className="
+            bg-[var(--bg-light)] hover:bg-[var(--highlight)]
+            border-none
+            transition-colors duration-150
+            shadow-sm
+          "
+        />
       </div>
     </div>
   );

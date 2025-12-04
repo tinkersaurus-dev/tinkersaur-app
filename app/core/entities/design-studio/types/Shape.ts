@@ -34,6 +34,8 @@ export const ShapeSchema = z.object({
   children: z.array(z.string()).optional(),
   // Optional type-specific data (e.g., for class diagrams: stereotype, attributes, methods)
   data: z.record(z.string(), z.unknown()).optional(),
+  // Optional overlay tag for grouping shapes into show/hide layers (e.g., 'suggestion')
+  overlayTag: z.string().optional(),
 });
 
 export type Shape = z.infer<typeof ShapeSchema>;
@@ -177,5 +179,21 @@ export function isMermaidEditorShapeData(data: unknown): data is MermaidEditorSh
     typeof d.mermaidSyntax === 'string' &&
     typeof d.previewShapeId === 'string' &&
     (d.error === undefined || typeof d.error === 'string')
+  );
+}
+
+// Suggestion Comment shape data (type: 'suggestion-comment')
+export interface SuggestionCommentShapeData {
+  targetShapeId: string; // ID of the shape this suggestion refers to
+  suggestion: string; // The suggestion text
+}
+
+// Type guard for suggestion comment shape data
+export function isSuggestionCommentShapeData(data: unknown): data is SuggestionCommentShapeData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    typeof d.targetShapeId === 'string' &&
+    typeof d.suggestion === 'string'
   );
 }

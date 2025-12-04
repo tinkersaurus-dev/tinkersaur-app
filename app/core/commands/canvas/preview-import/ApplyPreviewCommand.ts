@@ -3,10 +3,6 @@ import type { CreateShapeDTO, Shape } from '../../../entities/design-studio/type
 import type { CreateConnectorDTO, Connector } from '../../../entities/design-studio/types/Connector';
 import type { Diagram, DiagramType } from '../../../entities/design-studio/types';
 import type { LLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
-import {
-  canShapeBeReferenceSource,
-  canShapeBeFolderReferenceSource,
-} from '../../../../design-studio/config/reference-types';
 
 /**
  * Command to apply a preview shape by converting it to real shapes and connectors
@@ -14,12 +10,14 @@ import {
  * 1. Extracts the shapes and connectors from the preview shape's data
  * 2. Deletes the preview shape
  * 3. Creates all the shapes and connectors as real entities on the canvas
+ *
+ * Note: Reference creation is now handled automatically by _internalAddShapesBatch
+ * when shapes have isPreview=false
  */
 export class ApplyPreviewCommand implements Command {
   public readonly description: string;
   private createdShapeIds: string[] = [];
   private createdConnectorIds: string[] = [];
-  private createdReferenceIds: string[] = [];
   private previewShapeData: CreateShapeDTO | null = null;
 
   constructor(
@@ -35,8 +33,7 @@ export class ApplyPreviewCommand implements Command {
     private readonly addConnectorsBatchFn?: (diagramId: string, connectors: CreateConnectorDTO[]) => Promise<Diagram | null>,
     private readonly deleteShapesBatchFn?: (diagramId: string, shapeIds: string[]) => Promise<Diagram | null>,
     private readonly deleteConnectorsBatchFn?: (diagramId: string, connectorIds: string[]) => Promise<Diagram | null>,
-    private readonly diagramType?: DiagramType,
-    private readonly designWorkId?: string
+    private readonly diagramType?: DiagramType
   ) {
     this.description = 'Apply diagram';
   }
@@ -135,6 +132,8 @@ export class ApplyPreviewCommand implements Command {
     }
 
     // Step 5: Create new shapes with isPreview=false
+    // Reference creation is handled automatically by _internalAddShapesBatch
+    // since shapes now have isPreview=false
     if (this.addShapesBatchFn && shapeDTOs.length > 0) {
       const diagram = await this.addShapesBatchFn(this.diagramId, shapeDTOs);
       const startIndex = diagram.shapes.length - shapeDTOs.length;
@@ -210,65 +209,6 @@ export class ApplyPreviewCommand implements Command {
         }
       }
     }
-
-    // Step 8: Create references for shapes that are reference sources
-    // This is needed because batch shape creation bypasses the normal addShape flow
-    await this.createReferencesForShapes(shapeDTOs, this.createdShapeIds);
-  }
-
-  /**
-   * Create references for shapes that should be reference sources
-   * This handles class/enumeration shapes that need folder references
-   */
-  private async createReferencesForShapes(
-    shapeDTOs: CreateShapeDTO[],
-    shapeIds: string[]
-  ): Promise<void> {
-    // Only process if we have shapes, diagram type, and designWorkId
-    if (shapeDTOs.length === 0 || shapeIds.length === 0 || !this.designWorkId) {
-      return;
-    }
-
-    // Dynamically import the reference store to avoid circular dependencies
-    const { useReferenceStore } = await import(
-      '../../../entities/design-studio/store/reference/useReferenceStore'
-    );
-    const referenceStore = useReferenceStore.getState();
-
-    // Process each shape
-    for (let i = 0; i < shapeDTOs.length; i++) {
-      const shapeDTO = shapeDTOs[i];
-      const shapeId = shapeIds[i];
-
-      // Check if this shape should create a reference
-      const isReferenceSource = canShapeBeReferenceSource(shapeDTO.type, shapeDTO.subtype);
-
-      if (isReferenceSource) {
-        // Determine drop target based on reference type
-        const isFolderReference = canShapeBeFolderReferenceSource(shapeDTO.type, shapeDTO.subtype);
-        const dropTarget = isFolderReference ? 'folder' : 'canvas';
-
-        try {
-          const createdRef = await referenceStore.createReference({
-            designWorkId: this.designWorkId,
-            name: shapeDTO.label || shapeDTO.type,
-            contentType: 'diagram',
-            contentId: this.diagramId,
-            sourceShapeId: shapeId,
-            referenceType: 'link',
-            metadata: {
-              sourceShapeType: shapeDTO.type,
-              sourceShapeSubtype: shapeDTO.subtype,
-              diagramType: this.diagramType,
-              dropTarget,
-            },
-          });
-          this.createdReferenceIds.push(createdRef.id);
-        } catch (error) {
-          console.error('[ApplyPreviewCommand] Failed to create reference for shape:', shapeId, error);
-        }
-      }
-    }
   }
 
   async undo(): Promise<void> {
@@ -277,27 +217,13 @@ export class ApplyPreviewCommand implements Command {
       return;
     }
 
-    // Delete all created references first
-    if (this.createdReferenceIds.length > 0) {
-      try {
-        const { useReferenceStore } = await import(
-          '../../../entities/design-studio/store/reference/useReferenceStore'
-        );
-        const referenceStore = useReferenceStore.getState();
-        for (const refId of this.createdReferenceIds) {
-          await referenceStore.deleteReference(refId);
-        }
-      } catch (error) {
-        console.error('[ApplyPreviewCommand] Failed to delete references during undo:', error);
-      }
-    }
-
     // Delete all created connectors (in reverse order)
     for (let i = this.createdConnectorIds.length - 1; i >= 0; i--) {
       await this.deleteConnectorFn(this.diagramId, this.createdConnectorIds[i]);
     }
 
     // Delete all created shapes (in reverse order)
+    // Note: This will also delete associated references via the deleteShape flow
     for (let i = this.createdShapeIds.length - 1; i >= 0; i--) {
       await this.deleteShapeFn(this.diagramId, this.createdShapeIds[i]);
     }
@@ -308,7 +234,6 @@ export class ApplyPreviewCommand implements Command {
     // Clear the arrays
     this.createdShapeIds = [];
     this.createdConnectorIds = [];
-    this.createdReferenceIds = [];
   }
 
   /**

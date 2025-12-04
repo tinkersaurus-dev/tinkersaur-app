@@ -18,6 +18,8 @@ import { ArchitectureGroupRenderer } from '../../architecture/rendering/Architec
 import { GenerateDiagramRenderer } from './GenerateDiagramRenderer';
 import { PreviewRenderer } from './PreviewRenderer';
 import { MermaidEditorRenderer } from './MermaidEditorRenderer';
+// Overlay/Annotation renderers
+import { SuggestionCommentRenderer } from './SuggestionCommentRenderer';
 
 /**
  * Shape Renderer Registry
@@ -45,6 +47,8 @@ const shapeRenderers: Record<string, ShapeRendererComponent> = {
   'llm-generator': GenerateDiagramRenderer,
   'llm-preview': PreviewRenderer,
   'mermaid-editor': MermaidEditorRenderer,
+  // Overlay/Annotation shapes
+  'suggestion-comment': SuggestionCommentRenderer,
   // Future shape types can be added here:
   // circle: CircleRenderer,
   // ellipse: EllipseRenderer,

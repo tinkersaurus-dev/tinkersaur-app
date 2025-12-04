@@ -8,9 +8,14 @@ export default [
   route("api/generate-mermaid", "routes/api.generate-mermaid.ts"),
   route("api/generate-user-stories", "routes/api.generate-user-stories.ts"),
   route("api/generate-user-docs", "routes/api.generate-user-docs.ts"),
+  route("api/generate-suggestions", "routes/api.generate-suggestions.ts"),
   route("api/user-stories/combine", "routes/api.user-stories.combine.ts"),
   route("api/user-stories/split", "routes/api.user-stories.split.ts"),
   route("api/user-stories/regenerate", "routes/api.user-stories.regenerate.ts"),
+  route("api/generate-user-docs-structured", "routes/api.generate-user-docs-structured.ts"),
+  route("api/user-docs/regenerate", "routes/api.user-docs.regenerate.ts"),
+  route("api/generate-tech-spec-structured", "routes/api.generate-tech-spec-structured.ts"),
+  route("api/tech-spec/regenerate", "routes/api.tech-spec.regenerate.ts"),
 
   // Solution Management routes
   route("solutions", "product-management/routes/solutions-list.tsx"),

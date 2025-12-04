@@ -3,6 +3,7 @@ import { useCanvasViewport } from './CanvasViewportContext';
 import { useCanvasSelection } from './CanvasSelectionContext';
 import { useCanvasEvents } from './CanvasEventsContext';
 import { useCanvasReferenceDrop } from '../../../hooks/useCanvasReferenceDrop';
+import { useSuggestionsGenerator } from '../../../hooks/useSuggestionsGenerator';
 import { MENU_IDS } from '../../../hooks/useContextMenuManager';
 import { GridBackground } from '../ui/GridBackground';
 import { ContextMenu } from '../menus/ContextMenu';
@@ -18,6 +19,7 @@ import { CanvasConnectorsList } from '../rendering/CanvasConnectorsList';
 import CanvasToolbar from '../../toolbar/CanvasToolbar';
 import CanvasTextToolbar from '../../toolbar/CanvasTextToolbar';
 import { MermaidViewer } from '../../mermaid/MermaidViewer';
+import { OverlayControlPanel } from '../../overlay/OverlayControlPanel';
 import { RoutingDebugOverlay } from '../debug/RoutingDebugOverlay';
 import { setDebugGraph } from '../debug/routingDebugState';
 
@@ -112,6 +114,16 @@ export function CanvasView() {
     viewportTransform.viewport.panX,
     viewportTransform.viewport.panY
   );
+
+  // Suggestions generator
+  const {
+    isLoading: isSuggestionsLoading,
+    generateAndDisplaySuggestions,
+  } = useSuggestionsGenerator({
+    diagramId: diagram?.id,
+    diagramType: diagram?.type,
+    shapes,
+  });
 
   if (loading) {
     return (
@@ -307,10 +319,17 @@ export function CanvasView() {
       <CanvasToolbar placement="bottom" buttons={toolbarButtons} />
 
       {/* Canvas Text Toolbar (right-side) */}
-      <CanvasTextToolbar diagramType={diagram?.type} />
+      <CanvasTextToolbar
+        diagramType={diagram?.type}
+        onGenerateSuggestions={generateAndDisplaySuggestions}
+        isSuggestionsLoading={isSuggestionsLoading}
+      />
 
       {/* Mermaid Viewer */}
       <MermaidViewer />
+
+      {/* Overlay Control Panel (upper-left) */}
+      <OverlayControlPanel shapes={shapes} connectors={connectors} />
 
       {/* Connector Toolset Popover */}
       {menuManager.isMenuOpen(MENU_IDS.CONNECTOR_TOOLBAR_POPOVER) && menuManager.activeMenuConfig && (

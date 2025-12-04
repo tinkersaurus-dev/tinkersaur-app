@@ -36,6 +36,8 @@ export const ConnectorSchema = z.object({
   sourceCardinality: CardinalityType.optional(), // Cardinality label at source end
   targetCardinality: CardinalityType.optional(), // Cardinality label at target end
   zIndex: z.number().default(0),
+  // Optional overlay tag for grouping connectors into show/hide layers (e.g., 'suggestion')
+  overlayTag: z.string().optional(),
 });
 
 export type Connector = z.infer<typeof ConnectorSchema>;

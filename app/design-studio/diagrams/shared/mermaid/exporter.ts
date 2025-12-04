@@ -69,10 +69,28 @@ export abstract class BaseMermaidExporter implements MermaidExporter {
   abstract getDiagramType(): string;
 
   validate(shapes: Shape[], _connectors: Connector[]): Result<void> {
-    if (shapes.length === 0) {
+    // Filter out overlay elements before validation
+    const filteredShapes = this.filterOverlayElements(shapes);
+    if (filteredShapes.length === 0) {
       return { ok: false, error: 'No shapes to export' };
     }
     return { ok: true, value: undefined };
+  }
+
+  /**
+   * Filter out shapes that have an overlayTag (e.g., suggestions)
+   * These should not be included in mermaid exports
+   */
+  protected filterOverlayElements(shapes: Shape[]): Shape[] {
+    return shapes.filter((shape) => !shape.overlayTag);
+  }
+
+  /**
+   * Filter out connectors that have an overlayTag (e.g., suggestion connectors)
+   * These should not be included in mermaid exports
+   */
+  protected filterOverlayConnectors(connectors: Connector[]): Connector[] {
+    return connectors.filter((connector) => !connector.overlayTag);
   }
 
   /**

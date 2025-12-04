@@ -105,8 +105,7 @@ export function PreviewRenderer({
         addConnectorsBatch,
         deleteShapesBatch,
         deleteConnectorsBatch,
-        diagram?.type,
-        diagram?.designWorkId
+        diagram?.type
       );
 
       await commandManager.execute(command, diagramId);

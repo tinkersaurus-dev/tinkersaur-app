@@ -18,7 +18,11 @@ export class ClassMermaidExporter extends BaseMermaidExporter {
   }
 
   export(shapes: Shape[], connectors: Connector[]): Result<MermaidExportResult> {
-    const validationResult = this.validate(shapes, connectors);
+    // Filter out overlay elements (e.g., suggestions) before export
+    const filteredShapes = this.filterOverlayElements(shapes);
+    const filteredConnectors = this.filterOverlayConnectors(connectors);
+
+    const validationResult = this.validate(filteredShapes, filteredConnectors);
     if (!validationResult.ok) {
       return validationResult;
     }
@@ -33,30 +37,30 @@ export class ClassMermaidExporter extends BaseMermaidExporter {
       if (this.options.includeComments) {
         lines.push('');
         lines.push(`%% Generated: ${new Date().toISOString()}`);
-        lines.push(`%% Classes: ${shapes.length}, Relationships: ${connectors.length}`);
+        lines.push(`%% Classes: ${filteredShapes.length}, Relationships: ${filteredConnectors.length}`);
         lines.push('');
       }
 
       // Create shape lookup for quick access
       const shapeMap = new Map<string, Shape>();
-      shapes.forEach((shape) => shapeMap.set(shape.id, shape));
+      filteredShapes.forEach((shape) => shapeMap.set(shape.id, shape));
 
       // Create class name mapping (sanitized IDs)
-      const classNameMap = this.createClassNameMap(shapes);
+      const classNameMap = this.createClassNameMap(filteredShapes);
 
       // Export class definitions
-      for (const shape of shapes) {
+      for (const shape of filteredShapes) {
         const classLines = this.getClassDefinition(shape, classNameMap);
         lines.push(...classLines);
       }
 
       // Add spacing between classes and relationships
-      if (connectors.length > 0) {
+      if (filteredConnectors.length > 0) {
         lines.push('');
       }
 
       // Export relationships
-      for (const connector of connectors) {
+      for (const connector of filteredConnectors) {
         const sourceShape = shapeMap.get(connector.sourceShapeId);
         const targetShape = shapeMap.get(connector.targetShapeId);
 
@@ -81,8 +85,8 @@ export class ClassMermaidExporter extends BaseMermaidExporter {
       const metadata = this.options.includeMetadata
         ? {
             diagramType: this.getDiagramType(),
-            nodeCount: shapes.length,
-            edgeCount: connectors.length,
+            nodeCount: filteredShapes.length,
+            edgeCount: filteredConnectors.length,
             exportedAt: new Date(),
           }
         : undefined;

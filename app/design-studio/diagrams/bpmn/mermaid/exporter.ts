@@ -17,7 +17,11 @@ export class BpmnMermaidExporter extends BaseMermaidExporter {
   }
 
   export(shapes: Shape[], connectors: Connector[]): Result<MermaidExportResult> {
-    const validationResult = this.validate(shapes, connectors);
+    // Filter out overlay elements (e.g., suggestions) before export
+    const filteredShapes = this.filterOverlayElements(shapes);
+    const filteredConnectors = this.filterOverlayConnectors(connectors);
+
+    const validationResult = this.validate(filteredShapes, filteredConnectors);
     if (!validationResult.ok) {
       return validationResult;
     }
@@ -32,21 +36,21 @@ export class BpmnMermaidExporter extends BaseMermaidExporter {
       if (this.options.includeComments) {
         lines.push('');
         lines.push(`%% Generated: ${new Date().toISOString()}`);
-        lines.push(`%% Shapes: ${shapes.length}, Connectors: ${connectors.length}`);
+        lines.push(`%% Shapes: ${filteredShapes.length}, Connectors: ${filteredConnectors.length}`);
         lines.push('');
       }
 
       // Create alphabetic ID mapping (A, B, C, ...)
-      const idMap = this.createAlphabeticIdMap(shapes);
+      const idMap = this.createAlphabeticIdMap(filteredShapes);
 
       // Create shape lookup for quick access
       const shapeMap = new Map<string, Shape>();
-      shapes.forEach((shape) => shapeMap.set(shape.id, shape));
+      filteredShapes.forEach((shape) => shapeMap.set(shape.id, shape));
 
       // Export connectors with inline node definitions
       const exportedNodes = new Set<string>();
 
-      for (const connector of connectors) {
+      for (const connector of filteredConnectors) {
         const sourceShape = shapeMap.get(connector.sourceShapeId);
         const targetShape = shapeMap.get(connector.targetShapeId);
 
@@ -75,7 +79,7 @@ export class BpmnMermaidExporter extends BaseMermaidExporter {
       }
 
       // Export standalone nodes (shapes without connectors)
-      for (const shape of shapes) {
+      for (const shape of filteredShapes) {
         if (!exportedNodes.has(shape.id)) {
           const nodeDef = this.getNodeShapeSyntax(shape, idMap);
           lines.push(`${this.getIndent()}${nodeDef}`);
@@ -87,8 +91,8 @@ export class BpmnMermaidExporter extends BaseMermaidExporter {
       const metadata = this.options.includeMetadata
         ? {
             diagramType: this.getDiagramType(),
-            nodeCount: shapes.length,
-            edgeCount: connectors.length,
+            nodeCount: filteredShapes.length,
+            edgeCount: filteredConnectors.length,
             exportedAt: new Date(),
           }
         : undefined;

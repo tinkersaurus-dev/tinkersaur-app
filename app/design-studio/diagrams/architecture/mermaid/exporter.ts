@@ -17,7 +17,11 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
   }
 
   export(shapes: Shape[], connectors: Connector[]): Result<MermaidExportResult> {
-    const validationResult = this.validate(shapes, connectors);
+    // Filter out overlay elements (e.g., suggestions) before export
+    const filteredShapes = this.filterOverlayElements(shapes);
+    const filteredConnectors = this.filterOverlayConnectors(connectors);
+
+    const validationResult = this.validate(filteredShapes, filteredConnectors);
     if (!validationResult.ok) {
       return validationResult;
     }
@@ -32,13 +36,13 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
       if (this.options.includeComments) {
         lines.push('');
         lines.push(`%% Generated: ${new Date().toISOString()}`);
-        lines.push(`%% Services: ${shapes.filter(s => s.type === 'architecture-service').length}, Groups: ${shapes.filter(s => s.type === 'architecture-group').length}`);
+        lines.push(`%% Services: ${filteredShapes.filter(s => s.type === 'architecture-service').length}, Groups: ${filteredShapes.filter(s => s.type === 'architecture-group').length}`);
         lines.push('');
       }
 
       // Create ID mapping (use sanitized IDs for Mermaid compatibility)
       const idMap = new Map<string, string>();
-      shapes.forEach((shape, index) => {
+      filteredShapes.forEach((shape, index) => {
         // Use shape label or generate ID based on type and index
         const baseId = shape.label
           ? this.sanitizeId(shape.label.toLowerCase().replace(/\s+/g, '_'))
@@ -48,10 +52,10 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
 
       // Create shape lookup
       const shapeMap = new Map<string, Shape>();
-      shapes.forEach((shape) => shapeMap.set(shape.id, shape));
+      filteredShapes.forEach((shape) => shapeMap.set(shape.id, shape));
 
       // Export groups first
-      const groups = shapes.filter(s => s.type === 'architecture-group');
+      const groups = filteredShapes.filter(s => s.type === 'architecture-group');
       for (const group of groups) {
         const mermaidId = idMap.get(group.id) || this.sanitizeId(group.id);
         const icon = (group.data as Record<string, unknown>)?.icon || 'box';
@@ -68,7 +72,7 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
       }
 
       // Export services
-      const services = shapes.filter(s => s.type === 'architecture-service');
+      const services = filteredShapes.filter(s => s.type === 'architecture-service');
       for (const service of services) {
         const mermaidId = idMap.get(service.id) || this.sanitizeId(service.id);
         const icon = (service.data as Record<string, unknown>)?.icon || 'server';
@@ -86,7 +90,7 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
 
       // Export connectors (edges)
       lines.push('');
-      for (const connector of connectors) {
+      for (const connector of filteredConnectors) {
         const sourceShape = shapeMap.get(connector.sourceShapeId);
         const targetShape = shapeMap.get(connector.targetShapeId);
 
@@ -120,8 +124,8 @@ export class ArchitectureMermaidExporter extends BaseMermaidExporter {
       const metadata = this.options.includeMetadata
         ? {
             diagramType: this.getDiagramType(),
-            nodeCount: shapes.length,
-            edgeCount: connectors.length,
+            nodeCount: filteredShapes.length,
+            edgeCount: filteredConnectors.length,
             exportedAt: new Date(),
           }
         : undefined;

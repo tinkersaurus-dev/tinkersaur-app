@@ -7,15 +7,16 @@
 
 import { useRef, useState } from 'react';
 import { LuSparkles, LuCopy } from 'react-icons/lu';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { Tabs } from '~/core/components/ui';
 import { Button } from '~/core/components/ui/Button';
 import { generateUserStories } from '../../lib/llm/user-stories-generator-api';
-import { generateUserDocs } from '../../lib/llm/user-docs-generator-api';
+import { generateUserDocsStructured } from '../../lib/llm/user-docs-generator-api';
+import { generateTechSpecStructured } from '../../lib/llm/tech-spec-generator-api';
 import { UserStoriesPanel } from './UserStoriesPanel';
-import type { UserStory } from '../../lib/llm/types';
-import { userStoriesToMarkdown } from '../../lib/llm/types';
+import { UserDocsPanel } from './UserDocsPanel';
+import { TechSpecPanel } from './TechSpecPanel';
+import type { UserStory, UserDocument, TechSpecSection } from '../../lib/llm/types';
+import { userStoriesToMarkdown, userDocumentsToMarkdown, techSpecSectionsToMarkdown } from '../../lib/llm/types';
 
 export interface FolderEditorProps {
   content: string;
@@ -44,9 +45,14 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
   const [generateError, setGenerateError] = useState<string | null>(null);
 
   // User documentation generation state
-  const [userDocs, setUserDocs] = useState<string>('');
+  const [userDocuments, setUserDocuments] = useState<UserDocument[]>([]);
   const [isGeneratingDocs, setIsGeneratingDocs] = useState(false);
   const [docsError, setDocsError] = useState<string | null>(null);
+
+  // Technical specification generation state
+  const [techSpecSections, setTechSpecSections] = useState<TechSpecSection[]>([]);
+  const [isGeneratingTechSpec, setIsGeneratingTechSpec] = useState(false);
+  const [techSpecError, setTechSpecError] = useState<string | null>(null);
 
   // Sync scroll between line numbers and content
   const handleScroll = () => {
@@ -83,8 +89,8 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
     setIsGeneratingDocs(true);
     setDocsError(null);
     try {
-      const docs = await generateUserDocs(content);
-      setUserDocs(docs);
+      const documents = await generateUserDocsStructured(content);
+      setUserDocuments(documents);
     } catch (err) {
       setDocsError(err instanceof Error ? err.message : 'Generation failed');
     } finally {
@@ -92,10 +98,39 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
     }
   };
 
-  const handleCopyUserDocs = async () => {
-    if (userDocs) {
-      await navigator.clipboard.writeText(userDocs);
+  const handleCopyAllUserDocs = async () => {
+    if (userDocuments.length > 0) {
+      const markdown = userDocumentsToMarkdown(userDocuments);
+      await navigator.clipboard.writeText(markdown);
     }
+  };
+
+  const handleDocumentsChange = (newDocuments: UserDocument[]) => {
+    setUserDocuments(newDocuments);
+  };
+
+  const handleGenerateTechSpec = async () => {
+    setIsGeneratingTechSpec(true);
+    setTechSpecError(null);
+    try {
+      const sections = await generateTechSpecStructured(content);
+      setTechSpecSections(sections);
+    } catch (err) {
+      setTechSpecError(err instanceof Error ? err.message : 'Generation failed');
+    } finally {
+      setIsGeneratingTechSpec(false);
+    }
+  };
+
+  const handleCopyAllTechSpec = async () => {
+    if (techSpecSections.length > 0) {
+      const markdown = techSpecSectionsToMarkdown(techSpecSections);
+      await navigator.clipboard.writeText(markdown);
+    }
+  };
+
+  const handleTechSpecChange = (newSections: TechSpecSection[]) => {
+    setTechSpecSections(newSections);
   };
 
   const lineNumbers = getLineNumbers(content);
@@ -172,15 +207,15 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               variant="default"
               size="small"
               icon={<LuCopy />}
-              onClick={handleCopyUserDocs}
-              disabled={!userDocs}
+              onClick={handleCopyAllUserDocs}
+              disabled={userDocuments.length === 0}
             >
-              Copy
+              Copy All
             </Button>
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-auto bg-[var(--bg-light)]">
+          <div className="flex-1 overflow-hidden bg-[var(--bg-light)]">
             {isGeneratingDocs ? (
               <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
                 <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
@@ -190,124 +225,62 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               <div className="p-4 text-[var(--danger)]">
                 <strong>Error:</strong> {docsError}
               </div>
-            ) : userDocs ? (
-              <div className="p-4 text-[var(--text)] markdown-preview text-xs">
-                <style>{`
-                  .markdown-preview {
-                    font-size: 12px;
-                    line-height: 1.5;
-                  }
-                  .markdown-preview h1 {
-                    font-size: 1.3em;
-                    font-weight: bold;
-                    margin-bottom: 0.4em;
-                    margin-top: 0.4em;
-                    border-bottom: 1px solid var(--border);
-                    padding-bottom: 0.2em;
-                    color: var(--text);
-                  }
-                  .markdown-preview h2 {
-                    font-size: 1.15em;
-                    font-weight: bold;
-                    margin-bottom: 0.4em;
-                    margin-top: 0.8em;
-                    border-bottom: 1px solid var(--border);
-                    padding-bottom: 0.2em;
-                    color: var(--text);
-                  }
-                  .markdown-preview h3 {
-                    font-size: 1.05em;
-                    font-weight: bold;
-                    margin-bottom: 0.3em;
-                    margin-top: 0.7em;
-                    color: var(--text);
-                  }
-                  .markdown-preview h4,
-                  .markdown-preview h5,
-                  .markdown-preview h6 {
-                    font-size: 1em;
-                    font-weight: bold;
-                    margin-bottom: 0.3em;
-                    margin-top: 0.6em;
-                    color: var(--text);
-                  }
-                  .markdown-preview p {
-                    margin-bottom: 0.6em;
-                    line-height: 1.5;
-                    color: var(--text);
-                  }
-                  .markdown-preview ul,
-                  .markdown-preview ol {
-                    margin-bottom: 0.6em;
-                    padding-left: 1.5em;
-                    color: var(--text);
-                  }
-                  .markdown-preview li {
-                    margin-bottom: 0.15em;
-                  }
-                  .markdown-preview code {
-                    background-color: var(--surface);
-                    padding: 0.1em 0.3em;
-                    border-radius: 3px;
-                    font-family: monospace;
-                    font-size: 0.95em;
-                    color: var(--text);
-                  }
-                  .markdown-preview pre {
-                    background-color: var(--surface);
-                    padding: 0.75em;
-                    border-radius: 4px;
-                    overflow: auto;
-                    margin-bottom: 0.6em;
-                  }
-                  .markdown-preview pre code {
-                    background-color: transparent;
-                    padding: 0;
-                  }
-                  .markdown-preview blockquote {
-                    border-left: 3px solid var(--border);
-                    padding-left: 0.75em;
-                    margin-left: 0;
-                    margin-bottom: 0.6em;
-                    color: var(--text-secondary);
-                  }
-                  .markdown-preview table {
-                    border-collapse: collapse;
-                    width: 100%;
-                    margin-bottom: 0.6em;
-                  }
-                  .markdown-preview th,
-                  .markdown-preview td {
-                    border: 1px solid var(--border);
-                    padding: 0.3em 0.5em;
-                    text-align: left;
-                    color: var(--text);
-                  }
-                  .markdown-preview th {
-                    background-color: var(--surface);
-                    font-weight: bold;
-                  }
-                  .markdown-preview strong {
-                    font-weight: bold;
-                    color: var(--text);
-                  }
-                  .markdown-preview em {
-                    font-style: italic;
-                  }
-                  .markdown-preview hr {
-                    border: none;
-                    border-top: 1px solid var(--border);
-                    margin: 1em 0;
-                  }
-                `}</style>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {userDocs}
-                </ReactMarkdown>
+            ) : (
+              <UserDocsPanel
+                initialDocuments={userDocuments}
+                folderContent={content}
+                onDocumentsChange={handleDocumentsChange}
+              />
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'tech-spec',
+      label: 'Tech Spec',
+      children: (
+        <div className="h-full flex flex-col overflow-hidden bg-[var(--bg)]">
+          {/* Button Group */}
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)] bg-[var(--surface)]">
+            <Button
+              variant="primary"
+              size="small"
+              icon={<LuSparkles />}
+              onClick={handleGenerateTechSpec}
+              loading={isGeneratingTechSpec}
+              disabled={isGeneratingTechSpec || !content}
+            >
+              Generate
+            </Button>
+            <Button
+              variant="default"
+              size="small"
+              icon={<LuCopy />}
+              onClick={handleCopyAllTechSpec}
+              disabled={techSpecSections.length === 0}
+            >
+              Copy All
+            </Button>
+          </div>
+
+          {/* Content Area */}
+          <div className="flex-1 overflow-hidden bg-[var(--bg-light)]">
+            {isGeneratingTechSpec ? (
+              <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
+                <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                Generating technical specification...
+              </div>
+            ) : techSpecError ? (
+              <div className="p-4 text-[var(--danger)]">
+                <strong>Error:</strong> {techSpecError}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
-                Click "Generate" to create user documentation from the folder content.
-              </div>
+              <TechSpecPanel
+                initialSections={techSpecSections}
+                folderContent={content}
+                onSectionsChange={handleTechSpecChange}
+              />
             )}
           </div>
         </div>
