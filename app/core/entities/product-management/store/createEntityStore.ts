@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
 
+// Track in-flight requests to prevent duplicate API calls
+// Key format: "storeName:method:args" -> Promise
+const inFlightRequests = new Map<string, Promise<unknown>>();
+
 /**
  * Generic API interface that all entity APIs should conform to
  */
@@ -11,6 +15,12 @@ export interface EntityApi<T, TCreate> {
   update: (id: string, updates: Partial<T>) => Promise<T | null>;
   delete: (id: string) => Promise<boolean>;
 }
+
+/**
+ * Creates a unique key for tracking in-flight requests
+ */
+const createRequestKey = (storeName: string, method: string, ...args: unknown[]) =>
+  `${storeName}:${method}:${JSON.stringify(args)}`;
 
 /**
  * Base state shape for entity stores
@@ -69,48 +79,79 @@ export function createEntityStore<T extends { id: string }, TCreate>(
      * Fetch all entities, optionally filtered by parent ID
      */
     fetchAll: async (parentId?: string) => {
-      set({ loading: true, error: null });
-      try {
-        const entities = await api.list(parentId);
-        set({ entities, loading: false });
-      } catch (error) {
-        const err = error instanceof Error ? error : new Error(`Failed to fetch ${entityName.toLowerCase()}s`);
-        set({ error: err, loading: false });
-        toast.error(`Failed to load ${entityName.toLowerCase()}s`);
+      const requestKey = createRequestKey(entityName, 'fetchAll', parentId);
+
+      // Return existing promise if request is in-flight
+      const existing = inFlightRequests.get(requestKey);
+      if (existing) {
+        await existing;
+        return;
       }
+
+      set({ loading: true, error: null });
+
+      const promise = api.list(parentId)
+        .then((entities) => {
+          set({ entities, loading: false });
+        })
+        .catch((error) => {
+          const err = error instanceof Error ? error : new Error(`Failed to fetch ${entityName.toLowerCase()}s`);
+          set({ error: err, loading: false });
+          toast.error(`Failed to load ${entityName.toLowerCase()}s`);
+        })
+        .finally(() => {
+          inFlightRequests.delete(requestKey);
+        });
+
+      inFlightRequests.set(requestKey, promise);
+      await promise;
     },
 
     /**
      * Fetch a single entity by ID
      */
     fetchById: async (id: string) => {
-      set({ loading: true, error: null });
-      try {
-        const entity = await api.get(id);
+      const requestKey = createRequestKey(entityName, 'fetchById', id);
 
-        if (entity) {
-          // Update or add to entities array
-          const entities = get().entities;
-          const index = entities.findIndex(e => e.id === id);
-
-          if (index >= 0) {
-            const updated = [...entities];
-            updated[index] = entity;
-            set({ entities: updated, loading: false });
-          } else {
-            set({ entities: [...entities, entity], loading: false });
-          }
-        } else {
-          set({ loading: false });
-        }
-
-        return entity;
-      } catch (error) {
-        const err = error instanceof Error ? error : new Error(`Failed to fetch ${entityName.toLowerCase()}`);
-        set({ error: err, loading: false });
-        toast.error(`Failed to load ${entityName.toLowerCase()}`);
-        return null;
+      // Return existing promise if request is in-flight
+      const existing = inFlightRequests.get(requestKey);
+      if (existing) {
+        return existing as Promise<T | null>;
       }
+
+      set({ loading: true, error: null });
+
+      const promise = api.get(id)
+        .then((entity) => {
+          if (entity) {
+            // Update or add to entities array
+            const entities = get().entities;
+            const index = entities.findIndex(e => e.id === id);
+
+            if (index >= 0) {
+              const updated = [...entities];
+              updated[index] = entity;
+              set({ entities: updated, loading: false });
+            } else {
+              set({ entities: [...entities, entity], loading: false });
+            }
+          } else {
+            set({ loading: false });
+          }
+          return entity;
+        })
+        .catch((error) => {
+          const err = error instanceof Error ? error : new Error(`Failed to fetch ${entityName.toLowerCase()}`);
+          set({ error: err, loading: false });
+          toast.error(`Failed to load ${entityName.toLowerCase()}`);
+          return null;
+        })
+        .finally(() => {
+          inFlightRequests.delete(requestKey);
+        });
+
+      inFlightRequests.set(requestKey, promise);
+      return promise;
     },
 
     /**

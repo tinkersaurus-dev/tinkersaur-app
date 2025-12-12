@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useMemo } from 'react';
 import type { Shape } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../utils/viewport';
 import { snapToGrid } from '../utils/canvas';
@@ -7,6 +7,7 @@ import {
   findContainerAtPosition,
   getAllDescendantIds,
 } from '../utils/containment-utils';
+import { throttle } from '../utils/throttle';
 
 interface UseShapeDraggingProps {
   viewportTransform: ViewportTransform;
@@ -51,6 +52,24 @@ export function useShapeDragging({
   const shapesStartPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const rafIdRef = useRef<number | null>(null);
   const pendingUpdatesRef = useRef<Map<string, Partial<Shape>> | null>(null);
+
+  // Throttle containment detection to 30fps (33ms) - this is expensive and only for visual feedback
+  const throttledContainerDetection = useMemo(
+    () =>
+      throttle(
+        (
+          tempShape: Shape,
+          shapes: Shape[],
+          excludeIds: Set<string>,
+          callback: (id: string | null) => void
+        ) => {
+          const container = findContainerAtPosition(tempShape, shapes, excludeIds);
+          callback(container?.id ?? null);
+        },
+        33
+      ),
+    []
+  );
 
   const startDragging = useCallback(
     (canvasX: number, canvasY: number, shapesToDrag: string[]): DragData => {
@@ -111,6 +130,7 @@ export function useShapeDragging({
 
       // Visual feedback: detect which container the first dragged shape is over
       // Only check the primary shape (first one in the list)
+      // Throttled to 30fps since this is expensive and only for visual feedback
       if (setHoveredContainerId && draggedShapeIds.length > 0) {
         const primaryShapeId = draggedShapeIds[0];
         const updatedPosition = updates.get(primaryShapeId);
@@ -130,9 +150,8 @@ export function useShapeDragging({
             const descendants = getAllDescendantIds(primaryShapeId, localShapes);
             descendants.forEach(id => excludeIds.add(id));
 
-            // Find potential container
-            const container = findContainerAtPosition(tempShape, localShapes, excludeIds);
-            setHoveredContainerId(container?.id ?? null);
+            // Use throttled detection for visual feedback
+            throttledContainerDetection(tempShape, localShapes, excludeIds, setHoveredContainerId);
           }
         }
       }
@@ -157,10 +176,13 @@ export function useShapeDragging({
       // Return delta for state machine
       return { x: deltaX, y: deltaY };
     },
-    [isActive, dragData, viewportTransform, gridSnappingEnabled, updateLocalShapes, localShapes, setHoveredContainerId]
+    [isActive, dragData, viewportTransform, gridSnappingEnabled, updateLocalShapes, localShapes, setHoveredContainerId, throttledContainerDetection]
   );
 
   const finishDragging = useCallback(async () => {
+    // Cancel throttled container detection
+    throttledContainerDetection.cancel();
+
     // Clear hovered container visual feedback
     if (setHoveredContainerId) {
       setHoveredContainerId(null);
@@ -230,16 +252,17 @@ export function useShapeDragging({
 
     // Clear internal refs
     shapesStartPositionsRef.current.clear();
-  }, [dragData, updateShapes, localShapes, updateLocalShapes, setHoveredContainerId, diagramId, commandFactory, executeCommand]);
+  }, [dragData, updateShapes, localShapes, updateLocalShapes, setHoveredContainerId, diagramId, commandFactory, executeCommand, throttledContainerDetection]);
 
-  // Cleanup RAF on unmount
+  // Cleanup RAF and throttled functions on unmount
   useEffect(() => {
     return () => {
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
       }
+      throttledContainerDetection.cancel();
     };
-  }, []);
+  }, [throttledContainerDetection]);
 
   return {
     startDragging,
