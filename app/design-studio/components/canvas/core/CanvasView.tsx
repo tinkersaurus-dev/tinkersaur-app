@@ -1,30 +1,21 @@
+import { memo } from 'react';
 import { useCanvasDiagram } from './CanvasDiagramContext';
 import { useCanvasViewport } from './CanvasViewportContext';
 import { useCanvasSelection } from './CanvasSelectionContext';
 import { useCanvasEvents } from './CanvasEventsContext';
 import { useCanvasReferenceDrop } from '../../../hooks/useCanvasReferenceDrop';
 import { useSuggestionsGenerator } from '../../../hooks/useSuggestionsGenerator';
-import { MENU_IDS } from '../../../hooks/useContextMenuManager';
-import { GridBackground } from '../ui/GridBackground';
-import { ContextMenu } from '../menus/ContextMenu';
-import { BpmnToolsetPopover } from '~/design-studio/diagrams/bpmn/components/ToolsetPopover';
-import { ClassToolsetPopover } from '../menus/popovers/ClassToolsetPopover';
-import { SequenceToolsetPopover } from '~/design-studio/diagrams/sequence/components/ToolsetPopover';
-import { ArchitectureToolsetPopover } from '~/design-studio/diagrams/architecture/components/ToolsetPopover';
-import { ConnectorToolsetPopover } from '../menus/popovers/ConnectorToolsetPopover';
-import { ConnectorContextMenu } from '../menus/ConnectorContextMenu';
-import { ShapeContextMenu } from '../menus/ShapeContextMenu';
-import { ConnectorDrawingPreview } from '../rendering/ConnectorDrawingPreview';
-import { useShapeSubtypeManager } from '../../../hooks/useShapeSubtypeManager';
-import { useDiagramStore } from '~/core/entities/design-studio';
-import { CanvasShapesList } from '../rendering/CanvasShapesList';
-import { CanvasConnectorsList } from '../rendering/CanvasConnectorsList';
-import CanvasToolbar from '../../toolbar/CanvasToolbar';
-import CanvasTextToolbar from '../../toolbar/CanvasTextToolbar';
 import { MermaidViewer } from '../../mermaid/MermaidViewer';
 import { OverlayControlPanel } from '../../overlay/OverlayControlPanel';
 import { RoutingDebugOverlay } from '../debug/RoutingDebugOverlay';
 import { setDebugGraph } from '../debug/routingDebugState';
+
+// Layer components - each subscribes only to the contexts it needs
+import { GridLayer } from '../layers/GridLayer';
+import { CanvasContentLayer } from '../layers/CanvasContentLayer';
+import { MenusLayer } from '../layers/MenusLayer';
+import { ToolbarLayer } from '../layers/ToolbarLayer';
+import { SelectionBoxOverlay } from '../layers/SelectionBoxOverlay';
 
 /**
  * Canvas View Component
@@ -34,68 +25,26 @@ import { setDebugGraph } from '../debug/routingDebugState';
  *
  * Responsibilities:
  * - Render canvas container with viewport transform
- * - Render shapes, connectors, and UI overlays
+ * - Render shapes, connectors, and UI overlays via layer components
  * - Delegate all events to handlers from context
  * - Display menus, toolbars, and popovers based on context state
+ *
+ * Performance Optimization:
+ * - Wrapped in React.memo() to prevent unnecessary re-renders
+ * - Split into layer components that subscribe only to needed contexts
+ * - Each layer is memoized independently
  */
-
-export function CanvasView() {
-  // Consume focused contexts
-  const {
-    diagram,
-    loading,
-    shapes,
-    connectors,
-  } = useCanvasDiagram();
-
-  const {
-    viewportTransform,
-  } = useCanvasViewport();
-
-  const {
-    selectedShapeIds,
-    hoveredShapeId,
-    selectedConnectorIds,
-    hoveredConnectorId,
-    hoveredContainerId,
-    mode: _mode,
-    selectionBox,
-    drawingConnector,
-    editingEntityId,
-    editingEntityType,
-    gridDisplayMode,
-    activeConnectorType,
-  } = useCanvasSelection();
-
+function CanvasViewComponent() {
+  // Only consume what's needed at the container level
+  const { diagram, loading, shapes, connectors } = useCanvasDiagram();
+  const { viewportTransform } = useCanvasViewport();
+  const { selectionBox } = useCanvasSelection();
   const {
     handleCanvasMouseDown,
     handleMouseMove,
     handleMouseUp,
     handleContextMenu,
-    handleShapeMouseDown,
-    handleShapeMouseEnter,
-    handleShapeMouseLeave,
-    handleShapeDoubleClick,
-    handleStartDrawingConnector,
-    handleFinishDrawingConnector,
-    handleConnectorMouseDown,
-    handleConnectorMouseEnter,
-    handleConnectorMouseLeave,
-    handleConnectorDoubleClick,
-    handleLabelChange,
-    handleFinishEditing,
-    // Note: Class/enumeration editing callbacks (updateStereotype, addAttribute, etc.)
-    // are now consumed directly by ClassRenderer and EnumerationRenderer via useCanvasEvents()
-    menuManager,
-    handleAddRectangle,
-    handleBpmnToolSelect,
-    handleClassToolSelect,
-    handleSequenceToolSelect,
-    handleArchitectureToolSelect,
-    connectorTypeManager,
-    toolbarButtons,
     containerRef,
-    handleResizeStart,
     orchestrationCursor,
   } = useCanvasEvents();
 
@@ -115,14 +64,6 @@ export function CanvasView() {
     diagramId: diagram?.id,
     diagramType: diagram?.type,
     shapes,
-  });
-
-  // Shape subtype manager for context menu
-  const commandFactory = useDiagramStore((state) => state.commandFactory);
-  const shapeSubtypeManager = useShapeSubtypeManager({
-    diagramId: diagram?.id ?? '',
-    diagramType: diagram?.type,
-    commandFactory,
   });
 
   if (loading) {
@@ -153,157 +94,22 @@ export function CanvasView() {
         WebkitUserSelect: 'none',
       }}
     >
-      {/* Grid Layer (screen space, no transform) */}
-      <div className="absolute inset-0 pointer-events-none">
-        <svg className="w-full h-full">
-          <GridBackground
-            gridSize={10}
-            panX={viewportTransform.viewport.panX}
-            panY={viewportTransform.viewport.panY}
-            zoom={viewportTransform.viewport.zoom}
-            mode={gridDisplayMode}
-          />
-        </svg>
-      </div>
+      {/* Grid Layer - only re-renders on viewport/grid changes */}
+      <GridLayer />
 
-      {/* Unified Canvas Content - All elements as direct children */}
-      <div
-        className="absolute inset-0"
-        style={{
-          transform: viewportTransform.getTransformString(),
-          transformOrigin: '0 0',
-        }}
-      >
-        {/* Render all shapes */}
-        <CanvasShapesList
-          shapes={shapes}
-          selectedShapeIds={selectedShapeIds}
-          hoveredShapeId={hoveredShapeId}
-          hoveredContainerId={hoveredContainerId}
-          viewportTransform={viewportTransform}
-          editingEntityId={editingEntityId}
-          editingEntityType={editingEntityType}
-          onMouseDown={handleShapeMouseDown}
-          onMouseEnter={handleShapeMouseEnter}
-          onMouseLeave={handleShapeMouseLeave}
-          onDoubleClick={handleShapeDoubleClick}
-          onLabelChange={handleLabelChange}
-          onFinishEditing={handleFinishEditing}
-          onConnectionPointMouseDown={handleStartDrawingConnector}
-          onConnectionPointMouseUp={handleFinishDrawingConnector}
-          onResizeStart={handleResizeStart}
-        />
+      {/* Canvas Content - shapes, connectors, drawing preview */}
+      <CanvasContentLayer />
 
-        {/* Render all connectors */}
-        <CanvasConnectorsList
-          connectors={connectors}
-          shapes={shapes}
-          selectedConnectorIds={selectedConnectorIds}
-          hoveredConnectorId={hoveredConnectorId}
-          viewportTransform={viewportTransform}
-          editingEntityId={editingEntityId}
-          editingEntityType={editingEntityType}
-          onMouseDown={handleConnectorMouseDown}
-          onMouseEnter={handleConnectorMouseEnter}
-          onMouseLeave={handleConnectorMouseLeave}
-          onDoubleClick={handleConnectorDoubleClick}
-          onLabelChange={handleLabelChange}
-          onFinishEditing={handleFinishEditing}
-        />
+      {/* Menus Layer - popovers and context menus */}
+      <MenusLayer />
 
-        {/* Connector drawing preview line */}
-        {drawingConnector && (
-          <ConnectorDrawingPreview
-            drawingConnector={drawingConnector}
-            shapes={shapes}
-            viewportTransform={viewportTransform}
-            getConnectorConfig={connectorTypeManager.getConnectorConfig}
-          />
-        )}
-      </div>
+      {/* Selection Box Overlay */}
+      <SelectionBoxOverlay selectionBox={selectionBox} />
 
-      {/* Context menu / Toolset popover (rendered in screen space, not transformed) */}
-      {menuManager.isMenuOpen(MENU_IDS.BPMN_TOOLSET_POPOVER) && menuManager.activeMenuConfig && (
-        <BpmnToolsetPopover
-          x={menuManager.activeMenuConfig.screenPosition.x}
-          y={menuManager.activeMenuConfig.screenPosition.y}
-          canvasX={menuManager.activeMenuConfig.canvasPosition?.x ?? 0}
-          canvasY={menuManager.activeMenuConfig.canvasPosition?.y ?? 0}
-          isOpen={true}
-          onClose={menuManager.closeMenu}
-          onToolSelect={handleBpmnToolSelect}
-          drawingConnector={drawingConnector}
-        />
-      )}
-      {menuManager.isMenuOpen(MENU_IDS.CLASS_TOOLSET_POPOVER) && menuManager.activeMenuConfig && (
-        <ClassToolsetPopover
-          x={menuManager.activeMenuConfig.screenPosition.x}
-          y={menuManager.activeMenuConfig.screenPosition.y}
-          canvasX={menuManager.activeMenuConfig.canvasPosition?.x ?? 0}
-          canvasY={menuManager.activeMenuConfig.canvasPosition?.y ?? 0}
-          isOpen={true}
-          onClose={menuManager.closeMenu}
-          onToolSelect={handleClassToolSelect}
-          drawingConnector={drawingConnector}
-        />
-      )}
-      {menuManager.isMenuOpen(MENU_IDS.SEQUENCE_TOOLSET_POPOVER) && menuManager.activeMenuConfig && (
-        <SequenceToolsetPopover
-          x={menuManager.activeMenuConfig.screenPosition.x}
-          y={menuManager.activeMenuConfig.screenPosition.y}
-          canvasX={menuManager.activeMenuConfig.canvasPosition?.x ?? 0}
-          canvasY={menuManager.activeMenuConfig.canvasPosition?.y ?? 0}
-          isOpen={true}
-          onClose={menuManager.closeMenu}
-          onToolSelect={handleSequenceToolSelect}
-          drawingConnector={drawingConnector}
-        />
-      )}
-      {menuManager.isMenuOpen(MENU_IDS.ARCHITECTURE_TOOLSET_POPOVER) && menuManager.activeMenuConfig && (
-        <ArchitectureToolsetPopover
-          x={menuManager.activeMenuConfig.screenPosition.x}
-          y={menuManager.activeMenuConfig.screenPosition.y}
-          canvasX={menuManager.activeMenuConfig.canvasPosition?.x ?? 0}
-          canvasY={menuManager.activeMenuConfig.canvasPosition?.y ?? 0}
-          isOpen={true}
-          onClose={menuManager.closeMenu}
-          onToolSelect={handleArchitectureToolSelect}
-          drawingConnector={drawingConnector}
-        />
-      )}
-      {menuManager.isMenuOpen(MENU_IDS.CANVAS_CONTEXT_MENU) && menuManager.activeMenuConfig && (
-        <ContextMenu
-          x={menuManager.activeMenuConfig.screenPosition.x}
-          y={menuManager.activeMenuConfig.screenPosition.y}
-          isOpen={true}
-          onClose={menuManager.closeMenu}
-          onAddRectangle={handleAddRectangle}
-        />
-      )}
-
-      {/* Selection box (rendered in screen space, not transformed) */}
-      {selectionBox && (
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            left: `${Math.min(selectionBox.startX, selectionBox.endX)}px`,
-            top: `${Math.min(selectionBox.startY, selectionBox.endY)}px`,
-            width: `${Math.abs(selectionBox.endX - selectionBox.startX)}px`,
-            height: `${Math.abs(selectionBox.endY - selectionBox.startY)}px`,
-            border: '2px dashed var(--canvas-selection-box-border)',
-            backgroundColor: 'var(--canvas-selection-box-bg)',
-          }}
-        />
-      )}
-
-      {/* Canvas Toolbar */}
-      <CanvasToolbar placement="bottom" buttons={toolbarButtons} />
-
-      {/* Canvas Text Toolbar (right-side) */}
-      <CanvasTextToolbar
-        diagramType={diagram?.type}
-        onGenerateSuggestions={generateAndDisplaySuggestions}
+      {/* Toolbars */}
+      <ToolbarLayer
         isSuggestionsLoading={isSuggestionsLoading}
+        onGenerateSuggestions={generateAndDisplaySuggestions}
       />
 
       {/* Mermaid Viewer */}
@@ -312,60 +118,18 @@ export function CanvasView() {
       {/* Overlay Control Panel (upper-left) */}
       <OverlayControlPanel shapes={shapes} connectors={connectors} />
 
-      {/* Connector Toolset Popover */}
-      {menuManager.isMenuOpen(MENU_IDS.CONNECTOR_TOOLBAR_POPOVER) && menuManager.activeMenuConfig && (
-        <ConnectorToolsetPopover
-          x={menuManager.activeMenuConfig.screenPosition.x}
-          y={menuManager.activeMenuConfig.screenPosition.y}
-          isOpen={true}
-          onClose={menuManager.closeMenu}
-          onConnectorSelect={(tool) => {
-            connectorTypeManager.handleConnectorSelect(tool);
-            menuManager.closeMenu();
-          }}
-          connectorTools={connectorTypeManager.availableConnectorTools}
-          activeConnectorType={activeConnectorType}
-        />
-      )}
-
-      {/* Connector Context Menu (right-click on connector) */}
-      {menuManager.isMenuOpen(MENU_IDS.CONNECTOR_CONTEXT_MENU) && menuManager.activeMenuConfig && menuManager.activeMenuConfig.metadata?.connectorId && (
-        <ConnectorContextMenu
-          x={menuManager.activeMenuConfig.screenPosition.x}
-          y={menuManager.activeMenuConfig.screenPosition.y}
-          isOpen={true}
-          onClose={menuManager.closeMenu}
-          onConnectorTypeChange={async (tool) => {
-            await connectorTypeManager.handleConnectorTypeChange(tool, menuManager.activeMenuConfig!.metadata!.connectorId as string);
-            menuManager.closeMenu();
-          }}
-          connectorTools={connectorTypeManager.availableConnectorTools}
-          currentConnectorType={connectors.find(c => c.id === menuManager.activeMenuConfig?.metadata?.connectorId)?.type}
-        />
-      )}
-
-      {/* Shape Context Menu (right-click on shape) */}
-      {menuManager.isMenuOpen(MENU_IDS.SHAPE_CONTEXT_MENU) && menuManager.activeMenuConfig && menuManager.activeMenuConfig.metadata?.shapeId && (
-        <ShapeContextMenu
-          x={menuManager.activeMenuConfig.screenPosition.x}
-          y={menuManager.activeMenuConfig.screenPosition.y}
-          isOpen={true}
-          onClose={menuManager.closeMenu}
-          onShapeSubtypeChange={async (tool) => {
-            await shapeSubtypeManager.handleShapeSubtypeChange(tool, menuManager.activeMenuConfig!.metadata!.shapeId as string);
-            menuManager.closeMenu();
-          }}
-          shapeTools={shapeSubtypeManager.getAvailableSubtypes(shapes.find(s => s.id === menuManager.activeMenuConfig?.metadata?.shapeId)?.type ?? '')}
-          currentShapeSubtype={shapes.find(s => s.id === menuManager.activeMenuConfig?.metadata?.shapeId)?.subtype}
-        />
-      )}
-
-
       {/* Routing Debug Overlay - Press 'D' to toggle */}
       <RoutingDebugOverlay />
     </div>
   );
 }
+
+/**
+ * Memoized CanvasView to prevent unnecessary re-renders
+ * Combined with layer components, this significantly reduces re-renders
+ * when unrelated state changes
+ */
+export const CanvasView = memo(CanvasViewComponent);
 
 // Expose debug function globally
 if (typeof window !== 'undefined') {

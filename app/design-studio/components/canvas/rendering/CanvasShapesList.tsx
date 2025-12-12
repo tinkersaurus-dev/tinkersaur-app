@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import type { Shape } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
 import { ShapeRenderer } from '~/design-studio/diagrams/shared/rendering/ShapeRenderer';
@@ -33,9 +33,52 @@ interface CanvasShapesListProps {
 }
 
 /**
+ * Custom comparison function for React.memo
+ * Only re-render if props that affect rendering have actually changed
+ */
+function arePropsEqual(
+  prevProps: CanvasShapesListProps,
+  nextProps: CanvasShapesListProps
+): boolean {
+  // Check shapes array by reference (from useMemo in parent)
+  if (prevProps.shapes !== nextProps.shapes) return false;
+
+  // Compare selection arrays by content
+  if (prevProps.selectedShapeIds.length !== nextProps.selectedShapeIds.length) return false;
+  for (let i = 0; i < prevProps.selectedShapeIds.length; i++) {
+    if (prevProps.selectedShapeIds[i] !== nextProps.selectedShapeIds[i]) return false;
+  }
+
+  // Compare primitive values
+  if (prevProps.hoveredShapeId !== nextProps.hoveredShapeId) return false;
+  if (prevProps.hoveredContainerId !== nextProps.hoveredContainerId) return false;
+  if (prevProps.editingEntityId !== nextProps.editingEntityId) return false;
+  if (prevProps.editingEntityType !== nextProps.editingEntityType) return false;
+
+  // Only compare viewport zoom (the only value used for rendering)
+  if (prevProps.viewportTransform.viewport.zoom !== nextProps.viewportTransform.viewport.zoom) {
+    return false;
+  }
+
+  // Callbacks are from useCallback, assume stable
+  // If they change, it's intentional and we should re-render
+  if (prevProps.onMouseDown !== nextProps.onMouseDown) return false;
+  if (prevProps.onMouseEnter !== nextProps.onMouseEnter) return false;
+  if (prevProps.onMouseLeave !== nextProps.onMouseLeave) return false;
+  if (prevProps.onDoubleClick !== nextProps.onDoubleClick) return false;
+  if (prevProps.onLabelChange !== nextProps.onLabelChange) return false;
+  if (prevProps.onFinishEditing !== nextProps.onFinishEditing) return false;
+  if (prevProps.onConnectionPointMouseDown !== nextProps.onConnectionPointMouseDown) return false;
+  if (prevProps.onConnectionPointMouseUp !== nextProps.onConnectionPointMouseUp) return false;
+  if (prevProps.onResizeStart !== nextProps.onResizeStart) return false;
+
+  return true;
+}
+
+/**
  * Renders all shapes on the canvas
  */
-export function CanvasShapesList({
+function CanvasShapesListComponent({
   shapes,
   selectedShapeIds,
   hoveredShapeId,
@@ -151,3 +194,10 @@ export function CanvasShapesList({
     </>
   );
 }
+
+/**
+ * Memoized CanvasShapesList to prevent unnecessary re-renders
+ * This is critical for performance - prevents re-rendering all shapes when
+ * unrelated state changes (e.g., menu state, toolbar updates)
+ */
+export const CanvasShapesList = memo(CanvasShapesListComponent, arePropsEqual);

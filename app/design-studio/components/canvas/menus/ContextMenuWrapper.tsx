@@ -15,7 +15,7 @@ export interface ContextMenuWrapperProps {
 
 /**
  * Wrapper component that provides common menu behaviors:
- * - Click-outside-to-close with 100ms delay
+ * - Click-outside-to-close using timestamp comparison
  * - Escape key handler
  * - Fixed positioning in screen space
  * - Context menu prevention on menu itself
@@ -39,19 +39,23 @@ export function ContextMenuWrapper({
   useEffect(() => {
     if (!isOpen) return;
 
+    // Capture the time when menu opened to ignore stale events
+    // event.timeStamp uses DOMHighResTimeStamp (same origin as performance.now())
+    const openedAt = performance.now();
+
     const handleClickOutside = (event: MouseEvent) => {
+      // Ignore events that occurred before or during menu open
+      if (event.timeStamp <= openedAt) return;
+
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         onClose();
       }
     };
 
-    // 100ms delay to prevent immediate close when menu is opened by click
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
+    // Attach listener immediately - timestamp check handles the race condition
+    document.addEventListener('mousedown', handleClickOutside);
 
     return () => {
-      clearTimeout(timer);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);

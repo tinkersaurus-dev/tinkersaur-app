@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Shape, Connector } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
 import { ConnectorRenderer } from '~/design-studio/diagrams/shared/rendering/ConnectorRenderer';
@@ -24,9 +25,48 @@ interface CanvasConnectorsListProps {
 }
 
 /**
+ * Custom comparison function for React.memo
+ * Only re-render if props that affect rendering have actually changed
+ */
+function arePropsEqual(
+  prevProps: CanvasConnectorsListProps,
+  nextProps: CanvasConnectorsListProps
+): boolean {
+  // Check connectors and shapes arrays by reference (from useMemo in parent)
+  if (prevProps.connectors !== nextProps.connectors) return false;
+  if (prevProps.shapes !== nextProps.shapes) return false;
+
+  // Compare selection arrays by content
+  if (prevProps.selectedConnectorIds.length !== nextProps.selectedConnectorIds.length) return false;
+  for (let i = 0; i < prevProps.selectedConnectorIds.length; i++) {
+    if (prevProps.selectedConnectorIds[i] !== nextProps.selectedConnectorIds[i]) return false;
+  }
+
+  // Compare primitive values
+  if (prevProps.hoveredConnectorId !== nextProps.hoveredConnectorId) return false;
+  if (prevProps.editingEntityId !== nextProps.editingEntityId) return false;
+  if (prevProps.editingEntityType !== nextProps.editingEntityType) return false;
+
+  // Only compare viewport zoom (the only value used for rendering)
+  if (prevProps.viewportTransform.viewport.zoom !== nextProps.viewportTransform.viewport.zoom) {
+    return false;
+  }
+
+  // Callbacks are from useCallback, assume stable
+  if (prevProps.onMouseDown !== nextProps.onMouseDown) return false;
+  if (prevProps.onMouseEnter !== nextProps.onMouseEnter) return false;
+  if (prevProps.onMouseLeave !== nextProps.onMouseLeave) return false;
+  if (prevProps.onDoubleClick !== nextProps.onDoubleClick) return false;
+  if (prevProps.onLabelChange !== nextProps.onLabelChange) return false;
+  if (prevProps.onFinishEditing !== nextProps.onFinishEditing) return false;
+
+  return true;
+}
+
+/**
  * Renders all connectors on the canvas
  */
-export function CanvasConnectorsList({
+function CanvasConnectorsListComponent({
   connectors,
   shapes,
   selectedConnectorIds,
@@ -107,3 +147,10 @@ export function CanvasConnectorsList({
     </>
   );
 }
+
+/**
+ * Memoized CanvasConnectorsList to prevent unnecessary re-renders
+ * This is critical for performance - prevents re-rendering all connectors when
+ * unrelated state changes (e.g., menu state, toolbar updates)
+ */
+export const CanvasConnectorsList = memo(CanvasConnectorsListComponent, arePropsEqual);
