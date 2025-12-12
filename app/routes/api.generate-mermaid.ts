@@ -74,11 +74,6 @@ export async function action({ request }: ActionFunctionArgs) {
       diagramType,
     });
 
-    // Log the complete prompt to the console
-    console.log('\n=== COMPLETE USER PROMPT ===');
-    console.log(prompt);
-    console.log('=== END PROMPT ===\n');
-
     // Validate input
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
       logger.warn('Validation error: empty prompt');
@@ -129,14 +124,6 @@ export async function action({ request }: ActionFunctionArgs) {
         topP: 0.9, // greater than 0, equal or less than 1.0 (default: 0.9)
       }
     };
-
-    // Log the complete prompt sent to LLM
-    console.log('\n=== COMPLETE LLM PROMPT (SYSTEM + USER) ===');
-    console.log('\n--- SYSTEM PROMPT ---');
-    console.log(systemPrompt);
-    console.log('\n--- USER MESSAGE ---');
-    console.log(userMessage);
-    console.log('\n=== END LLM PROMPT ===\n');
 
     logger.debug('Bedrock request prepared', {
       modelId: MODEL_ID,

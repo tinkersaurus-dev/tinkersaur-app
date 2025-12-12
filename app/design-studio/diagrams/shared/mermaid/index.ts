@@ -35,10 +35,7 @@ registerMermaidImporter('architecture', createArchitectureMermaidImporter);
 export {
   getMermaidExporter,
   hasMermaidExporter,
-  getSupportedDiagramTypes,
   getMermaidImporter,
-  hasMermaidImporter,
-  getSupportedImportDiagramTypes,
 } from './registry';
 export type {
   MermaidExporter,

@@ -130,14 +130,6 @@ Return ONLY the updated Mermaid syntax.`;
       },
     };
 
-    // Log the prompt for debugging
-    console.log('\n=== APPLY SUGGESTION LLM PROMPT ===');
-    console.log('\n--- SYSTEM PROMPT ---');
-    console.log(systemPrompt);
-    console.log('\n--- USER MESSAGE ---');
-    console.log(userMessage);
-    console.log('\n=== END PROMPT ===\n');
-
     logger.debug('Bedrock request prepared for apply suggestion', {
       modelId: MODEL_ID,
       region: AWS_REGION,
@@ -206,11 +198,6 @@ Return ONLY the updated Mermaid syntax.`;
       cleanedContent = cleanedContent.slice(0, -3);
     }
     cleanedContent = cleanedContent.trim();
-
-    // Log the generated mermaid for debugging
-    console.log('\n=== APPLY SUGGESTION LLM RESPONSE ===');
-    console.log(cleanedContent);
-    console.log('\n=== END RESPONSE ===\n');
 
     logger.info('Successfully applied suggestion', {
       outputLength: cleanedContent.length,

@@ -68,13 +68,6 @@ export function hasMermaidExporter(diagramType: DiagramType): boolean {
 }
 
 /**
- * Get all registered diagram types that support mermaid export
- */
-export function getSupportedDiagramTypes(): DiagramType[] {
-  return Object.keys(exporterRegistry) as DiagramType[];
-}
-
-/**
  * Register a mermaid importer for a diagram type
  */
 export function registerMermaidImporter(
@@ -111,16 +104,3 @@ export function getMermaidImporter(
   }
 }
 
-/**
- * Check if a mermaid importer is available for a diagram type
- */
-export function hasMermaidImporter(diagramType: DiagramType): boolean {
-  return diagramType in importerRegistry;
-}
-
-/**
- * Get all registered diagram types that support mermaid import
- */
-export function getSupportedImportDiagramTypes(): DiagramType[] {
-  return Object.keys(importerRegistry) as DiagramType[];
-}

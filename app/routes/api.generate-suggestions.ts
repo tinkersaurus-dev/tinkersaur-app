@@ -127,14 +127,6 @@ Return your suggestions as JSON.`;
       },
     };
 
-    // Log the prompt for debugging
-    console.log('\n=== SUGGESTIONS LLM PROMPT ===');
-    console.log('\n--- SYSTEM PROMPT ---');
-    console.log(systemPrompt);
-    console.log('\n--- USER MESSAGE ---');
-    console.log(userMessage);
-    console.log('\n=== END PROMPT ===\n');
-
     logger.debug('Bedrock request prepared for suggestions', {
       modelId: MODEL_ID,
       region: AWS_REGION,

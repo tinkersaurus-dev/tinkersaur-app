@@ -109,14 +109,6 @@ function calculateBranchLength(
 }
 
 /**
- * Check if a node is a gateway (decision point with multiple outgoing connections)
- */
-function _isGateway(nodeId: string, graph: AdjacencyGraph): boolean {
-  const outgoing = graph.outgoing.get(nodeId) || [];
-  return outgoing.length > 1;
-}
-
-/**
  * Layout nodes using flow-based algorithm
  */
 export function layoutBpmnGraph(
