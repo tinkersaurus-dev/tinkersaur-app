@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { LuChevronUp, LuChevronDown } from 'react-icons/lu';
 import type { UserStory } from '../../lib/llm/types';
+import '../../styles/markdown-content.css';
 
 export interface UserStoryCardProps {
   story: UserStory;
@@ -151,44 +152,7 @@ export function UserStoryCard({
       </div>
 
       {/* Story content */}
-      <div className="p-3 text-[var(--text)] story-card-markdown text-xs">
-        <style>{`
-          .story-card-markdown {
-            font-size: 12px;
-            line-height: 1.5;
-          }
-          .story-card-markdown h3 {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-bottom: 0.4em;
-            margin-top: 0;
-            color: var(--text);
-          }
-          .story-card-markdown h4 {
-            font-size: 0.95em;
-            font-weight: bold;
-            margin-bottom: 0.3em;
-            margin-top: 0.6em;
-            color: var(--text);
-          }
-          .story-card-markdown p {
-            margin-bottom: 0.4em;
-            line-height: 1.5;
-            color: var(--text);
-          }
-          .story-card-markdown ol {
-            margin-bottom: 0.4em;
-            padding-left: 1.5em;
-            color: var(--text);
-          }
-          .story-card-markdown li {
-            margin-bottom: 0.2em;
-          }
-          .story-card-markdown strong {
-            font-weight: bold;
-            color: var(--text);
-          }
-        `}</style>
+      <div className="p-3 text-[var(--text)] markdown-content markdown-content--compact markdown-content--story-card text-xs">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {markdown}
         </ReactMarkdown>

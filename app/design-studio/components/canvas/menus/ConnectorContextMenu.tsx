@@ -6,7 +6,7 @@
  */
 
 import type { ConnectorTool } from '~/design-studio/diagrams/bpmn/connectors';
-import { ContextMenuWrapper } from './ContextMenuWrapper';
+import { ToolMenuComponent } from './ToolMenuComponent';
 
 interface ConnectorContextMenuProps {
   /** X position in screen coordinates */
@@ -34,46 +34,18 @@ export function ConnectorContextMenu({
   connectorTools,
   currentConnectorType,
 }: ConnectorContextMenuProps) {
-  const handleConnectorClick = (connectorTool: ConnectorTool) => {
-    onConnectorTypeChange(connectorTool);
-    onClose();
-  };
-
   return (
-    <ContextMenuWrapper
+    <ToolMenuComponent<ConnectorTool>
       menuId="connector-context-menu"
-      isOpen={isOpen}
       x={x}
       y={y}
+      isOpen={isOpen}
       onClose={onClose}
-      className="bg-[var(--bg-light)] border border-[var(--border)] rounded-sm [box-shadow:var(--shadow)] p-2"
-    >
-      {/* Header */}
-      <div className="text-xs text-[var(--text-muted)] px-2 py-1 mb-1">
-        Change connector type:
-      </div>
-
-      {/* Connector tools in a single row */}
-      <div className="flex gap-1 py-1">
-        {connectorTools.map((tool) => {
-          const Icon = tool.icon;
-          const isCurrent = currentConnectorType === tool.connectorType;
-
-          return (
-            <button
-              key={tool.id}
-              onClick={() => handleConnectorClick(tool)}
-              className={`w-6 h-6 min-w-[24px] min-h-[24px] p-0 flex items-center justify-center text-[var(--text)] hover:bg-[var(--highlight)] rounded-sm transition-colors duration-[var(--transition-fast)] cursor-pointer border-0 ${
-                isCurrent ? 'bg-[var(--highlight)]' : 'bg-transparent'
-              }`}
-              title={tool.name}
-              aria-label={tool.name}
-            >
-              <Icon size={14} />
-            </button>
-          );
-        })}
-      </div>
-    </ContextMenuWrapper>
+      onToolSelect={onConnectorTypeChange}
+      tools={connectorTools}
+      currentToolKey={currentConnectorType}
+      getToolKey={(tool) => tool.connectorType}
+      headerText="Change connector type:"
+    />
   );
 }

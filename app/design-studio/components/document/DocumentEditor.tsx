@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { LuEye, LuPencil, LuColumns2 } from 'react-icons/lu';
 import { Button } from '~/core/components/ui/Button';
+import '../../styles/markdown-content.css';
 
 export type DocumentViewMode = 'edit' | 'split' | 'preview';
 
@@ -197,112 +198,7 @@ export function DocumentEditor({
               showEditor ? 'flex-1' : 'flex-[2]'
             }`}
           >
-            <div className="markdown-preview">
-              <style>{`
-                .markdown-preview h1 {
-                  font-size: 2em;
-                  font-weight: bold;
-                  margin-bottom: 0.5em;
-                  margin-top: 0.5em;
-                  border-bottom: 1px solid var(--border);
-                  padding-bottom: 0.25em;
-                  color: var(--text);
-                }
-                .markdown-preview h2 {
-                  font-size: 1.5em;
-                  font-weight: bold;
-                  margin-bottom: 0.5em;
-                  margin-top: 1em;
-                  border-bottom: 1px solid var(--border);
-                  padding-bottom: 0.25em;
-                  color: var(--text);
-                }
-                .markdown-preview h3 {
-                  font-size: 1.25em;
-                  font-weight: bold;
-                  margin-bottom: 0.5em;
-                  margin-top: 1em;
-                  color: var(--text);
-                }
-                .markdown-preview h4,
-                .markdown-preview h5,
-                .markdown-preview h6 {
-                  font-size: 1em;
-                  font-weight: bold;
-                  margin-bottom: 0.5em;
-                  margin-top: 1em;
-                  color: var(--text);
-                }
-                .markdown-preview p {
-                  margin-bottom: 1em;
-                  line-height: 1.6;
-                  color: var(--text);
-                }
-                .markdown-preview ul,
-                .markdown-preview ol {
-                  margin-bottom: 1em;
-                  padding-left: 2em;
-                  color: var(--text);
-                }
-                .markdown-preview li {
-                  margin-bottom: 0.25em;
-                }
-                .markdown-preview code {
-                  background-color: var(--surface);
-                  padding: 0.2em 0.4em;
-                  border-radius: 3px;
-                  font-family: monospace;
-                  font-size: 0.9em;
-                  color: var(--text);
-                }
-                .markdown-preview pre {
-                  background-color: var(--surface);
-                  padding: 1em;
-                  border-radius: 6px;
-                  overflow: auto;
-                  margin-bottom: 1em;
-                }
-                .markdown-preview pre code {
-                  background-color: transparent;
-                  padding: 0;
-                }
-                .markdown-preview blockquote {
-                  border-left: 4px solid var(--border);
-                  padding-left: 1em;
-                  margin-left: 0;
-                  margin-bottom: 1em;
-                  color: var(--text-secondary);
-                }
-                .markdown-preview table {
-                  border-collapse: collapse;
-                  width: 100%;
-                  margin-bottom: 1em;
-                }
-                .markdown-preview th,
-                .markdown-preview td {
-                  border: 1px solid var(--border);
-                  padding: 0.5em;
-                  text-align: left;
-                  color: var(--text);
-                }
-                .markdown-preview th {
-                  background-color: var(--surface);
-                  font-weight: bold;
-                }
-                .markdown-preview a {
-                  color: var(--primary);
-                  text-decoration: underline;
-                }
-                .markdown-preview img {
-                  max-width: 100%;
-                  height: auto;
-                }
-                .markdown-preview hr {
-                  border: none;
-                  border-top: 1px solid var(--border);
-                  margin: 2em 0;
-                }
-              `}</style>
+            <div className="markdown-content">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {content || '*No content to preview*'}
               </ReactMarkdown>

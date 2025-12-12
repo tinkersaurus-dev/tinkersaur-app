@@ -63,14 +63,7 @@ export function useEnumerationShapeEditing({
    * Update an existing literal (persists to database)
    */
   const updateLiteral = useCallback(
-    async (shapeId: string, literalIndex: number, newValue: string) => {
-      const shape = getShape(shapeId);
-      if (!shape) return;
-
-      const currentData = (shape.data || {}) as unknown as EnumerationShapeData;
-      const literals = currentData.literals || [];
-      const oldValue = literals[literalIndex];
-
+    async (shapeId: string, literalIndex: number, oldValue: string, newValue: string) => {
       if (oldValue === newValue) return; // No change
 
       const command = commandFactory.createUpdateEnumerationLiteral(

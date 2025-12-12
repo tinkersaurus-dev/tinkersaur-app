@@ -87,14 +87,7 @@ export function useClassShapeEditing({
    * Update an existing attribute (persists to database)
    */
   const updateAttribute = useCallback(
-    async (shapeId: string, attributeIndex: number, newValue: string) => {
-      const shape = getShape(shapeId);
-      if (!shape) return;
-
-      const currentData = (shape.data || {}) as unknown as ClassShapeData;
-      const attributes = currentData.attributes || [];
-      const oldValue = attributes[attributeIndex];
-
+    async (shapeId: string, attributeIndex: number, oldValue: string, newValue: string) => {
       if (oldValue === newValue) return; // No change
 
       const command = commandFactory.createUpdateClassAttribute(
@@ -176,14 +169,7 @@ export function useClassShapeEditing({
    * Update an existing method (persists to database)
    */
   const updateMethod = useCallback(
-    async (shapeId: string, methodIndex: number, newValue: string) => {
-      const shape = getShape(shapeId);
-      if (!shape) return;
-
-      const currentData = (shape.data || {}) as unknown as ClassShapeData;
-      const methods = currentData.methods || [];
-      const oldValue = methods[methodIndex];
-
+    async (shapeId: string, methodIndex: number, oldValue: string, newValue: string) => {
       if (oldValue === newValue) return; // No change
 
       const command = commandFactory.createUpdateClassMethod(

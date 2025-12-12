@@ -193,7 +193,7 @@ export function EnumerationRenderer({
         ) : (
           literals.map((literal, index) => (
             <ClassItemEditor
-              key={index}
+              key={`${shape.id}-literal-${index}`}
               value={literal}
               isEditing={editingLiteral === index}
               onStartEdit={() => {
@@ -207,7 +207,7 @@ export function EnumerationRenderer({
               onFinishEdit={() => {
                 // Save to database only when editing finishes
                 if (editingLiteral !== null && literals[editingLiteral] !== editingLiteralOriginal) {
-                  onEnumerationUpdateLiteral?.(shape.id, editingLiteral, literals[editingLiteral]);
+                  onEnumerationUpdateLiteral?.(shape.id, editingLiteral, editingLiteralOriginal, literals[editingLiteral]);
                 }
                 setEditingLiteral(null);
                 setEditingLiteralOriginal('');

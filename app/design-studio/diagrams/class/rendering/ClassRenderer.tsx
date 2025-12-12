@@ -221,7 +221,7 @@ export function ClassRenderer({
         ) : (
           attributes.map((attr, index) => (
             <ClassItemEditor
-              key={index}
+              key={`${shape.id}-attr-${index}`}
               value={attr}
               isEditing={editingAttribute === index}
               onStartEdit={() => {
@@ -235,7 +235,7 @@ export function ClassRenderer({
               onFinishEdit={() => {
                 // Save to database only when editing finishes
                 if (editingAttribute !== null && attributes[editingAttribute] !== editingAttributeOriginal) {
-                  onClassUpdateAttribute?.(shape.id, editingAttribute, attributes[editingAttribute]);
+                  onClassUpdateAttribute?.(shape.id, editingAttribute, editingAttributeOriginal, attributes[editingAttribute]);
                 }
                 setEditingAttribute(null);
                 setEditingAttributeOriginal('');
@@ -302,7 +302,7 @@ export function ClassRenderer({
         ) : (
           methods.map((method, index) => (
             <ClassItemEditor
-              key={index}
+              key={`${shape.id}-method-${index}`}
               value={method}
               isEditing={editingMethod === index}
               onStartEdit={() => {
@@ -316,7 +316,7 @@ export function ClassRenderer({
               onFinishEdit={() => {
                 // Save to database only when editing finishes
                 if (editingMethod !== null && methods[editingMethod] !== editingMethodOriginal) {
-                  onClassUpdateMethod?.(shape.id, editingMethod, methods[editingMethod]);
+                  onClassUpdateMethod?.(shape.id, editingMethod, editingMethodOriginal, methods[editingMethod]);
                 }
                 setEditingMethod(null);
                 setEditingMethodOriginal('');

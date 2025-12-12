@@ -62,17 +62,17 @@ export interface ShapeRendererProps {
   onClassStereotypeChange?: (shapeId: string, stereotype: string | undefined) => void;
   onClassAddAttribute?: (shapeId: string) => void;
   onClassDeleteAttribute?: (shapeId: string, attributeIndex: number) => void;
-  onClassUpdateAttribute?: (shapeId: string, attributeIndex: number, newValue: string) => void;
+  onClassUpdateAttribute?: (shapeId: string, attributeIndex: number, oldValue: string, newValue: string) => void;
   onClassUpdateAttributeLocal?: (shapeId: string, attributeIndex: number, newValue: string) => void;
   onClassAddMethod?: (shapeId: string) => void;
   onClassDeleteMethod?: (shapeId: string, methodIndex: number) => void;
-  onClassUpdateMethod?: (shapeId: string, methodIndex: number, newValue: string) => void;
+  onClassUpdateMethod?: (shapeId: string, methodIndex: number, oldValue: string, newValue: string) => void;
   onClassUpdateMethodLocal?: (shapeId: string, methodIndex: number, newValue: string) => void;
 
   /** Enumeration shape editing callbacks */
   onEnumerationAddLiteral?: (shapeId: string) => void;
   onEnumerationDeleteLiteral?: (shapeId: string, literalIndex: number) => void;
-  onEnumerationUpdateLiteral?: (shapeId: string, literalIndex: number, newValue: string) => void;
+  onEnumerationUpdateLiteral?: (shapeId: string, literalIndex: number, oldValue: string, newValue: string) => void;
   onEnumerationUpdateLiteralLocal?: (shapeId: string, literalIndex: number, newValue: string) => void;
 }
 

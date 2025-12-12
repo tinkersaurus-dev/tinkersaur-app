@@ -4,10 +4,14 @@
  * Modal for operations (Regenerate, Edit) on tech spec sections with optional instructions.
  */
 
-import { useState } from 'react';
-import { Modal, Input } from '~/core/components/ui';
+import { Input } from '~/core/components/ui';
 import type { TechSpecSection, TechSpecSubsection } from '../../lib/llm/types';
 import { TECH_SPEC_SECTION_LABELS } from '../../lib/llm/types';
+import {
+  OperationModal,
+  ArrayFieldCardEditor,
+  type OperationModalConfig,
+} from './OperationModal';
 
 export type TechSpecOperationType = 'regenerate' | 'edit';
 
@@ -21,253 +25,138 @@ export interface TechSpecOperationModalProps {
   error?: string | null;
 }
 
-const operationTitles: Record<TechSpecOperationType, string> = {
-  regenerate: 'Regenerate Section',
-  edit: 'Edit Section',
+const TECH_SPEC_MODAL_CONFIG: OperationModalConfig<TechSpecSection, TechSpecOperationType> = {
+  operations: {
+    regenerate: {
+      title: 'Regenerate Section',
+      description:
+        'Regenerate this section based on the original design documentation. The LLM will improve technical depth and accuracy.',
+    },
+    edit: {
+      title: 'Edit Section',
+      description: 'Manually edit the section fields below.',
+    },
+  },
+  modalWidth: 700,
+  showInstructionsFor: ['regenerate'],
+  instructionPlaceholders: {
+    regenerate:
+      "Optional: Provide guidance on what to improve (e.g., 'Add more code examples' or 'Include error handling details' or 'Focus on performance considerations')",
+  },
+  renderSummary: (section) => {
+    const sec = Array.isArray(section) ? section[0] : section;
+    return (
+      <>
+        <div className="text-xs font-medium text-[var(--text-muted)] mb-2">Section:</div>
+        <div className="text-sm text-[var(--text)]">
+          <span className="font-medium">{sec.title}</span>
+          <span className="text-[var(--text-muted)]">
+            {' '}
+            ({TECH_SPEC_SECTION_LABELS[sec.sectionType] || sec.sectionType})
+          </span>
+        </div>
+      </>
+    );
+  },
+  renderEditForm: (section, onChange) => (
+    <TechSpecEditForm section={section} onChange={onChange} />
+  ),
+  getOkText: (operationType, isLoading) =>
+    isLoading ? 'Processing...' : operationType === 'edit' ? 'Save' : 'Regenerate',
 };
 
-const operationDescriptions: Record<TechSpecOperationType, string> = {
-  regenerate:
-    'Regenerate this section based on the original design documentation. The LLM will improve technical depth and accuracy.',
-  edit: 'Manually edit the section fields below.',
-};
+// ============================================================================
+// Edit Form
+// ============================================================================
 
-interface ModalContentProps {
-  operationType: TechSpecOperationType;
-  section: TechSpecSection | null;
-  isLoading: boolean;
-  error: string | null;
-  instructions: string;
-  setInstructions: (value: string) => void;
-  editedSection: TechSpecSection | null;
-  setEditedSection: (section: TechSpecSection | null) => void;
+interface TechSpecEditFormProps {
+  section: TechSpecSection;
+  onChange: (updated: TechSpecSection) => void;
 }
 
-function ModalContent({
-  operationType,
-  section,
-  isLoading,
-  error,
-  instructions,
-  setInstructions,
-  editedSection,
-  setEditedSection,
-}: ModalContentProps) {
-  const updateEditedSection = <K extends keyof TechSpecSection>(
-    field: K,
-    value: TechSpecSection[K]
-  ) => {
-    if (!editedSection) return;
-    setEditedSection({ ...editedSection, [field]: value });
-  };
-
-  const updateSubsection = (index: number, field: keyof TechSpecSubsection, value: string) => {
-    if (!editedSection || !editedSection.subsections) return;
-    const newSubsections = [...editedSection.subsections];
-    newSubsections[index] = { ...newSubsections[index], [field]: value };
-    setEditedSection({ ...editedSection, subsections: newSubsections });
-  };
-
-  const addSubsection = () => {
-    if (!editedSection) return;
-    setEditedSection({
-      ...editedSection,
-      subsections: [...(editedSection.subsections || []), { title: '', content: '' }],
-    });
-  };
-
-  const removeSubsection = (index: number) => {
-    if (!editedSection || !editedSection.subsections) return;
-    setEditedSection({
-      ...editedSection,
-      subsections: editedSection.subsections.filter((_, i) => i !== index),
-    });
+function TechSpecEditForm({ section, onChange }: TechSpecEditFormProps) {
+  const updateField = <K extends keyof TechSpecSection>(field: K, value: TechSpecSection[K]) => {
+    onChange({ ...section, [field]: value });
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Description */}
-      <p className="text-sm text-[var(--text-muted)]">
-        {operationDescriptions[operationType]}
-      </p>
+    <>
+      <div>
+        <label className="block text-xs font-medium text-[var(--text)] mb-1">Title</label>
+        <Input
+          value={section.title}
+          onChange={(e) => updateField('title', e.target.value)}
+          size="small"
+        />
+      </div>
 
-      {/* Section summary (for regenerate) */}
-      {operationType === 'regenerate' && section && (
-        <div className="bg-[var(--bg)] rounded-sm p-3 border border-[var(--border-muted)]">
-          <div className="text-xs font-medium text-[var(--text-muted)] mb-2">
-            Section:
-          </div>
-          <div className="text-sm text-[var(--text)]">
-            <span className="font-medium">{section.title}</span>
-            <span className="text-[var(--text-muted)]">
-              {' '}
-              ({TECH_SPEC_SECTION_LABELS[section.sectionType] || section.sectionType})
-            </span>
-          </div>
-        </div>
-      )}
+      <div>
+        <label className="block text-xs font-medium text-[var(--text)] mb-1">
+          Content (Markdown)
+        </label>
+        <Input.TextArea
+          value={section.content}
+          onChange={(e) => updateField('content', e.target.value)}
+          rows={8}
+          size="small"
+          style={{ fontFamily: 'monospace', fontSize: '11px' }}
+        />
+      </div>
 
-      {/* Instructions input (for regenerate) */}
-      {operationType === 'regenerate' && (
-        <div>
-          <label className="block text-sm font-medium text-[var(--text)] mb-1">
-            Instructions (optional)
-          </label>
-          <Input.TextArea
-            value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
-            placeholder="Optional: Provide guidance on what to improve (e.g., 'Add more code examples' or 'Include error handling details' or 'Focus on performance considerations')"
-            rows={3}
-            disabled={isLoading}
-          />
-        </div>
-      )}
-
-      {/* Edit form */}
-      {operationType === 'edit' && editedSection && (
-        <div className="flex flex-col gap-3 max-h-[60vh] overflow-auto">
-          <div>
-            <label className="block text-xs font-medium text-[var(--text)] mb-1">
-              Title
-            </label>
+      {/* Subsections */}
+      <ArrayFieldCardEditor<TechSpecSubsection>
+        items={section.subsections || []}
+        onChange={(subsections) => updateField('subsections', subsections)}
+        createItem={() => ({ title: '', content: '' })}
+        label="Subsections"
+        addLabel="+ Add subsection"
+        itemLabel="Subsection"
+        renderItem={(subsection, _index, onItemChange) => (
+          <div className="flex flex-col gap-2">
             <Input
-              value={editedSection.title}
-              onChange={(e) => updateEditedSection('title', e.target.value)}
+              value={subsection.title}
+              onChange={(e) => onItemChange({ ...subsection, title: e.target.value })}
               size="small"
+              placeholder="Subsection title..."
             />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-[var(--text)] mb-1">
-              Content (Markdown)
-            </label>
             <Input.TextArea
-              value={editedSection.content}
-              onChange={(e) => updateEditedSection('content', e.target.value)}
-              rows={8}
+              value={subsection.content}
+              onChange={(e) => onItemChange({ ...subsection, content: e.target.value })}
+              rows={4}
               size="small"
               style={{ fontFamily: 'monospace', fontSize: '11px' }}
+              placeholder="Subsection content (Markdown)..."
             />
           </div>
-
-          {/* Subsections */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-[var(--text)]">
-                Subsections
-              </label>
-              <button
-                type="button"
-                onClick={addSubsection}
-                className="text-xs text-[var(--primary)] hover:underline"
-              >
-                + Add subsection
-              </button>
-            </div>
-            <div className="flex flex-col gap-3">
-              {(editedSection.subsections || []).map((subsection, index) => (
-                <div
-                  key={index}
-                  className="bg-[var(--bg)] p-3 rounded-sm border border-[var(--border-muted)]"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-[var(--text-muted)]">
-                      Subsection {index + 1}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeSubsection(index)}
-                      className="text-xs text-[var(--danger)] hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Input
-                      value={subsection.title}
-                      onChange={(e) => updateSubsection(index, 'title', e.target.value)}
-                      size="small"
-                      placeholder="Subsection title..."
-                    />
-                    <Input.TextArea
-                      value={subsection.content}
-                      onChange={(e) => updateSubsection(index, 'content', e.target.value)}
-                      rows={4}
-                      size="small"
-                      style={{ fontFamily: 'monospace', fontSize: '11px' }}
-                      placeholder="Subsection content (Markdown)..."
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Error message */}
-      {error && (
-        <div className="text-sm text-[var(--danger)] bg-[color-mix(in_srgb,var(--danger)_10%,var(--bg))] p-3 rounded-sm">
-          {error}
-        </div>
-      )}
-    </div>
+        )}
+      />
+    </>
   );
 }
 
-function TechSpecOperationModalInner({
+// ============================================================================
+// Main Export
+// ============================================================================
+
+export function TechSpecOperationModal({
+  open,
   operationType,
   section,
   onConfirm,
   onCancel,
-  isLoading = false,
-  error = null,
-}: Omit<TechSpecOperationModalProps, 'open'>) {
-  const [instructions, setInstructions] = useState('');
-  const [editedSection, setEditedSection] = useState<TechSpecSection | null>(() =>
-    operationType === 'edit' && section
-      ? JSON.parse(JSON.stringify(section))
-      : null
-  );
-
-  const handleConfirm = () => {
-    if (operationType === 'edit' && editedSection) {
-      onConfirm(undefined, editedSection);
-    } else {
-      onConfirm(instructions || undefined);
-    }
-  };
-
+  isLoading,
+  error,
+}: TechSpecOperationModalProps) {
   return (
-    <Modal
-      open={true}
+    <OperationModal<TechSpecSection, TechSpecOperationType>
+      open={open}
+      operationType={operationType}
+      entity={section}
+      onConfirm={onConfirm}
       onCancel={onCancel}
-      onOk={handleConfirm}
-      title={operationTitles[operationType]}
-      okText={isLoading ? 'Processing...' : operationType === 'edit' ? 'Save' : 'Regenerate'}
-      okButtonProps={{
-        disabled: isLoading || (operationType === 'edit' && !editedSection),
-        loading: isLoading,
-      }}
-      cancelButtonProps={{ disabled: isLoading }}
-      width={700}
-    >
-      <ModalContent
-        operationType={operationType}
-        section={section}
-        isLoading={isLoading}
-        error={error}
-        instructions={instructions}
-        setInstructions={setInstructions}
-        editedSection={editedSection}
-        setEditedSection={setEditedSection}
-      />
-    </Modal>
+      isLoading={isLoading}
+      error={error}
+      config={TECH_SPEC_MODAL_CONFIG}
+    />
   );
-}
-
-export function TechSpecOperationModal({ open, ...props }: TechSpecOperationModalProps) {
-  // Render inner component only when open, so it remounts and resets state each time
-  if (!open) return null;
-  return <TechSpecOperationModalInner {...props} />;
 }

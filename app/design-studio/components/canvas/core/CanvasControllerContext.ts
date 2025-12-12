@@ -75,11 +75,11 @@ export interface CanvasControllerContext {
   updateStereotype: (shapeId: string, stereotype: string | undefined) => void;
   addAttribute: (shapeId: string, attribute?: string) => void;
   deleteAttribute: (shapeId: string, attributeIndex: number) => void;
-  updateAttribute: (shapeId: string, attributeIndex: number, newValue: string) => void;
+  updateAttribute: (shapeId: string, attributeIndex: number, oldValue: string, newValue: string) => void;
   updateAttributeLocal: (shapeId: string, attributeIndex: number, newValue: string) => void;
   addMethod: (shapeId: string, method?: string) => void;
   deleteMethod: (shapeId: string, methodIndex: number) => void;
-  updateMethod: (shapeId: string, methodIndex: number, newValue: string) => void;
+  updateMethod: (shapeId: string, methodIndex: number, oldValue: string, newValue: string) => void;
   updateMethodLocal: (shapeId: string, methodIndex: number, newValue: string) => void;
 
   // Menu Management
