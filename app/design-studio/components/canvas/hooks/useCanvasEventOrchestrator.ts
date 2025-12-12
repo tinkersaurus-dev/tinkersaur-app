@@ -95,7 +95,7 @@ export interface UseCanvasEventOrchestratorReturn {
   drawingConnector: DrawingConnector | null;
 
   // Canvas event handlers
-  handleMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
+  handleCanvasMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleMouseUp: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleContextMenu: (e: React.MouseEvent) => void;
@@ -441,6 +441,19 @@ export function useCanvasEventOrchestrator({
     resizeHandle: resizeData?.handle ?? null,
   });
 
+  // Handle canvas mouse down with focus management
+  const handleCanvasMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      // Focus the canvas to enable paste events
+      const container = containerRef.current;
+      if (container) {
+        container.focus();
+      }
+      handleMouseDown(e);
+    },
+    [containerRef, handleMouseDown]
+  );
+
   // Wrap connector drawing functions to handle state machine transitions
   const handleStartDrawingConnector = useCallback(
     (connectionPointId: string, e: React.MouseEvent) => {
@@ -519,7 +532,7 @@ export function useCanvasEventOrchestrator({
     drawingConnector,
 
     // Canvas event handlers
-    handleMouseDown,
+    handleCanvasMouseDown,
     handleMouseMove,
     handleMouseUp,
     handleContextMenu,

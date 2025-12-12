@@ -68,7 +68,7 @@ export function CanvasView() {
   } = useCanvasSelection();
 
   const {
-    handleMouseDown,
+    handleCanvasMouseDown,
     handleMouseMove,
     handleMouseUp,
     handleContextMenu,
@@ -149,13 +149,7 @@ export function CanvasView() {
       ref={containerRef}
       className="relative w-full h-full overflow-hidden bg-[var(--bg-light)] focus:outline-none"
       tabIndex={0}
-      onMouseDown={(e) => {
-        // Focus the canvas to enable paste events
-        if (containerRef.current) {
-          containerRef.current.focus();
-        }
-        handleMouseDown(e);
-      }}
+      onMouseDown={handleCanvasMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}

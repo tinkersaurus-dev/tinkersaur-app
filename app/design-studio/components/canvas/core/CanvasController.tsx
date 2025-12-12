@@ -212,7 +212,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
   ]);
 
   const eventsContextValue: CanvasEventsContext = useMemo(() => ({
-    handleMouseDown: events.handleMouseDown,
+    handleCanvasMouseDown: events.handleCanvasMouseDown,
     handleMouseMove: events.handleMouseMove,
     handleMouseUp: events.handleMouseUp,
     handleContextMenu: events.handleContextMenu,
@@ -254,7 +254,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     handleResizeStart: events.handleResizeStart,
     orchestrationCursor: events.orchestrationCursor,
   }), [
-    events.handleMouseDown,
+    events.handleCanvasMouseDown,
     events.handleMouseMove,
     events.handleMouseUp,
     events.handleContextMenu,

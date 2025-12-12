@@ -18,7 +18,7 @@ import type { ResizeHandle } from '../../../utils/resize';
  */
 export interface CanvasEventsContext {
   // Event Handlers - Canvas
-  handleMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
+  handleCanvasMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleMouseUp: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleContextMenu: (e: React.MouseEvent) => void;
