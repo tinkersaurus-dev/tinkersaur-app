@@ -14,17 +14,16 @@ import { AddConnectorCommand } from './canvas/connectors/AddConnectorCommand';
 import { DeleteConnectorCommand } from './canvas/connectors/DeleteConnectorCommand';
 import { UpdateConnectorLabelCommand } from './canvas/connectors/UpdateConnectorLabelCommand';
 import { ChangeConnectorTypeCommand } from './canvas/connectors/ChangeConnectorTypeCommand';
-// Class diagram commands
-import { AddClassAttributeCommand } from '~/design-studio/diagrams/class/commands/AddClassAttributeCommand';
-import { AddClassMethodCommand } from '~/design-studio/diagrams/class/commands/AddClassMethodCommand';
-import { UpdateClassAttributeCommand } from '~/design-studio/diagrams/class/commands/UpdateClassAttributeCommand';
-import { UpdateClassMethodCommand } from '~/design-studio/diagrams/class/commands/UpdateClassMethodCommand';
-import { DeleteClassAttributeCommand } from '~/design-studio/diagrams/class/commands/DeleteClassAttributeCommand';
-import { DeleteClassMethodCommand } from '~/design-studio/diagrams/class/commands/DeleteClassMethodCommand';
-// Enumeration commands
-import { AddEnumerationLiteralCommand } from '~/design-studio/diagrams/enumeration/commands/AddEnumerationLiteralCommand';
-import { DeleteEnumerationLiteralCommand } from '~/design-studio/diagrams/enumeration/commands/DeleteEnumerationLiteralCommand';
-import { UpdateEnumerationLiteralCommand } from '~/design-studio/diagrams/enumeration/commands/UpdateEnumerationLiteralCommand';
+// Generic member commands (class attributes/methods, enumeration literals)
+import {
+  AddMemberCommand,
+  DeleteMemberCommand,
+  UpdateMemberCommand,
+  CLASS_ATTRIBUTE_CONFIG,
+  CLASS_METHOD_CONFIG,
+  ENUMERATION_LITERAL_CONFIG,
+} from './canvas/members';
+import type { ClassShapeData, EnumerationShapeData } from '../entities/design-studio/types/Shape';
 // Batch operations
 import { BatchDeleteShapesCommand } from './canvas/shapes/BatchDeleteShapesCommand';
 import { BatchDeleteConnectorsCommand } from './canvas/connectors/BatchDeleteConnectorsCommand';
@@ -291,13 +290,16 @@ export class CommandFactory {
     getShapeFn: (shapeId: string) => Shape | undefined
   ): Command {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
-    return new AddClassAttributeCommand(
-      diagramId,
-      shapeId,
-      attribute,
-      this.deps._internalUpdateShape,
-      getShapeFn,
-      updateLocalShape
+    return new AddMemberCommand<ClassShapeData>(
+      {
+        diagramId,
+        shapeId,
+        updateShapeFn: this.deps._internalUpdateShape,
+        getShapeFn,
+        updateLocalShapeFn: updateLocalShape,
+      },
+      CLASS_ATTRIBUTE_CONFIG,
+      attribute
     );
   }
 
@@ -308,13 +310,16 @@ export class CommandFactory {
     getShapeFn: (shapeId: string) => Shape | undefined
   ): Command {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
-    return new DeleteClassAttributeCommand(
-      diagramId,
-      shapeId,
-      attributeIndex,
-      this.deps._internalUpdateShape,
-      getShapeFn,
-      updateLocalShape
+    return new DeleteMemberCommand<ClassShapeData>(
+      {
+        diagramId,
+        shapeId,
+        updateShapeFn: this.deps._internalUpdateShape,
+        getShapeFn,
+        updateLocalShapeFn: updateLocalShape,
+      },
+      CLASS_ATTRIBUTE_CONFIG,
+      attributeIndex
     );
   }
 
@@ -327,15 +332,18 @@ export class CommandFactory {
     getShapeFn: (shapeId: string) => Shape | undefined
   ): Command {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
-    return new UpdateClassAttributeCommand(
-      diagramId,
-      shapeId,
+    return new UpdateMemberCommand<ClassShapeData>(
+      {
+        diagramId,
+        shapeId,
+        updateShapeFn: this.deps._internalUpdateShape,
+        getShapeFn,
+        updateLocalShapeFn: updateLocalShape,
+      },
+      CLASS_ATTRIBUTE_CONFIG,
       attributeIndex,
       oldValue,
-      newValue,
-      this.deps._internalUpdateShape,
-      getShapeFn,
-      updateLocalShape
+      newValue
     );
   }
 
@@ -346,13 +354,16 @@ export class CommandFactory {
     getShapeFn: (shapeId: string) => Shape | undefined
   ): Command {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
-    return new AddClassMethodCommand(
-      diagramId,
-      shapeId,
-      method,
-      this.deps._internalUpdateShape,
-      getShapeFn,
-      updateLocalShape
+    return new AddMemberCommand<ClassShapeData>(
+      {
+        diagramId,
+        shapeId,
+        updateShapeFn: this.deps._internalUpdateShape,
+        getShapeFn,
+        updateLocalShapeFn: updateLocalShape,
+      },
+      CLASS_METHOD_CONFIG,
+      method
     );
   }
 
@@ -363,13 +374,16 @@ export class CommandFactory {
     getShapeFn: (shapeId: string) => Shape | undefined
   ): Command {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
-    return new DeleteClassMethodCommand(
-      diagramId,
-      shapeId,
-      methodIndex,
-      this.deps._internalUpdateShape,
-      getShapeFn,
-      updateLocalShape
+    return new DeleteMemberCommand<ClassShapeData>(
+      {
+        diagramId,
+        shapeId,
+        updateShapeFn: this.deps._internalUpdateShape,
+        getShapeFn,
+        updateLocalShapeFn: updateLocalShape,
+      },
+      CLASS_METHOD_CONFIG,
+      methodIndex
     );
   }
 
@@ -382,15 +396,18 @@ export class CommandFactory {
     getShapeFn: (shapeId: string) => Shape | undefined
   ): Command {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
-    return new UpdateClassMethodCommand(
-      diagramId,
-      shapeId,
+    return new UpdateMemberCommand<ClassShapeData>(
+      {
+        diagramId,
+        shapeId,
+        updateShapeFn: this.deps._internalUpdateShape,
+        getShapeFn,
+        updateLocalShapeFn: updateLocalShape,
+      },
+      CLASS_METHOD_CONFIG,
       methodIndex,
       oldValue,
-      newValue,
-      this.deps._internalUpdateShape,
-      getShapeFn,
-      updateLocalShape
+      newValue
     );
   }
 
@@ -405,13 +422,16 @@ export class CommandFactory {
     getShapeFn: (shapeId: string) => Shape | undefined
   ): Command {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
-    return new AddEnumerationLiteralCommand(
-      diagramId,
-      shapeId,
-      literal,
-      this.deps._internalUpdateShape,
-      getShapeFn,
-      updateLocalShape
+    return new AddMemberCommand<EnumerationShapeData>(
+      {
+        diagramId,
+        shapeId,
+        updateShapeFn: this.deps._internalUpdateShape,
+        getShapeFn,
+        updateLocalShapeFn: updateLocalShape,
+      },
+      ENUMERATION_LITERAL_CONFIG,
+      literal
     );
   }
 
@@ -422,13 +442,16 @@ export class CommandFactory {
     getShapeFn: (shapeId: string) => Shape | undefined
   ): Command {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
-    return new DeleteEnumerationLiteralCommand(
-      diagramId,
-      shapeId,
-      literalIndex,
-      this.deps._internalUpdateShape,
-      getShapeFn,
-      updateLocalShape
+    return new DeleteMemberCommand<EnumerationShapeData>(
+      {
+        diagramId,
+        shapeId,
+        updateShapeFn: this.deps._internalUpdateShape,
+        getShapeFn,
+        updateLocalShapeFn: updateLocalShape,
+      },
+      ENUMERATION_LITERAL_CONFIG,
+      literalIndex
     );
   }
 
@@ -441,15 +464,18 @@ export class CommandFactory {
     getShapeFn: (shapeId: string) => Shape | undefined
   ): Command {
     const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
-    return new UpdateEnumerationLiteralCommand(
-      diagramId,
-      shapeId,
+    return new UpdateMemberCommand<EnumerationShapeData>(
+      {
+        diagramId,
+        shapeId,
+        updateShapeFn: this.deps._internalUpdateShape,
+        getShapeFn,
+        updateLocalShapeFn: updateLocalShape,
+      },
+      ENUMERATION_LITERAL_CONFIG,
       literalIndex,
       oldValue,
-      newValue,
-      this.deps._internalUpdateShape,
-      getShapeFn,
-      updateLocalShape
+      newValue
     );
   }
 
