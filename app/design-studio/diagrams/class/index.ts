@@ -1,5 +1,6 @@
 // Class Diagram Module
 // All Class diagram-specific code is organized here
+// Includes both Class and Enumeration shapes
 
 // Tools & Connectors
 export * from './tools';
@@ -11,8 +12,9 @@ export * from './utils';
 // Hooks
 export * from './hooks';
 
-// Rendering
+// Rendering (Class and Enumeration shapes)
 export { ClassRenderer } from './rendering/ClassRenderer';
+export { EnumerationRenderer } from './rendering/EnumerationRenderer';
 
 // Commands
 export * from './commands';

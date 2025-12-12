@@ -36,7 +36,8 @@ export function DiagramView({ diagramId }: DiagramViewProps) {
   return (
     <div className="w-full h-full bg-[var(--bg)]">
       <ErrorBoundary
-        fallback={(error) => (
+        resetKey={diagramId}
+        fallback={(error, _errorInfo, reset) => (
           <div className="flex flex-col items-center justify-center h-full p-8">
             <div className="max-w-md w-full bg-[var(--bg-light)] border border-[var(--border-error)] rounded-sm p-6">
               <h3 className="text-lg font-semibold text-[var(--text-error)] mb-2">
@@ -55,12 +56,20 @@ export function DiagramView({ diagramId }: DiagramViewProps) {
                   </pre>
                 </details>
               )}
-              <button
-                onClick={() => window.location.reload()}
-                className="w-full px-4 py-2 bg-[var(--primary)] text-white rounded hover:bg-[var(--primary-dark)] transition-colors"
-              >
-                Reload Page
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={reset}
+                  className="flex-1 px-4 py-2 border border-[var(--border)] text-[var(--text)] rounded hover:bg-[var(--bg-darker)] transition-colors"
+                >
+                  Try again
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded hover:bg-[var(--primary-dark)] transition-colors"
+                >
+                  Reload page
+                </button>
+              </div>
             </div>
           </div>
         )}

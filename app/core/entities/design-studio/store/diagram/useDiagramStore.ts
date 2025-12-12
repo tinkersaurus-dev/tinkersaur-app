@@ -594,7 +594,6 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         const reference = referenceStore.getReferenceBySourceShapeId(shapeId);
 
         if (reference) {
-          console.warn('[References] Updating reference name from', reference.name, 'to', newLabel);
           await referenceStore.updateReferenceName(reference.id, newLabel);
         }
       } catch (error) {

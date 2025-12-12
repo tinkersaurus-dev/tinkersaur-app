@@ -48,10 +48,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     });
   }, [designWorks, fetchReferencesForDesignWork]);
 
-  // Log when references change
-  useEffect(() => {
-    console.warn('[References] References in store:', references);
-  }, [references]);
+
 
   // CRUD operations
   const {

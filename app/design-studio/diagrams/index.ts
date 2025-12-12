@@ -11,6 +11,5 @@ export * from './shared';
 // Export diagram-specific modules as namespaces to avoid conflicts
 export * as bpmn from './bpmn';
 export * as architecture from './architecture';
-export * as classDiagram from './class';
+export * as classDiagram from './class'; // Includes both Class and Enumeration shapes
 export * as sequence from './sequence';
-export * as enumeration from './enumeration';

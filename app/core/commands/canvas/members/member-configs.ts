@@ -1,7 +1,6 @@
 import type { ClassShapeData, EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
 import type { MemberCommandConfig } from './member-command.types';
-import { calculateClassHeight } from '~/design-studio/diagrams/class/utils';
-import { calculateEnumerationHeight } from '~/design-studio/diagrams/enumeration/utils';
+import { calculateClassHeight, calculateEnumerationHeight } from '~/design-studio/diagrams/class/utils';
 
 /**
  * Pre-configured member command configs for common shape types

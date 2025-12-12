@@ -7,8 +7,9 @@ import { Component, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
-  fallback?: ReactNode | ((error: Error, errorInfo: string) => ReactNode);
+  fallback?: ReactNode | ((error: Error, errorInfo: string, reset: () => void) => ReactNode);
   onError?: (error: Error, errorInfo: string) => void;
+  resetKey?: unknown;
 }
 
 interface ErrorBoundaryState {
@@ -50,12 +51,22 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
   }
 
+  componentDidUpdate(prevProps: ErrorBoundaryProps): void {
+    if (this.props.resetKey !== prevProps.resetKey && this.state.hasError) {
+      this.setState({ hasError: false, error: null, errorInfo: null });
+    }
+  }
+
+  private reset = (): void => {
+    this.setState({ hasError: false, error: null, errorInfo: null });
+  };
+
   render(): ReactNode {
     if (this.state.hasError && this.state.error) {
       // Use custom fallback if provided
       if (this.props.fallback) {
         if (typeof this.props.fallback === 'function') {
-          return this.props.fallback(this.state.error, this.state.errorInfo || '');
+          return this.props.fallback(this.state.error, this.state.errorInfo || '', this.reset);
         }
         return this.props.fallback;
       }
@@ -81,12 +92,20 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 </pre>
               </details>
             )}
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-[var(--primary)] text-white rounded hover:bg-[var(--primary-dark)] transition-colors"
-            >
-              Reload page
-            </button>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={this.reset}
+                className="px-4 py-2 border border-[var(--border)] text-[var(--text)] rounded hover:bg-[var(--bg-darker)] transition-colors"
+              >
+                Try again
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-[var(--primary)] text-white rounded hover:bg-[var(--primary-dark)] transition-colors"
+              >
+                Reload page
+              </button>
+            </div>
           </div>
         </div>
       );

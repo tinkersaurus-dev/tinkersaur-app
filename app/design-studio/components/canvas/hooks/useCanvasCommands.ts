@@ -12,8 +12,7 @@
 
 import { useCallback } from 'react';
 import { commandManager } from '~/core/commands/CommandManager';
-import { useClassShapeEditing } from '~/design-studio/diagrams/class/hooks';
-import { useEnumerationShapeEditing } from '~/design-studio/diagrams/enumeration/hooks';
+import { useClassShapeEditing, useEnumerationShapeEditing } from '~/design-studio/diagrams/class/hooks';
 import type { Command } from '~/core/commands/command.types';
 import type { CommandFactory } from '~/core/commands/CommandFactory';
 import type { Shape } from '~/core/entities/design-studio/types/Shape';

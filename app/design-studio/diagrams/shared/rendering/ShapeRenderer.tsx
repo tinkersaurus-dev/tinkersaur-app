@@ -1,25 +1,74 @@
 import { memo } from 'react';
 import type { ShapeRendererProps, ShapeRendererComponent } from './types';
+import { createLazyRenderer } from './lazyRenderer';
+
+// Keep eager - small and always used
 import { RectangleRenderer } from './RectangleRenderer';
+
+// Lazy load diagram-specific renderers for code splitting
 // BPMN renderers
-import { BpmnTaskRenderer } from '../../bpmn/rendering/BpmnTaskRenderer';
-import { BpmnEventRenderer } from '../../bpmn/rendering/BpmnEventRenderer';
-import { BpmnGatewayRenderer } from '../../bpmn/rendering/BpmnGatewayRenderer';
-// Class diagram renderers
-import { ClassRenderer } from '../../class/rendering/ClassRenderer';
-import { EnumerationRenderer } from '../../enumeration/rendering/EnumerationRenderer';
+const BpmnTaskRenderer = createLazyRenderer(
+  () => import('../../bpmn/rendering/BpmnTaskRenderer'),
+  'BpmnTaskRenderer'
+);
+const BpmnEventRenderer = createLazyRenderer(
+  () => import('../../bpmn/rendering/BpmnEventRenderer'),
+  'BpmnEventRenderer'
+);
+const BpmnGatewayRenderer = createLazyRenderer(
+  () => import('../../bpmn/rendering/BpmnGatewayRenderer'),
+  'BpmnGatewayRenderer'
+);
+
+// Class diagram renderers (includes class and enumeration shapes)
+const ClassRenderer = createLazyRenderer(
+  () => import('../../class/rendering/ClassRenderer'),
+  'ClassRenderer'
+);
+const EnumerationRenderer = createLazyRenderer(
+  () => import('../../class/rendering/EnumerationRenderer'),
+  'EnumerationRenderer'
+);
+
 // Sequence diagram renderers
-import { SequenceLifelineRenderer } from '../../sequence/rendering/SequenceLifelineRenderer';
-import { SequenceNoteRenderer } from '../../sequence/rendering/SequenceNoteRenderer';
+const SequenceLifelineRenderer = createLazyRenderer(
+  () => import('../../sequence/rendering/SequenceLifelineRenderer'),
+  'SequenceLifelineRenderer'
+);
+const SequenceNoteRenderer = createLazyRenderer(
+  () => import('../../sequence/rendering/SequenceNoteRenderer'),
+  'SequenceNoteRenderer'
+);
+
 // Architecture diagram renderers
-import { ArchitectureServiceRenderer } from '../../architecture/rendering/ArchitectureServiceRenderer';
-import { ArchitectureGroupRenderer } from '../../architecture/rendering/ArchitectureGroupRenderer';
+const ArchitectureServiceRenderer = createLazyRenderer(
+  () => import('../../architecture/rendering/ArchitectureServiceRenderer'),
+  'ArchitectureServiceRenderer'
+);
+const ArchitectureGroupRenderer = createLazyRenderer(
+  () => import('../../architecture/rendering/ArchitectureGroupRenderer'),
+  'ArchitectureGroupRenderer'
+);
+
 // LLM/Preview renderers
-import { GenerateDiagramRenderer } from './GenerateDiagramRenderer';
-import { PreviewRenderer } from './PreviewRenderer';
-import { MermaidEditorRenderer } from './MermaidEditorRenderer';
+const GenerateDiagramRenderer = createLazyRenderer(
+  () => import('./GenerateDiagramRenderer'),
+  'GenerateDiagramRenderer'
+);
+const PreviewRenderer = createLazyRenderer(
+  () => import('./PreviewRenderer'),
+  'PreviewRenderer'
+);
+const MermaidEditorRenderer = createLazyRenderer(
+  () => import('./MermaidEditorRenderer'),
+  'MermaidEditorRenderer'
+);
+
 // Overlay/Annotation renderers
-import { SuggestionCommentRenderer } from './SuggestionCommentRenderer';
+const SuggestionCommentRenderer = createLazyRenderer(
+  () => import('./SuggestionCommentRenderer'),
+  'SuggestionCommentRenderer'
+);
 
 /**
  * Shape Renderer Registry

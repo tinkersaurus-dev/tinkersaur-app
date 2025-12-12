@@ -1,9 +1,11 @@
 /**
- * Utility functions for calculating the height of UML class diagrams
- * based on their content (stereotype, class name, attributes, and methods).
+ * Utility functions for calculating the height of UML class diagram shapes
+ * based on their content (stereotype, name, attributes, methods, and literals).
+ *
+ * Includes utilities for both Class and Enumeration shapes.
  */
 
-import type { ClassShapeData } from '~/core/entities/design-studio/types/Shape';
+import type { ClassShapeData, EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
@@ -48,6 +50,36 @@ export function calculateClassHeight(classData: ClassShapeData): number {
     totalHeight += EMPTY_SECTION_HEIGHT;
   } else {
     totalHeight += (methods.length * ITEM_LINE_HEIGHT);
+  }
+
+  // Add a small buffer for borders
+  totalHeight += DESIGN_STUDIO_CONFIG.classLayout.borderBuffer;
+
+  return Math.max(totalHeight, DESIGN_STUDIO_CONFIG.classLayout.minHeight);
+}
+
+/**
+ * Calculate the total height of a UML enumeration shape based on its content.
+ *
+ * @param enumerationData - The enumeration shape data containing literals
+ * @returns The calculated height in pixels
+ */
+export function calculateEnumerationHeight(enumerationData: EnumerationShapeData): number {
+  const literals = enumerationData.literals || [];
+
+  let totalHeight = 0;
+
+  // Stereotype section (always shows "<<enumeration>>")
+  totalHeight += STEREOTYPE_SECTION_HEIGHT;
+
+  // Enumeration name section
+  totalHeight += CLASS_NAME_SECTION_HEIGHT;
+
+  // Literals section
+  if (literals.length === 0) {
+    totalHeight += EMPTY_SECTION_HEIGHT;
+  } else {
+    totalHeight += (literals.length * ITEM_LINE_HEIGHT);
   }
 
   // Add a small buffer for borders

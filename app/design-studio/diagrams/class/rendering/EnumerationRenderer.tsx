@@ -1,8 +1,10 @@
 /**
- * Enumeration Diagram Renderer
+ * Enumeration Shape Renderer
  *
  * Renders UML enumeration shapes with stereotype, enumeration name, and literals.
  * Supports editable fields and dynamic add/delete operations for literals.
+ *
+ * Note: Enumeration is a shape type within the Class diagram, not a separate diagram type.
  */
 
 import { useState, useRef, useEffect } from 'react';
