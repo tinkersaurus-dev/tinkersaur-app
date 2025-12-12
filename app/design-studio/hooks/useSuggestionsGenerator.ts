@@ -160,7 +160,7 @@ export function useSuggestionsGenerator({
           zIndex: 100, // High z-index to appear on top
           locked: false,
           isPreview: false,
-          data: shapeData as unknown as Record<string, unknown>,
+          data: shapeData,
           overlayTag: 'suggestion',
         };
 

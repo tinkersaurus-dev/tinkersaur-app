@@ -8,7 +8,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import type { ShapeRendererProps } from '../../shared/rendering/types';
-import type { ClassShapeData } from '~/core/entities/design-studio/types/Shape';
+import { getClassShapeData } from '~/core/entities/design-studio/types/Shape';
 import { ConnectionPointRenderer } from '../../shared/rendering/ConnectionPointRenderer';
 import { EditableLabel } from '~/design-studio/components/canvas/editors/EditableLabel';
 import { ShapeDropdown } from '~/design-studio/components/canvas/editors/ShapeDropdown';
@@ -67,11 +67,11 @@ export function ClassRenderer({
     onConnectionPointMouseUp?.(`${shape.id}-${connectionPointId}`, e);
   };
 
-  // Parse class shape data
-  const classData = (shape.data || {}) as unknown as ClassShapeData;
+  // Parse class shape data using type-safe helper
+  const classData = getClassShapeData(shape);
   const stereotype = classData.stereotype;
-  const attributes = classData.attributes || [];
-  const methods = classData.methods || [];
+  const attributes = classData.attributes;
+  const methods = classData.methods;
 
   // Track which attribute/method is being edited and their original values
   const [editingAttribute, setEditingAttribute] = useState<number | null>(null);

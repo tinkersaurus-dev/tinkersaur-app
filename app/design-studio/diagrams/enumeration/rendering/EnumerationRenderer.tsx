@@ -8,7 +8,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import type { ShapeRendererProps } from '../../shared/rendering/types';
-import type { EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
+import { getEnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
 import { ConnectionPointRenderer } from '../../shared/rendering/ConnectionPointRenderer';
 import { EditableLabel } from '~/design-studio/components/canvas/editors/EditableLabel';
 import { ClassItemEditor } from '~/design-studio/diagrams/class/components/ClassItemEditor';
@@ -50,10 +50,10 @@ export function EnumerationRenderer({
     onConnectionPointMouseUp?.(`${shape.id}-${connectionPointId}`, e);
   };
 
-  // Parse enumeration shape data
-  const enumerationData = (shape.data || {}) as unknown as EnumerationShapeData;
+  // Parse enumeration shape data using type-safe helper
+  const enumerationData = getEnumerationShapeData(shape);
   const _stereotype = enumerationData.stereotype;
-  const literals = enumerationData.literals || [];
+  const literals = enumerationData.literals;
 
   // Track which literal is being edited and its original value
   const [editingLiteral, setEditingLiteral] = useState<number | null>(null);

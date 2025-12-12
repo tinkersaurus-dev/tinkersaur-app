@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import { FaSyncAlt } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
-import type { MermaidEditorShapeData, DiagramType } from '~/core/entities/design-studio/types';
+import { getMermaidEditorShapeData, type DiagramType } from '~/core/entities/design-studio/types';
 import { ShapeWrapper } from './ShapeWrapper';
 import { useDiagramStore } from '~/core/entities/design-studio';
 import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasDiagramContext';
@@ -45,10 +45,10 @@ export function MermaidEditorRenderer({
 
   const diagramType = diagram?.type as DiagramType | undefined;
 
-  // Parse shape data
-  const editorData = (shape.data || {}) as unknown as MermaidEditorShapeData;
-  const [mermaidSyntax, setMermaidSyntax] = useState(editorData.mermaidSyntax || '');
-  const [error, setError] = useState(editorData.error);
+  // Parse shape data using type-safe helper
+  const editorData = getMermaidEditorShapeData(shape);
+  const [mermaidSyntax, setMermaidSyntax] = useState(editorData?.mermaidSyntax || '');
+  const [error, setError] = useState(editorData?.error);
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Calculate zoom-compensated values
@@ -89,7 +89,7 @@ export function MermaidEditorRenderer({
         shape.id,
         mermaidSyntax,
         { x: shape.x, y: shape.y, width: shape.width, height: shape.height },
-        editorData.previewShapeId, // originalGeneratorShapeId (from the original preview)
+        editorData?.previewShapeId || '', // originalGeneratorShapeId (from the original preview)
         null, // oldPreviewShapeId (there's no old preview when updating from editor)
         addShape,
         addConnector,

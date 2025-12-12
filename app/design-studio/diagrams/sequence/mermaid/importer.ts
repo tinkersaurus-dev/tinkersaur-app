@@ -274,7 +274,7 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
         zIndex: 0,
         locked: false,
         isPreview: false,
-        data: lifelineData as unknown as Record<string, unknown>,
+        data: lifelineData,
       };
 
       shapes.push(shape);

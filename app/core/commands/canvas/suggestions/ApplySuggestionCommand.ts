@@ -281,7 +281,7 @@ export class ApplySuggestionCommand implements Command {
       zIndex: 0,
       locked: false,
       isPreview: false,
-      data: previewData as unknown as Record<string, unknown>,
+      data: previewData,
     };
 
     const previewDiagram = await this.addShapeFn(this.diagramId, previewShapeDTO);

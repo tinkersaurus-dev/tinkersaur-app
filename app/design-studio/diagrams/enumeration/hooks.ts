@@ -6,7 +6,7 @@
  */
 
 import { useCallback } from 'react';
-import type { Shape, EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
+import { getEnumerationShapeData, type Shape, type EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
 import type { Command } from '~/core/commands/command.types';
 import type { CommandFactory } from '~/core/commands/CommandFactory';
 
@@ -89,8 +89,8 @@ export function useEnumerationShapeEditing({
       const shape = getShape(shapeId);
       if (!shape) return;
 
-      const currentData = (shape.data || {}) as unknown as EnumerationShapeData;
-      const literals = currentData.literals || [];
+      const currentData = getEnumerationShapeData(shape);
+      const literals = currentData.literals;
 
       const newLiterals = [...literals];
       newLiterals[literalIndex] = newValue;
@@ -101,7 +101,7 @@ export function useEnumerationShapeEditing({
       };
 
       updateLocalShape?.(shapeId, {
-        data: newData as unknown as Record<string, unknown>,
+        data: newData,
       });
     },
     [getShape, updateLocalShape]

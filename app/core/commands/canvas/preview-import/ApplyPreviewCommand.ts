@@ -2,7 +2,7 @@ import type { Command } from '../../command.types';
 import type { CreateShapeDTO, Shape } from '../../../entities/design-studio/types/Shape';
 import type { CreateConnectorDTO, Connector } from '../../../entities/design-studio/types/Connector';
 import type { Diagram, DiagramType } from '../../../entities/design-studio/types';
-import type { LLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
+import { isLLMPreviewShapeData, type LLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
 
 /**
  * Extended preview shape data that tracks which connectors link to external shapes
@@ -60,20 +60,15 @@ export class ApplyPreviewCommand implements Command {
     const { id: _id, ...shapeDataForUndo } = previewShape;
     this.previewShapeData = shapeDataForUndo;
 
-    // Extract the preview data and validate it
+    // Extract the preview data and validate it using type guard
     const shapeData = previewShape.data;
-    if (!shapeData || typeof shapeData !== 'object') {
+    if (!isLLMPreviewShapeData(shapeData)) {
       console.error('[ApplyPreviewCommand] Invalid preview shape data:', shapeData);
       throw new Error('Invalid preview shape data');
     }
 
-    // Type guard to check if this is LLMPreviewShapeData
-    const previewData = shapeData as unknown as ExtendedLLMPreviewShapeData;
-
-    if (!previewData.previewShapeIds || !previewData.previewConnectorIds) {
-      console.error('[ApplyPreviewCommand] Invalid preview shape data:', previewData);
-      throw new Error('Invalid preview shape data');
-    }
+    // Type is now narrowed to LLMPreviewShapeData
+    const previewData = shapeData as ExtendedLLMPreviewShapeData;
 
     // Create a set of preview shape IDs for quick lookup
     const previewShapeIdSet = new Set(previewData.previewShapeIds);

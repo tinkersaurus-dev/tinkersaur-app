@@ -1,13 +1,13 @@
 import type { Command } from '~/core/commands/command.types';
-import type { Shape } from '~/core/entities/design-studio/types/Shape';
-import type { MemberCommandConfig, MemberCommandDependencies } from './member-command.types';
+import type { Shape, ClassShapeData, EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
+import { type MemberCommandConfig, type MemberCommandDependencies, getShapeDataByType } from './member-command.types';
 
 /**
  * Generic command for deleting a member at a specific index from a shape's array property
  *
  * @template TData - The shape data type (e.g., ClassShapeData, EnumerationShapeData)
  */
-export class DeleteMemberCommand<TData> implements Command {
+export class DeleteMemberCommand<TData extends ClassShapeData | EnumerationShapeData> implements Command {
   public readonly description: string;
   private deletedValue: string | null = null;
   private deletedIndex: number = -1;
@@ -24,7 +24,7 @@ export class DeleteMemberCommand<TData> implements Command {
     const shape = this.deps.getShapeFn(this.deps.shapeId);
     if (!shape) return;
 
-    const currentData = (shape.data || {}) as unknown as TData;
+    const currentData = getShapeDataByType<TData>(shape, this.config.shapeType);
     const arrayProperty = this.config.arrayProperty as keyof TData;
     const currentArray = (currentData[arrayProperty] as string[]) || [];
 
@@ -38,7 +38,7 @@ export class DeleteMemberCommand<TData> implements Command {
     } as TData;
 
     const updates: Partial<Shape> = {
-      data: newData as unknown as Record<string, unknown>,
+      data: newData,
     };
 
     if (this.config.calculateHeight) {
@@ -55,7 +55,7 @@ export class DeleteMemberCommand<TData> implements Command {
     const shape = this.deps.getShapeFn(this.deps.shapeId);
     if (!shape) return;
 
-    const currentData = (shape.data || {}) as unknown as TData;
+    const currentData = getShapeDataByType<TData>(shape, this.config.shapeType);
     const arrayProperty = this.config.arrayProperty as keyof TData;
     const currentArray = (currentData[arrayProperty] as string[]) || [];
 
@@ -69,7 +69,7 @@ export class DeleteMemberCommand<TData> implements Command {
     } as TData;
 
     const updates: Partial<Shape> = {
-      data: newData as unknown as Record<string, unknown>,
+      data: newData,
     };
 
     if (this.config.calculateHeight) {

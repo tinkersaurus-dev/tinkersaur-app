@@ -321,7 +321,7 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
           zIndex: 0,
           locked: false,
           isPreview: false,
-          data: enumerationData as unknown as Record<string, unknown>,
+          data: enumerationData,
         };
       } else {
         // Create class shape
@@ -341,7 +341,7 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
           zIndex: 0,
           locked: false,
           isPreview: false,
-          data: classData as unknown as Record<string, unknown>,
+          data: classData,
         };
       }
 

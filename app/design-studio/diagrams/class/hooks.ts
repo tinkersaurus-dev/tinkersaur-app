@@ -6,7 +6,7 @@
  */
 
 import { useCallback } from 'react';
-import type { Shape, ClassShapeData } from '~/core/entities/design-studio/types/Shape';
+import { getClassShapeData, type Shape, type ClassShapeData } from '~/core/entities/design-studio/types/Shape';
 import type { Command } from '~/core/commands/command.types';
 import type { CommandFactory } from '~/core/commands/CommandFactory';
 
@@ -33,7 +33,7 @@ export function useClassShapeEditing({
       const shape = getShape(shapeId);
       if (!shape) return;
 
-      const currentData = (shape.data || {}) as unknown as ClassShapeData;
+      const currentData = getClassShapeData(shape);
       const oldData = { ...currentData };
       const newData = { ...currentData, stereotype: newStereotype };
 
@@ -113,8 +113,8 @@ export function useClassShapeEditing({
       const shape = getShape(shapeId);
       if (!shape) return;
 
-      const currentData = (shape.data || {}) as unknown as ClassShapeData;
-      const attributes = currentData.attributes || [];
+      const currentData = getClassShapeData(shape);
+      const attributes = currentData.attributes;
 
       const newAttributes = [...attributes];
       newAttributes[attributeIndex] = newValue;
@@ -125,7 +125,7 @@ export function useClassShapeEditing({
       };
 
       updateLocalShape?.(shapeId, {
-        data: newData as unknown as Record<string, unknown>,
+        data: newData,
       });
     },
     [getShape, updateLocalShape]
@@ -195,8 +195,8 @@ export function useClassShapeEditing({
       const shape = getShape(shapeId);
       if (!shape) return;
 
-      const currentData = (shape.data || {}) as unknown as ClassShapeData;
-      const methods = currentData.methods || [];
+      const currentData = getClassShapeData(shape);
+      const methods = currentData.methods;
 
       const newMethods = [...methods];
       newMethods[methodIndex] = newValue;
@@ -207,7 +207,7 @@ export function useClassShapeEditing({
       };
 
       updateLocalShape?.(shapeId, {
-        data: newData as unknown as Record<string, unknown>,
+        data: newData,
       });
     },
     [getShape, updateLocalShape]

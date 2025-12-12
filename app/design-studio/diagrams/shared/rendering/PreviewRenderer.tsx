@@ -9,7 +9,7 @@
 
 import { FaEdit, FaCheck } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
-import type { LLMPreviewShapeData } from '~/core/entities/design-studio/types';
+import { getLLMPreviewShapeData, type LLMPreviewShapeData } from '~/core/entities/design-studio/types';
 import { ShapeWrapper } from './ShapeWrapper';
 import { useDiagramStore } from '~/core/entities/design-studio';
 import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasDiagramContext';
@@ -44,8 +44,8 @@ export function PreviewRenderer({
   const deleteConnectorsBatch = useDiagramStore((state) => state._internalDeleteConnectorsBatch);
   const commandFactory = useDiagramStore((state) => state.commandFactory);
 
-  // Parse shape data - the preview shapes and connectors are already in the diagram
-  const previewData = (shape.data || {}) as unknown as LLMPreviewShapeData;
+  // Parse shape data using type-safe helper - the preview shapes and connectors are already in the diagram
+  const previewData = getLLMPreviewShapeData(shape) as LLMPreviewShapeData;
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;

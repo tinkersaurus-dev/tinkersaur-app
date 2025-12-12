@@ -1,5 +1,11 @@
-import type { Shape } from '~/core/entities/design-studio/types/Shape';
+import type { Shape, ClassShapeData, EnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
+import { getClassShapeData, getEnumerationShapeData } from '~/core/entities/design-studio/types/Shape';
 import type { Diagram } from '~/core/entities/design-studio/types';
+
+/**
+ * Supported shape types for member commands
+ */
+export type MemberShapeType = 'class' | 'enumeration';
 
 /**
  * Configuration for member array commands
@@ -9,6 +15,9 @@ import type { Diagram } from '~/core/entities/design-studio/types';
  * @template K - The key of the array property in TData
  */
 export interface MemberCommandConfig<TData, K extends keyof TData = keyof TData> {
+  /** The shape type this command operates on */
+  shapeType: MemberShapeType;
+
   /** The property name on the shape data that holds the array (e.g., 'attributes', 'methods', 'literals') */
   arrayProperty: K;
 
@@ -17,6 +26,20 @@ export interface MemberCommandConfig<TData, K extends keyof TData = keyof TData>
 
   /** Function to calculate the new height after modification, or undefined if height doesn't change */
   calculateHeight?: (data: TData) => number;
+}
+
+/**
+ * Type-safe helper to get shape data based on shapeType
+ */
+export function getShapeDataByType<TData extends ClassShapeData | EnumerationShapeData>(
+  shape: Shape,
+  shapeType: MemberShapeType
+): TData {
+  if (shapeType === 'class') {
+    return getClassShapeData(shape) as TData;
+  } else {
+    return getEnumerationShapeData(shape) as TData;
+  }
 }
 
 /**
