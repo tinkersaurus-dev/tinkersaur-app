@@ -34,17 +34,17 @@ export function Breadcrumb({
               {item.href && !isLast ? (
                 <Link
                   to={item.href}
-                  className="text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors"
+                  className="inline-flex items-center gap-1 text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors"
                 >
                   {item.title}
                 </Link>
               ) : (
                 <span
-                  className={
+                  className={`inline-flex items-center gap-1 ${
                     isLast
                       ? 'text-[var(--text)]'
                       : 'text-[var(--text-muted)]'
-                  }
+                  }`}
                 >
                   {item.title}
                 </span>

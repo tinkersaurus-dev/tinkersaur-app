@@ -3,15 +3,29 @@
  * Displays use case details and its requirements in a table
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
-import { useParams, Link } from 'react-router';
+import { useParams, useLoaderData } from 'react-router';
 import { PageHeader, PageContent } from '~/core/components';
 import { SolutionManagementLayout } from '../components';
 import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
-import { useSolution, useUseCase, useRequirements, useRequirementCRUD } from '../hooks';
+import { useRequirementCRUD } from '../hooks';
+import { useRequirementStore } from '~/core/entities/product-management/store/requirement/useRequirementStore';
+import { loadUseCaseDetail } from '../loaders';
+import type { UseCaseDetailLoaderData } from '../loaders';
+import { useHydrateSolution, useHydrateUseCase } from '../utils/hydrateStores';
+import type { Route } from './+types/use-case-detail';
+
+// Loader function for SSR data fetching
+export async function loader({ params }: Route.LoaderArgs) {
+  const { solutionId, useCaseId } = params;
+  if (!solutionId || !useCaseId) {
+    throw new Response('Solution ID and Use Case ID required', { status: 400 });
+  }
+  return loadUseCaseDetail(solutionId, useCaseId);
+}
 
 const TYPE_COLORS: Record<RequirementType, string> = {
   functional: 'blue',
@@ -20,9 +34,29 @@ const TYPE_COLORS: Record<RequirementType, string> = {
 };
 
 export default function UseCaseDetailPage() {
+  // Get data from loader - guaranteed to exist (loader throws 404 otherwise)
+  const { solution, useCase, requirements: initialRequirements } = useLoaderData<UseCaseDetailLoaderData>();
+
+  // Hydrate stores for client-side navigation continuity
+  useHydrateSolution(solution);
+  useHydrateUseCase(useCase);
+
   const { solutionId, useCaseId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
+
+  // Use store state, falling back to initial loader data
+  const storeRequirements = useRequirementStore((state) => state.entities);
+  const storeLoading = useRequirementStore((state) => state.loading);
+
+  // Derive requirements from store (after CRUD operations) or initial loader data
+  const requirements = useMemo(() => {
+    const filteredRequirements = storeRequirements.filter(r => r.useCaseId === useCaseId);
+    // Use store data if available, otherwise fall back to initial loader data
+    return filteredRequirements.length > 0 || storeRequirements.length > 0
+      ? filteredRequirements
+      : initialRequirements;
+  }, [storeRequirements, useCaseId, initialRequirements]);
 
   const form = useForm<{
     text: string;
@@ -34,21 +68,7 @@ export default function UseCaseDetailPage() {
     priority: 1,
   });
 
-  // Use hooks
-  const { solution } = useSolution(solutionId);
-  const { useCase } = useUseCase(useCaseId);
-  const { requirements, loading } = useRequirements(useCaseId);
   const { handleCreate, handleUpdate, handleDelete } = useRequirementCRUD();
-
-  if (!solution || !useCase) {
-    return (
-      <SolutionManagementLayout>
-        <PageContent>
-          <p>Use case not found</p>
-        </PageContent>
-      </SolutionManagementLayout>
-    );
-  }
 
   const handleAdd = () => {
     setEditingRequirement(null);
@@ -66,6 +86,7 @@ export default function UseCaseDetailPage() {
 
   const handleDeleteClick = async (requirement: Requirement) => {
     await handleDelete(requirement.id);
+    // Store will update, useEffect will sync local state
   };
 
   const handleOk = async () => {
@@ -83,6 +104,7 @@ export default function UseCaseDetailPage() {
           ...values,
         });
       }
+      // Store will update, useEffect will sync local state
 
       setIsModalOpen(false);
       form.reset();
@@ -162,10 +184,12 @@ export default function UseCaseDetailPage() {
           <Breadcrumb
             items={[
               {
-                title: <Link to="/solutions"><FiHome /> Solutions</Link>,
+                title: <><FiHome /> Solutions</>,
+                href: '/solutions',
               },
               {
-                title: <Link to={`/solutions/${solutionId}`}>{solution.name}</Link>,
+                title: solution.name,
+                href: `/solutions/${solutionId}`,
               },
               {
                 title: useCase.name,
@@ -190,7 +214,7 @@ export default function UseCaseDetailPage() {
           dataSource={requirements}
           rowKey="id"
           pagination={{ pageSize: 10 }}
-          loading={loading}
+          loading={storeLoading}
         />
       </PageContent>
 

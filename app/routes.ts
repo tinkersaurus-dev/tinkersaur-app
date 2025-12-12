@@ -9,6 +9,7 @@ export default [
   route("api/generate-user-stories", "routes/api.generate-user-stories.ts"),
   route("api/generate-user-docs", "routes/api.generate-user-docs.ts"),
   route("api/generate-suggestions", "routes/api.generate-suggestions.ts"),
+  route("api/apply-suggestion", "routes/api.apply-suggestion.ts"),
   route("api/user-stories/combine", "routes/api.user-stories.combine.ts"),
   route("api/user-stories/split", "routes/api.user-stories.split.ts"),
   route("api/user-stories/regenerate", "routes/api.user-stories.regenerate.ts"),

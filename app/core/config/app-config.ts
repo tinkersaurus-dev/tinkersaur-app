@@ -54,6 +54,10 @@ export const APP_CONFIG = {
       /** Default floating panel width (pixels) */
       defaultWidth: 600,
     },
+    layout: {
+      /** Max content width for Solution Management pages (pixels) */
+      solutionManagementMaxWidth: 1900,
+    },
   },
 } as const;
 

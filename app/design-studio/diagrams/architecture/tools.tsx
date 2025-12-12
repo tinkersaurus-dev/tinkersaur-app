@@ -54,7 +54,8 @@ const { service: serviceSize, group: groupSize } = DESIGN_STUDIO_CONFIG.shapes.a
 
 /**
  * Architecture Service Tools
- * Services represent individual nodes/endpoints with different icons
+ * Services represent individual nodes/endpoints with different icons.
+ * The shapeSubtype is the source of truth for categorization.
  */
 const serviceTools: Tool[] = [
   {
@@ -62,6 +63,7 @@ const serviceTools: Tool[] = [
     name: 'Cloud Service',
     icon: LuCloud,
     shapeType: 'architecture-service',
+    shapeSubtype: 'cloud',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'cloud' },
   },
@@ -70,6 +72,7 @@ const serviceTools: Tool[] = [
     name: 'Database',
     icon: LuDatabase,
     shapeType: 'architecture-service',
+    shapeSubtype: 'database',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'database' },
   },
@@ -78,6 +81,7 @@ const serviceTools: Tool[] = [
     name: 'Server',
     icon: LuServer,
     shapeType: 'architecture-service',
+    shapeSubtype: 'server',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'server' },
   },
@@ -86,6 +90,7 @@ const serviceTools: Tool[] = [
     name: 'Disk Storage',
     icon: LuHardDrive,
     shapeType: 'architecture-service',
+    shapeSubtype: 'disk',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'disk' },
   },
@@ -94,6 +99,7 @@ const serviceTools: Tool[] = [
     name: 'Internet',
     icon: LuGlobe,
     shapeType: 'architecture-service',
+    shapeSubtype: 'internet',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'internet' },
   },
@@ -102,6 +108,7 @@ const serviceTools: Tool[] = [
     name: 'Web App',
     icon: LuMonitor,
     shapeType: 'architecture-service',
+    shapeSubtype: 'web',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'web' },
   },
@@ -110,6 +117,7 @@ const serviceTools: Tool[] = [
     name: 'Mobile App',
     icon: LuSmartphone,
     shapeType: 'architecture-service',
+    shapeSubtype: 'mobile',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'mobile' },
   },
@@ -118,6 +126,7 @@ const serviceTools: Tool[] = [
     name: 'React App',
     icon: LuCode,
     shapeType: 'architecture-service',
+    shapeSubtype: 'react',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'react' },
   },
@@ -126,6 +135,7 @@ const serviceTools: Tool[] = [
     name: 'Frontend UI',
     icon: LuTvMinimal,
     shapeType: 'architecture-service',
+    shapeSubtype: 'frontend',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'frontend' },
   },
@@ -134,6 +144,7 @@ const serviceTools: Tool[] = [
     name: 'Tablet App',
     icon: LuTablet,
     shapeType: 'architecture-service',
+    shapeSubtype: 'tablet',
     defaultSize: { width: serviceSize.width, height: serviceSize.height },
     initialData: { icon: 'tablet' },
   },

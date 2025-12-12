@@ -2,15 +2,17 @@
  * Architecture Service Renderer
  *
  * Renders architectural service shapes as rectangles with icons and labels.
- * Supports icons: cloud, database, server, disk, internet, web, mobile, react, frontend, tablet, and custom iconify icons.
+ * Supports subtypes: cloud, database, server, disk, internet, web, mobile, react, frontend, tablet.
+ * Falls back to data.icon for backwards compatibility with shapes that don't have subtypes.
  */
 
-import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe, LuMonitor, LuSmartphone, LuCode, LuTvMinimal, LuTablet } from "react-icons/lu";
 import type { ShapeRendererProps } from '../../shared/rendering/types';
 import { ConnectionPointRenderer } from '../../shared/rendering/ConnectionPointRenderer';
 import { EditableLabel } from '~/design-studio/components/canvas/editors/EditableLabel';
 import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
+import { ARCHITECTURE_SUBTYPE_ICONS } from '../icon-mapping';
+import { LuCloud } from 'react-icons/lu';
 
 export function ArchitectureServiceRenderer({
   shape,
@@ -28,8 +30,9 @@ export function ArchitectureServiceRenderer({
   const { width, height } = shape;
   const { isSelected, isHovered, zoom } = context;
 
-  // Get icon from shape data
-  const icon = (shape.data as Record<string, unknown>)?.icon || 'server';
+  // Get icon from subtype (preferred) or fall back to data.icon for backwards compatibility
+  const iconKey = shape.subtype || (shape.data as Record<string, unknown>)?.icon as string | undefined;
+  const IconComponent = (iconKey && ARCHITECTURE_SUBTYPE_ICONS[iconKey]) || LuCloud;
 
   // Disable interactivity for preview shapes
   const isInteractive = !shape.isPreview;
@@ -68,22 +71,6 @@ export function ArchitectureServiceRenderer({
   }
 
   const iconSize = 24;
-
-  // Icon component mapping
-  type IconType = 'cloud' | 'database' | 'server' | 'disk' | 'internet' | 'web' | 'mobile' | 'react' | 'frontend' | 'tablet';
-  const iconMapping: Record<IconType, typeof LuServer> = {
-    cloud: LuCloud,
-    database: LuDatabase,
-    server: LuServer,
-    disk: LuHardDrive,
-    internet: LuGlobe,
-    web: LuMonitor,
-    mobile: LuSmartphone,
-    react: LuCode,
-    frontend: LuTvMinimal,
-    tablet: LuTablet,
-  };
-  const IconComponent = (icon && iconMapping[icon as IconType]) || LuServer;
 
   return (
     <ShapeWrapper

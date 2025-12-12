@@ -4,6 +4,7 @@ import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } f
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
 import { layoutBpmnGraph } from '../layout';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { DEFAULT_SHAPE_SUBTYPES, getBpmnEventSubtype } from '~/design-studio/config/default-shape-subtypes';
 
 /**
  * Parsed node information from Mermaid syntax
@@ -173,32 +174,39 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
     targetNode: ParsedNode;
     connection: ParsedConnection;
   } | null {
-    // Match patterns like: nodeA --> nodeB, nodeA -.-> nodeB, nodeA --- nodeB, etc.
-    // Also match with labels: nodeA -->|label| nodeB
-    const connectionPattern =
-      /^(.+?)\s+(-->|---|-.->|-\.-|\|.+?\|)\s*(-->|---|-.->|-\.-|\|.+?\|)?\s*(.+)$/;
-    const match = line.match(connectionPattern);
+    // Match patterns like:
+    // nodeA --> nodeB
+    // nodeA -.-> nodeB
+    // nodeA --- nodeB
+    // nodeA -->|label| nodeB
+    // Also handles inline node definitions like: A --> B{"Label"}
 
-    if (!match) {
-      return null;
-    }
+    // First, try to match with label: nodeA -->|label| nodeB
+    const labeledPattern = /^(.+?)\s+(-->|---|-\.->|-\.-)\s*\|([^|]+)\|\s*(.+)$/;
+    let match = line.match(labeledPattern);
 
-    const sourceNodeStr = match[1].trim();
-    const arrow1 = match[2].trim();
-    const arrow2OrLabel = match[3]?.trim() || '';
-    const targetNodeStr = match[4].trim();
-
-    // Handle case with label: A --> |label| B
+    let sourceNodeStr: string;
+    let targetNodeStr: string;
     let label: string | undefined;
-    let arrowSyntax = arrow1;
+    let arrowSyntax: string;
 
-    if (arrow1.startsWith('|') && arrow1.endsWith('|')) {
-      // First part is label, second part is arrow
-      label = this.removeQuotes(arrow1.slice(1, -1));
-      arrowSyntax = arrow2OrLabel;
-    } else if (arrow2OrLabel.startsWith('|') && arrow2OrLabel.endsWith('|')) {
-      // Second part is label
-      label = this.removeQuotes(arrow2OrLabel.slice(1, -1));
+    if (match) {
+      sourceNodeStr = match[1].trim();
+      arrowSyntax = match[2].trim();
+      label = this.removeQuotes(match[3].trim());
+      targetNodeStr = match[4].trim();
+    } else {
+      // Try to match without label: nodeA --> nodeB
+      const simplePattern = /^(.+?)\s+(-->|---|-\.->|-\.-)\s+(.+)$/;
+      match = line.match(simplePattern);
+
+      if (!match) {
+        return null;
+      }
+
+      sourceNodeStr = match[1].trim();
+      arrowSyntax = match[2].trim();
+      targetNodeStr = match[3].trim();
     }
 
     const sourceNode = this.parseNodeDefinition(sourceNodeStr);
@@ -238,12 +246,15 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
    */
   private parseNodeDefinition(nodeStr: string): ParsedNode | null {
     // Pattern: nodeId[label], nodeId((label)), nodeId{label}, nodeId(((label))), nodeId("label")
+    // Updated patterns to handle quoted labels with special characters
     const patterns = [
-      /^([A-Za-z0-9_]+)\[\s*"?([^"\]]*)"?\s*\]$/, // Rectangle [label]
-      /^([A-Za-z0-9_]+)\(\(\(\s*"?([^"]*)"?\s*\)\)\)$/, // Triple circle (((label)))
-      /^([A-Za-z0-9_]+)\(\(\s*"?([^"]*)"?\s*\)\)$/, // Circle ((label))
-      /^([A-Za-z0-9_]+)\{\s*"?([^"}]*)"?\s*\}$/, // Diamond {label}
-      /^([A-Za-z0-9_]+)\(\s*"?([^"]*)"?\s*\)$/, // Rounded rect (label)
+      /^([A-Za-z0-9_]+)\[\s*"([^"]*)"\s*\]$/, // Rectangle ["label"] with quotes
+      /^([A-Za-z0-9_]+)\[\s*([^\]]*)\s*\]$/, // Rectangle [label] without quotes
+      /^([A-Za-z0-9_]+)\(\(\(\s*"?([^")]*)"?\s*\)\)\)$/, // Triple circle (((label)))
+      /^([A-Za-z0-9_]+)\(\(\s*"?([^")]*)"?\s*\)\)$/, // Circle ((label))
+      /^([A-Za-z0-9_]+)\{\s*"([^"]*)"\s*\}$/, // Diamond {"label"} with quotes
+      /^([A-Za-z0-9_]+)\{\s*([^}]*)\s*\}$/, // Diamond {label} without quotes
+      /^([A-Za-z0-9_]+)\(\s*"?([^")]*)"?\s*\)$/, // Rounded rect (label)
     ];
 
     for (let i = 0; i < patterns.length; i++) {
@@ -264,11 +275,26 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
       }
     }
 
+    // Handle simple node IDs without shape definition (e.g., just "A")
+    // This can happen when a node is referenced in a connection before being defined
+    const simpleIdMatch = nodeStr.match(/^([A-Za-z0-9_]+)$/);
+    if (simpleIdMatch) {
+      return {
+        id: simpleIdMatch[1],
+        label: simpleIdMatch[1], // Use the ID as the label
+        shapeType: 'bpmn-task',
+        subtype: DEFAULT_SHAPE_SUBTYPES['bpmn-task'],
+        mermaidShape: 'rectangle',
+      };
+    }
+
     return null;
   }
 
   /**
-   * Infer BPMN shape type and subtype from mermaid shape syntax
+   * Infer BPMN shape type and subtype from mermaid shape syntax.
+   * Note: For events, the subtype is a placeholder that will be refined
+   * by position-based logic in createShapesWithLayout.
    */
   private inferShapeType(
     mermaidShape: string,
@@ -289,13 +315,13 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
       if (lowerLabel.includes('end')) {
         return { shapeType: 'bpmn-event', subtype: 'end', mermaidShape: 'circle' };
       }
-      // Default to start event
-      return { shapeType: 'bpmn-event', subtype: 'start', mermaidShape: 'circle' };
+      // Default to start event (will be refined by position-based logic)
+      return { shapeType: 'bpmn-event', subtype: DEFAULT_SHAPE_SUBTYPES['bpmn-event'], mermaidShape: 'circle' };
     }
 
-    // Diamond {} - Gateway
+    // Diamond {} - Gateway (default to exclusive)
     if (mermaidShape.includes('{') && mermaidShape.includes('}')) {
-      return { shapeType: 'bpmn-gateway', subtype: 'exclusive', mermaidShape: 'diamond' };
+      return { shapeType: 'bpmn-gateway', subtype: DEFAULT_SHAPE_SUBTYPES['bpmn-gateway'], mermaidShape: 'diamond' };
     }
 
     // Rounded rectangle () - Sub-process
@@ -311,8 +337,8 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
       };
     }
 
-    // Square brackets [] - Task (default)
-    return { shapeType: 'bpmn-task', subtype: 'task', mermaidShape: 'rectangle' };
+    // Square brackets [] - Task (default to user task)
+    return { shapeType: 'bpmn-task', subtype: DEFAULT_SHAPE_SUBTYPES['bpmn-task'], mermaidShape: 'rectangle' };
   }
 
   /**
@@ -325,11 +351,23 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
   ): CreateShapeDTO[] {
     const { horizontal, vertical } = options.nodeSpacing;
 
+    // Determine first and last nodes in the flow for position-based event subtype logic
+    const { firstNodes, lastNodes } = this.findTerminalNodes(nodes, connections);
+
     // Prepare nodes with dimensions for layout algorithm
     const layoutNodes = nodes.map((node) => {
       // Determine dimensions based on shape type
       let width = options.defaultShapeDimensions.width;
       let height = options.defaultShapeDimensions.height;
+
+      // Determine subtype for events using position-based logic
+      let subtype = node.subtype;
+      if (node.shapeType === 'bpmn-event' && !['start', 'end'].includes(node.subtype)) {
+        // Only override if the subtype wasn't explicitly determined from mermaid shape
+        const isFirst = firstNodes.has(node.id);
+        const isLast = lastNodes.has(node.id);
+        subtype = getBpmnEventSubtype(isFirst, isLast);
+      }
 
       if (node.shapeType === 'bpmn-event') {
         width = DESIGN_STUDIO_CONFIG.shapes.bpmn.startEvent.width;
@@ -345,7 +383,7 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
       return {
         id: node.id,
         type: node.shapeType,
-        subtype: node.subtype,
+        subtype,
         width,
         height,
         label: node.label,
@@ -359,22 +397,22 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
     });
 
     // Create shape DTOs with calculated positions
-    const shapes: CreateShapeDTO[] = nodes.map((node) => {
-      const position = positions.find((p) => p.id === node.id);
-      const layoutNode = layoutNodes.find((n) => n.id === node.id);
+    const shapes: CreateShapeDTO[] = layoutNodes.map((layoutNode) => {
+      const position = positions.find((p) => p.id === layoutNode.id);
+      const originalNode = nodes.find((n) => n.id === layoutNode.id);
 
-      if (!position || !layoutNode) {
-        throw new Error(`Failed to calculate position for node ${node.id}`);
+      if (!position || !originalNode) {
+        throw new Error(`Failed to calculate position for node ${layoutNode.id}`);
       }
 
       const shape: CreateShapeDTO = {
-        type: node.shapeType,
-        subtype: node.subtype,
+        type: layoutNode.type,
+        subtype: layoutNode.subtype,
         x: position.x,
         y: position.y,
         width: layoutNode.width,
         height: layoutNode.height,
-        label: node.label,
+        label: layoutNode.label,
         zIndex: 0,
         locked: false,
         isPreview: false,
@@ -385,6 +423,44 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
 
     // Center all shapes around the target point
     return this.centerShapesDTO(shapes, options.centerPoint);
+  }
+
+  /**
+   * Find terminal nodes (nodes with no incoming or no outgoing connections)
+   * Used to determine start/end events by position in the flow
+   */
+  private findTerminalNodes(
+    nodes: ParsedNode[],
+    connections: ParsedConnection[]
+  ): { firstNodes: Set<string>; lastNodes: Set<string> } {
+    const nodeIds = new Set(nodes.map((n) => n.id));
+    const hasIncoming = new Set<string>();
+    const hasOutgoing = new Set<string>();
+
+    for (const conn of connections) {
+      if (nodeIds.has(conn.targetId)) {
+        hasIncoming.add(conn.targetId);
+      }
+      if (nodeIds.has(conn.sourceId)) {
+        hasOutgoing.add(conn.sourceId);
+      }
+    }
+
+    // First nodes: have no incoming connections
+    const firstNodes = new Set<string>();
+    // Last nodes: have no outgoing connections
+    const lastNodes = new Set<string>();
+
+    for (const node of nodes) {
+      if (!hasIncoming.has(node.id)) {
+        firstNodes.add(node.id);
+      }
+      if (!hasOutgoing.has(node.id)) {
+        lastNodes.add(node.id);
+      }
+    }
+
+    return { firstNodes, lastNodes };
   }
 
   /**

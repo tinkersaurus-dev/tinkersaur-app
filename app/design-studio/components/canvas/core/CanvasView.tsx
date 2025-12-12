@@ -13,7 +13,10 @@ import { SequenceToolsetPopover } from '~/design-studio/diagrams/sequence/compon
 import { ArchitectureToolsetPopover } from '~/design-studio/diagrams/architecture/components/ToolsetPopover';
 import { ConnectorToolsetPopover } from '../menus/popovers/ConnectorToolsetPopover';
 import { ConnectorContextMenu } from '../menus/ConnectorContextMenu';
+import { ShapeContextMenu } from '../menus/ShapeContextMenu';
 import { ConnectorDrawingPreview } from '../rendering/ConnectorDrawingPreview';
+import { useShapeSubtypeManager } from '../../../hooks/useShapeSubtypeManager';
+import { useDiagramStore } from '~/core/entities/design-studio';
 import { CanvasShapesList } from '../rendering/CanvasShapesList';
 import { CanvasConnectorsList } from '../rendering/CanvasConnectorsList';
 import CanvasToolbar from '../../toolbar/CanvasToolbar';
@@ -123,6 +126,14 @@ export function CanvasView() {
     diagramId: diagram?.id,
     diagramType: diagram?.type,
     shapes,
+  });
+
+  // Shape subtype manager for context menu
+  const commandFactory = useDiagramStore((state) => state.commandFactory);
+  const shapeSubtypeManager = useShapeSubtypeManager({
+    diagramId: diagram?.id ?? '',
+    diagramType: diagram?.type,
+    commandFactory,
   });
 
   if (loading) {
@@ -360,6 +371,22 @@ export function CanvasView() {
           }}
           connectorTools={connectorTypeManager.availableConnectorTools}
           currentConnectorType={connectors.find(c => c.id === menuManager.activeMenuConfig?.metadata?.connectorId)?.type}
+        />
+      )}
+
+      {/* Shape Context Menu (right-click on shape) */}
+      {menuManager.isMenuOpen(MENU_IDS.SHAPE_CONTEXT_MENU) && menuManager.activeMenuConfig && menuManager.activeMenuConfig.metadata?.shapeId && (
+        <ShapeContextMenu
+          x={menuManager.activeMenuConfig.screenPosition.x}
+          y={menuManager.activeMenuConfig.screenPosition.y}
+          isOpen={true}
+          onClose={menuManager.closeMenu}
+          onShapeSubtypeChange={async (tool) => {
+            await shapeSubtypeManager.handleShapeSubtypeChange(tool, menuManager.activeMenuConfig!.metadata!.shapeId as string);
+            menuManager.closeMenu();
+          }}
+          shapeTools={shapeSubtypeManager.getAvailableSubtypes(shapes.find(s => s.id === menuManager.activeMenuConfig?.metadata?.shapeId)?.type ?? '')}
+          currentShapeSubtype={shapes.find(s => s.id === menuManager.activeMenuConfig?.metadata?.shapeId)?.subtype}
         />
       )}
 

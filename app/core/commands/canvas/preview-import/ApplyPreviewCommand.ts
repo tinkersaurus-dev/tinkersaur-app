@@ -5,6 +5,15 @@ import type { Diagram, DiagramType } from '../../../entities/design-studio/types
 import type { LLMPreviewShapeData } from '../../../entities/design-studio/types/Shape';
 
 /**
+ * Extended preview shape data that tracks which connectors link to external shapes
+ * These connectors don't need their external shape IDs remapped
+ */
+interface ExtendedLLMPreviewShapeData extends LLMPreviewShapeData {
+  /** IDs of connectors that link preview shapes to external (non-preview) shapes */
+  externalConnectorIds?: string[];
+}
+
+/**
  * Command to apply a preview shape by converting it to real shapes and connectors
  * This command:
  * 1. Extracts the shapes and connectors from the preview shape's data
@@ -59,12 +68,15 @@ export class ApplyPreviewCommand implements Command {
     }
 
     // Type guard to check if this is LLMPreviewShapeData
-    const previewData = shapeData as unknown as LLMPreviewShapeData;
+    const previewData = shapeData as unknown as ExtendedLLMPreviewShapeData;
 
     if (!previewData.previewShapeIds || !previewData.previewConnectorIds) {
       console.error('[ApplyPreviewCommand] Invalid preview shape data:', previewData);
       throw new Error('Invalid preview shape data');
     }
+
+    // Create a set of preview shape IDs for quick lookup
+    const previewShapeIdSet = new Set(previewData.previewShapeIds);
 
     // Update all preview shapes to remove the isPreview flag (make them interactive)
     // We need to delete and re-create them to update the isPreview property
@@ -155,16 +167,38 @@ export class ApplyPreviewCommand implements Command {
     }
 
     // Step 6: Create new connectors with updated shape IDs
+    // For connectors that link preview shapes to external shapes, preserve the external shape IDs
     const connectorDTOs: CreateConnectorDTO[] = [];
 
     for (const connectorInfo of connectorDataWithOldShapeIds) {
-      const newSourceShapeId = shapeIdMapping.get(connectorInfo.oldSourceShapeId);
-      const newTargetShapeId = shapeIdMapping.get(connectorInfo.oldTargetShapeId);
+      // Check if source/target are preview shapes or external shapes
+      const sourceIsPreviewShape = previewShapeIdSet.has(connectorInfo.oldSourceShapeId);
+      const targetIsPreviewShape = previewShapeIdSet.has(connectorInfo.oldTargetShapeId);
+
+      // Get new shape IDs - for preview shapes, use the mapping; for external shapes, keep the original ID
+      let newSourceShapeId: string | undefined;
+      let newTargetShapeId: string | undefined;
+
+      if (sourceIsPreviewShape) {
+        newSourceShapeId = shapeIdMapping.get(connectorInfo.oldSourceShapeId);
+      } else {
+        // External shape - keep the original ID
+        newSourceShapeId = connectorInfo.oldSourceShapeId;
+      }
+
+      if (targetIsPreviewShape) {
+        newTargetShapeId = shapeIdMapping.get(connectorInfo.oldTargetShapeId);
+      } else {
+        // External shape - keep the original ID
+        newTargetShapeId = connectorInfo.oldTargetShapeId;
+      }
 
       if (!newSourceShapeId || !newTargetShapeId) {
         console.error('[ApplyPreviewCommand] Cannot update connector - shape ID mapping missing:', {
           oldSourceShapeId: connectorInfo.oldSourceShapeId,
           oldTargetShapeId: connectorInfo.oldTargetShapeId,
+          sourceIsPreviewShape,
+          targetIsPreviewShape,
           newSourceShapeId,
           newTargetShapeId,
         });

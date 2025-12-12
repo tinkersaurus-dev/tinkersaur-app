@@ -24,7 +24,7 @@ export function SolutionManagementSidebar() {
     {
       key: 'solutions',
       label: (
-        <span className="flex items-center gap-2 text-sm">
+        <span className="flex items-center gap-2 text-xs">
           <FiBox />
           Solutions
         </span>
@@ -34,7 +34,7 @@ export function SolutionManagementSidebar() {
     {
       key: 'personas',
       label: (
-        <span className="flex items-center gap-2 text-sm">
+        <span className="flex items-center gap-2 text-xs">
           <FiUsers />
           Personas
         </span>
@@ -44,8 +44,12 @@ export function SolutionManagementSidebar() {
   ];
 
   return (
-    <div className="p-4 h-full">
-      <h3 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wide mb-4">
+    <div>
+      <div className="text-xs px-6 pt-4 pb-2 h-full">
+        INSERT TEAM SELECTOR HERE
+      </div>
+    <div className="px-6 pt-4 pb-2 h-full">
+      <h3 className="text-[var(--text)] text-xs uppercase tracking-wide mb-1">
         Solution Development
       </h3>
       <Menu
@@ -54,6 +58,7 @@ export function SolutionManagementSidebar() {
         mode="vertical"
         colorScheme="app"
       />
+    </div>
     </div>
   );
 }

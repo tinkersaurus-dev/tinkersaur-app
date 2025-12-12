@@ -2,6 +2,7 @@ import type { Result } from '~/core/lib/utils/result';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef, MermaidShapeRef } from '../../shared/mermaid/importer';
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
 import { layoutArchitectureGraph } from '../layout';
+import { DEFAULT_SHAPE_SUBTYPES } from '~/design-studio/config/default-shape-subtypes';
 
 /**
  * Parsed node information from Mermaid architecture syntax
@@ -242,8 +243,15 @@ export class ArchitectureMermaidImporter extends BaseMermaidImporter {
       // Look up parent index if parent exists
       const parentIndex = node.parent ? nodeIdToIndex.get(node.parent) : undefined;
 
+      // For services, use the icon as the subtype if provided, otherwise use the default
+      // The icon field in data is kept for backwards compatibility and display purposes
+      const subtype = node.nodeType === 'service'
+        ? (node.icon || DEFAULT_SHAPE_SUBTYPES['architecture-service'])
+        : undefined;
+
       return {
         type: shapeType,
+        subtype,
         x: node.x,
         y: node.y,
         width: node.width,

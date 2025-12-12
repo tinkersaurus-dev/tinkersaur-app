@@ -21,6 +21,7 @@ export const MENU_IDS = {
   ARCHITECTURE_TOOLSET_POPOVER: 'architecture-toolset-popover',
   CONNECTOR_TOOLBAR_POPOVER: 'connector-toolbar-popover',
   CONNECTOR_CONTEXT_MENU: 'connector-context-menu',
+  SHAPE_CONTEXT_MENU: 'shape-context-menu',
 } as const;
 
 /**
@@ -53,6 +54,7 @@ export interface UseContextMenuManagerReturn {
   openCanvasContextMenu: (screenX: number, screenY: number, canvasX: number, canvasY: number) => void;
   openConnectorToolbarPopover: (buttonRef?: RefObject<HTMLElement>) => void;
   openConnectorContextMenu: (connectorId: string, screenX: number, screenY: number) => void;
+  openShapeContextMenu: (shapeId: string, screenX: number, screenY: number) => void;
   openToolsetPopoverWithConnector: (
     menuId: string,
     screenX: number,
@@ -162,6 +164,18 @@ export function useContextMenuManager(): UseContextMenuManagerReturn {
     [openMenu]
   );
 
+  // Specialized opener for shape context menu
+  const openShapeContextMenu = useCallback(
+    (shapeId: string, screenX: number, screenY: number) => {
+      openMenu({
+        id: MENU_IDS.SHAPE_CONTEXT_MENU,
+        screenPosition: { x: screenX, y: screenY },
+        metadata: { shapeId },
+      });
+    },
+    [openMenu]
+  );
+
   // Specialized opener for toolset popover with pending connector
   // Used when dragging a connector from a connection point and releasing on empty canvas
   const openToolsetPopoverWithConnector = useCallback(
@@ -194,6 +208,7 @@ export function useContextMenuManager(): UseContextMenuManagerReturn {
     openCanvasContextMenu,
     openConnectorToolbarPopover,
     openConnectorContextMenu,
+    openShapeContextMenu,
     openToolsetPopoverWithConnector,
   };
 }

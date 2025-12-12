@@ -581,6 +581,7 @@ export function CanvasController({ diagramId, children }: CanvasControllerProps)
     containerRef,
     lastMousePosRef,
     shapes: diagram?.shapes ?? [],
+    onShapeRightClick: menuManager.openShapeContextMenu,
   });
 
   // Handle connector drag released on canvas (not on connection point)

@@ -838,6 +838,174 @@ Rules:
 8. Do not include ID - it will be preserved client-side`;
 
 /**
+ * BPMN Apply Suggestion system prompt
+ * Takes a shape's mermaid and a suggestion, returns updated mermaid implementing the suggestion
+ */
+const BPMN_APPLY_SUGGESTION_SYSTEM_PROMPT = `You are a BPMN diagram editor. Given a shape's current Mermaid representation and an improvement suggestion, return updated Mermaid flowchart syntax that implements the suggestion.
+
+Available BPMN Shapes - Use the CORRECT shape for each element:
+- Tasks (rectangles): Use ["Task Name"] for action steps, work items, or activities
+- Start Events (circles): Use (("Start")) for process start points
+- End Events (double circles): Use ((("End"))) for process end points
+- Intermediate Events (circles): Use (("Event Name")) for mid-process events
+- Gateways (diamonds): Use {"Decision Point"} for decisions, branching logic, or conditional flows
+- Connections: Use --> for solid flow lines, -.-> for dotted lines
+- Branch labels: Use -->|Label| for labeled connections (e.g., A -->|Yes| B, A -->|No| C)
+
+IMPORTANT: When the suggestion involves decisions, conditions, validations, or branching logic, you MUST use gateway shapes (diamonds with {} syntax), NOT task shapes.
+
+Input:
+1. Current Mermaid syntax for a shape and its direct connections
+2. A specific improvement suggestion to apply
+
+Output Rules:
+1. Return ONLY valid Mermaid flowchart syntax
+2. Start with: flowchart LR (or flowchart TB if the input uses TB)
+3. Preserve the original shape's ID (A, B, C, etc.) and core purpose
+4. Add new shapes/connections only when the suggestion requires them
+5. Use simple node IDs (A, B, C, etc.) for new shapes
+6. Choose the semantically correct shape type:
+   - Use {"..."} (gateway/diamond) for: decisions, validations, checks, conditions, approvals
+   - Use ["..."] (task/rectangle) for: actions, activities, processes, work items
+   - Use (("...")) (event/circle) for: start/end points, triggers, signals
+7. Do NOT include markdown code blocks, explanations, or any text outside the Mermaid syntax
+
+Example Input:
+Shape Mermaid:
+flowchart LR
+A["Process Payment"]
+
+Suggestion: Add validation to check if payment amount is valid before processing
+
+Example Output:
+flowchart LR
+B{"Amount Valid?"}
+B -->|Yes| A["Process Payment"]
+B -->|No| C["Reject Payment"]
+
+Example Input:
+Shape Mermaid:
+flowchart LR
+A{"Payment Valid?"}
+
+Suggestion: Add error handling for failed payment processing
+
+Example Output:
+flowchart LR
+A{"Payment Valid?"}
+A -->|No| B["Handle Payment Error"]
+B --> C["Log Error"]
+B --> D["Notify Customer"]`;
+
+/**
+ * Class Diagram Apply Suggestion system prompt
+ */
+const CLASS_APPLY_SUGGESTION_SYSTEM_PROMPT = `You are a UML Class diagram editor. Given a class's current Mermaid representation and an improvement suggestion, return updated Mermaid classDiagram syntax that implements the suggestion.
+
+Input:
+1. Current Mermaid classDiagram syntax for a class
+2. A specific improvement suggestion to apply
+
+Output Rules:
+1. Return ONLY valid Mermaid classDiagram syntax
+2. Start with: classDiagram
+3. Preserve the original class name and essential properties/methods
+4. Add new classes, properties, methods, or relationships as the suggestion requires
+5. Use proper UML notation for visibility (+public, -private, #protected)
+6. Do NOT include markdown code blocks, explanations, or any text outside the Mermaid syntax
+
+Example Input:
+Class Mermaid:
+classDiagram
+class OrderService {
+  +createOrder(items: Item[]) : Order
+  +cancelOrder(orderId: string) : void
+}
+
+Suggestion: Extract payment logic into a separate PaymentProcessor class
+
+Example Output:
+classDiagram
+class OrderService {
+  -paymentProcessor : PaymentProcessor
+  +createOrder(items: Item[]) : Order
+  +cancelOrder(orderId: string) : void
+}
+class PaymentProcessor {
+  +processPayment(amount: number) : PaymentResult
+  +refundPayment(paymentId: string) : void
+}
+OrderService --> PaymentProcessor : uses`;
+
+/**
+ * Sequence Diagram Apply Suggestion system prompt
+ */
+const SEQUENCE_APPLY_SUGGESTION_SYSTEM_PROMPT = `You are a UML Sequence diagram editor. Given a participant's current Mermaid representation and an improvement suggestion, return updated Mermaid sequenceDiagram syntax that implements the suggestion.
+
+Input:
+1. Current Mermaid sequenceDiagram syntax showing a participant and its interactions
+2. A specific improvement suggestion to apply
+
+Output Rules:
+1. Return ONLY valid Mermaid sequenceDiagram syntax
+2. Start with: sequenceDiagram
+3. Preserve the original participant name
+4. Add new participants, messages, or control flow (alt/loop/opt) as the suggestion requires
+5. Use proper arrow types (->> for sync, -->> for async, -->> for return)
+6. Do NOT include markdown code blocks, explanations, or any text outside the Mermaid syntax
+
+Example Input:
+Participant Mermaid:
+sequenceDiagram
+participant AuthService
+User->>AuthService: login(credentials)
+AuthService-->>User: token
+
+Suggestion: Add error handling for invalid credentials
+
+Example Output:
+sequenceDiagram
+participant AuthService
+User->>AuthService: login(credentials)
+activate AuthService
+alt credentials valid
+  AuthService-->>User: token
+else credentials invalid
+  AuthService-->>User: AuthenticationError
+end
+deactivate AuthService`;
+
+/**
+ * Architecture Diagram Apply Suggestion system prompt
+ */
+const ARCHITECTURE_APPLY_SUGGESTION_SYSTEM_PROMPT = `You are a software architecture diagram editor. Given a service's current Mermaid representation and an improvement suggestion, return updated Mermaid architecture-beta syntax that implements the suggestion.
+
+Input:
+1. Current Mermaid architecture-beta syntax showing a service and its connections
+2. A specific improvement suggestion to apply
+
+Output Rules:
+1. Return ONLY valid Mermaid architecture-beta syntax
+2. Start with: architecture-beta
+3. Preserve the original service ID and label
+4. Add new services, groups, or connections as the suggestion requires
+5. Use proper connection syntax with direction indicators (L, R, T, B)
+6. Do NOT include markdown code blocks, explanations, or any text outside the Mermaid syntax
+
+Example Input:
+Service Mermaid:
+architecture-beta
+service api(server)[API Gateway]
+
+Suggestion: Add a rate limiter for resilience
+
+Example Output:
+architecture-beta
+service api(server)[API Gateway]
+service ratelimit(server)[Rate Limiter]
+ratelimit:R --> L:api`;
+
+/**
  * Get system prompt for a specific diagram type
  */
 export function getSystemPrompt(diagramType: string): string {
@@ -895,6 +1063,27 @@ export function getSuggestionsSystemPrompt(diagramType: string): string {
   }
 }
 
+/**
+ * Get apply suggestion system prompt for a specific diagram type
+ * Used when applying a suggestion to a shape - takes shape mermaid and suggestion,
+ * returns updated mermaid implementing the suggestion
+ */
+export function getApplySuggestionSystemPrompt(diagramType: string): string {
+  switch (diagramType) {
+    case 'bpmn':
+      return BPMN_APPLY_SUGGESTION_SYSTEM_PROMPT;
+    case 'class':
+      return CLASS_APPLY_SUGGESTION_SYSTEM_PROMPT;
+    case 'sequence':
+      return SEQUENCE_APPLY_SUGGESTION_SYSTEM_PROMPT;
+    case 'architecture':
+      return ARCHITECTURE_APPLY_SUGGESTION_SYSTEM_PROMPT;
+    default:
+      // Default to BPMN if unknown type
+      return BPMN_APPLY_SUGGESTION_SYSTEM_PROMPT;
+  }
+}
+
 // Export individual prompts for reference if needed
 export {
   BPMN_SYSTEM_PROMPT,
@@ -915,4 +1104,8 @@ export {
   CLASS_SUGGESTIONS_SYSTEM_PROMPT,
   SEQUENCE_SUGGESTIONS_SYSTEM_PROMPT,
   ARCHITECTURE_SUGGESTIONS_SYSTEM_PROMPT,
+  BPMN_APPLY_SUGGESTION_SYSTEM_PROMPT,
+  CLASS_APPLY_SUGGESTION_SYSTEM_PROMPT,
+  SEQUENCE_APPLY_SUGGESTION_SYSTEM_PROMPT,
+  ARCHITECTURE_APPLY_SUGGESTION_SYSTEM_PROMPT,
 };

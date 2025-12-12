@@ -27,6 +27,9 @@ interface UseShapeInteractionProps {
 
   // Shapes array for preview container expansion
   shapes: Shape[];
+
+  // Optional right-click handler for context menu
+  onShapeRightClick?: (shapeId: string, screenX: number, screenY: number) => void;
 }
 
 interface UseShapeInteractionReturn {
@@ -57,6 +60,7 @@ export function useShapeInteraction({
   containerRef,
   lastMousePosRef,
   shapes,
+  onShapeRightClick,
 }: UseShapeInteractionProps): UseShapeInteractionReturn {
 
   // Helper function to expand shape IDs to include preview shapes and descendants
@@ -86,6 +90,13 @@ export function useShapeInteraction({
     (e: React.MouseEvent, shapeId: string) => {
       // Stop propagation to prevent canvas background click
       e.stopPropagation();
+
+      // Handle right-click for context menu
+      if (e.button === 2) {
+        e.preventDefault();
+        onShapeRightClick?.(shapeId, e.clientX, e.clientY);
+        return;
+      }
 
       // Only handle left mouse button
       if (e.button !== 0) return;
@@ -138,7 +149,7 @@ export function useShapeInteraction({
       onStartDragging(dragData);
       lastMousePosRef.current = { x: screenX, y: screenY };
     },
-    [selectedShapeIds, setSelectedShapes, viewportTransform, startDragging, onStartDragging, containerRef, lastMousePosRef, expandWithPreviewShapes]
+    [selectedShapeIds, setSelectedShapes, viewportTransform, startDragging, onStartDragging, containerRef, lastMousePosRef, expandWithPreviewShapes, onShapeRightClick]
   );
 
   // Handle shape mouse enter for hover state

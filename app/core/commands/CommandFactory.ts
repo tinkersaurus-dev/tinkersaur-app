@@ -6,6 +6,7 @@ import { AddShapeCommand } from './canvas/shapes/AddShapeCommand';
 import { DeleteShapeCommand } from './canvas/shapes/DeleteShapeCommand';
 import { UpdateShapeLabelCommand } from './canvas/shapes/UpdateShapeLabelCommand';
 import { UpdateShapeDataCommand } from './canvas/shapes/UpdateShapeDataCommand';
+import { ChangeShapeSubtypeCommand, type ChangeShapeSubtypeData } from './canvas/shapes/ChangeShapeSubtypeCommand';
 import { MoveShapeCommand } from './canvas/shapes/MoveShapeCommand';
 import { MoveEntitiesCommand } from './canvas/shapes/MoveEntitiesCommand';
 import { UpdateParentChildCommand } from './canvas/shapes/UpdateParentChildCommand';
@@ -74,6 +75,7 @@ export interface CommandFactoryDependencies {
   getUpdateLocalShape?: (diagramId: string) => ((shapeId: string, updates: Partial<Shape>) => void) | undefined;
   getUpdateLocalConnector?: (diagramId: string) => ((connectorId: string, updates: Partial<Connector>) => void) | undefined;
   getShape?: (shapeId: string) => Shape | undefined;
+  getCurrentShape?: (diagramId: string, shapeId: string) => Shape | null;
   getCurrentConnector?: (diagramId: string, connectorId: string) => Connector | null;
 }
 
@@ -138,6 +140,22 @@ export class CommandFactory {
       oldData,
       newData,
       this.deps._internalUpdateShape,
+      updateLocalShape
+    );
+  }
+
+  createChangeShapeSubtype(
+    diagramId: string,
+    shapeId: string,
+    newSubtypeData: ChangeShapeSubtypeData
+  ): Command {
+    const updateLocalShape = this.deps.getUpdateLocalShape?.(diagramId);
+    return new ChangeShapeSubtypeCommand(
+      diagramId,
+      shapeId,
+      newSubtypeData,
+      this.deps._internalUpdateShape,
+      this.deps.getCurrentShape || (() => null),
       updateLocalShape
     );
   }

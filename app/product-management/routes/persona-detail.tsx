@@ -4,22 +4,40 @@
  */
 
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { SolutionManagementLayout } from '../components';
-import { Button, Card, Modal, Empty } from '~/core/components/ui';
-import { usePersona, usePersonaCRUD, usePersonaUseCases } from '../hooks';
+import { Button, Card, Modal } from '~/core/components/ui';
+import { usePersonaCRUD, usePersonaUseCases } from '../hooks';
 import { usePersonaUseCaseStore } from '~/core/entities/product-management';
 import { useUseCaseStore } from '~/core/entities/product-management/store/useCase/useUseCaseStore';
+import { loadPersonaDetail } from '../loaders';
+import type { PersonaDetailLoaderData } from '../loaders';
+import { useHydratePersona } from '../utils/hydrateStores';
+import type { Route } from './+types/persona-detail';
+
+// Loader function for SSR data fetching
+export async function loader({ params }: Route.LoaderArgs) {
+  const { personaId } = params;
+  if (!personaId) {
+    throw new Response('Persona ID required', { status: 400 });
+  }
+  return loadPersonaDetail(personaId);
+}
 
 export default function PersonaDetailPage() {
+  // Get data from loader - guaranteed to exist (loader throws 404 otherwise)
+  const { persona } = useLoaderData<PersonaDetailLoaderData>();
+
+  // Hydrate store for client-side navigation continuity
+  useHydratePersona(persona);
+
   const { personaId } = useParams<{ personaId: string }>();
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
 
-  const { persona, loading } = usePersona(personaId);
   const { handleDelete } = usePersonaCRUD();
   const { useCaseIds } = usePersonaUseCases(personaId || '');
 
@@ -59,29 +77,6 @@ export default function PersonaDetailPage() {
       await unlinkPersonaFromUseCase(personaId, useCaseId);
     }
   };
-
-  if (loading) {
-    return (
-      <SolutionManagementLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
-        </PageContent>
-      </SolutionManagementLayout>
-    );
-  }
-
-  if (!persona) {
-    return (
-      <SolutionManagementLayout>
-        <PageContent>
-          <Empty description="Persona not found." />
-          <div className="text-center mt-4">
-            <Button onClick={handleBack}>Back to Personas</Button>
-          </div>
-        </PageContent>
-      </SolutionManagementLayout>
-    );
-  }
 
   return (
     <SolutionManagementLayout>

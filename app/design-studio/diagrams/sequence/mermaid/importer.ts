@@ -3,6 +3,7 @@ import type { CreateShapeDTO, SequenceLifelineData } from '~/core/entities/desig
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../../shared/mermaid/importer';
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { DEFAULT_SHAPE_SUBTYPES } from '~/design-studio/config/default-shape-subtypes';
 
 /**
  * Parsed participant information from Mermaid syntax
@@ -256,9 +257,15 @@ export class SequenceMermaidImporter extends BaseMermaidImporter {
         activations: [],
       };
 
+      // Map mermaid participant type to sequence-lifeline subtype
+      // 'actor' stays as 'actor', 'participant' becomes the default (object)
+      const subtype = participant.type === 'actor'
+        ? 'actor'
+        : DEFAULT_SHAPE_SUBTYPES['sequence-lifeline'];
+
       const shape: CreateShapeDTO = {
         type: 'sequence-lifeline',
-        subtype: participant.type,
+        subtype,
         x,
         y,
         width: DESIGN_STUDIO_CONFIG.shapes.sequence.lifeline.width,

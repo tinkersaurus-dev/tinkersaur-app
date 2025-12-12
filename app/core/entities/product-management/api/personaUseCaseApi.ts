@@ -10,7 +10,7 @@ class PersonaUseCaseApi {
    * Get all persona-usecase links for a persona
    */
   async listByPersona(personaId: string): Promise<PersonaUseCase[]> {
-    const data = await httpClient.get<PersonaUseCase[]>(`/api/personausecases?personaId=${personaId}`);
+    const data = await httpClient.get<PersonaUseCase[]>(`/api/persona-use-cases?personaId=${personaId}`);
     return deserializeDatesArray(data);
   }
 
@@ -18,7 +18,7 @@ class PersonaUseCaseApi {
    * Get all persona-usecase links for a use case
    */
   async listByUseCase(useCaseId: string): Promise<PersonaUseCase[]> {
-    const data = await httpClient.get<PersonaUseCase[]>(`/api/personausecases?useCaseId=${useCaseId}`);
+    const data = await httpClient.get<PersonaUseCase[]>(`/api/persona-use-cases?useCaseId=${useCaseId}`);
     return deserializeDatesArray(data);
   }
 
@@ -27,7 +27,7 @@ class PersonaUseCaseApi {
    */
   async get(id: string): Promise<PersonaUseCase | null> {
     try {
-      const data = await httpClient.get<PersonaUseCase>(`/api/personausecases/${id}`);
+      const data = await httpClient.get<PersonaUseCase>(`/api/persona-use-cases/${id}`);
       return deserializeDates(data);
     } catch {
       return null;
@@ -40,7 +40,7 @@ class PersonaUseCaseApi {
   async exists(personaId: string, useCaseId: string): Promise<boolean> {
     try {
       const data = await httpClient.get<PersonaUseCase[]>(
-        `/api/personausecases?personaId=${personaId}&useCaseId=${useCaseId}`
+        `/api/persona-use-cases?personaId=${personaId}&useCaseId=${useCaseId}`
       );
       return data.length > 0;
     } catch {
@@ -52,7 +52,7 @@ class PersonaUseCaseApi {
    * Create a new persona-usecase link
    */
   async create(data: CreatePersonaUseCaseDto): Promise<PersonaUseCase> {
-    const result = await httpClient.post<PersonaUseCase>('/api/personausecases', data);
+    const result = await httpClient.post<PersonaUseCase>('/api/persona-use-cases', data);
     return deserializeDates(result);
   }
 
@@ -61,7 +61,7 @@ class PersonaUseCaseApi {
    */
   async delete(id: string): Promise<boolean> {
     try {
-      await httpClient.delete(`/api/personausecases/${id}`);
+      await httpClient.delete(`/api/persona-use-cases/${id}`);
       return true;
     } catch {
       return false;

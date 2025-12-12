@@ -18,7 +18,9 @@ export function PageHeader({ title, actions, extra }: PageHeaderProps) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '24px',
+        marginBottom: '12px',
+        padding: '24px',
+        paddingBottom: '0px'
       }}
     >
       <div>

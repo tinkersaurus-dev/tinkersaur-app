@@ -3,22 +3,56 @@
  * Displays solution details and its use cases in a table
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
 import { MdDesignServices } from 'react-icons/md';
-import { useParams, Link, useNavigate } from 'react-router';
+import { useParams, Link, useNavigate, useLoaderData } from 'react-router';
 import { PageHeader, PageContent } from '~/core/components';
 import { SolutionManagementLayout } from '../components';
 import { Button, Input, HStack, Breadcrumb, Table, Form, useForm, Modal } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { UseCase } from '~/core/entities/product-management';
-import { useSolution, useUseCases, useUseCaseCRUD } from '../hooks';
+import { useUseCaseCRUD } from '../hooks';
+import { useUseCaseStore } from '~/core/entities/product-management/store/useCase/useUseCaseStore';
+import { loadSolutionDetail } from '../loaders';
+import type { SolutionDetailLoaderData } from '../loaders';
+import { useHydrateSolution, useHydrateUseCases } from '../utils/hydrateStores';
+import type { Route } from './+types/solution-detail';
+
+// Loader function for SSR data fetching
+export async function loader({ params }: Route.LoaderArgs) {
+  const { solutionId } = params;
+  if (!solutionId) {
+    throw new Response('Solution ID required', { status: 400 });
+  }
+  return loadSolutionDetail(solutionId);
+}
 
 export default function SolutionDetailPage() {
+  // Get data from loader - guaranteed to exist (loader throws 404 otherwise)
+  const { solution, useCases: initialUseCases } = useLoaderData<SolutionDetailLoaderData>();
+
+  // Hydrate stores for client-side navigation continuity
+  useHydrateSolution(solution);
+  useHydrateUseCases(initialUseCases);
+
   const { solutionId } = useParams();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUseCase, setEditingUseCase] = useState<UseCase | null>(null);
+
+  // Use store state, falling back to initial loader data
+  const storeUseCases = useUseCaseStore((state) => state.entities);
+  const storeLoading = useUseCaseStore((state) => state.loading);
+
+  // Derive use cases from store (after CRUD operations) or initial loader data
+  const useCases = useMemo(() => {
+    const filteredUseCases = storeUseCases.filter(uc => uc.solutionId === solutionId);
+    // Use store data if available, otherwise fall back to initial loader data
+    return filteredUseCases.length > 0 || storeUseCases.length > 0
+      ? filteredUseCases
+      : initialUseCases;
+  }, [storeUseCases, solutionId, initialUseCases]);
 
   const form = useForm<{
     name: string;
@@ -28,24 +62,11 @@ export default function SolutionDetailPage() {
     description: '',
   });
 
-  // Use new hooks
-  const { solution } = useSolution(solutionId);
-  const { useCases, loading } = useUseCases(solutionId);
   const { handleCreate, handleUpdate, handleDelete } = useUseCaseCRUD();
 
   const handleOpenDesignStudio = () => {
     navigate(`/studio/${solutionId}`);
   };
-
-  if (!solution) {
-    return (
-      <SolutionManagementLayout>
-        <PageContent>
-          <p>Solution not found</p>
-        </PageContent>
-      </SolutionManagementLayout>
-    );
-  }
 
   const handleAdd = () => {
     setEditingUseCase(null);
@@ -62,6 +83,7 @@ export default function SolutionDetailPage() {
 
   const handleDeleteClick = async (useCase: UseCase) => {
     await handleDelete(useCase.id);
+    // Store will update, useEffect will sync local state
   };
 
   const handleOk = async () => {
@@ -79,6 +101,7 @@ export default function SolutionDetailPage() {
           ...values,
         });
       }
+      // Store will update, useEffect will sync local state
 
       setIsModalOpen(false);
       form.reset();
@@ -151,7 +174,8 @@ export default function SolutionDetailPage() {
           <Breadcrumb
             items={[
               {
-                title: <Link to="/solutions"><FiHome /> Solutions</Link>,
+                title: <><FiHome /> Solutions</>,
+                href: '/solutions',
               },
               {
                 title: solution.name,
@@ -181,7 +205,7 @@ export default function SolutionDetailPage() {
           dataSource={useCases}
           rowKey="id"
           pagination={{ pageSize: 10 }}
-          loading={loading}
+          loading={storeLoading}
         />
       </PageContent>
 
