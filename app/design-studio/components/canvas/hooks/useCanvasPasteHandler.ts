@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 import type { CommandFactory } from '~/core/commands/CommandFactory';
 import { commandManager } from '~/core/commands/CommandManager';
@@ -26,14 +27,18 @@ export function useCanvasPasteHandler({
   getMousePosition,
   enabled,
 }: UseCanvasPasteHandlerProps) {
-  // Get entity store functions for creating the preview command
-  const addShape = useDiagramStore((state) => state._internalAddShape);
-  const addConnector = useDiagramStore((state) => state._internalAddConnector);
-  const deleteShape = useDiagramStore((state) => state._internalDeleteShape);
-  const deleteConnector = useDiagramStore((state) => state._internalDeleteConnector);
-  const addShapesBatch = useDiagramStore((state) => state._internalAddShapesBatch);
-  const addConnectorsBatch = useDiagramStore((state) => state._internalAddConnectorsBatch);
-  const updateShape = useDiagramStore((state) => state._internalUpdateShape);
+  // Get entity store functions for creating the preview command (bundled for cleaner dependency array)
+  const storeOps = useDiagramStore(
+    useShallow((state) => ({
+      addShape: state._internalAddShape,
+      addConnector: state._internalAddConnector,
+      deleteShape: state._internalDeleteShape,
+      deleteConnector: state._internalDeleteConnector,
+      addShapesBatch: state._internalAddShapesBatch,
+      addConnectorsBatch: state._internalAddConnectorsBatch,
+      updateShape: state._internalUpdateShape,
+    }))
+  );
 
   const handlePaste = useCallback(
     async (event: ClipboardEvent) => {
@@ -75,13 +80,13 @@ export function useCanvasPasteHandler({
           diagramType,
           trimmedText,
           pastePosition,
-          addShape,
-          addConnector,
-          deleteShape,
-          deleteConnector,
-          addShapesBatch,
-          addConnectorsBatch,
-          updateShape
+          storeOps.addShape,
+          storeOps.addConnector,
+          storeOps.deleteShape,
+          storeOps.deleteConnector,
+          storeOps.addShapesBatch,
+          storeOps.addConnectorsBatch,
+          storeOps.updateShape
         );
 
         await commandManager.execute(command, diagramId);
@@ -95,7 +100,7 @@ export function useCanvasPasteHandler({
         );
       }
     },
-    [enabled, diagramId, diagramType, getMousePosition, addShape, addConnector, deleteShape, deleteConnector, addShapesBatch, addConnectorsBatch, updateShape]
+    [enabled, diagramId, diagramType, getMousePosition, storeOps]
   );
 
   useEffect(() => {

@@ -84,19 +84,8 @@ export function CanvasView() {
     handleConnectorDoubleClick,
     handleLabelChange,
     handleFinishEditing,
-    updateStereotype,
-    addAttribute,
-    deleteAttribute,
-    updateAttribute,
-    updateAttributeLocal,
-    addMethod,
-    deleteMethod,
-    updateMethod,
-    updateMethodLocal,
-    addLiteral,
-    deleteLiteral,
-    updateLiteral,
-    updateLiteralLocal,
+    // Note: Class/enumeration editing callbacks (updateStereotype, addAttribute, etc.)
+    // are now consumed directly by ClassRenderer and EnumerationRenderer via useCanvasEvents()
     menuManager,
     handleAddRectangle,
     handleBpmnToolSelect,
@@ -202,19 +191,6 @@ export function CanvasView() {
           onFinishEditing={handleFinishEditing}
           onConnectionPointMouseDown={handleStartDrawingConnector}
           onConnectionPointMouseUp={handleFinishDrawingConnector}
-          onClassStereotypeChange={updateStereotype}
-          onClassAddAttribute={addAttribute}
-          onClassDeleteAttribute={deleteAttribute}
-          onClassUpdateAttribute={updateAttribute}
-          onClassUpdateAttributeLocal={updateAttributeLocal}
-          onClassAddMethod={addMethod}
-          onClassDeleteMethod={deleteMethod}
-          onClassUpdateMethod={updateMethod}
-          onClassUpdateMethodLocal={updateMethodLocal}
-          onEnumerationAddLiteral={addLiteral}
-          onEnumerationDeleteLiteral={deleteLiteral}
-          onEnumerationUpdateLiteral={updateLiteral}
-          onEnumerationUpdateLiteralLocal={updateLiteralLocal}
           onResizeStart={handleResizeStart}
         />
 

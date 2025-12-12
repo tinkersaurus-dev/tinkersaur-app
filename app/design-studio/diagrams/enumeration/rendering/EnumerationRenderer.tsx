@@ -15,6 +15,7 @@ import { ClassItemEditor } from '~/design-studio/diagrams/class/components/Class
 import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 import { THEME_CONFIG } from '~/core/config/theme-config';
+import { useCanvasEvents } from '~/design-studio/components/canvas/core/CanvasEventsContext';
 
 export function EnumerationRenderer({
   shape,
@@ -28,13 +29,17 @@ export function EnumerationRenderer({
   onFinishEditing,
   onConnectionPointMouseDown,
   onConnectionPointMouseUp,
-  onEnumerationAddLiteral,
-  onEnumerationDeleteLiteral,
-  onEnumerationUpdateLiteral,
-  onEnumerationUpdateLiteralLocal,
 }: ShapeRendererProps): React.ReactElement {
   const { width, height } = shape;
   const { isSelected, isHovered, zoom } = context;
+
+  // Get enumeration editing callbacks from context instead of props
+  const {
+    addLiteral,
+    deleteLiteral,
+    updateLiteral,
+    updateLiteralLocal,
+  } = useCanvasEvents();
 
   // Disable interactivity for preview shapes
   const isInteractive = !shape.isPreview;
@@ -202,18 +207,18 @@ export function EnumerationRenderer({
               }}
               onChange={(newValue) => {
                 // Update local state only (no database save)
-                onEnumerationUpdateLiteralLocal?.(shape.id, index, newValue);
+                updateLiteralLocal(shape.id, index, newValue);
               }}
               onFinishEdit={() => {
                 // Save to database only when editing finishes
                 if (editingLiteral !== null && literals[editingLiteral] !== editingLiteralOriginal) {
-                  onEnumerationUpdateLiteral?.(shape.id, editingLiteral, editingLiteralOriginal, literals[editingLiteral]);
+                  updateLiteral(shape.id, editingLiteral, editingLiteralOriginal, literals[editingLiteral]);
                 }
                 setEditingLiteral(null);
                 setEditingLiteralOriginal('');
               }}
               onDelete={() => {
-                onEnumerationDeleteLiteral?.(shape.id, index);
+                deleteLiteral(shape.id, index);
               }}
               fontSize={itemFontSize}
               showDelete={showHover}
@@ -227,7 +232,7 @@ export function EnumerationRenderer({
           <button
             data-interactive="true"
             onClick={() => {
-              onEnumerationAddLiteral?.(shape.id);
+              addLiteral(shape.id);
             }}
             style={{
               position: 'absolute',

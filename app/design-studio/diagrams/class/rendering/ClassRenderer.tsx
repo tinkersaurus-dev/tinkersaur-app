@@ -16,6 +16,7 @@ import { ClassItemEditor } from '../components/ClassItemEditor';
 import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 import { THEME_CONFIG } from '~/core/config/theme-config';
+import { useCanvasEvents } from '~/design-studio/components/canvas/core/CanvasEventsContext';
 
 const STEREOTYPE_OPTIONS = [
   { value: 'interface', label: '<<interface>>' },
@@ -40,18 +41,22 @@ export function ClassRenderer({
   onFinishEditing,
   onConnectionPointMouseDown,
   onConnectionPointMouseUp,
-  onClassStereotypeChange,
-  onClassAddAttribute,
-  onClassDeleteAttribute,
-  onClassUpdateAttribute,
-  onClassUpdateAttributeLocal,
-  onClassAddMethod,
-  onClassDeleteMethod,
-  onClassUpdateMethod,
-  onClassUpdateMethodLocal,
 }: ShapeRendererProps): React.ReactElement {
   const { width, height } = shape;
   const { isSelected, isHovered, zoom } = context;
+
+  // Get class editing callbacks from context instead of props
+  const {
+    updateStereotype,
+    addAttribute,
+    deleteAttribute,
+    updateAttribute,
+    updateAttributeLocal,
+    addMethod,
+    deleteMethod,
+    updateMethod,
+    updateMethodLocal,
+  } = useCanvasEvents();
 
   // Disable interactivity for preview shapes
   const isInteractive = !shape.isPreview;
@@ -159,7 +164,7 @@ export function ClassRenderer({
           value={stereotype}
           options={STEREOTYPE_OPTIONS}
           onChange={(newValue) => {
-            onClassStereotypeChange?.(shape.id, newValue || undefined);
+            updateStereotype(shape.id, newValue || undefined);
           }}
           fontSize={fontSize * 0.9}
           placeholder="<<stereotype>>"
@@ -230,18 +235,18 @@ export function ClassRenderer({
               }}
               onChange={(newValue) => {
                 // Update local state only (no database save)
-                onClassUpdateAttributeLocal?.(shape.id, index, newValue);
+                updateAttributeLocal(shape.id, index, newValue);
               }}
               onFinishEdit={() => {
                 // Save to database only when editing finishes
                 if (editingAttribute !== null && attributes[editingAttribute] !== editingAttributeOriginal) {
-                  onClassUpdateAttribute?.(shape.id, editingAttribute, editingAttributeOriginal, attributes[editingAttribute]);
+                  updateAttribute(shape.id, editingAttribute, editingAttributeOriginal, attributes[editingAttribute]);
                 }
                 setEditingAttribute(null);
                 setEditingAttributeOriginal('');
               }}
               onDelete={() => {
-                onClassDeleteAttribute?.(shape.id, index);
+                deleteAttribute(shape.id, index);
               }}
               fontSize={itemFontSize}
               showDelete={showHover}
@@ -257,7 +262,7 @@ export function ClassRenderer({
           <button
             data-interactive="true"
             onClick={() => {
-              onClassAddAttribute?.(shape.id);
+              addAttribute(shape.id);
             }}
             style={{
               position: 'absolute',
@@ -311,18 +316,18 @@ export function ClassRenderer({
               }}
               onChange={(newValue) => {
                 // Update local state only (no database save)
-                onClassUpdateMethodLocal?.(shape.id, index, newValue);
+                updateMethodLocal(shape.id, index, newValue);
               }}
               onFinishEdit={() => {
                 // Save to database only when editing finishes
                 if (editingMethod !== null && methods[editingMethod] !== editingMethodOriginal) {
-                  onClassUpdateMethod?.(shape.id, editingMethod, editingMethodOriginal, methods[editingMethod]);
+                  updateMethod(shape.id, editingMethod, editingMethodOriginal, methods[editingMethod]);
                 }
                 setEditingMethod(null);
                 setEditingMethodOriginal('');
               }}
               onDelete={() => {
-                onClassDeleteMethod?.(shape.id, index);
+                deleteMethod(shape.id, index);
               }}
               fontSize={itemFontSize}
               showDelete={showHover}
@@ -336,7 +341,7 @@ export function ClassRenderer({
           <button
             data-interactive="true"
             onClick={() => {
-              onClassAddMethod?.(shape.id);
+              addMethod(shape.id);
             }}
             style={{
               position: 'absolute',
