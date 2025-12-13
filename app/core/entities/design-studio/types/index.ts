@@ -119,5 +119,20 @@ export {
   type UpdateConnectorDTO,
 } from './Connector';
 
+// Reference
+export {
+  ReferenceSchema,
+  CreateReferenceSchema,
+  UpdateReferenceSchema,
+  ContentTypeSchema,
+  ReferenceTypeSchema,
+  type Reference,
+  type CreateReference,
+  type UpdateReference,
+  type ContentType,
+  type ReferenceType,
+  type ReferenceRef,
+} from './Reference';
+
 // Re-export common type for content type identification
 export type DesignContentType = 'diagram' | 'interface' | 'document';

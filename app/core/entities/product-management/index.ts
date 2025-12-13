@@ -8,6 +8,3 @@ export * from './types';
 
 // API clients
 export * from './api';
-
-// Entity store
-export * from './store';

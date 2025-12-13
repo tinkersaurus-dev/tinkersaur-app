@@ -3,19 +3,19 @@
  * Displays use case details and its requirements in a table
  */
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
 import { useParams, useLoaderData } from 'react-router';
+import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { SolutionManagementLayout } from '../components';
 import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
-import { useRequirementCRUD } from '../hooks';
-import { useRequirementStore } from '~/core/entities/product-management/store/requirement/useRequirementStore';
+import { useSolutionQuery, useUseCaseQuery, useRequirementsQuery } from '../queries';
+import { useCreateRequirement, useUpdateRequirement, useDeleteRequirement } from '../mutations';
 import { loadUseCaseDetail } from '../loaders';
 import type { UseCaseDetailLoaderData } from '../loaders';
-import { useHydrateSolution, useHydrateUseCase } from '../utils/hydrateStores';
 import type { Route } from './+types/use-case-detail';
 
 // Loader function for SSR data fetching
@@ -33,30 +33,18 @@ const TYPE_COLORS: Record<RequirementType, string> = {
   constraint: 'default',
 };
 
-export default function UseCaseDetailPage() {
-  // Get data from loader - guaranteed to exist (loader throws 404 otherwise)
-  const { solution, useCase, requirements: initialRequirements } = useLoaderData<UseCaseDetailLoaderData>();
-
-  // Hydrate stores for client-side navigation continuity
-  useHydrateSolution(solution);
-  useHydrateUseCase(useCase);
-
+function UseCaseDetailContent() {
   const { solutionId, useCaseId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
 
-  // Use store state, falling back to initial loader data
-  const storeRequirements = useRequirementStore((state) => state.entities);
-  const storeLoading = useRequirementStore((state) => state.loading);
-
-  // Derive requirements from store (after CRUD operations) or initial loader data
-  const requirements = useMemo(() => {
-    const filteredRequirements = storeRequirements.filter(r => r.useCaseId === useCaseId);
-    // Use store data if available, otherwise fall back to initial loader data
-    return filteredRequirements.length > 0 || storeRequirements.length > 0
-      ? filteredRequirements
-      : initialRequirements;
-  }, [storeRequirements, useCaseId, initialRequirements]);
+  // TanStack Query hooks
+  const { data: solution } = useSolutionQuery(solutionId);
+  const { data: useCase } = useUseCaseQuery(useCaseId);
+  const { data: requirements = [], isLoading } = useRequirementsQuery(useCaseId);
+  const createRequirement = useCreateRequirement();
+  const updateRequirement = useUpdateRequirement();
+  const deleteRequirement = useDeleteRequirement();
 
   const form = useForm<{
     text: string;
@@ -67,8 +55,6 @@ export default function UseCaseDetailPage() {
     type: 'functional',
     priority: 1,
   });
-
-  const { handleCreate, handleUpdate, handleDelete } = useRequirementCRUD();
 
   const handleAdd = () => {
     setEditingRequirement(null);
@@ -85,8 +71,7 @@ export default function UseCaseDetailPage() {
   };
 
   const handleDeleteClick = async (requirement: Requirement) => {
-    await handleDelete(requirement.id);
-    // Store will update, useEffect will sync local state
+    await deleteRequirement.mutateAsync(requirement.id);
   };
 
   const handleOk = async () => {
@@ -97,14 +82,16 @@ export default function UseCaseDetailPage() {
       const values = form.getValues();
 
       if (editingRequirement) {
-        await handleUpdate(editingRequirement.id, values);
+        await updateRequirement.mutateAsync({
+          id: editingRequirement.id,
+          updates: values,
+        });
       } else {
-        await handleCreate({
+        await createRequirement.mutateAsync({
           useCaseId: useCaseId!,
           ...values,
         });
       }
-      // Store will update, useEffect will sync local state
 
       setIsModalOpen(false);
       form.reset();
@@ -176,6 +163,17 @@ export default function UseCaseDetailPage() {
     },
   ];
 
+  // Handle case where data is not yet loaded
+  if (!solution || !useCase) {
+    return (
+      <SolutionManagementLayout>
+        <PageContent>
+          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+        </PageContent>
+      </SolutionManagementLayout>
+    );
+  }
+
   return (
     <SolutionManagementLayout>
       <PageHeader
@@ -214,7 +212,7 @@ export default function UseCaseDetailPage() {
           dataSource={requirements}
           rowKey="id"
           pagination={{ pageSize: 10 }}
-          loading={storeLoading}
+          loading={isLoading}
         />
       </PageContent>
 
@@ -292,5 +290,15 @@ export default function UseCaseDetailPage() {
         </Form>
       </Modal>
     </SolutionManagementLayout>
+  );
+}
+
+export default function UseCaseDetailPage() {
+  const { dehydratedState } = useLoaderData<UseCaseDetailLoaderData>();
+
+  return (
+    <HydrationBoundary state={dehydratedState}>
+      <UseCaseDetailContent />
+    </HydrationBoundary>
   );
 }

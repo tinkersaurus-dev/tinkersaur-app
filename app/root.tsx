@@ -10,6 +10,7 @@ import { Toaster } from "sonner";
 
 import type { Route } from "./+types/root";
 import { ThemeProvider, useTheme } from "./core/theme/ThemeProvider";
+import { QueryProvider } from "./core/query/QueryProvider";
 import { AuthGuard } from "./core/auth";
 import "./app.css";
 
@@ -62,9 +63,11 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <QueryProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </QueryProvider>
   );
 }
 

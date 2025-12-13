@@ -5,11 +5,12 @@ import { referenceApi } from '../../api/referenceApi';
 interface ReferenceStore {
   // State
   references: Record<string, Reference>; // Indexed by reference ID
-  loading: boolean;
   error: Error | null;
 
+  // Hydration - called by TanStack Query to sync fetched data
+  setReferences: (references: Reference[]) => void;
+
   // Actions
-  fetchReferencesForDesignWork: (designWorkId: string) => Promise<void>;
   createReference: (data: CreateReference) => Promise<Reference>;
   updateReferenceName: (id: string, name: string) => Promise<void>;
   deleteReference: (id: string) => Promise<void>;
@@ -21,46 +22,31 @@ interface ReferenceStore {
 export const useReferenceStore = create<ReferenceStore>((set, get) => ({
   // Initial state
   references: {},
-  loading: false,
   error: null,
 
-  // Fetch all references for a design work
-  fetchReferencesForDesignWork: async (designWorkId: string) => {
-    set({ loading: true, error: null });
+  // Hydration - called by TanStack Query to sync fetched data
+  setReferences: (references: Reference[]) => {
+    // Index references by ID
+    const referencesById = references.reduce(
+      (acc, ref) => {
+        acc[ref.id] = ref;
+        return acc;
+      },
+      {} as Record<string, Reference>
+    );
 
-    try {
-      const references = await referenceApi.list(designWorkId);
-
-      // Index references by ID
-      const referencesById = references.reduce(
-        (acc, ref) => {
-          acc[ref.id] = ref;
-          return acc;
-        },
-        {} as Record<string, Reference>
-      );
-
-      set((state) => ({
-        references: { ...state.references, ...referencesById },
-        loading: false,
-      }));
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to fetch references');
-      set({ loading: false, error: err });
-      console.error('Failed to load references:', err);
-    }
+    set((state) => ({
+      references: { ...state.references, ...referencesById },
+    }));
   },
 
   // Create a new reference
   createReference: async (data: CreateReference) => {
-    set({ loading: true, error: null });
-
     try {
       const reference = await referenceApi.create(data);
 
       set((state) => ({
         references: { ...state.references, [reference.id]: reference },
-        loading: false,
       }));
 
       // References are dynamically displayed under their parent diagrams,
@@ -69,37 +55,32 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => ({
       return reference;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to create reference');
-      set({ loading: false, error: err });
+      set({ error: err });
       throw error;
     }
   },
 
   // Update reference name (when source shape label changes)
   updateReferenceName: async (id: string, name: string) => {
-    set({ loading: true, error: null });
-
     try {
       const updatedReference = await referenceApi.update(id, { name });
 
       if (updatedReference) {
         set((state) => ({
           references: { ...state.references, [id]: updatedReference },
-          loading: false,
         }));
       } else {
         throw new Error(`Reference ${id} not found`);
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to update reference name');
-      set({ loading: false, error: err });
+      set({ error: err });
       throw error;
     }
   },
 
   // Delete a reference
   deleteReference: async (id: string) => {
-    set({ loading: true, error: null });
-
     try {
       const reference = get().references[id];
       if (!reference) {
@@ -111,14 +92,14 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => ({
       // Remove from local state
       set((state) => {
         const { [id]: _removed, ...remaining } = state.references;
-        return { references: remaining, loading: false };
+        return { references: remaining };
       });
 
       // References are dynamically displayed under their parent diagrams,
       // so we don't need to update DesignWork
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete reference');
-      set({ loading: false, error: err });
+      set({ error: err });
       throw error;
     }
   },

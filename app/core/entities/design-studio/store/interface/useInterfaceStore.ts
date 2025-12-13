@@ -5,62 +5,43 @@ import { interfaceApi } from '../../api';
 interface InterfaceStore {
   // State
   interfaces: Record<string, Interface>; // Indexed by interface ID
-  loading: Record<string, boolean>; // Per-interface loading state
   errors: Record<string, Error | null>; // Per-interface error state
 
+  // Hydration - called by TanStack Query to sync fetched data
+  setInterface: (interfaceItem: Interface) => void;
+  // Clear interface from store (called on unmount to ensure fresh data on reopen)
+  clearInterface: (id: string) => void;
+
   // Actions
-  fetchInterface: (id: string) => Promise<void>;
   createInterface: (data: CreateInterfaceDto) => Promise<Interface>;
   updateInterface: (id: string, updates: Partial<Interface>) => Promise<void>;
   deleteInterface: (id: string) => Promise<void>;
 }
 
-export const useInterfaceStore = create<InterfaceStore>((set, get) => ({
+export const useInterfaceStore = create<InterfaceStore>((set) => ({
   // Initial state
   interfaces: {},
-  loading: {},
   errors: {},
 
-  fetchInterface: async (id: string) => {
-    // Skip if already loaded
-    if (get().interfaces[id]) {
-      return;
-    }
-
+  // Hydration - called by TanStack Query to sync fetched data
+  setInterface: (interfaceItem: Interface) => {
     set((state) => ({
-      loading: { ...state.loading, [id]: true },
-      errors: { ...state.errors, [id]: null },
+      interfaces: { ...state.interfaces, [interfaceItem.id]: interfaceItem },
     }));
+  },
 
-    try {
-      const interfaceItem = await interfaceApi.get(id);
-      if (interfaceItem) {
-        set((state) => ({
-          interfaces: { ...state.interfaces, [id]: interfaceItem },
-          loading: { ...state.loading, [id]: false },
-        }));
-      } else {
-        // Interface not found - still need to set loading to false
-        set((state) => ({
-          loading: { ...state.loading, [id]: false },
-        }));
-      }
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to fetch interface');
-      set((state) => ({
-        loading: { ...state.loading, [id]: false },
-        errors: { ...state.errors, [id]: err },
-      }));
-      console.error('Failed to load interface:', err);
-    }
+  // Clear interface from store (called on unmount to ensure fresh data on reopen)
+  clearInterface: (id: string) => {
+    set((state) => {
+      const newInterfaces = { ...state.interfaces };
+      const newErrors = { ...state.errors };
+      delete newInterfaces[id];
+      delete newErrors[id];
+      return { interfaces: newInterfaces, errors: newErrors };
+    });
   },
 
   createInterface: async (data: CreateInterfaceDto) => {
-    set((state) => ({
-      loading: { ...state.loading, creating: true },
-      errors: { ...state.errors, creating: null },
-    }));
-
     try {
       const interfaceItem = await interfaceApi.create(data);
 
@@ -97,14 +78,12 @@ export const useInterfaceStore = create<InterfaceStore>((set, get) => ({
       // Update local state
       set((state) => ({
         interfaces: { ...state.interfaces, [interfaceItem.id]: interfaceItem },
-        loading: { ...state.loading, creating: false },
       }));
 
       return interfaceItem;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to create interface');
       set((state) => ({
-        loading: { ...state.loading, creating: false },
         errors: { ...state.errors, creating: err },
       }));
       throw error;
@@ -112,23 +91,16 @@ export const useInterfaceStore = create<InterfaceStore>((set, get) => ({
   },
 
   updateInterface: async (id: string, updates: Partial<Interface>) => {
-    set((state) => ({
-      loading: { ...state.loading, [id]: true },
-      errors: { ...state.errors, [id]: null },
-    }));
-
     try {
       const updated = await interfaceApi.update(id, updates);
       if (updated) {
         set((state) => ({
           interfaces: { ...state.interfaces, [id]: updated },
-          loading: { ...state.loading, [id]: false },
         }));
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to update interface');
       set((state) => ({
-        loading: { ...state.loading, [id]: false },
         errors: { ...state.errors, [id]: err },
       }));
       throw error;
@@ -136,11 +108,6 @@ export const useInterfaceStore = create<InterfaceStore>((set, get) => ({
   },
 
   deleteInterface: async (id: string) => {
-    set((state) => ({
-      loading: { ...state.loading, [id]: true },
-      errors: { ...state.errors, [id]: null },
-    }));
-
     try {
       await interfaceApi.delete(id);
 
@@ -160,23 +127,19 @@ export const useInterfaceStore = create<InterfaceStore>((set, get) => ({
       // Update local state
       set((state) => {
         const newInterfaces = { ...state.interfaces };
-        const newLoading = { ...state.loading };
         const newErrors = { ...state.errors };
 
         delete newInterfaces[id];
-        delete newLoading[id];
         delete newErrors[id];
 
         return {
           interfaces: newInterfaces,
-          loading: newLoading,
           errors: newErrors,
         };
       });
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete interface');
       set((state) => ({
-        loading: { ...state.loading, [id]: false },
         errors: { ...state.errors, [id]: err },
       }));
       throw error;

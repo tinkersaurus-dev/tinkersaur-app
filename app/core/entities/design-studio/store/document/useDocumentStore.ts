@@ -5,62 +5,43 @@ import { documentApi } from '../../api';
 interface DocumentStore {
   // State
   documents: Record<string, Document>; // Indexed by document ID
-  loading: Record<string, boolean>; // Per-document loading state
   errors: Record<string, Error | null>; // Per-document error state
 
+  // Hydration - called by TanStack Query to sync fetched data
+  setDocument: (document: Document) => void;
+  // Clear document from store (called on unmount to ensure fresh data on reopen)
+  clearDocument: (id: string) => void;
+
   // Actions
-  fetchDocument: (id: string) => Promise<void>;
   createDocument: (data: CreateDocumentDto) => Promise<Document>;
   updateDocument: (id: string, updates: Partial<Document>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
 }
 
-export const useDocumentStore = create<DocumentStore>((set, get) => ({
+export const useDocumentStore = create<DocumentStore>((set) => ({
   // Initial state
   documents: {},
-  loading: {},
   errors: {},
 
-  fetchDocument: async (id: string) => {
-    // Skip if already loaded
-    if (get().documents[id]) {
-      return;
-    }
-
+  // Hydration - called by TanStack Query to sync fetched data
+  setDocument: (document: Document) => {
     set((state) => ({
-      loading: { ...state.loading, [id]: true },
-      errors: { ...state.errors, [id]: null },
+      documents: { ...state.documents, [document.id]: document },
     }));
+  },
 
-    try {
-      const document = await documentApi.get(id);
-      if (document) {
-        set((state) => ({
-          documents: { ...state.documents, [id]: document },
-          loading: { ...state.loading, [id]: false },
-        }));
-      } else {
-        // Document not found - still need to set loading to false
-        set((state) => ({
-          loading: { ...state.loading, [id]: false },
-        }));
-      }
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to fetch document');
-      set((state) => ({
-        loading: { ...state.loading, [id]: false },
-        errors: { ...state.errors, [id]: err },
-      }));
-      console.error('Failed to load document:', err);
-    }
+  // Clear document from store (called on unmount to ensure fresh data on reopen)
+  clearDocument: (id: string) => {
+    set((state) => {
+      const newDocuments = { ...state.documents };
+      const newErrors = { ...state.errors };
+      delete newDocuments[id];
+      delete newErrors[id];
+      return { documents: newDocuments, errors: newErrors };
+    });
   },
 
   createDocument: async (data: CreateDocumentDto) => {
-    set((state) => ({
-      loading: { ...state.loading, creating: true },
-      errors: { ...state.errors, creating: null },
-    }));
-
     try {
       const document = await documentApi.create(data);
 
@@ -96,14 +77,12 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       // Update local state
       set((state) => ({
         documents: { ...state.documents, [document.id]: document },
-        loading: { ...state.loading, creating: false },
       }));
 
       return document;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to create document');
       set((state) => ({
-        loading: { ...state.loading, creating: false },
         errors: { ...state.errors, creating: err },
       }));
       throw error;
@@ -111,23 +90,16 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   },
 
   updateDocument: async (id: string, updates: Partial<Document>) => {
-    set((state) => ({
-      loading: { ...state.loading, [id]: true },
-      errors: { ...state.errors, [id]: null },
-    }));
-
     try {
       const updated = await documentApi.update(id, updates);
       if (updated) {
         set((state) => ({
           documents: { ...state.documents, [id]: updated },
-          loading: { ...state.loading, [id]: false },
         }));
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to update document');
       set((state) => ({
-        loading: { ...state.loading, [id]: false },
         errors: { ...state.errors, [id]: err },
       }));
       throw error;
@@ -135,11 +107,6 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   },
 
   deleteDocument: async (id: string) => {
-    set((state) => ({
-      loading: { ...state.loading, [id]: true },
-      errors: { ...state.errors, [id]: null },
-    }));
-
     try {
       await documentApi.delete(id);
 
@@ -159,23 +126,19 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       // Update local state
       set((state) => {
         const newDocuments = { ...state.documents };
-        const newLoading = { ...state.loading };
         const newErrors = { ...state.errors };
 
         delete newDocuments[id];
-        delete newLoading[id];
         delete newErrors[id];
 
         return {
           documents: newDocuments,
-          loading: newLoading,
           errors: newErrors,
         };
       });
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete document');
       set((state) => ({
-        loading: { ...state.loading, [id]: false },
         errors: { ...state.errors, [id]: err },
       }));
       throw error;

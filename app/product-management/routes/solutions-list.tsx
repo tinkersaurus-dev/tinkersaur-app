@@ -9,7 +9,8 @@ import { PageHeader, PageContent } from '~/core/components';
 import { SolutionManagementLayout } from '../components';
 import { Button, Input, Form, useForm, Modal, Select, Empty } from '~/core/components/ui';
 import type { SolutionType } from '~/core/entities/product-management';
-import { useSolutions, useSolutionCRUD } from '../hooks';
+import { useSolutionsQuery } from '../queries';
+import { useCreateSolution } from '../mutations';
 import { SolutionCard } from '../components';
 import { useAuthStore } from '~/core/auth';
 
@@ -36,8 +37,10 @@ export default function SolutionsListPage() {
 
   const currentUser = useAuthStore((state) => state.currentUser);
   const teamId = currentUser?.teamId;
-  const { solutions, loading } = useSolutions(teamId);
-  const { handleCreate } = useSolutionCRUD();
+
+  // TanStack Query hooks
+  const { data: solutions = [], isLoading } = useSolutionsQuery(teamId);
+  const createSolution = useCreateSolution();
 
   const handleAdd = () => {
     form.reset();
@@ -56,7 +59,7 @@ export default function SolutionsListPage() {
         return;
       }
 
-      await handleCreate({
+      await createSolution.mutateAsync({
         teamId,
         ...values,
       });
@@ -87,7 +90,7 @@ export default function SolutionsListPage() {
       <PageContent>
         {!teamId ? (
           <Empty description="No team selected. Please create an organization and team first." />
-        ) : loading ? (
+        ) : isLoading ? (
           <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
         ) : solutions.length === 0 ? (
           <Empty description="No solutions yet. Click 'Add Solution' to create one." />

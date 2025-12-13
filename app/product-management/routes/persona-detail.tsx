@@ -5,16 +5,16 @@
 
 import { useState } from 'react';
 import { useParams, useNavigate, useLoaderData } from 'react-router';
+import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { SolutionManagementLayout } from '../components';
 import { Button, Card, Modal } from '~/core/components/ui';
-import { usePersonaCRUD, usePersonaUseCases } from '../hooks';
-import { usePersonaUseCaseStore } from '~/core/entities/product-management';
-import { useUseCaseStore } from '~/core/entities/product-management/store/useCase/useUseCaseStore';
+import type { PersonaUseCase } from '~/core/entities/product-management/types';
+import { usePersonaQuery, usePersonaUseCasesQuery } from '../queries';
+import { useDeletePersona, useCreatePersonaUseCase, useDeletePersonaUseCase } from '../mutations';
 import { loadPersonaDetail } from '../loaders';
 import type { PersonaDetailLoaderData } from '../loaders';
-import { useHydratePersona } from '../utils/hydrateStores';
 import type { Route } from './+types/persona-detail';
 
 // Loader function for SSR data fetching
@@ -26,33 +26,23 @@ export async function loader({ params }: Route.LoaderArgs) {
   return loadPersonaDetail(personaId);
 }
 
-export default function PersonaDetailPage() {
-  // Get data from loader - guaranteed to exist (loader throws 404 otherwise)
-  const { persona } = useLoaderData<PersonaDetailLoaderData>();
-
-  // Hydrate store for client-side navigation continuity
-  useHydratePersona(persona);
-
+function PersonaDetailContent() {
   const { personaId } = useParams<{ personaId: string }>();
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
 
-  const { handleDelete } = usePersonaCRUD();
-  const { useCaseIds } = usePersonaUseCases(personaId || '');
+  // TanStack Query hooks
+  const { data: persona } = usePersonaQuery(personaId);
+  const { data: personaUseCases = [] } = usePersonaUseCasesQuery(personaId);
+  const deletePersona = useDeletePersona();
+  const createPersonaUseCase = useCreatePersonaUseCase();
+  const deletePersonaUseCase = useDeletePersonaUseCase();
 
-  // Get all use cases from store directly (not filtered by solution)
-  const allUseCases = useUseCaseStore((state) => state.entities);
-
-  // Store actions for linking/unlinking
-  const linkPersonaToUseCase = usePersonaUseCaseStore((state) => state.linkPersonaToUseCase);
-  const unlinkPersonaFromUseCase = usePersonaUseCaseStore((state) => state.unlinkPersonaFromUseCase);
-
-  // Filter to get linked use cases
-  const linkedUseCases = allUseCases.filter((uc) => useCaseIds.includes(uc.id));
-
-  // Filter to get available (unlinked) use cases for linking
-  const availableUseCases = allUseCases.filter((uc) => !useCaseIds.includes(uc.id));
+  // Available use cases for linking (requires fetching use cases from team's solutions)
+  // TODO: To implement, fetch solutions by persona.teamId, then fetch use cases for each solution,
+  // then filter out IDs already in personaUseCases
+  const availableUseCases: Array<{ id: string; name: string; description?: string }> = [];
 
   const handleBack = () => {
     navigate('/personas');
@@ -60,7 +50,7 @@ export default function PersonaDetailPage() {
 
   const handleDeleteConfirm = async () => {
     if (personaId) {
-      await handleDelete(personaId);
+      await deletePersona.mutateAsync(personaId);
       navigate('/personas');
     }
     setIsDeleteModalOpen(false);
@@ -68,15 +58,33 @@ export default function PersonaDetailPage() {
 
   const handleLinkUseCase = async (useCaseId: string) => {
     if (personaId) {
-      await linkPersonaToUseCase(personaId, useCaseId);
+      await createPersonaUseCase.mutateAsync({
+        personaId,
+        useCaseId,
+      });
     }
   };
 
   const handleUnlinkUseCase = async (useCaseId: string) => {
-    if (personaId) {
-      await unlinkPersonaFromUseCase(personaId, useCaseId);
+    // Find the persona-use case association to delete
+    const association = personaUseCases.find(
+      (puc: PersonaUseCase) => puc.personaId === personaId && puc.useCaseId === useCaseId
+    );
+    if (association) {
+      await deletePersonaUseCase.mutateAsync(association.id);
     }
   };
+
+  // Handle case where persona is not yet loaded
+  if (!persona) {
+    return (
+      <SolutionManagementLayout>
+        <PageContent>
+          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+        </PageContent>
+      </SolutionManagementLayout>
+    );
+  }
 
   return (
     <SolutionManagementLayout>
@@ -206,22 +214,24 @@ export default function PersonaDetailPage() {
                 </Button>
               </div>
 
-              {linkedUseCases.length === 0 ? (
+              {personaUseCases.length === 0 ? (
                 <p className="text-[var(--text-muted)] text-sm">
                   No use cases linked to this persona.
                 </p>
               ) : (
                 <ul className="space-y-2">
-                  {linkedUseCases.map((useCase) => (
+                  {personaUseCases.map((puc: PersonaUseCase) => (
                     <li
-                      key={useCase.id}
+                      key={puc.id}
                       className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
                     >
-                      <span className="text-sm text-[var(--text)] truncate">{useCase.name}</span>
+                      <span className="text-sm text-[var(--text)] truncate">
+                        Use Case ID: {puc.useCaseId.slice(0, 8)}...
+                      </span>
                       <Button
                         variant="text"
                         size="small"
-                        onClick={() => handleUnlinkUseCase(useCase.id)}
+                        onClick={() => handleUnlinkUseCase(puc.useCaseId)}
                       >
                         Unlink
                       </Button>
@@ -291,5 +301,15 @@ export default function PersonaDetailPage() {
         )}
       </Modal>
     </SolutionManagementLayout>
+  );
+}
+
+export default function PersonaDetailPage() {
+  const { dehydratedState } = useLoaderData<PersonaDetailLoaderData>();
+
+  return (
+    <HydrationBoundary state={dehydratedState}>
+      <PersonaDetailContent />
+    </HydrationBoundary>
   );
 }

@@ -3,20 +3,20 @@
  * Displays solution details and its use cases in a table
  */
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
 import { MdDesignServices } from 'react-icons/md';
 import { useParams, Link, useNavigate, useLoaderData } from 'react-router';
+import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { SolutionManagementLayout } from '../components';
 import { Button, Input, HStack, Breadcrumb, Table, Form, useForm, Modal } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { UseCase } from '~/core/entities/product-management';
-import { useUseCaseCRUD } from '../hooks';
-import { useUseCaseStore } from '~/core/entities/product-management/store/useCase/useUseCaseStore';
+import { useSolutionQuery, useUseCasesQuery } from '../queries';
+import { useCreateUseCase, useUpdateUseCase, useDeleteUseCase } from '../mutations';
 import { loadSolutionDetail } from '../loaders';
 import type { SolutionDetailLoaderData } from '../loaders';
-import { useHydrateSolution, useHydrateUseCases } from '../utils/hydrateStores';
 import type { Route } from './+types/solution-detail';
 
 // Loader function for SSR data fetching
@@ -28,31 +28,18 @@ export async function loader({ params }: Route.LoaderArgs) {
   return loadSolutionDetail(solutionId);
 }
 
-export default function SolutionDetailPage() {
-  // Get data from loader - guaranteed to exist (loader throws 404 otherwise)
-  const { solution, useCases: initialUseCases } = useLoaderData<SolutionDetailLoaderData>();
-
-  // Hydrate stores for client-side navigation continuity
-  useHydrateSolution(solution);
-  useHydrateUseCases(initialUseCases);
-
+function SolutionDetailContent() {
   const { solutionId } = useParams();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUseCase, setEditingUseCase] = useState<UseCase | null>(null);
 
-  // Use store state, falling back to initial loader data
-  const storeUseCases = useUseCaseStore((state) => state.entities);
-  const storeLoading = useUseCaseStore((state) => state.loading);
-
-  // Derive use cases from store (after CRUD operations) or initial loader data
-  const useCases = useMemo(() => {
-    const filteredUseCases = storeUseCases.filter(uc => uc.solutionId === solutionId);
-    // Use store data if available, otherwise fall back to initial loader data
-    return filteredUseCases.length > 0 || storeUseCases.length > 0
-      ? filteredUseCases
-      : initialUseCases;
-  }, [storeUseCases, solutionId, initialUseCases]);
+  // TanStack Query hooks
+  const { data: solution } = useSolutionQuery(solutionId);
+  const { data: useCases = [], isLoading } = useUseCasesQuery(solutionId);
+  const createUseCase = useCreateUseCase();
+  const updateUseCase = useUpdateUseCase();
+  const deleteUseCase = useDeleteUseCase();
 
   const form = useForm<{
     name: string;
@@ -61,8 +48,6 @@ export default function SolutionDetailPage() {
     name: '',
     description: '',
   });
-
-  const { handleCreate, handleUpdate, handleDelete } = useUseCaseCRUD();
 
   const handleOpenDesignStudio = () => {
     navigate(`/studio/${solutionId}`);
@@ -82,8 +67,7 @@ export default function SolutionDetailPage() {
   };
 
   const handleDeleteClick = async (useCase: UseCase) => {
-    await handleDelete(useCase.id);
-    // Store will update, useEffect will sync local state
+    await deleteUseCase.mutateAsync(useCase.id);
   };
 
   const handleOk = async () => {
@@ -94,14 +78,16 @@ export default function SolutionDetailPage() {
       const values = form.getValues();
 
       if (editingUseCase) {
-        await handleUpdate(editingUseCase.id, values);
+        await updateUseCase.mutateAsync({
+          id: editingUseCase.id,
+          updates: values,
+        });
       } else {
-        await handleCreate({
+        await createUseCase.mutateAsync({
           solutionId: solutionId!,
           ...values,
         });
       }
-      // Store will update, useEffect will sync local state
 
       setIsModalOpen(false);
       form.reset();
@@ -166,6 +152,17 @@ export default function SolutionDetailPage() {
     },
   ];
 
+  // Handle case where solution is not yet loaded
+  if (!solution) {
+    return (
+      <SolutionManagementLayout>
+        <PageContent>
+          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+        </PageContent>
+      </SolutionManagementLayout>
+    );
+  }
+
   return (
     <SolutionManagementLayout>
       <PageHeader
@@ -205,7 +202,7 @@ export default function SolutionDetailPage() {
           dataSource={useCases}
           rowKey="id"
           pagination={{ pageSize: 10 }}
-          loading={storeLoading}
+          loading={isLoading}
         />
       </PageContent>
 
@@ -256,5 +253,15 @@ export default function SolutionDetailPage() {
         </Form>
       </Modal>
     </SolutionManagementLayout>
+  );
+}
+
+export default function SolutionDetailPage() {
+  const { dehydratedState } = useLoaderData<SolutionDetailLoaderData>();
+
+  return (
+    <HydrationBoundary state={dehydratedState}>
+      <SolutionDetailContent />
+    </HydrationBoundary>
   );
 }

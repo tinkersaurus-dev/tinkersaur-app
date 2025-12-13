@@ -9,7 +9,8 @@ import { PageHeader, PageContent } from '~/core/components';
 import { SolutionManagementLayout } from '../components';
 import { Button, Input, Form, useForm, Modal, Empty } from '~/core/components/ui';
 import type { Demographics } from '~/core/entities/product-management';
-import { usePersonas, usePersonaCRUD } from '../hooks';
+import { usePersonasQuery } from '../queries';
+import { useCreatePersona } from '../mutations';
 import { PersonaCard } from '../components';
 import { useAuthStore } from '~/core/auth';
 
@@ -38,8 +39,10 @@ export default function PersonasListPage() {
 
   const currentUser = useAuthStore((state) => state.currentUser);
   const teamId = currentUser?.teamId;
-  const { personas, loading } = usePersonas(teamId);
-  const { handleCreate } = usePersonaCRUD();
+
+  // TanStack Query hooks
+  const { data: personas = [], isLoading } = usePersonasQuery(teamId);
+  const createPersona = useCreatePersona();
 
   const handleAdd = () => {
     form.reset();
@@ -75,7 +78,7 @@ export default function PersonasListPage() {
         return;
       }
 
-      await handleCreate({
+      await createPersona.mutateAsync({
         teamId,
         name: values.name,
         role: values.role,
@@ -111,7 +114,7 @@ export default function PersonasListPage() {
       <PageContent>
         {!teamId ? (
           <Empty description="No team selected. Please create an organization and team first." />
-        ) : loading ? (
+        ) : isLoading ? (
           <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
         ) : personas.length === 0 ? (
           <Empty description="No personas yet. Click 'Add Persona' to create one." />

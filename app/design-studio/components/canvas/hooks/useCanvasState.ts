@@ -13,7 +13,7 @@
  * - Local/entity state resolution
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useCanvasInstance } from '../../../store/content/useCanvasInstance';
 import { useDiagram } from '../../../hooks/useDiagrams';
 import { useDiagramCRUD } from '../../../hooks/useDiagramCRUD';
@@ -175,19 +175,35 @@ export function useCanvasState({ diagramId }: UseCanvasStateProps): UseCanvasSta
   const entityShapesLength = entityShapes.length;
   const entityConnectorsLength = entityConnectors.length;
 
-  // Initialize local content from entity store ONCE on mount
-  // After initialization, local state is autonomous and updated by commands
-  // Commands coordinate updates to both local state and entity store
+  // Track entity data version to detect refetches
+  // We use updatedAt timestamp as a reliable change indicator
+  const entityFingerprint = useMemo(() => {
+    if (!diagram) return null;
+    return diagram.updatedAt;
+  }, [diagram]);
+  const lastEntityFingerprintRef = useRef<Date | null>(null);
+
+  // Initialize local content from entity store on mount
+  // AND re-initialize when entity data changes from a refetch
   useEffect(() => {
-    if (!loading && (entityShapesLength > 0 || entityConnectorsLength > 0) && !isInitialized) {
-      // Use requestAnimationFrame to defer state update
-      const frameId = requestAnimationFrame(() => {
-        initializeContent(entityShapes, entityConnectors);
-        setIsInitialized(true);
-      });
-      return () => cancelAnimationFrame(frameId);
+    if (!loading && diagram) {
+      const hasContent = entityShapesLength > 0 || entityConnectorsLength > 0;
+      const isFirstInit = !isInitialized && hasContent;
+      const isRefetch = isInitialized && entityFingerprint !== lastEntityFingerprintRef.current;
+
+      if (isFirstInit || isRefetch) {
+        // Use requestAnimationFrame to defer state update
+        const frameId = requestAnimationFrame(() => {
+          initializeContent(entityShapes, entityConnectors);
+          lastEntityFingerprintRef.current = entityFingerprint;
+          if (!isInitialized) {
+            setIsInitialized(true);
+          }
+        });
+        return () => cancelAnimationFrame(frameId);
+      }
     }
-  }, [loading, entityShapesLength, entityConnectorsLength, initializeContent, isInitialized, entityShapes, entityConnectors]);
+  }, [loading, diagram, entityShapesLength, entityConnectorsLength, initializeContent, isInitialized, entityShapes, entityConnectors, entityFingerprint]);
 
   // Render from local state (working copy), fallback to entity state if local not initialized
   const shapes = useMemo(

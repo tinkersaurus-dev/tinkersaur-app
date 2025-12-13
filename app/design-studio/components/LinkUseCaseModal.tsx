@@ -7,7 +7,7 @@ import React from 'react';
 import { Modal } from '~/core/components/ui/Modal';
 import { Form, useForm } from '~/core/components/ui/Form';
 import { Select } from '~/core/components/ui/Select';
-import { useUseCases } from '~/product-management/hooks/useUseCases';
+import { useUseCasesQuery } from '~/product-management/queries';
 
 export interface LinkUseCaseFormData {
   useCaseId: string;
@@ -30,7 +30,7 @@ export function LinkUseCaseModal({
   onClose,
   onLink,
 }: LinkUseCaseModalProps) {
-  const { useCases, loading: loadingUseCases } = useUseCases(solutionId);
+  const { data: useCases = [], isLoading: loadingUseCases } = useUseCasesQuery(solutionId);
 
   const form = useForm<LinkUseCaseFormData>({
     useCaseId: currentUseCaseId || '',

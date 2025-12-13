@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
 import { useDiagramStore, useDocumentStore } from '~/core/entities/design-studio';
 import type { DesignWork } from '~/core/entities/design-studio';
-import { useUseCaseStore } from '~/core/entities/product-management/store/useCase/useUseCaseStore';
+import { useUseCaseQuery } from '~/product-management/queries';
+import { queryKeys } from '~/core/query/queryKeys';
+import { STALE_TIMES } from '~/core/query/queryClient';
+import { diagramApi, documentApi } from '~/core/entities/design-studio/api';
 
 interface ContentItem {
   type: 'diagram' | 'document';
@@ -25,15 +29,17 @@ function getDescendantFolderIds(folderId: string, designWorks: DesignWork[]): st
  */
 export function useFolderContent(folderId: string | undefined) {
   const designWorks = useDesignWorkStore((state) => state.designWorks);
-  const diagrams = useDiagramStore((state) => state.diagrams);
-  const diagramLoading = useDiagramStore((state) => state.loading);
-  const fetchDiagram = useDiagramStore((state) => state.fetchDiagram);
-  const documents = useDocumentStore((state) => state.documents);
-  const documentLoading = useDocumentStore((state) => state.loading);
-  const fetchDocument = useDocumentStore((state) => state.fetchDocument);
-  const useCases = useUseCaseStore((state) => state.entities);
+  const storedDiagrams = useDiagramStore((state) => state.diagrams);
+  const setDiagram = useDiagramStore((state) => state.setDiagram);
+  const storedDocuments = useDocumentStore((state) => state.documents);
+  const setDocument = useDocumentStore((state) => state.setDocument);
 
-  const [error, setError] = useState<Error | null>(null);
+  // Get the use case ID from the folder if it exists
+  const folder = designWorks.find((dw) => dw.id === folderId);
+  const useCaseId = folder?.useCaseId;
+
+  // Use TanStack Query for use case data
+  const { data: useCase } = useUseCaseQuery(useCaseId);
 
   // Get all descendant folder IDs
   const folderIds = useMemo(() => {
@@ -76,40 +82,68 @@ export function useFolderContent(folderId: string | undefined) {
     return items;
   }, [folderIds, designWorks]);
 
-  // Fetch all content items
+  // Create queries for diagrams
+  const diagramQueries = useQueries({
+    queries: contentItems
+      .filter((item) => item.type === 'diagram')
+      .map((item) => ({
+        queryKey: queryKeys.diagrams.detail(item.id),
+        queryFn: () => diagramApi.get(item.id),
+        staleTime: STALE_TIMES.diagrams,
+        enabled: !!folderId,
+      })),
+  });
+
+  // Create queries for documents
+  const documentQueries = useQueries({
+    queries: contentItems
+      .filter((item) => item.type === 'document')
+      .map((item) => ({
+        queryKey: queryKeys.documents.detail(item.id),
+        queryFn: () => documentApi.get(item.id),
+        staleTime: STALE_TIMES.documents,
+        enabled: !!folderId,
+      })),
+  });
+
+  // Sync fetched data to Zustand stores
   useEffect(() => {
-    if (!folderId || contentItems.length === 0) {
-      return;
-    }
-
-    let cancelled = false;
-
-    const fetchAll = async () => {
-      try {
-        const promises: Promise<void>[] = [];
-
-        for (const item of contentItems) {
-          if (item.type === 'diagram' && !diagrams[item.id] && !diagramLoading[item.id]) {
-            promises.push(fetchDiagram(item.id));
-          } else if (item.type === 'document' && !documents[item.id] && !documentLoading[item.id]) {
-            promises.push(fetchDocument(item.id));
-          }
-        }
-
-        await Promise.all(promises);
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err : new Error('Failed to fetch folder content'));
-        }
+    diagramQueries.forEach((query) => {
+      if (query.data) {
+        setDiagram(query.data);
       }
-    };
+    });
+  }, [diagramQueries, setDiagram]);
 
-    fetchAll();
+  useEffect(() => {
+    documentQueries.forEach((query) => {
+      if (query.data) {
+        setDocument(query.data);
+      }
+    });
+  }, [documentQueries, setDocument]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [folderId, contentItems, diagrams, documents, diagramLoading, documentLoading, fetchDiagram, fetchDocument]);
+  // Combine diagrams from query results and store
+  const diagrams = useMemo(() => {
+    const result: Record<string, NonNullable<(typeof diagramQueries)[0]['data']>> = { ...storedDiagrams };
+    diagramQueries.forEach((query) => {
+      if (query.data) {
+        result[query.data.id] = query.data;
+      }
+    });
+    return result;
+  }, [storedDiagrams, diagramQueries]);
+
+  // Combine documents from query results and store
+  const documents = useMemo(() => {
+    const result: Record<string, NonNullable<(typeof documentQueries)[0]['data']>> = { ...storedDocuments };
+    documentQueries.forEach((query) => {
+      if (query.data) {
+        result[query.data.id] = query.data;
+      }
+    });
+    return result;
+  }, [storedDocuments, documentQueries]);
 
   // Compile content into markdown
   const content = useMemo(() => {
@@ -124,16 +158,13 @@ export function useFolderContent(folderId: string | undefined) {
       if (!folder) continue;
 
       // Check if this folder has a linked use case
-      if (folder.useCaseId) {
-        const useCase = useCases.find((uc) => uc.id === folder.useCaseId);
-        if (useCase) {
-          let useCaseSection = `# Use Case: ${useCase.name}`;
-          if (useCase.description) {
-            useCaseSection += `\n\n${useCase.description}`;
-          }
-          useCaseSection += '\n\n---';
-          sections.push(useCaseSection);
+      if (folder.useCaseId && useCase && useCase.id === folder.useCaseId) {
+        let useCaseSection = `# Use Case: ${useCase.name}`;
+        if (useCase.description) {
+          useCaseSection += `\n\n${useCase.description}`;
         }
+        useCaseSection += '\n\n---';
+        sections.push(useCaseSection);
       }
 
       // Get content items for this folder, sorted by order
@@ -161,7 +192,11 @@ export function useFolderContent(folderId: string | undefined) {
     }
 
     return sections.length > 0 ? sections.join('\n\n') : '*No content in this folder*';
-  }, [folderId, folderIds, designWorks, useCases, diagrams, documents]);
+  }, [folderId, folderIds, designWorks, useCase, diagrams, documents]);
+
+  // Check loading state
+  const isLoading =
+    diagramQueries.some((q) => q.isLoading) || documentQueries.some((q) => q.isLoading);
 
   // Check if all content is loaded
   const allLoaded = useMemo(() => {
@@ -172,9 +207,18 @@ export function useFolderContent(folderId: string | undefined) {
     return true;
   }, [contentItems, diagrams, documents]);
 
+  // Collect errors
+  const error = useMemo(() => {
+    const diagramError = diagramQueries.find((q) => q.error)?.error;
+    const documentError = documentQueries.find((q) => q.error)?.error;
+    if (diagramError) return diagramError instanceof Error ? diagramError : new Error('Failed to fetch diagram');
+    if (documentError) return documentError instanceof Error ? documentError : new Error('Failed to fetch document');
+    return null;
+  }, [diagramQueries, documentQueries]);
+
   return {
     content,
-    loading: !allLoaded,
+    loading: isLoading || !allLoaded,
     error,
     itemCount: contentItems.length,
   };

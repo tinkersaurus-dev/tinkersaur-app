@@ -5,14 +5,13 @@
  * content is loaded on-demand when user opens it
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router';
 import { AppLayout } from '~/core/components';
 import { Layout, Tabs } from '~/core/components/ui';
 import { useDesignStudioUIStore } from '../store';
 import { useDesignWorks } from '../hooks';
-import { useSolutionStore } from '~/core/entities/product-management';
-import type { Solution } from '~/core/entities/product-management';
+import { useSolutionQuery } from '~/product-management/queries';
 import { StudioSidebar } from '../components/StudioSidebar';
 import { OverviewTab } from '../components/OverviewTab';
 import { DiagramView } from '../components/DiagramView';
@@ -22,8 +21,9 @@ import { FolderView } from '../components/FolderView';
 
 export default function StudioPage() {
   const { solutionId } = useParams();
-  const fetchSolution = useSolutionStore((state) => state.fetchSolution);
-  const [solution, setSolution] = useState<Solution | null>(null);
+
+  // Use TanStack Query for solution data
+  const { data: solution, isLoading: loadingSolution } = useSolutionQuery(solutionId);
 
   // Use UI store for tab management
   const { activeTabs, activeTabId, setActiveTab, closeTab, initializeTabs } = useDesignStudioUIStore();
@@ -32,21 +32,18 @@ export default function StudioPage() {
   // Individual content items are lazy loaded when opened
   const { loading: loadingDesignWorks } = useDesignWorks(solutionId || '');
 
-  // Fetch solution and initialize tabs when component mounts
+  // Initialize tabs when component mounts
   useEffect(() => {
     if (solutionId) {
-      fetchSolution(solutionId).then((s) => {
-        setSolution(s);
-      });
       initializeTabs(solutionId);
     }
-  }, [solutionId, fetchSolution, initializeTabs]);
+  }, [solutionId, initializeTabs]);
 
   if (!solution) {
     return (
       <AppLayout>
         <div style={{ padding: '24px' }}>
-          {loadingDesignWorks ? 'Loading...' : `Solution not found (id: ${solutionId})`}
+          {loadingSolution || loadingDesignWorks ? 'Loading...' : `Solution not found (id: ${solutionId})`}
         </div>
       </AppLayout>
     );

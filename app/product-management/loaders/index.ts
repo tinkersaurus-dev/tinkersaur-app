@@ -1,51 +1,65 @@
 /**
  * Route loaders for product management SSR data fetching
+ * Uses TanStack Query prefetching for SSR with automatic hydration
  */
 
-import { ssrHttpClient, SsrApiError } from '~/core/api/ssrHttpClient';
-import { deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
-import type { Solution, UseCase, Persona, Requirement } from '~/core/entities/product-management';
+import { dehydrate } from '@tanstack/react-query';
+import { getQueryClient } from '~/core/query/queryClient';
+import { queryKeys } from '~/core/query/queryKeys';
+import { solutionApi, useCaseApi, requirementApi, personaApi } from '~/core/entities/product-management/api';
+import { STALE_TIMES } from '~/core/query/queryClient';
 
 // ============== TYPES ==============
 
 export interface SolutionDetailLoaderData {
-  solution: Solution;
-  useCases: UseCase[];
+  dehydratedState: ReturnType<typeof dehydrate>;
+  solutionId: string;
 }
 
 export interface UseCaseDetailLoaderData {
-  solution: Solution;
-  useCase: UseCase;
-  requirements: Requirement[];
+  dehydratedState: ReturnType<typeof dehydrate>;
+  solutionId: string;
+  useCaseId: string;
 }
 
 export interface PersonaDetailLoaderData {
-  persona: Persona;
+  dehydratedState: ReturnType<typeof dehydrate>;
+  personaId: string;
 }
 
 // ============== LOADERS ==============
 
 /**
  * Load solution and its use cases for solution-detail page
+ * Prefetches queries that will be used by the page
  */
 export async function loadSolutionDetail(solutionId: string): Promise<SolutionDetailLoaderData> {
-  try {
-    // Fetch solution and use cases in parallel
-    const [solutionData, useCasesData] = await Promise.all([
-      ssrHttpClient.get<Solution>(`/api/solutions/${solutionId}`),
-      ssrHttpClient.get<UseCase[]>(`/api/use-cases?solutionId=${solutionId}`),
-    ]);
+  const queryClient = getQueryClient();
 
-    return {
-      solution: deserializeDates(solutionData),
-      useCases: deserializeDatesArray(useCasesData),
-    };
-  } catch (error) {
-    if (error instanceof SsrApiError && error.status === 404) {
-      throw new Response('Solution not found', { status: 404 });
-    }
-    throw error;
+  // Prefetch solution and use cases in parallel
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.solutions.detail(solutionId),
+      queryFn: () => solutionApi.get(solutionId),
+      staleTime: STALE_TIMES.solutions,
+    }),
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.useCases.list(solutionId),
+      queryFn: () => useCaseApi.list(solutionId),
+      staleTime: STALE_TIMES.useCases,
+    }),
+  ]);
+
+  // Check if solution was found
+  const solution = queryClient.getQueryData(queryKeys.solutions.detail(solutionId));
+  if (!solution) {
+    throw new Response('Solution not found', { status: 404 });
   }
+
+  return {
+    dehydratedState: dehydrate(queryClient),
+    solutionId,
+  };
 }
 
 /**
@@ -55,41 +69,61 @@ export async function loadUseCaseDetail(
   solutionId: string,
   useCaseId: string
 ): Promise<UseCaseDetailLoaderData> {
-  try {
-    // Parallel fetch for better performance
-    const [solutionData, useCaseData, requirementsData] = await Promise.all([
-      ssrHttpClient.get<Solution>(`/api/solutions/${solutionId}`),
-      ssrHttpClient.get<UseCase>(`/api/use-cases/${useCaseId}`),
-      ssrHttpClient.get<Requirement[]>(`/api/requirements?useCaseId=${useCaseId}`),
-    ]);
+  const queryClient = getQueryClient();
 
-    return {
-      solution: deserializeDates(solutionData),
-      useCase: deserializeDates(useCaseData),
-      requirements: deserializeDatesArray(requirementsData),
-    };
-  } catch (error) {
-    if (error instanceof SsrApiError && error.status === 404) {
-      throw new Response('Resource not found', { status: 404 });
-    }
-    throw error;
+  // Parallel prefetch for better performance
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.solutions.detail(solutionId),
+      queryFn: () => solutionApi.get(solutionId),
+      staleTime: STALE_TIMES.solutions,
+    }),
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.useCases.detail(useCaseId),
+      queryFn: () => useCaseApi.get(useCaseId),
+      staleTime: STALE_TIMES.useCases,
+    }),
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.requirements.list(useCaseId),
+      queryFn: () => requirementApi.list(useCaseId),
+      staleTime: STALE_TIMES.requirements,
+    }),
+  ]);
+
+  // Check if resources were found
+  const solution = queryClient.getQueryData(queryKeys.solutions.detail(solutionId));
+  const useCase = queryClient.getQueryData(queryKeys.useCases.detail(useCaseId));
+  if (!solution || !useCase) {
+    throw new Response('Resource not found', { status: 404 });
   }
+
+  return {
+    dehydratedState: dehydrate(queryClient),
+    solutionId,
+    useCaseId,
+  };
 }
 
 /**
  * Load persona for persona-detail page
  */
 export async function loadPersonaDetail(personaId: string): Promise<PersonaDetailLoaderData> {
-  try {
-    const personaData = await ssrHttpClient.get<Persona>(`/api/personas/${personaId}`);
+  const queryClient = getQueryClient();
 
-    return {
-      persona: deserializeDates(personaData),
-    };
-  } catch (error) {
-    if (error instanceof SsrApiError && error.status === 404) {
-      throw new Response('Persona not found', { status: 404 });
-    }
-    throw error;
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.personas.detail(personaId),
+    queryFn: () => personaApi.get(personaId),
+    staleTime: STALE_TIMES.personas,
+  });
+
+  // Check if persona was found
+  const persona = queryClient.getQueryData(queryKeys.personas.detail(personaId));
+  if (!persona) {
+    throw new Response('Persona not found', { status: 404 });
   }
+
+  return {
+    dehydratedState: dehydrate(queryClient),
+    personaId,
+  };
 }

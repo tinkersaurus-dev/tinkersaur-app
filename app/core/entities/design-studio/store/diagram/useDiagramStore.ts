@@ -16,11 +16,14 @@ interface DiagramStore {
 
   // State
   diagrams: Record<string, Diagram>; // Indexed by diagram ID (includes shapes, connectors, viewport)
-  loading: Record<string, boolean>; // Per-diagram loading state
   errors: Record<string, Error | null>; // Per-diagram error state
 
-  // Diagram CRUD actions - lazy loaded per-item
-  fetchDiagram: (id: string) => Promise<void>;
+  // Diagram hydration - called by TanStack Query to sync fetched data
+  setDiagram: (diagram: Diagram) => void;
+  // Clear diagram from store (called on unmount to ensure fresh data on reopen)
+  clearDiagram: (id: string) => void;
+
+  // Diagram CRUD actions
   createDiagram: (data: CreateDiagramDto) => Promise<Diagram>;
   updateDiagram: (id: string, updates: Partial<Diagram>) => Promise<void>;
   deleteDiagram: (id: string) => Promise<void>;
@@ -153,50 +156,27 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
 
     // Initial state
     diagrams: {},
-    loading: {},
     errors: {},
 
-    // Diagram CRUD actions
-    fetchDiagram: async (id: string) => {
-      // Skip if already loaded
-      if (get().diagrams[id]) {
-        return;
-      }
-
+    // Diagram hydration - called by TanStack Query to sync fetched data
+    setDiagram: (diagram: Diagram) => {
       set((state) => ({
-        loading: { ...state.loading, [id]: true },
-        errors: { ...state.errors, [id]: null },
+        diagrams: { ...state.diagrams, [diagram.id]: diagram },
       }));
+    },
 
-      try {
-        const diagram = await diagramApi.get(id);
-        if (diagram) {
-          set((state) => ({
-            diagrams: { ...state.diagrams, [id]: diagram },
-            loading: { ...state.loading, [id]: false },
-          }));
-        } else {
-          // Diagram not found - still need to set loading to false
-          set((state) => ({
-            loading: { ...state.loading, [id]: false },
-          }));
-        }
-      } catch (error) {
-        const err = error instanceof Error ? error : new Error('Failed to fetch diagram');
-        set((state) => ({
-          loading: { ...state.loading, [id]: false },
-          errors: { ...state.errors, [id]: err },
-        }));
-        console.error('Failed to load diagram:', err);
-      }
+    // Clear diagram from store (called on unmount to ensure fresh data on reopen)
+    clearDiagram: (id: string) => {
+      set((state) => {
+        const newDiagrams = { ...state.diagrams };
+        const newErrors = { ...state.errors };
+        delete newDiagrams[id];
+        delete newErrors[id];
+        return { diagrams: newDiagrams, errors: newErrors };
+      });
     },
 
     createDiagram: async (data: CreateDiagramDto) => {
-      set((state) => ({
-        loading: { ...state.loading, creating: true },
-        errors: { ...state.errors, creating: null },
-      }));
-
       try {
         const diagram = await diagramApi.create(data);
 
@@ -233,14 +213,12 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         // Update local state
         set((state) => ({
           diagrams: { ...state.diagrams, [diagram.id]: diagram },
-          loading: { ...state.loading, creating: false },
         }));
 
         return diagram;
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Failed to create diagram');
         set((state) => ({
-          loading: { ...state.loading, creating: false },
           errors: { ...state.errors, creating: err },
         }));
         throw error;
@@ -248,23 +226,16 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     updateDiagram: async (id: string, updates: Partial<Diagram>) => {
-      set((state) => ({
-        loading: { ...state.loading, [id]: true },
-        errors: { ...state.errors, [id]: null },
-      }));
-
       try {
         const updated = await diagramApi.update(id, updates);
         if (updated) {
           set((state) => ({
             diagrams: { ...state.diagrams, [id]: updated },
-            loading: { ...state.loading, [id]: false },
           }));
         }
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Failed to update diagram');
         set((state) => ({
-          loading: { ...state.loading, [id]: false },
           errors: { ...state.errors, [id]: err },
         }));
         throw error;
@@ -272,11 +243,6 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     },
 
     deleteDiagram: async (id: string) => {
-      set((state) => ({
-        loading: { ...state.loading, [id]: true },
-        errors: { ...state.errors, [id]: null },
-      }));
-
       try {
         await diagramApi.delete(id);
 
@@ -299,23 +265,19 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
         // Update local state
         set((state) => {
           const newDiagrams = { ...state.diagrams };
-          const newLoading = { ...state.loading };
           const newErrors = { ...state.errors };
 
           delete newDiagrams[id];
-          delete newLoading[id];
           delete newErrors[id];
 
           return {
             diagrams: newDiagrams,
-            loading: newLoading,
             errors: newErrors,
           };
         });
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Failed to delete diagram');
         set((state) => ({
-          loading: { ...state.loading, [id]: false },
           errors: { ...state.errors, [id]: err },
         }));
         throw error;

@@ -1,26 +1,37 @@
 import { useEffect, useMemo } from 'react';
 import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
+import { useReferenceStore } from '~/core/entities/design-studio/store/reference/useReferenceStore';
+import { useDesignWorksWithContentQuery } from '~/design-studio/queries';
 
 /**
  * Hook to fetch and access all design works for a solution
+ * Uses TanStack Query for data fetching with automatic caching and background refresh.
+ * Also syncs references to the reference store for enriching tree nodes.
  */
 export function useDesignWorks(solutionId: string) {
-  const designWorks = useDesignWorkStore((state) => state.designWorks);
-  const loading = useDesignWorkStore((state) => state.loading);
+  const setDesignWorks = useDesignWorkStore((state) => state.setDesignWorks);
+  const storedDesignWorks = useDesignWorkStore((state) => state.designWorks);
   const error = useDesignWorkStore((state) => state.error);
-  const fetchDesignWorks = useDesignWorkStore((state) => state.fetchDesignWorks);
+  const setReferences = useReferenceStore((state) => state.setReferences);
 
+  // Use TanStack Query for fetching - returns both design works and references
+  const { data, isLoading } = useDesignWorksWithContentQuery(solutionId);
+
+  // Sync fetched design works and references to Zustand stores
   useEffect(() => {
-    fetchDesignWorks(solutionId);
-  }, [solutionId, fetchDesignWorks]);
+    if (data) {
+      setDesignWorks(data.designWorks);
+      setReferences(data.references);
+    }
+  }, [data, setDesignWorks, setReferences]);
 
-  // Filter to only this solution's design works
+  // Filter to only this solution's design works - use store for immediate updates
   const filteredDesignWorks = useMemo(
-    () => designWorks.filter((dw) => dw.solutionId === solutionId),
-    [designWorks, solutionId]
+    () => (storedDesignWorks.length > 0 ? storedDesignWorks : data?.designWorks ?? []).filter((dw) => dw.solutionId === solutionId),
+    [storedDesignWorks, data?.designWorks, solutionId]
   );
 
-  return { designWorks: filteredDesignWorks, loading, error };
+  return { designWorks: filteredDesignWorks, loading: isLoading, error };
 }
 
 /**

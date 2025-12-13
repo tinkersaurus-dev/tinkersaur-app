@@ -3,26 +3,16 @@
  * Displays solution information and lists all use cases
  */
 
-import { useEffect, useState } from 'react';
 import { Card, Descriptions, VStack } from '~/core/components/ui';
-import { useSolutionStore, type Solution } from '~/core/entities/product-management';
-import { useUseCaseStore } from '~/core/entities/product-management/store/useCase/useUseCaseStore';
+import { useSolutionQuery, useUseCasesQuery } from '~/product-management/queries';
 
 interface OverviewTabProps {
   solutionId: string;
 }
 
 export function OverviewTab({ solutionId }: OverviewTabProps) {
-  const fetchSolution = useSolutionStore((state) => state.fetchSolution);
-  const getUseCasesBySolutionId = useUseCaseStore((state) => state.getUseCasesBySolutionId);
-  const [solution, setSolution] = useState<Solution | null>(null);
-  const useCases = solution ? getUseCasesBySolutionId(solutionId) : [];
-
-  useEffect(() => {
-    fetchSolution(solutionId).then((s) => {
-      setSolution(s);
-    });
-  }, [solutionId, fetchSolution]);
+  const { data: solution } = useSolutionQuery(solutionId);
+  const { data: useCases = [] } = useUseCasesQuery(solutionId);
 
   if (!solution) {
     return <div style={{ padding: '24px' }}>Solution not found</div>;

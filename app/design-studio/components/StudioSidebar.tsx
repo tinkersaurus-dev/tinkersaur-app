@@ -4,7 +4,7 @@
  * DesignWorks represent folders in the tree hierarchy
  */
 
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { MdFolder, MdDescription, MdAccountTree, MdDashboard, MdLink, MdLink as MdLinkIcon } from 'react-icons/md';
 import { FiFolderPlus } from 'react-icons/fi';
 import { Tree, Dropdown } from '~/core/components';
@@ -18,7 +18,7 @@ import { useDesignStudioCRUD } from '../hooks/useDesignStudioCRUD';
 import { useFolderReferenceDrop } from '../hooks/useFolderReferenceDrop';
 import { CreateDiagramModal } from './CreateDiagramModal';
 import { LinkUseCaseModal } from './LinkUseCaseModal';
-import { useSolutionStore } from '~/core/entities/product-management/store/solution/useSolutionStore';
+import { useSolutionQuery } from '~/product-management/queries';
 
 interface StudioSidebarProps {
   solutionId: string;
@@ -28,25 +28,14 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
   // Use UI store for tab management only
   const { openTab } = useDesignStudioUIStore();
 
-  // Get solution name from solution store
-  const solutionName = useSolutionStore((state) =>
-    state.entities.find(s => s.id === solutionId)?.name
-  );
+  // Get solution name from TanStack Query
+  const { data: solution } = useSolutionQuery(solutionId);
+  const solutionName = solution?.name;
 
-  // Get entity data from entity store - only need DesignWorks now
+  // Get entity data from Zustand stores
+  // Design works and references are synced by useDesignWorks hook in parent component
   const designWorks = useDesignWorkStore((state) => state.designWorks);
-
-  // Get all references for enriching tree nodes
   const references = useReferenceStore((state) => state.references);
-  const fetchReferencesForDesignWork = useReferenceStore((state) => state.fetchReferencesForDesignWork);
-
-  // Load references for all design works
-  useEffect(() => {
-    // Fetch references for each design work
-    designWorks.forEach((dw) => {
-      fetchReferencesForDesignWork(dw.id);
-    });
-  }, [designWorks, fetchReferencesForDesignWork]);
 
 
 

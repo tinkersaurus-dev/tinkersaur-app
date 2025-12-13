@@ -1,20 +1,44 @@
 import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useInterfaceStore } from '~/core/entities/design-studio';
+import { useInterfaceQuery } from '~/design-studio/queries';
+import { queryKeys } from '~/core/query/queryKeys';
 
 /**
  * Hook to lazy load and access a single interface by ID
+ * Uses TanStack Query for data fetching with automatic caching and background refresh.
  */
 export function useInterface(id: string | undefined) {
-  const interfaceItem = useInterfaceStore((state) => (id ? state.interfaces[id] : undefined));
-  const loading = useInterfaceStore((state) => (id ? state.loading[id] : false));
+  const queryClient = useQueryClient();
+  const setInterface = useInterfaceStore((state) => state.setInterface);
+  const clearInterface = useInterfaceStore((state) => state.clearInterface);
+  const storedInterface = useInterfaceStore((state) => (id ? state.interfaces[id] : undefined));
   const error = useInterfaceStore((state) => (id ? state.errors[id] : null));
-  const fetchInterface = useInterfaceStore((state) => state.fetchInterface);
 
+  // Use TanStack Query for fetching
+  const { data: interfaceItem, isLoading } = useInterfaceQuery(id);
+
+  // Sync fetched interface to Zustand store
   useEffect(() => {
-    if (id && !interfaceItem && !loading) {
-      fetchInterface(id);
+    if (interfaceItem) {
+      setInterface(interfaceItem);
     }
-  }, [id, interfaceItem, loading, fetchInterface]);
+  }, [interfaceItem, setInterface]);
 
-  return { interfaceItem, loading, error };
+  // Clear interface from store and invalidate query cache on unmount to ensure fresh data on reopen
+  useEffect(() => {
+    return () => {
+      if (id) {
+        clearInterface(id);
+        queryClient.invalidateQueries({ queryKey: queryKeys.interfaces.detail(id) });
+      }
+    };
+  }, [id, clearInterface, queryClient]);
+
+  return {
+    // Return store interface for immediate updates, or query data
+    interfaceItem: storedInterface ?? interfaceItem ?? undefined,
+    loading: isLoading,
+    error,
+  };
 }

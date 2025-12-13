@@ -4,7 +4,7 @@
  * This module exports all API clients for the Design Studio entities.
  */
 
-export { designWorkApi } from './designWorkApi';
+export { designWorkApi, type DesignWorksWithReferences } from './designWorkApi';
 export { diagramApi } from './diagramApi';
 export { interfaceApi } from './interfaceApi';
 export { documentApi } from './documentApi';

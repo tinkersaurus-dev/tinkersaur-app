@@ -7,11 +7,12 @@ import { commandManager } from '~/core/commands/CommandManager';
 interface DesignWorkStore {
   // State
   designWorks: DesignWork[];
-  loading: boolean;
   error: Error | null;
 
+  // Hydration - called by TanStack Query to sync fetched data
+  setDesignWorks: (designWorks: DesignWork[]) => void;
+
   // Actions
-  fetchDesignWorks: (solutionId: string) => Promise<void>;
   createDesignWork: (data: CreateDesignWorkDto) => Promise<DesignWork>;
   updateDesignWork: (id: string, updates: Partial<DesignWork>) => Promise<void>;
   deleteDesignWork: (id: string) => Promise<void>;
@@ -32,93 +33,43 @@ interface DesignWorkStore {
 export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
   // Initial state
   designWorks: [],
-  loading: false,
   error: null,
 
-  fetchDesignWorks: async (solutionId: string) => {
-    set({ loading: true, error: null });
-
-    try {
-      const designWorks = await designWorkApi.list(solutionId);
-
-      // Fetch content for each design work and populate the embedded arrays
-      const enrichedDesignWorks = await Promise.all(
-        designWorks.map(async (dw) => {
-          const [diagrams, interfaces, documents] = await Promise.all([
-            diagramApi.list(dw.id),
-            interfaceApi.list(dw.id),
-            documentApi.list(dw.id),
-          ]);
-
-          return {
-            ...dw,
-            diagrams: diagrams.map((d, index) => ({
-              id: d.id,
-              name: d.name,
-              type: d.type,
-              order: index,
-            })),
-            interfaces: interfaces.map((i, index) => ({
-              id: i.id,
-              name: i.name,
-              fidelity: i.fidelity,
-              order: index,
-            })),
-            documents: documents.map((doc, index) => ({
-              id: doc.id,
-              name: doc.name,
-              order: index,
-            })),
-          };
-        })
-      );
-
-      set({ designWorks: enrichedDesignWorks, loading: false });
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to fetch design works');
-      set({ loading: false, error: err });
-      console.error('Failed to load design works:', err);
-    }
+  // Hydration - called by TanStack Query to sync fetched data
+  setDesignWorks: (designWorks: DesignWork[]) => {
+    set({ designWorks });
   },
 
   createDesignWork: async (data: CreateDesignWorkDto) => {
-    set({ loading: true, error: null });
-
     try {
       const designWork = await designWorkApi.create(data);
       set((state) => ({
         designWorks: [...state.designWorks, designWork],
-        loading: false,
       }));
       return designWork;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to create design work');
-      set({ loading: false, error: err });
+      set({ error: err });
       throw error;
     }
   },
 
   updateDesignWork: async (id: string, updates: Partial<DesignWork>) => {
-    set({ loading: true, error: null });
-
     try {
       const updated = await designWorkApi.update(id, updates);
       if (updated) {
         set((state) => ({
           designWorks: state.designWorks.map((dw) => (dw.id === id ? updated : dw)),
-          loading: false,
         }));
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to update design work');
-      set({ loading: false, error: err });
+      set({ error: err });
       throw error;
     }
   },
 
   deleteDesignWork: async (id: string) => {
-    set({ loading: true, error: null });
-
     try {
       // Get all descendant IDs for cascade delete
       const descendantIds = await designWorkApi.getAllDescendantIds(id);
@@ -158,11 +109,10 @@ export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
       // Update local state - filter designWorks array
       set((state) => ({
         designWorks: state.designWorks.filter((dw) => !allIdsToDelete.includes(dw.id)),
-        loading: false,
       }));
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to delete design work');
-      set({ loading: false, error: err });
+      set({ error: err });
       throw error;
     }
   },

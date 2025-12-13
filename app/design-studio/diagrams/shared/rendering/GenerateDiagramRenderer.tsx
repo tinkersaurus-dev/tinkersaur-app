@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { FaPlay } from 'react-icons/fa';
 import { MdClose } from 'react-icons/md';
 import type { ShapeRendererProps } from './types';
@@ -19,6 +20,9 @@ import { commandManager } from '~/core/commands/CommandManager';
 import { ReplaceWithPreviewCommand } from '~/core/commands/canvas/preview-import/ReplaceWithPreviewCommand';
 import { toast } from 'sonner';
 import { applySequenceDiagramPostProcessing } from '~/design-studio/diagrams/sequence/postProcessing';
+import { queryKeys } from '~/core/query/queryKeys';
+import { STALE_TIMES } from '~/core/query/queryClient';
+import { diagramApi } from '~/core/entities/design-studio/api';
 
 export function GenerateDiagramRenderer({
   shape,
@@ -47,8 +51,8 @@ export function GenerateDiagramRenderer({
   const addConnectorsBatch = useDiagramStore((state) => state._internalAddConnectorsBatch);
   const commandFactory = useDiagramStore((state) => state.commandFactory);
   const _internalUpdateShape = useDiagramStore((state) => state._internalUpdateShape);
-  const diagrams = useDiagramStore((state) => state.diagrams);
-  const fetchDiagram = useDiagramStore((state) => state.fetchDiagram);
+  const storedDiagrams = useDiagramStore((state) => state.diagrams);
+  const setDiagram = useDiagramStore((state) => state.setDiagram);
 
   const diagramType = diagram?.type as DiagramType | undefined;
 
@@ -64,18 +68,36 @@ export function GenerateDiagramRenderer({
     () => generatorData.referencedDiagramIds || [],
     [generatorData.referencedDiagramIds]
   );
-  const referencedDiagrams = referencedDiagramIds
-    .map((id) => diagrams[id])
-    .filter((d) => d !== undefined);
 
-  // Fetch referenced diagrams that aren't loaded yet
+  // Use TanStack Query to fetch referenced diagrams
+  const referencedDiagramQueries = useQueries({
+    queries: referencedDiagramIds.map((id) => ({
+      queryKey: queryKeys.diagrams.detail(id),
+      queryFn: () => diagramApi.get(id),
+      staleTime: STALE_TIMES.diagrams,
+    })),
+  });
+
+  // Sync fetched diagrams to Zustand store
   useEffect(() => {
-    referencedDiagramIds.forEach((id) => {
-      if (!diagrams[id]) {
-        fetchDiagram(id);
+    referencedDiagramQueries.forEach((query) => {
+      if (query.data) {
+        setDiagram(query.data);
       }
     });
-  }, [referencedDiagramIds, diagrams, fetchDiagram]);
+  }, [referencedDiagramQueries, setDiagram]);
+
+  // Combine diagrams from queries and store
+  const referencedDiagrams = useMemo(() => {
+    return referencedDiagramIds
+      .map((id) => {
+        // Check store first (for immediate updates), then query results
+        if (storedDiagrams[id]) return storedDiagrams[id];
+        const query = referencedDiagramQueries.find((q) => q.data?.id === id);
+        return query?.data;
+      })
+      .filter((d) => d !== undefined && d !== null);
+  }, [referencedDiagramIds, storedDiagrams, referencedDiagramQueries]);
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;
