@@ -22,3 +22,6 @@ export { useFolderContent } from './useFolderContent';
 
 // CRUD operations hook
 export { useDesignStudioCRUD } from './useDesignStudioCRUD';
+
+// Async generation hook
+export { useAsyncGeneration, type UseAsyncGenerationReturn } from './useAsyncGeneration';

@@ -5,7 +5,7 @@
  * with a tabbed panel for LLM-generated output (User Stories, User Documentation).
  */
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { LuSparkles, LuCopy } from 'react-icons/lu';
 import { Tabs } from '~/core/components/ui';
 import { Button } from '~/core/components/ui/Button';
@@ -17,6 +17,7 @@ import { UserDocsPanel } from './UserDocsPanel';
 import { TechSpecPanel } from './TechSpecPanel';
 import type { UserStory, UserDocument, TechSpecSection } from '../../lib/llm/types';
 import { userStoriesToMarkdown, userDocumentsToMarkdown, techSpecSectionsToMarkdown } from '../../lib/llm/types';
+import { useAsyncGeneration } from '../../hooks';
 
 export interface FolderEditorProps {
   content: string;
@@ -39,20 +40,18 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
   const contentRef = useRef<HTMLPreElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
-  // User stories generation state
-  const [userStories, setUserStories] = useState<UserStory[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generateError, setGenerateError] = useState<string | null>(null);
+  // Async generation hooks for LLM operations
+  const userStoriesGen = useAsyncGeneration<UserStory>({
+    generatorFn: useCallback(() => generateUserStories(content), [content]),
+  });
 
-  // User documentation generation state
-  const [userDocuments, setUserDocuments] = useState<UserDocument[]>([]);
-  const [isGeneratingDocs, setIsGeneratingDocs] = useState(false);
-  const [docsError, setDocsError] = useState<string | null>(null);
+  const userDocsGen = useAsyncGeneration<UserDocument>({
+    generatorFn: useCallback(() => generateUserDocsStructured(content), [content]),
+  });
 
-  // Technical specification generation state
-  const [techSpecSections, setTechSpecSections] = useState<TechSpecSection[]>([]);
-  const [isGeneratingTechSpec, setIsGeneratingTechSpec] = useState(false);
-  const [techSpecError, setTechSpecError] = useState<string | null>(null);
+  const techSpecGen = useAsyncGeneration<TechSpecSection>({
+    generatorFn: useCallback(() => generateTechSpecStructured(content), [content]),
+  });
 
   // Sync scroll between line numbers and content
   const handleScroll = () => {
@@ -61,76 +60,37 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
     }
   };
 
-  const handleGenerateUserStories = async () => {
-    setIsGenerating(true);
-    setGenerateError(null);
-    try {
-      const stories = await generateUserStories(content);
-      setUserStories(stories);
-    } catch (err) {
-      setGenerateError(err instanceof Error ? err.message : 'Generation failed');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleCopyUserStories = async () => {
-    if (userStories.length > 0) {
-      const markdown = userStoriesToMarkdown(userStories);
+    if (userStoriesGen.data.length > 0) {
+      const markdown = userStoriesToMarkdown(userStoriesGen.data);
       await navigator.clipboard.writeText(markdown);
     }
   };
 
   const handleStoriesChange = (newStories: UserStory[]) => {
-    setUserStories(newStories);
-  };
-
-  const handleGenerateUserDocs = async () => {
-    setIsGeneratingDocs(true);
-    setDocsError(null);
-    try {
-      const documents = await generateUserDocsStructured(content);
-      setUserDocuments(documents);
-    } catch (err) {
-      setDocsError(err instanceof Error ? err.message : 'Generation failed');
-    } finally {
-      setIsGeneratingDocs(false);
-    }
+    userStoriesGen.setData(newStories);
   };
 
   const handleCopyAllUserDocs = async () => {
-    if (userDocuments.length > 0) {
-      const markdown = userDocumentsToMarkdown(userDocuments);
+    if (userDocsGen.data.length > 0) {
+      const markdown = userDocumentsToMarkdown(userDocsGen.data);
       await navigator.clipboard.writeText(markdown);
     }
   };
 
   const handleDocumentsChange = (newDocuments: UserDocument[]) => {
-    setUserDocuments(newDocuments);
-  };
-
-  const handleGenerateTechSpec = async () => {
-    setIsGeneratingTechSpec(true);
-    setTechSpecError(null);
-    try {
-      const sections = await generateTechSpecStructured(content);
-      setTechSpecSections(sections);
-    } catch (err) {
-      setTechSpecError(err instanceof Error ? err.message : 'Generation failed');
-    } finally {
-      setIsGeneratingTechSpec(false);
-    }
+    userDocsGen.setData(newDocuments);
   };
 
   const handleCopyAllTechSpec = async () => {
-    if (techSpecSections.length > 0) {
-      const markdown = techSpecSectionsToMarkdown(techSpecSections);
+    if (techSpecGen.data.length > 0) {
+      const markdown = techSpecSectionsToMarkdown(techSpecGen.data);
       await navigator.clipboard.writeText(markdown);
     }
   };
 
   const handleTechSpecChange = (newSections: TechSpecSection[]) => {
-    setTechSpecSections(newSections);
+    techSpecGen.setData(newSections);
   };
 
   const lineNumbers = getLineNumbers(content);
@@ -147,9 +107,9 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               variant="primary"
               size="small"
               icon={<LuSparkles />}
-              onClick={handleGenerateUserStories}
-              loading={isGenerating}
-              disabled={isGenerating || !content}
+              onClick={userStoriesGen.generate}
+              loading={userStoriesGen.isLoading}
+              disabled={userStoriesGen.isLoading || !content}
             >
               Generate
             </Button>
@@ -158,7 +118,7 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               size="small"
               icon={<LuCopy />}
               onClick={handleCopyUserStories}
-              disabled={userStories.length === 0}
+              disabled={userStoriesGen.data.length === 0}
             >
               Copy
             </Button>
@@ -166,18 +126,18 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
 
           {/* Content Area */}
           <div className="flex-1 overflow-hidden bg-[var(--bg-light)]">
-            {isGenerating ? (
+            {userStoriesGen.isLoading ? (
               <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
                 <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                 Generating user stories...
               </div>
-            ) : generateError ? (
+            ) : userStoriesGen.error ? (
               <div className="p-4 text-[var(--danger)]">
-                <strong>Error:</strong> {generateError}
+                <strong>Error:</strong> {userStoriesGen.error}
               </div>
             ) : (
               <UserStoriesPanel
-                initialStories={userStories}
+                initialStories={userStoriesGen.data}
                 folderContent={content}
                 onStoriesChange={handleStoriesChange}
               />
@@ -197,9 +157,9 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               variant="primary"
               size="small"
               icon={<LuSparkles />}
-              onClick={handleGenerateUserDocs}
-              loading={isGeneratingDocs}
-              disabled={isGeneratingDocs || !content}
+              onClick={userDocsGen.generate}
+              loading={userDocsGen.isLoading}
+              disabled={userDocsGen.isLoading || !content}
             >
               Generate
             </Button>
@@ -208,7 +168,7 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               size="small"
               icon={<LuCopy />}
               onClick={handleCopyAllUserDocs}
-              disabled={userDocuments.length === 0}
+              disabled={userDocsGen.data.length === 0}
             >
               Copy All
             </Button>
@@ -216,18 +176,18 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
 
           {/* Content Area */}
           <div className="flex-1 overflow-hidden bg-[var(--bg-light)]">
-            {isGeneratingDocs ? (
+            {userDocsGen.isLoading ? (
               <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
                 <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                 Generating user documentation...
               </div>
-            ) : docsError ? (
+            ) : userDocsGen.error ? (
               <div className="p-4 text-[var(--danger)]">
-                <strong>Error:</strong> {docsError}
+                <strong>Error:</strong> {userDocsGen.error}
               </div>
             ) : (
               <UserDocsPanel
-                initialDocuments={userDocuments}
+                initialDocuments={userDocsGen.data}
                 folderContent={content}
                 onDocumentsChange={handleDocumentsChange}
               />
@@ -247,9 +207,9 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               variant="primary"
               size="small"
               icon={<LuSparkles />}
-              onClick={handleGenerateTechSpec}
-              loading={isGeneratingTechSpec}
-              disabled={isGeneratingTechSpec || !content}
+              onClick={techSpecGen.generate}
+              loading={techSpecGen.isLoading}
+              disabled={techSpecGen.isLoading || !content}
             >
               Generate
             </Button>
@@ -258,7 +218,7 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
               size="small"
               icon={<LuCopy />}
               onClick={handleCopyAllTechSpec}
-              disabled={techSpecSections.length === 0}
+              disabled={techSpecGen.data.length === 0}
             >
               Copy All
             </Button>
@@ -266,18 +226,18 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
 
           {/* Content Area */}
           <div className="flex-1 overflow-hidden bg-[var(--bg-light)]">
-            {isGeneratingTechSpec ? (
+            {techSpecGen.isLoading ? (
               <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
                 <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                 Generating technical specification...
               </div>
-            ) : techSpecError ? (
+            ) : techSpecGen.error ? (
               <div className="p-4 text-[var(--danger)]">
-                <strong>Error:</strong> {techSpecError}
+                <strong>Error:</strong> {techSpecGen.error}
               </div>
             ) : (
               <TechSpecPanel
-                initialSections={techSpecSections}
+                initialSections={techSpecGen.data}
                 folderContent={content}
                 onSectionsChange={handleTechSpecChange}
               />

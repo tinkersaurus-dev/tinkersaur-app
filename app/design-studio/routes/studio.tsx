@@ -23,7 +23,7 @@ export default function StudioPage() {
   const { solutionId } = useParams();
 
   // Use TanStack Query for solution data
-  const { data: solution, isLoading: loadingSolution } = useSolutionQuery(solutionId);
+  const { data: solution, isLoading: loadingSolution, isError } = useSolutionQuery(solutionId);
 
   // Use UI store for tab management
   const { activeTabs, activeTabId, setActiveTab, closeTab, initializeTabs } = useDesignStudioUIStore();
@@ -39,12 +39,18 @@ export default function StudioPage() {
     }
   }, [solutionId, initializeTabs]);
 
-  if (!solution) {
+  if (loadingSolution || loadingDesignWorks) {
     return (
       <AppLayout>
-        <div style={{ padding: '24px' }}>
-          {loadingSolution || loadingDesignWorks ? 'Loading...' : `Solution not found (id: ${solutionId})`}
-        </div>
+        <div style={{ padding: '24px' }}>Loading...</div>
+      </AppLayout>
+    );
+  }
+
+  if (isError || !solution) {
+    return (
+      <AppLayout>
+        <div style={{ padding: '24px' }}>Solution not found (id: {solutionId})</div>
       </AppLayout>
     );
   }

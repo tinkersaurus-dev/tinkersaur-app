@@ -35,7 +35,7 @@ function SolutionDetailContent() {
   const [editingUseCase, setEditingUseCase] = useState<UseCase | null>(null);
 
   // TanStack Query hooks
-  const { data: solution } = useSolutionQuery(solutionId);
+  const { data: solution, isLoading: solutionLoading, isError } = useSolutionQuery(solutionId);
   const { data: useCases = [], isLoading } = useUseCasesQuery(solutionId);
   const createUseCase = useCreateUseCase();
   const updateUseCase = useUpdateUseCase();
@@ -152,12 +152,23 @@ function SolutionDetailContent() {
     },
   ];
 
-  // Handle case where solution is not yet loaded
-  if (!solution) {
+  // Handle loading state
+  if (solutionLoading) {
     return (
       <SolutionManagementLayout>
         <PageContent>
           <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+        </PageContent>
+      </SolutionManagementLayout>
+    );
+  }
+
+  // Handle error or not found state
+  if (isError || !solution) {
+    return (
+      <SolutionManagementLayout>
+        <PageContent>
+          <div className="text-center py-8 text-[var(--text-muted)]">Solution not found</div>
         </PageContent>
       </SolutionManagementLayout>
     );

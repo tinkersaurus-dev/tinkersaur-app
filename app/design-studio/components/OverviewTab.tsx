@@ -11,10 +11,14 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ solutionId }: OverviewTabProps) {
-  const { data: solution } = useSolutionQuery(solutionId);
+  const { data: solution, isLoading, isError } = useSolutionQuery(solutionId);
   const { data: useCases = [] } = useUseCasesQuery(solutionId);
 
-  if (!solution) {
+  if (isLoading) {
+    return <div style={{ padding: '24px' }}>Loading solution...</div>;
+  }
+
+  if (isError || !solution) {
     return <div style={{ padding: '24px' }}>Solution not found</div>;
   }
 

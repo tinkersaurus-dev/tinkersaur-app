@@ -107,21 +107,27 @@ export function useFolderContent(folderId: string | undefined) {
   });
 
   // Sync fetched data to Zustand stores
-  useEffect(() => {
-    diagramQueries.forEach((query) => {
-      if (query.data) {
-        setDiagram(query.data);
-      }
-    });
-  }, [diagramQueries, setDiagram]);
+  // Extract just the data arrays to use as stable dependencies
+  const diagramData = diagramQueries.map((q) => q.data).filter(Boolean);
+  const documentData = documentQueries.map((q) => q.data).filter(Boolean);
 
   useEffect(() => {
-    documentQueries.forEach((query) => {
-      if (query.data) {
-        setDocument(query.data);
+    diagramData.forEach((diagram) => {
+      if (diagram) {
+        setDiagram(diagram);
       }
     });
-  }, [documentQueries, setDocument]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(diagramData.map((d) => d?.id)), setDiagram]);
+
+  useEffect(() => {
+    documentData.forEach((document) => {
+      if (document) {
+        setDocument(document);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(documentData.map((d) => d?.id)), setDocument]);
 
   // Combine diagrams from query results and store
   const diagrams = useMemo(() => {
