@@ -276,11 +276,16 @@ export function useUserStoriesPanel({
     operationState.status === 'error' ? operationState.error : null;
 
   // Computed flags for button states
-  const canDelete = selectionCount > 0;
-  const canCombine = selectionCount >= 2;
-  const canSplit = selectionCount === 1;
-  const canRegenerate = selectionCount > 0;
-  const canEdit = selectionCount === 1;
+  const { canDelete, canCombine, canSplit, canRegenerate, canEdit } = useMemo(
+    () => ({
+      canDelete: selectionCount > 0,
+      canCombine: selectionCount >= 2,
+      canSplit: selectionCount === 1,
+      canRegenerate: selectionCount > 0,
+      canEdit: selectionCount === 1,
+    }),
+    [selectionCount]
+  );
 
   return {
     stories,

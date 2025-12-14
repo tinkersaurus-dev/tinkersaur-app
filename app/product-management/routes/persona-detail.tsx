@@ -166,8 +166,8 @@ function PersonaDetailContent() {
                 <p className="text-[var(--text-muted)]">No goals defined.</p>
               ) : (
                 <ul className="space-y-2">
-                  {persona.goals.map((goal, index) => (
-                    <li key={index} className="flex items-start gap-2">
+                  {persona.goals.map((goal) => (
+                    <li key={goal} className="flex items-start gap-2">
                       <span className="text-green-500 mt-1">•</span>
                       <span className="text-[var(--text)]">{goal}</span>
                     </li>
@@ -186,8 +186,8 @@ function PersonaDetailContent() {
                 <p className="text-[var(--text-muted)]">No pain points defined.</p>
               ) : (
                 <ul className="space-y-2">
-                  {persona.painPoints.map((painPoint, index) => (
-                    <li key={index} className="flex items-start gap-2">
+                  {persona.painPoints.map((painPoint) => (
+                    <li key={painPoint} className="flex items-start gap-2">
                       <span className="text-orange-500 mt-1">•</span>
                       <span className="text-[var(--text)]">{painPoint}</span>
                     </li>

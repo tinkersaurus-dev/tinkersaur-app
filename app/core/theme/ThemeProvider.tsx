@@ -3,7 +3,7 @@
  * Manages theme state and applies theme to document
  */
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
 export type Theme = 'light' | 'dark';
@@ -21,34 +21,44 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  // Use lazy initialization to load theme from localStorage without causing extra render
-  // Check for browser environment to support SSR
+  // Pure initialization - no side effects
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === 'undefined') {
       return 'light'; // Default for SSR
     }
     const stored = localStorage.getItem('theme') as Theme;
     if (stored && (stored === 'light' || stored === 'dark')) {
-      document.documentElement.setAttribute('data-theme', stored);
       return stored;
     }
     return 'light';
   });
 
-  const setTheme = (newTheme: Theme) => {
+  // Sync theme to DOM whenever it changes
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
     if (typeof window !== 'undefined') {
       localStorage.setItem('theme', newTheme);
-      document.documentElement.setAttribute('data-theme', newTheme);
     }
-  };
+  }, []);
 
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
+  const toggleTheme = useCallback(() => {
+    setThemeState((prev) => {
+      const newTheme = prev === 'light' ? 'dark' : 'light';
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('theme', newTheme);
+      }
+      return newTheme;
+    });
+  }, []);
+
+  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme, setTheme, toggleTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

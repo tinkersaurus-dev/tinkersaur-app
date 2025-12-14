@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { useCanvasDiagram } from './CanvasDiagramContext';
 import { useCanvasViewport } from './CanvasViewportContext';
 import { useCanvasSelection } from './CanvasSelectionContext';
@@ -66,6 +66,18 @@ function CanvasViewComponent() {
     shapes,
   });
 
+  // Stable event handlers to avoid creating new functions on each render
+  const handleDragStart = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const handleDropEvent = useCallback(
+    (e: React.DragEvent) => {
+      handleDrop(e, containerRef.current);
+    },
+    [handleDrop, containerRef]
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
@@ -84,9 +96,9 @@ function CanvasViewComponent() {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onContextMenu={handleContextMenu}
-      onDragStart={(e) => e.preventDefault()}
+      onDragStart={handleDragStart}
       onDragOver={handleDragOver}
-      onDrop={(e) => handleDrop(e, containerRef.current)}
+      onDrop={handleDropEvent}
       style={{
         touchAction: 'none',
         cursor: orchestrationCursor,
