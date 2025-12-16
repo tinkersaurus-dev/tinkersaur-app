@@ -32,8 +32,8 @@ export function TechSpecCard({ section }: TechSpecCardProps) {
 
       {section.subsections && section.subsections.length > 0 && (
         <div className="subsections">
-          {section.subsections.map((subsection, index) => (
-            <div key={index} className="subsection">
+          {section.subsections.map((subsection) => (
+            <div key={subsection.title} className="subsection">
               <h2>{subsection.title}</h2>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {subsection.content}

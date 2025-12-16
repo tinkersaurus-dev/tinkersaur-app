@@ -240,11 +240,11 @@ export function SequenceLifelineRenderer({
       </svg>
 
       {/* Activation boxes */}
-      {activations.map((activation, index) => {
+      {activations.map((activation) => {
         const activationX = x + lifelineX - activationWidth / 2 + activation.depth * (activationWidth / 2);
         return (
           <div
-            key={index}
+            key={`activation-${activation.startY}-${activation.depth}`}
             style={{
               position: 'absolute',
               left: `${activationX}px`,

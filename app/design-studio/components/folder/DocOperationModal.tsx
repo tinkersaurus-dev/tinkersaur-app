@@ -4,6 +4,8 @@
  * Modal for operations (Regenerate, Edit) with optional instructions.
  */
 
+import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Input } from '~/core/components/ui';
 import type { UserDocument, DocumentStep } from '../../lib/llm/types';
 import {
@@ -69,8 +71,44 @@ interface DocEditFormProps {
 }
 
 function DocEditForm({ document, onChange }: DocEditFormProps) {
+  // Stable ID map for prerequisites (persists across renders)
+  const [prereqIdMap, setPrereqIdMap] = useState<Map<number, string>>(() => new Map());
+
+  // Get or create stable ID for a prerequisite at a given index
+  const getPrereqStableId = (index: number): string => {
+    const existingId = prereqIdMap.get(index);
+    if (existingId) {
+      return existingId;
+    }
+    // Generate new ID and schedule state update
+    const newId = uuidv4();
+    setPrereqIdMap((prev) => new Map(prev).set(index, newId));
+    return newId;
+  };
+
   const updateField = <K extends keyof UserDocument>(field: K, value: UserDocument[K]) => {
     onChange({ ...document, [field]: value });
+  };
+
+  const removePrerequisite = (index: number) => {
+    // Shift IDs down for indices after the removed item
+    setPrereqIdMap((prev) => {
+      const newIdMap = new Map<number, string>();
+      prev.forEach((id, idx) => {
+        if (idx < index) {
+          newIdMap.set(idx, id);
+        } else if (idx > index) {
+          newIdMap.set(idx - 1, id);
+        }
+        // Skip the removed index
+      });
+      return newIdMap;
+    });
+
+    updateField(
+      'prerequisites',
+      document.prerequisites.filter((_, i) => i !== index)
+    );
   };
 
   return (
@@ -108,7 +146,7 @@ function DocEditForm({ document, onChange }: DocEditFormProps) {
         </div>
         <div className="flex flex-col gap-2">
           {document.prerequisites.map((prereq, index) => (
-            <div key={index} className="flex gap-2 items-center">
+            <div key={getPrereqStableId(index)} className="flex gap-2 items-center">
               <Input
                 value={prereq}
                 onChange={(e) => {
@@ -122,12 +160,7 @@ function DocEditForm({ document, onChange }: DocEditFormProps) {
               />
               <button
                 type="button"
-                onClick={() =>
-                  updateField(
-                    'prerequisites',
-                    document.prerequisites.filter((_, i) => i !== index)
-                  )
-                }
+                onClick={() => removePrerequisite(index)}
                 className="text-xs text-[var(--danger)] hover:underline"
               >
                 Remove

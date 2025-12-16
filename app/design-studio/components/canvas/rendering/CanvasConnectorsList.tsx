@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import type { Shape, Connector } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
 import { ConnectorRenderer } from '~/design-studio/diagrams/shared/rendering/ConnectorRenderer';
@@ -84,6 +84,12 @@ function CanvasConnectorsListComponent({
   // Get overlay visibility state
   const visibleOverlays = useOverlayVisibilityStore((state) => state.visibleOverlays);
 
+  // Pre-build shape lookup map for O(1) access instead of O(n) find() calls
+  const shapeById = useMemo(
+    () => new Map(shapes.map((s) => [s.id, s])),
+    [shapes]
+  );
+
   return (
     <>
       {connectors.map((connector) => {
@@ -91,8 +97,8 @@ function CanvasConnectorsListComponent({
         if (!isOverlayElementVisible(connector.overlayTag, visibleOverlays)) {
           return null;
         }
-        const sourceShape = shapes.find((s) => s.id === connector.sourceShapeId);
-        const targetShape = shapes.find((s) => s.id === connector.targetShapeId);
+        const sourceShape = shapeById.get(connector.sourceShapeId);
+        const targetShape = shapeById.get(connector.targetShapeId);
 
         // Skip rendering if either shape is missing
         if (!sourceShape || !targetShape) {

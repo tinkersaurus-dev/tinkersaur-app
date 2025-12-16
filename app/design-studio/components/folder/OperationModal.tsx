@@ -67,6 +67,8 @@ interface ArrayFieldEditorProps<Item> {
   addLabel: string;
   itemLabel?: string;
   showItemIndex?: boolean;
+  /** Extract a stable key from an item. Defaults to index if not provided. */
+  getKey?: (item: Item, index: number) => string;
 }
 
 export function ArrayFieldEditor<Item>({
@@ -78,6 +80,7 @@ export function ArrayFieldEditor<Item>({
   addLabel,
   itemLabel,
   showItemIndex = true,
+  getKey,
 }: ArrayFieldEditorProps<Item>) {
   const handleAdd = () => {
     onChange([...items, createItem()]);
@@ -107,7 +110,7 @@ export function ArrayFieldEditor<Item>({
       </div>
       <div className="flex flex-col gap-2">
         {items.map((item, index) => (
-          <div key={index} className="flex gap-2 items-start">
+          <div key={getKey ? getKey(item, index) : `item-${index}`} className="flex gap-2 items-start">
             {showItemIndex && itemLabel && (
               <span className="text-xs text-[var(--text-muted)] pt-2 min-w-[20px]">
                 {index + 1}.
@@ -139,6 +142,8 @@ interface ArrayFieldCardEditorProps<Item> {
   label: string;
   addLabel: string;
   itemLabel: string;
+  /** Extract a stable key from an item. Defaults to index if not provided. */
+  getKey?: (item: Item, index: number) => string;
 }
 
 export function ArrayFieldCardEditor<Item>({
@@ -149,6 +154,7 @@ export function ArrayFieldCardEditor<Item>({
   label,
   addLabel,
   itemLabel,
+  getKey,
 }: ArrayFieldCardEditorProps<Item>) {
   const handleAdd = () => {
     onChange([...items, createItem()]);
@@ -179,7 +185,7 @@ export function ArrayFieldCardEditor<Item>({
       <div className="flex flex-col gap-3">
         {items.map((item, index) => (
           <div
-            key={index}
+            key={getKey ? getKey(item, index) : `item-${index}`}
             className="bg-[var(--bg)] p-3 rounded-sm border border-[var(--border-muted)]"
           >
             <div className="flex items-center justify-between mb-2">

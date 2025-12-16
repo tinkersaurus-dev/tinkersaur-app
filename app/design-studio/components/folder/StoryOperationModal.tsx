@@ -5,6 +5,8 @@
  * Also handles local Edit operation.
  */
 
+import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Input } from '~/core/components/ui';
 import type { UserStory } from '../../lib/llm/types';
 import { OperationModal, type OperationModalConfig } from './OperationModal';
@@ -89,6 +91,21 @@ interface StoryEditFormProps {
 }
 
 function StoryEditForm({ story, onChange }: StoryEditFormProps) {
+  // Stable ID map for acceptance criteria (persists across renders)
+  const [criteriaIdMap, setCriteriaIdMap] = useState<Map<number, string>>(() => new Map());
+
+  // Get or create stable ID for an acceptance criterion at a given index
+  const getStableId = (index: number): string => {
+    const existingId = criteriaIdMap.get(index);
+    if (existingId) {
+      return existingId;
+    }
+    // Generate new ID and schedule state update
+    const newId = uuidv4();
+    setCriteriaIdMap((prev) => new Map(prev).set(index, newId));
+    return newId;
+  };
+
   const updateField = (field: keyof UserStory, value: string) => {
     onChange({ ...story, [field]: value });
   };
@@ -107,6 +124,20 @@ function StoryEditForm({ story, onChange }: StoryEditFormProps) {
   };
 
   const removeAcceptanceCriterion = (index: number) => {
+    // Shift IDs down for indices after the removed item
+    setCriteriaIdMap((prev) => {
+      const newIdMap = new Map<number, string>();
+      prev.forEach((id, idx) => {
+        if (idx < index) {
+          newIdMap.set(idx, id);
+        } else if (idx > index) {
+          newIdMap.set(idx - 1, id);
+        }
+        // Skip the removed index
+      });
+      return newIdMap;
+    });
+
     onChange({
       ...story,
       acceptanceCriteria: story.acceptanceCriteria.filter((_, i) => i !== index),
@@ -149,7 +180,7 @@ function StoryEditForm({ story, onChange }: StoryEditFormProps) {
 
         <div className="flex flex-col gap-2 max-h-48 overflow-auto">
           {story.acceptanceCriteria.map((ac, index) => (
-            <div key={index} className="flex gap-2 items-start">
+            <div key={getStableId(index)} className="flex gap-2 items-start">
               <span className="text-xs text-[var(--text-muted)] pt-2 min-w-[20px]">
                 {index + 1}.
               </span>

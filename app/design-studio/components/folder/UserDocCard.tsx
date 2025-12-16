@@ -20,7 +20,7 @@ export function UserDocCard({ document }: UserDocCardProps) {
       <h2>Overview</h2>
       <p>{document.overview}</p>
 
-      {document.prerequisites.length > 0 && (
+      {document.prerequisites && document.prerequisites.length > 0 && (
         <>
           <h2>Prerequisites</h2>
           <ul>
@@ -31,28 +31,32 @@ export function UserDocCard({ document }: UserDocCardProps) {
         </>
       )}
 
-      <h2>Steps</h2>
-      {document.steps.map((step, index) => (
-        <div key={`step-${index}`} className="step-container">
-          <h3>
-            Step {index + 1}: {step.title}
-          </h3>
-          <p>{step.description}</p>
-          {step.screenshotHint && (
-            <div className="screenshot-hint">[Screenshot: {step.screenshotHint}]</div>
-          )}
-          {step.callout && (
-            <div className={`callout callout-${step.callout.type}`}>
-              <strong>
-                {step.callout.type.charAt(0).toUpperCase() + step.callout.type.slice(1)}:
-              </strong>{' '}
-              {step.callout.content}
+      {document.steps && document.steps.length > 0 && (
+        <>
+          <h2>Steps</h2>
+          {document.steps.map((step, index) => (
+            <div key={`step-${index}`} className="step-container">
+              <h3>
+                Step {index + 1}: {step.title}
+              </h3>
+              <p>{step.description}</p>
+              {step.screenshotHint && (
+                <div className="screenshot-hint">[Screenshot: {step.screenshotHint}]</div>
+              )}
+              {step.callout && (
+                <div className={`callout callout-${step.callout.type}`}>
+                  <strong>
+                    {step.callout.type.charAt(0).toUpperCase() + step.callout.type.slice(1)}:
+                  </strong>{' '}
+                  {step.callout.content}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      ))}
+          ))}
+        </>
+      )}
 
-      {document.troubleshooting.length > 0 && (
+      {document.troubleshooting && document.troubleshooting.length > 0 && (
         <>
           <h2>Troubleshooting</h2>
           {document.troubleshooting.map((item, index) => (
@@ -64,7 +68,7 @@ export function UserDocCard({ document }: UserDocCardProps) {
         </>
       )}
 
-      {document.relatedTopics.length > 0 && (
+      {document.relatedTopics && document.relatedTopics.length > 0 && (
         <>
           <h2>Related Topics</h2>
           <ul>
