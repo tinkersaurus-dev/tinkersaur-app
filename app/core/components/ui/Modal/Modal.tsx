@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-// Global counter to track how many modals are currently open
-let openModalCount = 0;
-
 export interface ModalProps {
   open: boolean;
   onCancel?: () => void;
@@ -57,22 +54,13 @@ export function Modal({
   }, [open, onCancel]);
 
   // Prevent body scroll when modal is open
-  // Uses a global counter to ensure multiple modals don't interfere with each other
   useEffect(() => {
     if (open) {
-      openModalCount++;
       document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
     }
-
-    return () => {
-      if (open) {
-        openModalCount--;
-        // Only restore overflow when no modals are open
-        if (openModalCount === 0) {
-          document.body.style.overflow = '';
-        }
-      }
-    };
   }, [open]);
 
   if (!open) return null;

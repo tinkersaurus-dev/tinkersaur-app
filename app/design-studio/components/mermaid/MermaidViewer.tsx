@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { LuCopy, LuCheck } from 'react-icons/lu';
 import { FloatingPanel } from '~/core/components/ui/FloatingPanel';
 import { Button } from '~/core/components/ui/Button';
@@ -16,6 +16,13 @@ import { useMermaidViewerStore } from '../../store/mermaid/mermaidViewerStore';
 export function MermaidViewer() {
   const { isOpen, mermaidSyntax, errorMessage, setOpen } = useMermaidViewerStore();
   const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout>(undefined);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const handleClose = () => {
     setOpen(false);
@@ -25,7 +32,7 @@ export function MermaidViewer() {
     try {
       await navigator.clipboard.writeText(mermaidSyntax);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      timeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy to clipboard:', error);
     }
