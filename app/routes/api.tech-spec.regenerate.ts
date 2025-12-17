@@ -37,7 +37,7 @@ interface BedrockResponseBody {
 
 // Bedrock configuration
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
-const MODEL_ID = process.env.BEDROCK_MODEL_ID || 'qwen.qwen3-coder-30b-a3b-v1:0';
+const MODEL_ID = process.env.BEDROCK_MODEL_ID || 'amazon.nova-pro-v1:0';
 const BEARER_TOKEN = process.env.AWS_BEARER_TOKEN_BEDROCK;
 
 // Create credentials object
