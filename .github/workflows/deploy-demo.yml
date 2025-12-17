@@ -50,8 +50,46 @@ jobs:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.EC2_USER }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          envs: BEDROCK_ACCESS_KEY_ID,BEDROCK_SECRET_ACCESS_KEY
           script: |
+            # Update docker-compose.yml with current configuration
+            cat > docker-compose.yml << 'COMPOSE_EOF'
+            services:
+              api:
+                image: 875376229223.dkr.ecr.us-east-2.amazonaws.com/tinkersaur-api:latest
+                ports:
+                  - "5062:8080"
+                environment:
+                  - RDS_HOST=tinkersaur-dev.c7esuaea6t9b.us-east-2.rds.amazonaws.com
+                  - RDS_PORT=5432
+                  - RDS_DATABASE=tinkersaur
+                  - RDS_USERNAME=tinkersaur_admin
+                  - RDS_PASSWORD=TinkerDev2024!
+                  - ASPNETCORE_ENVIRONMENT=Production
+                  - CORS_ORIGINS=http://demo.tinkersaur.us:3000,http://18.222.248.84:3000,http://localhost:3000
+
+              app:
+                image: 875376229223.dkr.ecr.us-east-2.amazonaws.com/tinkersaur-app:latest
+                ports:
+                  - "3000:3000"
+                environment:
+                  - API_URL=http://api:8080
+                  - VITE_API_URL=http://demo.tinkersaur.us:5062
+                  - AWS_ACCESS_KEY_ID=${BEDROCK_ACCESS_KEY_ID}
+                  - AWS_SECRET_ACCESS_KEY=${BEDROCK_SECRET_ACCESS_KEY}
+                  - AWS_REGION=us-east-1
+                depends_on:
+                  - api
+            COMPOSE_EOF
+
+            # Replace placeholders with actual values
+            sed -i "s/\${BEDROCK_ACCESS_KEY_ID}/$BEDROCK_ACCESS_KEY_ID/g" docker-compose.yml
+            sed -i "s/\${BEDROCK_SECRET_ACCESS_KEY}/$BEDROCK_SECRET_ACCESS_KEY/g" docker-compose.yml
+
             aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 875376229223.dkr.ecr.us-east-2.amazonaws.com
             docker-compose pull app
             docker-compose up -d app
             docker image prune -f
+        env:
+          BEDROCK_ACCESS_KEY_ID: ${{ secrets.BEDROCK_ACCESS_KEY_ID }}
+          BEDROCK_SECRET_ACCESS_KEY: ${{ secrets.BEDROCK_SECRET_ACCESS_KEY }}
