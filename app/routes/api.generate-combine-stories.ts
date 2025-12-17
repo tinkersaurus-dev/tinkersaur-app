@@ -1,7 +1,7 @@
 /**
- * React Router API Route for regenerating a user document using Amazon Bedrock
+ * React Router API Route for combining user stories using Amazon Bedrock
  * Uses AWS SDK with bearer token authentication
- * Returns a single regenerated document as structured JSON
+ * Returns a single combined story as a markdown string
  */
 
 import type { ActionFunctionArgs } from 'react-router';
@@ -12,7 +12,6 @@ import {
   type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
 import { logger } from '~/core/utils/logger';
-import type { UserDocument, UserDocumentResponse } from '~/design-studio/lib/llm/types';
 
 // Type definitions for Bedrock API responses
 interface BedrockMessageContent {
@@ -58,52 +57,40 @@ const client = new BedrockRuntimeClient({
 });
 
 export async function action({ request }: ActionFunctionArgs) {
-  logger.apiRequest(request.method, '/api/user-docs/regenerate');
+  logger.apiRequest(request.method, '/api/generate-combine-stories');
 
   try {
     const body = await request.json();
-    const { document, originalContent, instructions } = body as {
-      document: UserDocument;
-      originalContent: string;
+    const { stories, instructions } = body as {
+      stories: string[]; // Array of markdown content strings
       instructions?: string;
     };
 
     logger.debug('Request received', {
-      documentId: document?.id,
-      contentLength: originalContent?.length,
+      storyCount: stories?.length,
       hasInstructions: !!instructions,
     });
 
     // Validate input
-    if (!document || !document.title || !document.overview) {
-      logger.warn('Validation error: invalid document structure');
+    if (!stories || !Array.isArray(stories) || stories.length < 2) {
+      logger.warn('Validation error: need at least 2 stories');
       return Response.json(
         {
           success: false,
-          error: 'A valid document is required for regeneration',
+          error: 'At least 2 stories are required for combining',
         },
         { status: 400 }
       );
     }
 
-    if (!originalContent || typeof originalContent !== 'string' || originalContent.trim().length === 0) {
-      logger.warn('Validation error: empty original content');
-      return Response.json(
-        {
-          success: false,
-          error: 'Original content is required for regeneration',
-        },
-        { status: 400 }
-      );
-    }
+    // Get combine system prompt
+    const systemPrompt = getSystemPrompt('user-stories-combine');
 
-    // Get regenerate system prompt
-    const systemPrompt = getSystemPrompt('user-documentation-regenerate');
-
-    // Prepare the request for the model
-    let userMessage = `Regenerate and improve the following user documentation based on the original design documentation.\n\n`;
-    userMessage += `Current Document:\n${JSON.stringify(document, null, 2)}\n\n`;
-    userMessage += `Original Design Documentation:\n${originalContent}`;
+    // Prepare the request for the model - send markdown content directly
+    let userMessage = `Combine the following user stories into a single, cohesive user story:\n\n`;
+    stories.forEach((story, index) => {
+      userMessage += `--- Story ${index + 1} ---\n${story}\n\n`;
+    });
 
     if (instructions) {
       userMessage += `\n\nAdditional instructions: ${instructions}`;
@@ -138,7 +125,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     // Call Bedrock with timeout
-    logger.info('Sending request to Bedrock for document regeneration');
+    logger.info('Sending request to Bedrock for story combination');
 
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
@@ -160,8 +147,8 @@ export async function action({ request }: ActionFunctionArgs) {
       new TextDecoder().decode(response.body)
     );
 
-    // Extract regenerated document from response
-    const regeneratedDoc =
+    // Extract generated story from response
+    const generatedStory =
       responseBody.choices?.[0]?.message?.content ||
       responseBody.content?.[0]?.text ||
       responseBody.output?.text ||
@@ -169,72 +156,54 @@ export async function action({ request }: ActionFunctionArgs) {
       responseBody.output?.message?.content?.[0]?.text ||
       '';
 
-    logger.debug('Extracted regenerated document', { length: regeneratedDoc.length });
+    logger.debug('Extracted combined story', { length: generatedStory.length });
 
-    if (!regeneratedDoc) {
-      logger.error('Failed to extract regenerated document from response');
+    if (!generatedStory) {
+      logger.error('Failed to extract combined story from response');
       return Response.json(
         {
           success: false,
-          error: 'No regenerated document generated from the model.',
+          error: 'No combined story generated from the model.',
         },
         { status: 500 }
       );
     }
 
-    // Clean up and parse JSON
-    let cleanedDoc = regeneratedDoc.trim();
+    // Clean up the response - it should be raw markdown, not JSON
+    let cleanedStory = generatedStory.trim();
 
-    // Remove markdown code blocks if present
-    if (cleanedDoc.startsWith('```json')) {
-      cleanedDoc = cleanedDoc.slice(7);
-    } else if (cleanedDoc.startsWith('```')) {
-      cleanedDoc = cleanedDoc.slice(3);
+    // Remove markdown code blocks if present (LLM might wrap in code blocks)
+    if (cleanedStory.startsWith('```markdown')) {
+      cleanedStory = cleanedStory.slice(11);
+    } else if (cleanedStory.startsWith('```md')) {
+      cleanedStory = cleanedStory.slice(5);
+    } else if (cleanedStory.startsWith('```')) {
+      cleanedStory = cleanedStory.slice(3);
     }
-    if (cleanedDoc.endsWith('```')) {
-      cleanedDoc = cleanedDoc.slice(0, -3);
+    if (cleanedStory.endsWith('```')) {
+      cleanedStory = cleanedStory.slice(0, -3);
     }
-    cleanedDoc = cleanedDoc.trim();
+    cleanedStory = cleanedStory.trim();
 
-    // Parse the JSON response
-    let parsedDoc: UserDocumentResponse;
-    try {
-      parsedDoc = JSON.parse(cleanedDoc);
-    } catch (parseError) {
-      logger.error('Failed to parse regenerated document JSON', parseError, {
-        rawResponse: cleanedDoc.substring(0, 500),
-      });
+    // Validate the response has content
+    if (!cleanedStory || cleanedStory.length === 0) {
+      logger.error('Empty combined story response');
       return Response.json(
         {
           success: false,
-          error: 'Failed to parse regenerated document response as JSON',
+          error: 'Empty combined story in response',
         },
         { status: 500 }
       );
     }
 
-    // Validate the structure
-    if (!parsedDoc.title || !parsedDoc.overview) {
-      logger.error('Invalid regenerated document structure', undefined, {
-        hasTitle: !!parsedDoc.title,
-        hasOverview: !!parsedDoc.overview,
-      });
-      return Response.json(
-        {
-          success: false,
-          error: 'Invalid regenerated document structure in response',
-        },
-        { status: 500 }
-      );
-    }
-
-    logger.info('Successfully regenerated user document');
+    logger.info('Successfully combined user stories');
     return Response.json({
       success: true,
-      document: parsedDoc,
+      story: cleanedStory,
     });
   } catch (error) {
-    logger.apiError(request.method, '/api/user-docs/regenerate', error);
+    logger.apiError(request.method, '/api/generate-combine-stories', error);
 
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';
@@ -242,7 +211,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json(
       {
         success: false,
-        error: `Failed to regenerate user document: ${errorMessage}`,
+        error: `Failed to combine user stories: ${errorMessage}`,
       },
       { status: 500 }
     );

@@ -1,7 +1,7 @@
 /**
- * React Router API Route for splitting a user story using Amazon Bedrock
+ * React Router API Route for regenerating a user document using Amazon Bedrock
  * Uses AWS SDK with bearer token authentication
- * Returns multiple stories as a JSON array of markdown strings
+ * Returns a single regenerated document as structured JSON
  */
 
 import type { ActionFunctionArgs } from 'react-router';
@@ -12,6 +12,7 @@ import {
   type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
 import { logger } from '~/core/utils/logger';
+import type { UserDocument, UserDocumentResponse } from '~/design-studio/lib/llm/types';
 
 // Type definitions for Bedrock API responses
 interface BedrockMessageContent {
@@ -57,37 +58,52 @@ const client = new BedrockRuntimeClient({
 });
 
 export async function action({ request }: ActionFunctionArgs) {
-  logger.apiRequest(request.method, '/api/user-stories/split');
+  logger.apiRequest(request.method, '/api/generate-user-docs-regenerate');
 
   try {
     const body = await request.json();
-    const { story, instructions } = body as {
-      story: string; // Markdown content string
+    const { document, originalContent, instructions } = body as {
+      document: UserDocument;
+      originalContent: string;
       instructions?: string;
     };
 
     logger.debug('Request received', {
-      storyLength: story?.length,
+      documentId: document?.id,
+      contentLength: originalContent?.length,
       hasInstructions: !!instructions,
     });
 
     // Validate input
-    if (!story || typeof story !== 'string' || story.trim().length === 0) {
-      logger.warn('Validation error: invalid story content');
+    if (!document || !document.title || !document.overview) {
+      logger.warn('Validation error: invalid document structure');
       return Response.json(
         {
           success: false,
-          error: 'A valid story is required for splitting',
+          error: 'A valid document is required for regeneration',
         },
         { status: 400 }
       );
     }
 
-    // Get split system prompt
-    const systemPrompt = getSystemPrompt('user-stories-split');
+    if (!originalContent || typeof originalContent !== 'string' || originalContent.trim().length === 0) {
+      logger.warn('Validation error: empty original content');
+      return Response.json(
+        {
+          success: false,
+          error: 'Original content is required for regeneration',
+        },
+        { status: 400 }
+      );
+    }
 
-    // Prepare the request for the model - send markdown content directly
-    let userMessage = `Split the following user story into multiple smaller, more focused stories:\n\n${story}`;
+    // Get regenerate system prompt
+    const systemPrompt = getSystemPrompt('user-documentation-regenerate');
+
+    // Prepare the request for the model
+    let userMessage = `Regenerate and improve the following user documentation based on the original design documentation.\n\n`;
+    userMessage += `Current Document:\n${JSON.stringify(document, null, 2)}\n\n`;
+    userMessage += `Original Design Documentation:\n${originalContent}`;
 
     if (instructions) {
       userMessage += `\n\nAdditional instructions: ${instructions}`;
@@ -102,7 +118,7 @@ export async function action({ request }: ActionFunctionArgs) {
         },
       ],
       inferenceConfig: {
-        maxTokens: 8192,
+        maxTokens: 4096,
         temperature: 0.7,
         topP: 0.9,
       },
@@ -122,7 +138,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     // Call Bedrock with timeout
-    logger.info('Sending request to Bedrock for story splitting');
+    logger.info('Sending request to Bedrock for document regeneration');
 
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
@@ -144,8 +160,8 @@ export async function action({ request }: ActionFunctionArgs) {
       new TextDecoder().decode(response.body)
     );
 
-    // Extract generated stories from response
-    const generatedStories =
+    // Extract regenerated document from response
+    const regeneratedDoc =
       responseBody.choices?.[0]?.message?.content ||
       responseBody.content?.[0]?.text ||
       responseBody.output?.text ||
@@ -153,79 +169,72 @@ export async function action({ request }: ActionFunctionArgs) {
       responseBody.output?.message?.content?.[0]?.text ||
       '';
 
-    logger.debug('Extracted split stories', { length: generatedStories.length });
+    logger.debug('Extracted regenerated document', { length: regeneratedDoc.length });
 
-    if (!generatedStories) {
-      logger.error('Failed to extract split stories from response');
+    if (!regeneratedDoc) {
+      logger.error('Failed to extract regenerated document from response');
       return Response.json(
         {
           success: false,
-          error: 'No stories generated from the model.',
+          error: 'No regenerated document generated from the model.',
         },
         { status: 500 }
       );
     }
 
-    // Clean up and parse JSON - expecting an array of markdown strings
-    let cleanedStories = generatedStories.trim();
+    // Clean up and parse JSON
+    let cleanedDoc = regeneratedDoc.trim();
 
     // Remove markdown code blocks if present
-    if (cleanedStories.startsWith('```json')) {
-      cleanedStories = cleanedStories.slice(7);
-    } else if (cleanedStories.startsWith('```')) {
-      cleanedStories = cleanedStories.slice(3);
+    if (cleanedDoc.startsWith('```json')) {
+      cleanedDoc = cleanedDoc.slice(7);
+    } else if (cleanedDoc.startsWith('```')) {
+      cleanedDoc = cleanedDoc.slice(3);
     }
-    if (cleanedStories.endsWith('```')) {
-      cleanedStories = cleanedStories.slice(0, -3);
+    if (cleanedDoc.endsWith('```')) {
+      cleanedDoc = cleanedDoc.slice(0, -3);
     }
-    cleanedStories = cleanedStories.trim();
+    cleanedDoc = cleanedDoc.trim();
 
-    // Parse the JSON response - expecting an array of markdown strings
-    let parsedStories: string[];
+    // Parse the JSON response
+    let parsedDoc: UserDocumentResponse;
     try {
-      parsedStories = JSON.parse(cleanedStories);
+      parsedDoc = JSON.parse(cleanedDoc);
     } catch (parseError) {
-      logger.error('Failed to parse split stories JSON', parseError, {
-        rawResponse: cleanedStories.substring(0, 500),
+      logger.error('Failed to parse regenerated document JSON', parseError, {
+        rawResponse: cleanedDoc.substring(0, 500),
       });
       return Response.json(
         {
           success: false,
-          error: 'Failed to parse split stories response as JSON',
+          error: 'Failed to parse regenerated document response as JSON',
         },
         { status: 500 }
       );
     }
 
-    // Validate the structure - should be an array of strings
-    if (!Array.isArray(parsedStories) || parsedStories.length === 0) {
-      logger.error('Invalid split stories structure - expected non-empty array', undefined, {
-        isArray: Array.isArray(parsedStories),
-        count: parsedStories?.length,
+    // Validate the structure
+    if (!parsedDoc.title || !parsedDoc.overview) {
+      logger.error('Invalid regenerated document structure', undefined, {
+        hasTitle: !!parsedDoc.title,
+        hasOverview: !!parsedDoc.overview,
       });
       return Response.json(
         {
           success: false,
-          error: 'Invalid split stories structure in response - expected array',
+          error: 'Invalid regenerated document structure in response',
         },
         { status: 500 }
       );
     }
 
-    // Filter to ensure all items are strings
-    const validStories = parsedStories.filter(
-      (s): s is string => typeof s === 'string' && s.trim().length > 0
-    );
-
-    logger.info('Successfully split user story', {
-      resultCount: validStories.length,
-    });
+    logger.info('Successfully regenerated user document');
     return Response.json({
       success: true,
-      stories: validStories,
+      document: parsedDoc,
     });
   } catch (error) {
-    logger.apiError(request.method, '/api/user-stories/split', error);
+    logger.apiError(request.method, '/api/generate-user-docs-regenerate', error);
 
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';
@@ -233,7 +242,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json(
       {
         success: false,
-        error: `Failed to split user story: ${errorMessage}`,
+        error: `Failed to regenerate user document: ${errorMessage}`,
       },
       { status: 500 }
     );

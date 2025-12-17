@@ -175,7 +175,7 @@ export async function combineUserStories(
   });
 
   try {
-    logger.info('Sending request to /api/user-stories/combine');
+    logger.info('Sending request to /api/generate-combine-stories');
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
@@ -186,7 +186,7 @@ export async function combineUserStories(
     // Extract markdown content from stories to send to API
     const storyContents = stories.map((s) => s.content);
 
-    const response = await fetch('/api/user-stories/combine', {
+    const response = await fetch('/api/generate-combine-stories', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ export async function splitUserStory(
   });
 
   try {
-    logger.info('Sending request to /api/user-stories/split');
+    logger.info('Sending request to /api/generate-split-story');
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
@@ -262,7 +262,7 @@ export async function splitUserStory(
       controller.abort();
     }, 120000);
 
-    const response = await fetch('/api/user-stories/split', {
+    const response = await fetch('/api/generate-split-story', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -331,7 +331,7 @@ export async function regenerateUserStory(
   });
 
   try {
-    logger.info('Sending request to /api/user-stories/regenerate');
+    logger.info('Sending request to /api/generate-regenerate-story');
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
@@ -339,7 +339,7 @@ export async function regenerateUserStory(
       controller.abort();
     }, 120000);
 
-    const response = await fetch('/api/user-stories/regenerate', {
+    const response = await fetch('/api/generate-regenerate-story', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

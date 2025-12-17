@@ -56,7 +56,7 @@ const client = new BedrockRuntimeClient({
 });
 
 export async function action({ request }: ActionFunctionArgs) {
-  logger.apiRequest(request.method, '/api/apply-suggestion');
+  logger.apiRequest(request.method, '/api/generate-apply-suggestion');
 
   try {
     const body = await request.json();
@@ -208,7 +208,7 @@ Return ONLY the updated Mermaid syntax.`;
       mermaid: cleanedContent,
     });
   } catch (error) {
-    logger.apiError(request.method, '/api/apply-suggestion', error);
+    logger.apiError(request.method, '/api/generate-apply-suggestion', error);
 
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';

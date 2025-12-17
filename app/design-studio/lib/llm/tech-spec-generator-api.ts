@@ -140,7 +140,7 @@ export async function regenerateTechSpecSection(
   });
 
   try {
-    logger.info('Sending request to /api/tech-spec/regenerate');
+    logger.info('Sending request to /api/generate-tech-spec-regenerate');
 
     // Create an AbortController with a timeout
     const controller = new AbortController();
@@ -149,7 +149,7 @@ export async function regenerateTechSpecSection(
       controller.abort();
     }, 120000);
 
-    const response = await fetch('/api/tech-spec/regenerate', {
+    const response = await fetch('/api/generate-tech-spec-regenerate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

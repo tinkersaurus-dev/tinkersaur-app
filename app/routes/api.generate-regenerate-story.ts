@@ -1,7 +1,7 @@
 /**
- * React Router API Route for combining user stories using Amazon Bedrock
+ * React Router API Route for regenerating a user story using Amazon Bedrock
  * Uses AWS SDK with bearer token authentication
- * Returns a single combined story as a markdown string
+ * Returns a single regenerated story as a markdown string
  */
 
 import type { ActionFunctionArgs } from 'react-router';
@@ -57,40 +57,52 @@ const client = new BedrockRuntimeClient({
 });
 
 export async function action({ request }: ActionFunctionArgs) {
-  logger.apiRequest(request.method, '/api/user-stories/combine');
+  logger.apiRequest(request.method, '/api/generate-regenerate-story');
 
   try {
     const body = await request.json();
-    const { stories, instructions } = body as {
-      stories: string[]; // Array of markdown content strings
+    const { story, originalContent, instructions } = body as {
+      story: string; // Markdown content string
+      originalContent: string;
       instructions?: string;
     };
 
     logger.debug('Request received', {
-      storyCount: stories?.length,
+      storyLength: story?.length,
+      contentLength: originalContent?.length,
       hasInstructions: !!instructions,
     });
 
     // Validate input
-    if (!stories || !Array.isArray(stories) || stories.length < 2) {
-      logger.warn('Validation error: need at least 2 stories');
+    if (!story || typeof story !== 'string' || story.trim().length === 0) {
+      logger.warn('Validation error: invalid story content');
       return Response.json(
         {
           success: false,
-          error: 'At least 2 stories are required for combining',
+          error: 'A valid story is required for regeneration',
         },
         { status: 400 }
       );
     }
 
-    // Get combine system prompt
-    const systemPrompt = getSystemPrompt('user-stories-combine');
+    if (!originalContent || typeof originalContent !== 'string' || originalContent.trim().length === 0) {
+      logger.warn('Validation error: empty original content');
+      return Response.json(
+        {
+          success: false,
+          error: 'Original content is required for regeneration',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Get regenerate system prompt
+    const systemPrompt = getSystemPrompt('user-stories-regenerate');
 
     // Prepare the request for the model - send markdown content directly
-    let userMessage = `Combine the following user stories into a single, cohesive user story:\n\n`;
-    stories.forEach((story, index) => {
-      userMessage += `--- Story ${index + 1} ---\n${story}\n\n`;
-    });
+    let userMessage = `Regenerate and improve the following user story based on the original design documentation.\n\n`;
+    userMessage += `Current Story:\n${story}\n\n`;
+    userMessage += `Original Design Documentation:\n${originalContent}`;
 
     if (instructions) {
       userMessage += `\n\nAdditional instructions: ${instructions}`;
@@ -125,7 +137,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     // Call Bedrock with timeout
-    logger.info('Sending request to Bedrock for story combination');
+    logger.info('Sending request to Bedrock for story regeneration');
 
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
@@ -147,8 +159,8 @@ export async function action({ request }: ActionFunctionArgs) {
       new TextDecoder().decode(response.body)
     );
 
-    // Extract generated story from response
-    const generatedStory =
+    // Extract regenerated story from response
+    const regeneratedStory =
       responseBody.choices?.[0]?.message?.content ||
       responseBody.content?.[0]?.text ||
       responseBody.output?.text ||
@@ -156,21 +168,21 @@ export async function action({ request }: ActionFunctionArgs) {
       responseBody.output?.message?.content?.[0]?.text ||
       '';
 
-    logger.debug('Extracted combined story', { length: generatedStory.length });
+    logger.debug('Extracted regenerated story', { length: regeneratedStory.length });
 
-    if (!generatedStory) {
-      logger.error('Failed to extract combined story from response');
+    if (!regeneratedStory) {
+      logger.error('Failed to extract regenerated story from response');
       return Response.json(
         {
           success: false,
-          error: 'No combined story generated from the model.',
+          error: 'No regenerated story generated from the model.',
         },
         { status: 500 }
       );
     }
 
     // Clean up the response - it should be raw markdown, not JSON
-    let cleanedStory = generatedStory.trim();
+    let cleanedStory = regeneratedStory.trim();
 
     // Remove markdown code blocks if present (LLM might wrap in code blocks)
     if (cleanedStory.startsWith('```markdown')) {
@@ -187,23 +199,23 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Validate the response has content
     if (!cleanedStory || cleanedStory.length === 0) {
-      logger.error('Empty combined story response');
+      logger.error('Empty regenerated story response');
       return Response.json(
         {
           success: false,
-          error: 'Empty combined story in response',
+          error: 'Empty regenerated story in response',
         },
         { status: 500 }
       );
     }
 
-    logger.info('Successfully combined user stories');
+    logger.info('Successfully regenerated user story');
     return Response.json({
       success: true,
       story: cleanedStory,
     });
   } catch (error) {
-    logger.apiError(request.method, '/api/user-stories/combine', error);
+    logger.apiError(request.method, '/api/generate-regenerate-story', error);
 
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';
@@ -211,7 +223,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json(
       {
         success: false,
-        error: `Failed to combine user stories: ${errorMessage}`,
+        error: `Failed to regenerate user story: ${errorMessage}`,
       },
       { status: 500 }
     );

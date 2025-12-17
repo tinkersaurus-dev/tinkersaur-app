@@ -231,7 +231,7 @@ export async function regenerateUserDocument(
   });
 
   try {
-    logger.info('Sending request to /api/user-docs/regenerate');
+    logger.info('Sending request to /api/generate-user-docs-regenerate');
 
     // Create an AbortController with a timeout
     const controller = new AbortController();
@@ -240,7 +240,7 @@ export async function regenerateUserDocument(
       controller.abort();
     }, 120000);
 
-    const response = await fetch('/api/user-docs/regenerate', {
+    const response = await fetch('/api/generate-user-docs-regenerate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

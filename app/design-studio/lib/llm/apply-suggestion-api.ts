@@ -1,6 +1,6 @@
 /**
  * Client-side API wrapper for applying suggestions to diagram shapes
- * Calls the /api/apply-suggestion endpoint to get updated mermaid
+ * Calls the /api/generate-apply-suggestion endpoint to get updated mermaid
  */
 
 export interface ApplySuggestionRequest {
@@ -31,7 +31,7 @@ export class ApplySuggestionAPIError extends Error {
 export async function applySuggestion(
   request: ApplySuggestionRequest
 ): Promise<string> {
-  const response = await fetch('/api/apply-suggestion', {
+  const response = await fetch('/api/generate-apply-suggestion', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

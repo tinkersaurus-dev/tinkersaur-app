@@ -58,7 +58,7 @@ const client = new BedrockRuntimeClient({
 });
 
 export async function action({ request }: ActionFunctionArgs) {
-  logger.apiRequest(request.method, '/api/tech-spec/regenerate');
+  logger.apiRequest(request.method, '/api/generate-tech-spec-regenerate');
 
   try {
     const body = await request.json();
@@ -235,7 +235,7 @@ export async function action({ request }: ActionFunctionArgs) {
       section: parsedSection,
     });
   } catch (error) {
-    logger.apiError(request.method, '/api/tech-spec/regenerate', error);
+    logger.apiError(request.method, '/api/generate-tech-spec-regenerate', error);
 
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';
