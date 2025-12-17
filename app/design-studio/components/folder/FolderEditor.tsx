@@ -16,8 +16,16 @@ import { UserStoriesPanel } from './UserStoriesPanel';
 import { UserDocsPanel } from './UserDocsPanel';
 import { TechSpecPanel } from './TechSpecPanel';
 import type { UserStory, UserDocument, TechSpecSection } from '../../lib/llm/types';
-import { userStoriesToMarkdown, userDocumentsToMarkdown, techSpecSectionsToMarkdown } from '../../lib/llm/types';
+import { userDocumentsToMarkdown, techSpecSectionsToMarkdown } from '../../lib/llm/types';
 import { useAsyncGeneration } from '../../hooks';
+
+/**
+ * Convert user stories to markdown for clipboard copy
+ * Stories are already markdown content, just join them with separators
+ */
+function userStoriesToMarkdown(stories: UserStory[]): string {
+  return stories.map((story) => story.content).join('\n\n----\n\n');
+}
 
 export interface FolderEditorProps {
   content: string;

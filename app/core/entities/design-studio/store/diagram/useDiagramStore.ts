@@ -977,6 +977,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
     // Utility actions
     // Internal method to update diagram mermaid syntax without triggering loading states
     // Used by useMermaidSync hook to persist cached mermaid export
+    // NOTE: Does NOT update local updatedAt - mermaid syntax is derived/cached data
+    // and should not trigger re-initialization of canvas local state
     _internalUpdateDiagramMermaid: (diagramId: string, mermaidSyntax: string) => {
       const diagram = get().diagrams[diagramId];
       if (diagram) {
@@ -986,7 +988,6 @@ export const useDiagramStore = create<DiagramStore>((set, get) => {
             [diagramId]: {
               ...diagram,
               mermaidSyntax,
-              updatedAt: new Date(),
             },
           },
         }));

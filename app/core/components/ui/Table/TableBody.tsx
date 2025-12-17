@@ -31,7 +31,7 @@ export function TableBody<T>({ rows, onRow }: TableBodyProps<T>) {
                 <td
                   key={cell.id}
                   style={width ? { width: typeof width === 'number' ? `${width}px` : width } : undefined}
-                  className="px-4 py-3 text-sm text-[var(--text-muted)]"
+                  className="px-4 py-3 text-xs text-[var(--text-muted)]"
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>

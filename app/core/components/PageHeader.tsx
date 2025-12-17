@@ -6,12 +6,13 @@
 import { HStack } from '~/core/components/ui';
 
 interface PageHeaderProps {
+  titlePrefix?: string;
   title: string;
   actions?: React.ReactNode;
   extra?: React.ReactNode;
 }
 
-export function PageHeader({ title, actions, extra }: PageHeaderProps) {
+export function PageHeader({ titlePrefix, title, actions, extra }: PageHeaderProps) {
   return (
     <div
       style={{
@@ -25,7 +26,7 @@ export function PageHeader({ title, actions, extra }: PageHeaderProps) {
     >
       <div>
         <h2 className="text-2xl font-semibold m-0">
-          {title}
+          <span color='red'>{titlePrefix}</span>{title}
         </h2>
         {extra && <div style={{ marginTop: '8px' }}>{extra}</div>}
       </div>

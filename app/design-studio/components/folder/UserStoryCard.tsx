@@ -21,21 +21,6 @@ export interface UserStoryCardProps {
   canMoveDown?: boolean;
 }
 
-/**
- * Convert a UserStory to markdown for rendering
- */
-function storyToMarkdown(story: UserStory): string {
-  let md = `### ${story.title}\n\n`;
-  md += `${story.story}\n\n`;
-  md += `#### Acceptance Criteria\n\n`;
-
-  story.acceptanceCriteria.forEach((ac, index) => {
-    md += `${index + 1}. ${ac}\n`;
-  });
-
-  return md;
-}
-
 export function UserStoryCard({
   story,
   selected,
@@ -56,8 +41,6 @@ export function UserStoryCard({
     }
     onSelect(story.id, !selected);
   };
-
-  const markdown = storyToMarkdown(story);
 
   return (
     <div
@@ -151,10 +134,10 @@ export function UserStoryCard({
         </div>
       </div>
 
-      {/* Story content */}
+      {/* Story content - render markdown content directly */}
       <div className="p-3 text-[var(--text)] markdown-content markdown-content--compact markdown-content--story-card text-xs">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {markdown}
+          {story.content}
         </ReactMarkdown>
       </div>
     </div>

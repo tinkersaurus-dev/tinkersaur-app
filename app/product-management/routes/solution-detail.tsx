@@ -177,6 +177,7 @@ function SolutionDetailContent() {
   return (
     <SolutionManagementLayout>
       <PageHeader
+        titlePrefix={solution.type.charAt(0).toUpperCase() + solution.type.slice(1) + ': '}
         title={solution.name}
         extra={
           <Breadcrumb
@@ -192,14 +193,9 @@ function SolutionDetailContent() {
           />
         }
         actions={
-          <HStack gap="sm">
-            <Button variant="default" icon={<MdDesignServices />} onClick={handleOpenDesignStudio}>
-              Open Design Studio
-            </Button>
-            <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
-              Add Use Case
-            </Button>
-          </HStack>
+          <Button variant="default" icon={<MdDesignServices />} onClick={handleOpenDesignStudio}>
+            Open Design Studio
+          </Button>
         }
       />
 
@@ -209,6 +205,13 @@ function SolutionDetailContent() {
         </div>
 
         <Table
+          header={{
+            title: 'Use Cases',
+            actions: (
+              <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
+              </Button>
+            ),
+          }}
           columns={columns}
           dataSource={useCases}
           rowKey="id"

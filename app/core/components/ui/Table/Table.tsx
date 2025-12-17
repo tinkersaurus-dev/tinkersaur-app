@@ -22,6 +22,7 @@ export function Table<T = Record<string, unknown>>({
   empty,
   className = '',
   onRow,
+  header,
 }: TableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [currentPage, setCurrentPage] = useState(
@@ -104,11 +105,19 @@ export function Table<T = Record<string, unknown>>({
     }
   };
 
+  const sectionHeader = header && (
+    <div className="flex items-center justify-between px-4 py-2 bg-[var(--bg)] border-b border-[var(--border-muted)]">
+      <span className="text-sm font-semibold text-[var(--text)]">{header.title}</span>
+      {header.actions && <div>{header.actions}</div>}
+    </div>
+  );
+
   // Loading state
   if (loading) {
     return (
       <div className={`w-full ${className}`}>
-        <div className="w-full border border-[var(--border-muted)] rounded-sm overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
+        <div className="w-full border border-[var(--border-muted)] rounded-md overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
+          {sectionHeader}
           <table className="w-full border-collapse">
             <TableHeader headers={table.getHeaderGroups()[0].headers} />
             <tbody>
@@ -134,7 +143,8 @@ export function Table<T = Record<string, unknown>>({
   if (dataSource.length === 0) {
     return (
       <div className={`w-full ${className}`}>
-        <div className="w-full border border-[var(--border-muted)] rounded-sm overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
+        <div className="w-full border border-[var(--border-muted)] rounded-md overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
+          {sectionHeader}
           <table className="w-full border-collapse">
             <TableHeader headers={table.getHeaderGroups()[0].headers} />
             <tbody>
@@ -154,7 +164,8 @@ export function Table<T = Record<string, unknown>>({
 
   return (
     <div className={`w-full ${className}`}>
-      <div className="w-full border border-[var(--border-muted)] rounded-sm overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
+      <div className="w-full border border-[var(--border-muted)] rounded-md overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
+        {sectionHeader}
         <table className="w-full border-collapse">
           <TableHeader headers={table.getHeaderGroups()[0].headers} />
           <TableBody rows={rows} onRow={onRow} />

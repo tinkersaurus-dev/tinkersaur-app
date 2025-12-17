@@ -1,7 +1,7 @@
 /**
  * React Router API Route for generating user stories using Amazon Bedrock
  * Using AWS SDK with bearer token authentication
- * Returns structured JSON for interactive editing
+ * Returns JSON array of markdown strings for flexible formatting
  */
 
 import type { ActionFunctionArgs } from 'react-router';
@@ -12,7 +12,6 @@ import {
   type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
 import { logger } from '~/core/utils/logger';
-import type { UserStoryResponse } from '~/design-studio/lib/llm/types';
 
 // Type definitions for Bedrock API responses
 interface BedrockMessageContent {
@@ -80,11 +79,11 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Get structured user stories system prompt
+    // Get user stories system prompt (returns JSON array of markdown strings)
     const systemPrompt = getSystemPrompt('user-stories-structured');
 
     // Prepare the request for the model
-    const userMessage = `Generate user stories with acceptance criteria as structured JSON from the following design documentation:\n\n${content}`;
+    const userMessage = `Generate user stories with acceptance criteria as a JSON array of markdown strings from the following design documentation:\n\n${content}`;
 
     const bedrockRequest = {
       system: [{ text: systemPrompt }],
@@ -183,8 +182,8 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     cleanedStories = cleanedStories.trim();
 
-    // Parse the JSON response
-    let parsedStories: { stories: UserStoryResponse[] };
+    // Parse the JSON response - expecting an array of markdown strings
+    let parsedStories: string[];
     try {
       parsedStories = JSON.parse(cleanedStories);
     } catch (parseError) {
@@ -200,27 +199,31 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Validate the structure
-    if (!parsedStories.stories || !Array.isArray(parsedStories.stories)) {
-      logger.error('Invalid user stories structure', undefined, {
-        hasStories: !!parsedStories.stories,
-        isArray: Array.isArray(parsedStories.stories),
+    // Validate the structure - should be an array of strings
+    if (!Array.isArray(parsedStories)) {
+      logger.error('Invalid user stories structure - expected array', undefined, {
+        type: typeof parsedStories,
       });
       return Response.json(
         {
           success: false,
-          error: 'Invalid user stories structure in response',
+          error: 'Invalid user stories structure in response - expected array',
         },
         { status: 500 }
       );
     }
 
+    // Filter to ensure all items are strings
+    const validStories = parsedStories.filter(
+      (story): story is string => typeof story === 'string' && story.trim().length > 0
+    );
+
     logger.info('Successfully generated user stories', {
-      count: parsedStories.stories.length,
+      count: validStories.length,
     });
     return Response.json({
       success: true,
-      stories: parsedStories.stories,
+      stories: validStories,
     });
   } catch (error) {
     logger.apiError(request.method, '/api/generate-user-stories', error);

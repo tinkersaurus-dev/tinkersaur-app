@@ -1,7 +1,7 @@
 /**
  * React Router API Route for splitting a user story using Amazon Bedrock
  * Uses AWS SDK with bearer token authentication
- * Returns multiple stories as structured JSON
+ * Returns multiple stories as a JSON array of markdown strings
  */
 
 import type { ActionFunctionArgs } from 'react-router';
@@ -12,7 +12,6 @@ import {
   type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
 import { logger } from '~/core/utils/logger';
-import type { UserStory, UserStoryResponse } from '~/design-studio/lib/llm/types';
 
 // Type definitions for Bedrock API responses
 interface BedrockMessageContent {
@@ -63,18 +62,18 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const body = await request.json();
     const { story, instructions } = body as {
-      story: UserStory;
+      story: string; // Markdown content string
       instructions?: string;
     };
 
     logger.debug('Request received', {
-      storyId: story?.id,
+      storyLength: story?.length,
       hasInstructions: !!instructions,
     });
 
     // Validate input
-    if (!story || !story.title || !story.story) {
-      logger.warn('Validation error: invalid story structure');
+    if (!story || typeof story !== 'string' || story.trim().length === 0) {
+      logger.warn('Validation error: invalid story content');
       return Response.json(
         {
           success: false,
@@ -87,8 +86,8 @@ export async function action({ request }: ActionFunctionArgs) {
     // Get split system prompt
     const systemPrompt = getSystemPrompt('user-stories-split');
 
-    // Prepare the request for the model
-    let userMessage = `Split the following user story into multiple smaller, more focused stories:\n\n${JSON.stringify(story, null, 2)}`;
+    // Prepare the request for the model - send markdown content directly
+    let userMessage = `Split the following user story into multiple smaller, more focused stories:\n\n${story}`;
 
     if (instructions) {
       userMessage += `\n\nAdditional instructions: ${instructions}`;
@@ -167,7 +166,7 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Clean up and parse JSON
+    // Clean up and parse JSON - expecting an array of markdown strings
     let cleanedStories = generatedStories.trim();
 
     // Remove markdown code blocks if present
@@ -181,8 +180,8 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     cleanedStories = cleanedStories.trim();
 
-    // Parse the JSON response
-    let parsedStories: { stories: UserStoryResponse[] };
+    // Parse the JSON response - expecting an array of markdown strings
+    let parsedStories: string[];
     try {
       parsedStories = JSON.parse(cleanedStories);
     } catch (parseError) {
@@ -198,28 +197,32 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Validate the structure
-    if (!parsedStories.stories || !Array.isArray(parsedStories.stories) || parsedStories.stories.length === 0) {
-      logger.error('Invalid split stories structure', undefined, {
-        hasStories: !!parsedStories.stories,
-        isArray: Array.isArray(parsedStories.stories),
-        count: parsedStories.stories?.length,
+    // Validate the structure - should be an array of strings
+    if (!Array.isArray(parsedStories) || parsedStories.length === 0) {
+      logger.error('Invalid split stories structure - expected non-empty array', undefined, {
+        isArray: Array.isArray(parsedStories),
+        count: parsedStories?.length,
       });
       return Response.json(
         {
           success: false,
-          error: 'Invalid split stories structure in response',
+          error: 'Invalid split stories structure in response - expected array',
         },
         { status: 500 }
       );
     }
 
+    // Filter to ensure all items are strings
+    const validStories = parsedStories.filter(
+      (s): s is string => typeof s === 'string' && s.trim().length > 0
+    );
+
     logger.info('Successfully split user story', {
-      resultCount: parsedStories.stories.length,
+      resultCount: validStories.length,
     });
     return Response.json({
       success: true,
-      stories: parsedStories.stories,
+      stories: validStories,
     });
   } catch (error) {
     logger.apiError(request.method, '/api/user-stories/split', error);

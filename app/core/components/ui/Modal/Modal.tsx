@@ -36,7 +36,7 @@ export function Modal({
   okButtonProps = {},
   cancelButtonProps = {},
   closable = true,
-  maskClosable = true,
+  maskClosable = false,
   className = '',
 }: ModalProps) {
   // Handle ESC key

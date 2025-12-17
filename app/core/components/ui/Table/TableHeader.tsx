@@ -38,7 +38,7 @@ export function TableHeader<T>({ headers }: TableHeaderProps<T>) {
               key={header.id}
               style={width ? { width: typeof width === 'number' ? `${width}px` : width } : undefined}
               className={`
-                px-4 py-3 text-left text-sm font-semibold text-[var(--text)]
+                px-4 py-3 text-left text-xs font-semibold text-[var(--text)]
                 ${canSort ? 'cursor-pointer select-none hover:bg-[var(--primary)] hover:text-[var(--text-button)]' : ''}
               `}
               onClick={canSort ? header.column.getToggleSortingHandler() : undefined}

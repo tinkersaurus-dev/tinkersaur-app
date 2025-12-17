@@ -1,7 +1,7 @@
 /**
  * React Router API Route for combining user stories using Amazon Bedrock
  * Uses AWS SDK with bearer token authentication
- * Returns a single combined story as structured JSON
+ * Returns a single combined story as a markdown string
  */
 
 import type { ActionFunctionArgs } from 'react-router';
@@ -12,7 +12,6 @@ import {
   type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
 import { logger } from '~/core/utils/logger';
-import type { UserStory, UserStoryResponse } from '~/design-studio/lib/llm/types';
 
 // Type definitions for Bedrock API responses
 interface BedrockMessageContent {
@@ -63,7 +62,7 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const body = await request.json();
     const { stories, instructions } = body as {
-      stories: UserStory[];
+      stories: string[]; // Array of markdown content strings
       instructions?: string;
     };
 
@@ -87,8 +86,11 @@ export async function action({ request }: ActionFunctionArgs) {
     // Get combine system prompt
     const systemPrompt = getSystemPrompt('user-stories-combine');
 
-    // Prepare the request for the model
-    let userMessage = `Combine the following user stories into a single, cohesive user story:\n\n${JSON.stringify(stories, null, 2)}`;
+    // Prepare the request for the model - send markdown content directly
+    let userMessage = `Combine the following user stories into a single, cohesive user story:\n\n`;
+    stories.forEach((story, index) => {
+      userMessage += `--- Story ${index + 1} ---\n${story}\n\n`;
+    });
 
     if (instructions) {
       userMessage += `\n\nAdditional instructions: ${instructions}`;
@@ -167,12 +169,14 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Clean up and parse JSON
+    // Clean up the response - it should be raw markdown, not JSON
     let cleanedStory = generatedStory.trim();
 
-    // Remove markdown code blocks if present
-    if (cleanedStory.startsWith('```json')) {
-      cleanedStory = cleanedStory.slice(7);
+    // Remove markdown code blocks if present (LLM might wrap in code blocks)
+    if (cleanedStory.startsWith('```markdown')) {
+      cleanedStory = cleanedStory.slice(11);
+    } else if (cleanedStory.startsWith('```md')) {
+      cleanedStory = cleanedStory.slice(5);
     } else if (cleanedStory.startsWith('```')) {
       cleanedStory = cleanedStory.slice(3);
     }
@@ -181,33 +185,13 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     cleanedStory = cleanedStory.trim();
 
-    // Parse the JSON response
-    let parsedStory: UserStoryResponse;
-    try {
-      parsedStory = JSON.parse(cleanedStory);
-    } catch (parseError) {
-      logger.error('Failed to parse combined story JSON', parseError, {
-        rawResponse: cleanedStory.substring(0, 500),
-      });
+    // Validate the response has content
+    if (!cleanedStory || cleanedStory.length === 0) {
+      logger.error('Empty combined story response');
       return Response.json(
         {
           success: false,
-          error: 'Failed to parse combined story response as JSON',
-        },
-        { status: 500 }
-      );
-    }
-
-    // Validate the structure
-    if (!parsedStory.title || !parsedStory.story) {
-      logger.error('Invalid combined story structure', undefined, {
-        hasTitle: !!parsedStory.title,
-        hasStory: !!parsedStory.story,
-      });
-      return Response.json(
-        {
-          success: false,
-          error: 'Invalid combined story structure in response',
+          error: 'Empty combined story in response',
         },
         { status: 500 }
       );
@@ -216,7 +200,7 @@ export async function action({ request }: ActionFunctionArgs) {
     logger.info('Successfully combined user stories');
     return Response.json({
       success: true,
-      story: parsedStory,
+      story: cleanedStory,
     });
   } catch (error) {
     logger.apiError(request.method, '/api/user-stories/combine', error);

@@ -184,6 +184,7 @@ function UseCaseDetailContent() {
   return (
     <SolutionManagementLayout>
       <PageHeader
+        titlePrefix='Use Case: '
         title={useCase.name}
         extra={
           <Breadcrumb
@@ -202,11 +203,6 @@ function UseCaseDetailContent() {
             ]}
           />
         }
-        actions={
-          <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
-            Add Requirement
-          </Button>
-        }
       />
 
       <PageContent>
@@ -215,6 +211,13 @@ function UseCaseDetailContent() {
         </div>
 
         <Table
+          header={{
+            title: 'Requirements',
+            actions: (
+              <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
+              </Button>
+            ),
+          }}
           columns={columns}
           dataSource={requirements}
           rowKey="id"

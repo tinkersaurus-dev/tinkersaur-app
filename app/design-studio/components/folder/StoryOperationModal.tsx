@@ -2,12 +2,9 @@
  * Story Operation Modal Component
  *
  * Modal for LLM operations (Combine, Split, Regenerate) with optional instructions.
- * Also handles local Edit operation.
+ * Also handles local Edit operation with markdown textarea.
  */
 
-import { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { Input } from '~/core/components/ui';
 import type { UserStory } from '../../lib/llm/types';
 import { OperationModal, type OperationModalConfig } from './OperationModal';
 
@@ -21,6 +18,28 @@ export interface StoryOperationModalProps {
   onCancel: () => void;
   isLoading?: boolean;
   error?: string | null;
+}
+
+/**
+ * Extract a display title from markdown content
+ * Looks for "### User Story: Title" or first heading, or truncates content
+ */
+function extractDisplayTitle(content: string): string {
+  // Try to find "### User Story: Title" pattern
+  const storyTitleMatch = content.match(/###\s*User Story:\s*(.+)/i);
+  if (storyTitleMatch) {
+    return storyTitleMatch[1].trim();
+  }
+
+  // Try to find any heading
+  const headingMatch = content.match(/^#+\s*(.+)/m);
+  if (headingMatch) {
+    return headingMatch[1].trim();
+  }
+
+  // Fallback: truncate first line
+  const firstLine = content.split('\n')[0].trim();
+  return firstLine.length > 50 ? firstLine.substring(0, 47) + '...' : firstLine;
 }
 
 const STORY_MODAL_CONFIG: OperationModalConfig<UserStory, OperationType> = {
@@ -42,7 +61,7 @@ const STORY_MODAL_CONFIG: OperationModalConfig<UserStory, OperationType> = {
     },
     edit: {
       title: 'Edit Story',
-      description: 'Manually edit the story fields below.',
+      description: 'Edit the story markdown content below.',
     },
   },
   modalWidth: 600,
@@ -64,7 +83,7 @@ const STORY_MODAL_CONFIG: OperationModalConfig<UserStory, OperationType> = {
           {storyList.map((story) => (
             <li key={story.id} className="flex items-start gap-2">
               <span className="text-[var(--primary)]">•</span>
-              <span>{story.title}</span>
+              <span>{extractDisplayTitle(story.content)}</span>
             </li>
           ))}
         </ul>
@@ -90,120 +109,37 @@ interface StoryEditFormProps {
   onChange: (updated: UserStory) => void;
 }
 
+/**
+ * Simple markdown textarea for editing user story content
+ */
 function StoryEditForm({ story, onChange }: StoryEditFormProps) {
-  // Stable ID map for acceptance criteria (persists across renders)
-  const [criteriaIdMap, setCriteriaIdMap] = useState<Map<number, string>>(() => new Map());
-
-  // Get or create stable ID for an acceptance criterion at a given index
-  const getStableId = (index: number): string => {
-    const existingId = criteriaIdMap.get(index);
-    if (existingId) {
-      return existingId;
-    }
-    // Generate new ID and schedule state update
-    const newId = uuidv4();
-    setCriteriaIdMap((prev) => new Map(prev).set(index, newId));
-    return newId;
-  };
-
-  const updateField = (field: keyof UserStory, value: string) => {
-    onChange({ ...story, [field]: value });
-  };
-
-  const updateAcceptanceCriterion = (index: number, value: string) => {
-    const newCriteria = [...story.acceptanceCriteria];
-    newCriteria[index] = value;
-    onChange({ ...story, acceptanceCriteria: newCriteria });
-  };
-
-  const addAcceptanceCriterion = () => {
-    onChange({
-      ...story,
-      acceptanceCriteria: [...story.acceptanceCriteria, ''],
-    });
-  };
-
-  const removeAcceptanceCriterion = (index: number) => {
-    // Shift IDs down for indices after the removed item
-    setCriteriaIdMap((prev) => {
-      const newIdMap = new Map<number, string>();
-      prev.forEach((id, idx) => {
-        if (idx < index) {
-          newIdMap.set(idx, id);
-        } else if (idx > index) {
-          newIdMap.set(idx - 1, id);
-        }
-        // Skip the removed index
-      });
-      return newIdMap;
-    });
-
-    onChange({
-      ...story,
-      acceptanceCriteria: story.acceptanceCriteria.filter((_, i) => i !== index),
-    });
-  };
-
   return (
-    <>
-      <div>
-        <label className="block text-xs font-medium text-[var(--text)] mb-1">Title</label>
-        <Input
-          value={story.title}
-          onChange={(e) => updateField('title', e.target.value)}
-          size="small"
-        />
-      </div>
+    <div>
+      <label className="block text-xs font-medium text-[var(--text)] mb-1">
+        Story Content (Markdown)
+      </label>
+      <textarea
+        value={story.content}
+        onChange={(e) => onChange({ ...story, content: e.target.value })}
+        rows={16}
+        className="w-full p-3 border border-[var(--border)] rounded bg-[var(--bg-light)] text-[var(--text)] resize-none outline-none focus:border-[var(--primary)]"
+        style={{
+          fontFamily: 'monospace',
+          fontSize: '12px',
+          lineHeight: '1.5',
+        }}
+        placeholder={`### User Story: [Title]
 
-      <div>
-        <label className="block text-xs font-medium text-[var(--text)] mb-1">User Story</label>
-        <Input.TextArea
-          value={story.story}
-          onChange={(e) => updateField('story', e.target.value)}
-          rows={3}
-          size="small"
-          placeholder="As a [role], I want [capability] so that [benefit]."
-        />
-      </div>
+**As a** [role]
+**I want** [capability]
+**So that** [benefit]
 
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-medium text-[var(--text)]">Acceptance Criteria</label>
-          <button
-            type="button"
-            onClick={addAcceptanceCriterion}
-            className="text-xs text-[var(--primary)] hover:underline"
-          >
-            + Add criterion
-          </button>
-        </div>
+#### Acceptance Criteria
 
-        <div className="flex flex-col gap-2 max-h-48 overflow-auto">
-          {story.acceptanceCriteria.map((ac, index) => (
-            <div key={getStableId(index)} className="flex gap-2 items-start">
-              <span className="text-xs text-[var(--text-muted)] pt-2 min-w-[20px]">
-                {index + 1}.
-              </span>
-              <Input.TextArea
-                value={ac}
-                onChange={(e) => updateAcceptanceCriterion(index, e.target.value)}
-                rows={2}
-                size="small"
-                className="flex-1"
-                placeholder="Describe a testable acceptance criterion..."
-              />
-              <button
-                type="button"
-                onClick={() => removeAcceptanceCriterion(index)}
-                className="text-xs text-[var(--danger)] hover:underline pt-2"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
+1. **When** [trigger], **the system shall** [response].
+2. **If** [condition], **then the system shall** [behavior].`}
+      />
+    </div>
   );
 }
 

@@ -27,6 +27,11 @@ export interface TableRowConfig<T> {
   className?: string;
 }
 
+export interface TableHeaderConfig {
+  title: ReactNode;
+  actions?: ReactNode;
+}
+
 export interface TableProps<T> {
   columns: TableColumn<T>[];
   dataSource: T[];
@@ -36,4 +41,5 @@ export interface TableProps<T> {
   empty?: ReactNode;
   className?: string;
   onRow?: (record: T) => TableRowConfig<T>;
+  header?: TableHeaderConfig;
 }

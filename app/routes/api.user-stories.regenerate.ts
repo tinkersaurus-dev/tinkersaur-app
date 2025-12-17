@@ -1,7 +1,7 @@
 /**
  * React Router API Route for regenerating a user story using Amazon Bedrock
  * Uses AWS SDK with bearer token authentication
- * Returns a single regenerated story as structured JSON
+ * Returns a single regenerated story as a markdown string
  */
 
 import type { ActionFunctionArgs } from 'react-router';
@@ -12,7 +12,6 @@ import {
   type InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime';
 import { logger } from '~/core/utils/logger';
-import type { UserStory, UserStoryResponse } from '~/design-studio/lib/llm/types';
 
 // Type definitions for Bedrock API responses
 interface BedrockMessageContent {
@@ -63,20 +62,20 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const body = await request.json();
     const { story, originalContent, instructions } = body as {
-      story: UserStory;
+      story: string; // Markdown content string
       originalContent: string;
       instructions?: string;
     };
 
     logger.debug('Request received', {
-      storyId: story?.id,
+      storyLength: story?.length,
       contentLength: originalContent?.length,
       hasInstructions: !!instructions,
     });
 
     // Validate input
-    if (!story || !story.title || !story.story) {
-      logger.warn('Validation error: invalid story structure');
+    if (!story || typeof story !== 'string' || story.trim().length === 0) {
+      logger.warn('Validation error: invalid story content');
       return Response.json(
         {
           success: false,
@@ -100,9 +99,9 @@ export async function action({ request }: ActionFunctionArgs) {
     // Get regenerate system prompt
     const systemPrompt = getSystemPrompt('user-stories-regenerate');
 
-    // Prepare the request for the model
+    // Prepare the request for the model - send markdown content directly
     let userMessage = `Regenerate and improve the following user story based on the original design documentation.\n\n`;
-    userMessage += `Current Story:\n${JSON.stringify(story, null, 2)}\n\n`;
+    userMessage += `Current Story:\n${story}\n\n`;
     userMessage += `Original Design Documentation:\n${originalContent}`;
 
     if (instructions) {
@@ -182,12 +181,14 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Clean up and parse JSON
+    // Clean up the response - it should be raw markdown, not JSON
     let cleanedStory = regeneratedStory.trim();
 
-    // Remove markdown code blocks if present
-    if (cleanedStory.startsWith('```json')) {
-      cleanedStory = cleanedStory.slice(7);
+    // Remove markdown code blocks if present (LLM might wrap in code blocks)
+    if (cleanedStory.startsWith('```markdown')) {
+      cleanedStory = cleanedStory.slice(11);
+    } else if (cleanedStory.startsWith('```md')) {
+      cleanedStory = cleanedStory.slice(5);
     } else if (cleanedStory.startsWith('```')) {
       cleanedStory = cleanedStory.slice(3);
     }
@@ -196,33 +197,13 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     cleanedStory = cleanedStory.trim();
 
-    // Parse the JSON response
-    let parsedStory: UserStoryResponse;
-    try {
-      parsedStory = JSON.parse(cleanedStory);
-    } catch (parseError) {
-      logger.error('Failed to parse regenerated story JSON', parseError, {
-        rawResponse: cleanedStory.substring(0, 500),
-      });
+    // Validate the response has content
+    if (!cleanedStory || cleanedStory.length === 0) {
+      logger.error('Empty regenerated story response');
       return Response.json(
         {
           success: false,
-          error: 'Failed to parse regenerated story response as JSON',
-        },
-        { status: 500 }
-      );
-    }
-
-    // Validate the structure
-    if (!parsedStory.title || !parsedStory.story) {
-      logger.error('Invalid regenerated story structure', undefined, {
-        hasTitle: !!parsedStory.title,
-        hasStory: !!parsedStory.story,
-      });
-      return Response.json(
-        {
-          success: false,
-          error: 'Invalid regenerated story structure in response',
+          error: 'Empty regenerated story in response',
         },
         { status: 500 }
       );
@@ -231,7 +212,7 @@ export async function action({ request }: ActionFunctionArgs) {
     logger.info('Successfully regenerated user story');
     return Response.json({
       success: true,
-      story: parsedStory,
+      story: cleanedStory,
     });
   } catch (error) {
     logger.apiError(request.method, '/api/user-stories/regenerate', error);

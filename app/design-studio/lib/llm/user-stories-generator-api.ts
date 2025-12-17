@@ -1,10 +1,11 @@
 /**
  * Client-side API wrapper for LLM-based user story generation and operations
+ * User stories are stored as { id, content } where content is markdown
  */
 
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '~/core/utils/logger';
-import type { UserStory, UserStoryResponse } from './types';
+import type { UserStory } from './types';
 
 export interface GenerateUserStoriesRequest {
   content: string;
@@ -12,41 +13,41 @@ export interface GenerateUserStoriesRequest {
 
 export interface GenerateUserStoriesResponse {
   success: boolean;
-  stories?: UserStoryResponse[];
+  stories?: string[]; // Array of markdown strings
   error?: string;
 }
 
 export interface CombineUserStoriesRequest {
-  stories: UserStory[];
+  stories: string[]; // Array of markdown content strings
   instructions?: string;
 }
 
 export interface CombineUserStoriesResponse {
   success: boolean;
-  story?: UserStoryResponse;
+  story?: string; // Markdown string
   error?: string;
 }
 
 export interface SplitUserStoryRequest {
-  story: UserStory;
+  story: string; // Markdown content string
   instructions?: string;
 }
 
 export interface SplitUserStoryResponse {
   success: boolean;
-  stories?: UserStoryResponse[];
+  stories?: string[]; // Array of markdown strings
   error?: string;
 }
 
 export interface RegenerateUserStoryRequest {
-  story: UserStory;
+  story: string; // Markdown content string
   originalContent: string;
   instructions?: string;
 }
 
 export interface RegenerateUserStoryResponse {
   success: boolean;
-  story?: UserStoryResponse;
+  story?: string; // Markdown string
   error?: string;
 }
 
@@ -64,12 +65,12 @@ export class UserStoriesGeneratorAPIError extends Error {
 }
 
 /**
- * Add client-generated IDs to user story responses
+ * Add client-generated IDs to user story markdown strings
  */
-function addIdsToStories(stories: UserStoryResponse[]): UserStory[] {
-  return stories.map((story) => ({
-    ...story,
+function addIdsToStories(stories: string[]): UserStory[] {
+  return stories.map((content) => ({
     id: uuidv4(),
+    content,
   }));
 }
 
@@ -182,13 +183,16 @@ export async function combineUserStories(
       controller.abort();
     }, 120000);
 
+    // Extract markdown content from stories to send to API
+    const storyContents = stories.map((s) => s.content);
+
     const response = await fetch('/api/user-stories/combine', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        stories,
+        stories: storyContents,
         instructions,
       } satisfies CombineUserStoriesRequest),
       signal: controller.signal,
@@ -214,8 +218,8 @@ export async function combineUserStories(
 
     // Add client-generated ID to the combined story
     const storyWithId: UserStory = {
-      ...data.story,
       id: uuidv4(),
+      content: data.story,
     };
 
     logger.info('Successfully combined user stories');
@@ -264,7 +268,7 @@ export async function splitUserStory(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        story,
+        story: story.content, // Send markdown content
         instructions,
       } satisfies SplitUserStoryRequest),
       signal: controller.signal,
@@ -341,7 +345,7 @@ export async function regenerateUserStory(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        story,
+        story: story.content, // Send markdown content
         originalContent,
         instructions,
       } satisfies RegenerateUserStoryRequest),
@@ -366,10 +370,10 @@ export async function regenerateUserStory(
       );
     }
 
-    // Preserve the original ID
+    // Preserve the original ID, update content
     const regeneratedStory: UserStory = {
-      ...data.story,
       id: story.id,
+      content: data.story,
     };
 
     logger.info('Successfully regenerated user story');
