@@ -11,7 +11,7 @@ env:
   ECR_REPOSITORY: tinkersaur-app
   EC2_HOST: 18.222.248.84
   EC2_USER: ec2-user
-  VITE_API_URL: http://demo.tinkersaur.us:5062
+  VITE_API_URL: https://demo.tinkersaur.us
 
 jobs:
   build-and-deploy:
@@ -66,7 +66,7 @@ jobs:
                   - RDS_USERNAME=tinkersaur_admin
                   - RDS_PASSWORD=${RDS_PASSWORD}
                   - ASPNETCORE_ENVIRONMENT=Production
-                  - CORS_ORIGINS=http://demo.tinkersaur.us:3000,http://18.222.248.84:3000,http://localhost:3000
+                  - CORS_ORIGINS=https://demo.tinkersaur.us,http://demo.tinkersaur.us:3000,http://18.222.248.84:3000,http://localhost:3000
 
               app:
                 image: 875376229223.dkr.ecr.us-east-2.amazonaws.com/tinkersaur-app:latest
@@ -74,7 +74,7 @@ jobs:
                   - "3000:3000"
                 environment:
                   - API_URL=http://api:8080
-                  - VITE_API_URL=http://demo.tinkersaur.us:5062
+                  - VITE_API_URL=https://demo.tinkersaur.us
                   - AWS_ACCESS_KEY_ID=${BEDROCK_ACCESS_KEY_ID}
                   - AWS_SECRET_ACCESS_KEY=${BEDROCK_SECRET_ACCESS_KEY}
                   - AWS_REGION=us-east-1
