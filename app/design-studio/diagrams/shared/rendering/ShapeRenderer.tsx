@@ -50,6 +50,12 @@ const ArchitectureGroupRenderer = createLazyRenderer(
   'ArchitectureGroupRenderer'
 );
 
+// Entity Relationship diagram renderers
+const EntityRenderer = createLazyRenderer(
+  () => import('../../entity-relationship/rendering/EntityRenderer'),
+  'EntityRenderer'
+);
+
 // LLM/Preview renderers
 const GenerateDiagramRenderer = createLazyRenderer(
   () => import('./GenerateDiagramRenderer'),
@@ -92,6 +98,8 @@ const shapeRenderers: Record<string, ShapeRendererComponent> = {
   // Architecture diagram shape renderers
   'architecture-service': ArchitectureServiceRenderer,
   'architecture-group': ArchitectureGroupRenderer,
+  // Entity Relationship diagram shape renderers
+  entity: EntityRenderer,
   // LLM-powered diagram generation shapes
   'llm-generator': GenerateDiagramRenderer,
   'llm-preview': PreviewRenderer,

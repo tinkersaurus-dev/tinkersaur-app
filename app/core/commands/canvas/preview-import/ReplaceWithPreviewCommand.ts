@@ -7,6 +7,7 @@ import { BpmnMermaidImporter } from '~/design-studio/diagrams/bpmn/mermaid/impor
 import { ClassMermaidImporter } from '~/design-studio/diagrams/class/mermaid/importer';
 import { SequenceMermaidImporter} from '~/design-studio/diagrams/sequence/mermaid/importer';
 import { ArchitectureMermaidImporter } from '~/design-studio/diagrams/architecture/mermaid/importer';
+import { EntityRelationshipMermaidImporter } from '~/design-studio/diagrams/entity-relationship/mermaid/importer';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 /**
@@ -248,6 +249,8 @@ export class ReplaceWithPreviewCommand implements Command {
         return new SequenceMermaidImporter();
       case 'architecture':
         return new ArchitectureMermaidImporter();
+      case 'entity-relationship':
+        return new EntityRelationshipMermaidImporter();
       default:
         return null;
     }

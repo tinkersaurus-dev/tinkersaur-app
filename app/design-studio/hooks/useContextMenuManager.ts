@@ -19,6 +19,7 @@ export const MENU_IDS = {
   CLASS_TOOLSET_POPOVER: 'class-toolset-popover',
   SEQUENCE_TOOLSET_POPOVER: 'sequence-toolset-popover',
   ARCHITECTURE_TOOLSET_POPOVER: 'architecture-toolset-popover',
+  ENTITY_RELATIONSHIP_TOOLSET_POPOVER: 'entity-relationship-toolset-popover',
   CONNECTOR_TOOLBAR_POPOVER: 'connector-toolbar-popover',
   CONNECTOR_CONTEXT_MENU: 'connector-context-menu',
   SHAPE_CONTEXT_MENU: 'shape-context-menu',

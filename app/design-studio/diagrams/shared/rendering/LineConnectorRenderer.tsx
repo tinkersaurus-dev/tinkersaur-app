@@ -8,6 +8,7 @@ import { getPathData } from './pathUtils';
 import { THEME_CONFIG } from '~/core/config/theme-config';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 import { getClassConnectorToolByType } from '~/design-studio/diagrams/class/connectors';
+import { getERConnectorToolByType } from '~/design-studio/diagrams/entity-relationship/connectors';
 
 /**
  * LineConnectorRenderer
@@ -176,8 +177,8 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   const markerStartId = `marker-start-${connector.id}`;
   const markerEndId = `marker-end-${connector.id}`;
 
-  // Check if connector supports cardinality
-  const connectorConfig = getClassConnectorToolByType(connector.type);
+  // Check if connector supports cardinality (check both class and ER connectors)
+  const connectorConfig = getClassConnectorToolByType(connector.type) ?? getERConnectorToolByType(connector.type);
   const supportsCardinality = connectorConfig?.supportsCardinality ?? false;
 
   // Calculate cardinality label positions
@@ -406,6 +407,84 @@ function getMarker(
           orient="auto-start-reverse"
         >
           <path d="M 0 0 L 10 5 L 0 10 z" fill={color} />
+        </marker>
+      );
+
+    // Crow's foot notation for ER diagrams
+    case 'crow-one':
+      // Exactly one: single vertical line (||)
+      return (
+        <marker
+          id={id}
+          viewBox="0 0 12 12"
+          refX="10"
+          refY="6"
+          markerWidth={markerSize}
+          markerHeight={markerSize}
+          orient="auto-start-reverse"
+        >
+          <line x1="8" y1="2" x2="8" y2="10" stroke={color} strokeWidth={strokeWidth} />
+          <line x1="10" y1="2" x2="10" y2="10" stroke={color} strokeWidth={strokeWidth} />
+        </marker>
+      );
+
+    case 'crow-zero-one':
+      // Zero or one: circle + vertical line (o|)
+      return (
+        <marker
+          id={id}
+          viewBox="0 0 16 12"
+          refX="14"
+          refY="6"
+          markerWidth={markerSize * 1.3}
+          markerHeight={markerSize}
+          orient="auto-start-reverse"
+        >
+          <circle cx="5" cy="6" r="3" fill="white" stroke={color} strokeWidth={strokeWidth} />
+          <line x1="12" y1="2" x2="12" y2="10" stroke={color} strokeWidth={strokeWidth} />
+          <line x1="14" y1="2" x2="14" y2="10" stroke={color} strokeWidth={strokeWidth} />
+        </marker>
+      );
+
+    case 'crow-many':
+      // One or more: three-pronged fork (crow's foot) + vertical line (|{)
+      return (
+        <marker
+          id={id}
+          viewBox="0 0 14 12"
+          refX="12"
+          refY="6"
+          markerWidth={markerSize * 1.2}
+          markerHeight={markerSize}
+          orient="auto-start-reverse"
+        >
+          {/* Crow's foot (three lines meeting at a point) */}
+          <line x1="1" y1="1" x2="8" y2="6" stroke={color} strokeWidth={strokeWidth} />
+          <line x1="1" y1="6" x2="8" y2="6" stroke={color} strokeWidth={strokeWidth} />
+          <line x1="1" y1="11" x2="8" y2="6" stroke={color} strokeWidth={strokeWidth} />
+          {/* Vertical line for "one" */}
+          <line x1="12" y1="2" x2="12" y2="10" stroke={color} strokeWidth={strokeWidth} />
+        </marker>
+      );
+
+    case 'crow-zero-many':
+      // Zero or more: circle + three-pronged fork (o{)
+      return (
+        <marker
+          id={id}
+          viewBox="0 0 16 12"
+          refX="8"
+          refY="6"
+          markerWidth={markerSize * 1.4}
+          markerHeight={markerSize}
+          orient="auto-start-reverse"
+        >
+          {/* Circle for "zero" */}
+          <circle cx="13" cy="6" r="3" fill="white" stroke={color} strokeWidth={strokeWidth} />
+          {/* Crow's foot (three lines meeting at a point) */}
+          <line x1="1" y1="1" x2="8" y2="6" stroke={color} strokeWidth={strokeWidth} />
+          <line x1="1" y1="6" x2="8" y2="6" stroke={color} strokeWidth={strokeWidth} />
+          <line x1="1" y1="11" x2="8" y2="6" stroke={color} strokeWidth={strokeWidth} />
         </marker>
       );
 

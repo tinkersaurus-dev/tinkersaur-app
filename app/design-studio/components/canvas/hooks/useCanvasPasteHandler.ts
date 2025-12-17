@@ -61,7 +61,8 @@ export function useCanvasPasteHandler({
         !trimmedText.startsWith('graph') &&
         !trimmedText.startsWith('classDiagram') &&
         !trimmedText.startsWith('sequenceDiagram') &&
-        !trimmedText.startsWith('architecture-beta')
+        !trimmedText.startsWith('architecture-beta') &&
+        !trimmedText.startsWith('erDiagram')
       ) {
         // Not Mermaid syntax, ignore
         return;

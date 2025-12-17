@@ -358,6 +358,8 @@ export function useCanvasEventOrchestrator({
       menuId = MENU_IDS.SEQUENCE_TOOLSET_POPOVER;
     } else if (diagramType === 'architecture') {
       menuId = MENU_IDS.ARCHITECTURE_TOOLSET_POPOVER;
+    } else if (diagramType === 'entity-relationship') {
+      menuId = MENU_IDS.ENTITY_RELATIONSHIP_TOOLSET_POPOVER;
     }
 
     // Open the appropriate menu
@@ -390,6 +392,8 @@ export function useCanvasEventOrchestrator({
         menuId = MENU_IDS.SEQUENCE_TOOLSET_POPOVER;
       } else if (diagramType === 'architecture') {
         menuId = MENU_IDS.ARCHITECTURE_TOOLSET_POPOVER;
+      } else if (diagramType === 'entity-relationship') {
+        menuId = MENU_IDS.ENTITY_RELATIONSHIP_TOOLSET_POPOVER;
       }
 
       // Open toolset popover with pending connector information

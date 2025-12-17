@@ -480,6 +480,25 @@ export class CommandFactory {
   }
 
   // ============================================================================
+  // Entity Relationship Diagram Commands
+  // ============================================================================
+
+  /**
+   * Get the internal update shape function for use in entity commands
+   * This is needed because entity attribute commands need direct access to the update function
+   */
+  getInternalUpdateShapeFn(): (diagramId: string, shapeId: string, updates: Partial<Shape>) => Promise<Diagram | null> {
+    return this.deps._internalUpdateShape;
+  }
+
+  /**
+   * Get the local shape update function for a diagram
+   */
+  getUpdateLocalShapeFn(diagramId: string): ((shapeId: string, updates: Partial<Shape>) => void) | undefined {
+    return this.deps.getUpdateLocalShape?.(diagramId);
+  }
+
+  // ============================================================================
   // Batch Operations
   // ============================================================================
 

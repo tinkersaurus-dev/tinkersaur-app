@@ -6,7 +6,7 @@ import { logger } from '~/core/utils/logger';
 
 export interface GenerateMermaidRequest {
   prompt: string;
-  diagramType: 'bpmn' | 'class' | 'sequence';
+  diagramType: 'bpmn' | 'class' | 'sequence' | 'entity-relationship';
 }
 
 export interface GenerateMermaidResponse {
@@ -38,7 +38,7 @@ export class MermaidGeneratorAPIError extends Error {
  */
 export async function generateMermaid(
   prompt: string,
-  diagramType: 'bpmn' | 'class' | 'sequence'
+  diagramType: 'bpmn' | 'class' | 'sequence' | 'entity-relationship'
 ): Promise<string> {
   logger.debug('generateMermaid called', {
     promptLength: prompt.length,

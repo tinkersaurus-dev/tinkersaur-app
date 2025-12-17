@@ -28,6 +28,7 @@ const diagramTypeOptions = [
   { value: 'class', label: 'Class Diagram' },
   { value: 'sequence', label: 'Sequence Diagram' },
   { value: 'architecture', label: 'Architecture Diagram' },
+  { value: 'entity-relationship', label: 'Entity Relationship Diagram' },
 ];
 
 export function CreateDiagramModal({

@@ -14,7 +14,7 @@ import { ConnectorSchema } from './Connector';
  */
 
 // Diagram type enum
-export const DiagramTypeSchema = z.enum(['bpmn', 'dataflow', 'class', 'sequence', 'architecture']);
+export const DiagramTypeSchema = z.enum(['bpmn', 'dataflow', 'class', 'sequence', 'architecture', 'entity-relationship']);
 export type DiagramType = z.infer<typeof DiagramTypeSchema>;
 
 // Zod schema for runtime validation

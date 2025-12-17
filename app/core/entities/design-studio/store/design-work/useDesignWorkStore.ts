@@ -56,12 +56,13 @@ export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
 
   updateDesignWork: async (id: string, updates: Partial<DesignWork>) => {
     try {
-      const updated = await designWorkApi.update(id, updates);
-      if (updated) {
-        set((state) => ({
-          designWorks: state.designWorks.map((dw) => (dw.id === id ? updated : dw)),
-        }));
-      }
+      await designWorkApi.update(id, updates);
+      // Apply only the updates that were sent, preserving all other fields
+      set((state) => ({
+        designWorks: state.designWorks.map((dw) =>
+          dw.id === id ? { ...dw, ...updates } : dw
+        ),
+      }));
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to update design work');
       set({ error: err });

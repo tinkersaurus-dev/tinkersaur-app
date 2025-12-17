@@ -5,9 +5,12 @@ import type { Tool as BpmnTool } from '~/design-studio/diagrams/bpmn/tools';
 import type { Tool as ClassTool } from '~/design-studio/diagrams/class/tools';
 import type { Tool as SequenceTool } from '~/design-studio/diagrams/sequence/tools';
 import type { Tool as ArchitectureTool } from '~/design-studio/diagrams/architecture/tools';
+import type { Tool as EntityRelationshipTool } from '~/design-studio/diagrams/entity-relationship/tools';
+import type { EntityAttributeData } from '~/core/entities/design-studio/types/Shape';
 import type { ToolbarButton } from '../../toolbar/CanvasToolbar';
 import type { JSX } from 'react';
 import type { ConnectorTool } from '~/design-studio/diagrams/bpmn/connectors';
+import type { ArrowType } from '~/core/entities/design-studio/types/Connector';
 import type { ResizeHandle } from '../../../utils/resize';
 
 /**
@@ -58,6 +61,12 @@ export interface CanvasEventsContext {
   updateLiteral: (shapeId: string, literalIndex: number, oldValue: string, newValue: string) => void;
   updateLiteralLocal: (shapeId: string, literalIndex: number, newValue: string) => void;
 
+  // Event Handlers - Entity Shapes (ER diagrams)
+  addEntityAttribute?: (shapeId: string) => void;
+  deleteEntityAttribute?: (shapeId: string, attributeIndex: number) => void;
+  updateEntityAttribute?: (shapeId: string, attributeIndex: number, oldValue: EntityAttributeData, newValue: EntityAttributeData) => void;
+  updateEntityAttributeLocal?: (shapeId: string, attributeIndex: number, newValue: EntityAttributeData) => void;
+
   // Menu Management
   menuManager: UseContextMenuManagerReturn;
   handleAddRectangle: () => Promise<void>;
@@ -65,12 +74,15 @@ export interface CanvasEventsContext {
   handleClassToolSelect: (tool: ClassTool, canvasX: number, canvasY: number) => Promise<void>;
   handleSequenceToolSelect: (tool: SequenceTool, canvasX: number, canvasY: number) => Promise<void>;
   handleArchitectureToolSelect: (tool: ArchitectureTool, canvasX: number, canvasY: number) => Promise<void>;
+  handleEntityRelationshipToolSelect: (tool: EntityRelationshipTool, canvasX: number, canvasY: number) => Promise<void>;
   handleConnectorToolbarClick: () => void;
 
   // Connector Type Management
   connectorTypeManager: {
     handleConnectorSelect: (connectorTool: ConnectorTool) => void;
     handleConnectorTypeChange: (connectorTool: ConnectorTool, connectorId: string) => Promise<void>;
+    handleSourceMarkerChange: (arrowType: ArrowType, connectorId: string) => Promise<void>;
+    handleTargetMarkerChange: (arrowType: ArrowType, connectorId: string) => Promise<void>;
     availableConnectorTools: ConnectorTool[];
     activeConnectorIcon: JSX.Element;
     getConnectorConfig: (connectorType: string) => ConnectorTool | undefined;

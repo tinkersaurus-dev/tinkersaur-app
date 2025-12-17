@@ -102,7 +102,14 @@ export async function action({ request }: ActionFunctionArgs) {
     const systemPrompt = getSystemPrompt(diagramType);
 
     // Prepare the request for Qwen model using messages format
-    const userMessage = `Generate a ${diagramType === 'bpmn' ? 'BPMN' : diagramType === 'class' ? 'Class' : 'Sequence'} diagram for: ${prompt}`;
+    const diagramTypeName =
+      diagramType === 'bpmn' ? 'BPMN' :
+      diagramType === 'class' ? 'Class' :
+      diagramType === 'sequence' ? 'Sequence' :
+      diagramType === 'architecture' ? 'Architecture' :
+      diagramType === 'entity-relationship' ? 'Entity Relationship' :
+      diagramType;
+    const userMessage = `Generate a ${diagramTypeName} diagram for: ${prompt}`;
 
     const bedrockRequest = {
       system: [
@@ -207,13 +214,15 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     // Validate that it starts with the expected diagram type
-    const expectedStart = diagramType === 'bpmn'
-      ? 'flowchart'
-      : diagramType === 'class'
-      ? 'classDiagram'
-      : 'sequenceDiagram';
+    const expectedStart =
+      diagramType === 'bpmn' ? 'flowchart' :
+      diagramType === 'class' ? 'classDiagram' :
+      diagramType === 'sequence' ? 'sequenceDiagram' :
+      diagramType === 'architecture' ? 'architecture-beta' :
+      diagramType === 'entity-relationship' ? 'erDiagram' :
+      '';
 
-    if (!cleanedMermaid.startsWith(expectedStart)) {
+    if (expectedStart && !cleanedMermaid.startsWith(expectedStart)) {
       logger.error('Generated content validation failed', undefined, {
         expectedStart,
         actualStart: cleanedMermaid.substring(0, 50),

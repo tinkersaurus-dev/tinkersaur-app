@@ -151,7 +151,7 @@ export function useFolderContent(folderId: string | undefined) {
     return result;
   }, [storedDocuments, documentQueries]);
 
-  // Compile content into markdown
+  // Compile content into markdown with proper hierarchy
   const content = useMemo(() => {
     if (!folderId || folderIds.length === 0) {
       return '*No content in this folder*';
@@ -159,9 +159,33 @@ export function useFolderContent(folderId: string | undefined) {
 
     const sections: string[] = [];
 
+    // Helper to get the depth of a folder relative to the root
+    const getFolderDepth = (folder: DesignWork): number => {
+      let depth = 0;
+      let current = folder;
+      while (current.parentDesignWorkId && current.id !== folderId) {
+        depth++;
+        const parent = designWorks.find((dw) => dw.id === current.parentDesignWorkId);
+        if (!parent) break;
+        current = parent;
+      }
+      return depth;
+    };
+
     for (const id of folderIds) {
       const folder = designWorks.find((dw) => dw.id === id);
       if (!folder) continue;
+
+      const isRootFolder = id === folderId;
+      const depth = getFolderDepth(folder);
+
+      // Add folder header for child folders (not the root folder)
+      if (!isRootFolder) {
+        // Use h2 for direct children, h3 for grandchildren, etc.
+        const headerLevel = Math.min(depth + 1, 4); // Cap at h4
+        const headerPrefix = '#'.repeat(headerLevel);
+        sections.push(`${headerPrefix} ${folder.name}`);
+      }
 
       // Check if this folder has a linked use case
       if (folder.useCaseId && useCase && useCase.id === folder.useCaseId) {
@@ -179,19 +203,24 @@ export function useFolderContent(folderId: string | undefined) {
         ...(folder.documents || []).map((d) => ({ ...d, type: 'document' as const })),
       ].sort((a, b) => a.order - b.order);
 
+      // Determine header level for content items based on folder depth
+      // Root folder content uses ##, child folder content uses ### (one level deeper than folder header)
+      const contentHeaderLevel = Math.min(depth + 2, 5); // Cap at h5
+      const contentHeaderPrefix = '#'.repeat(contentHeaderLevel);
+
       // Add content for each item
       for (const item of folderItems) {
         if (item.type === 'diagram') {
           const diagram = diagrams[item.id];
           if (diagram) {
             const mermaidSyntax = diagram.mermaidSyntax || '*No diagram content*';
-            sections.push(`## Diagram: ${item.name}\n\n\`\`\`mermaid\n${mermaidSyntax}\n\`\`\``);
+            sections.push(`${contentHeaderPrefix} Diagram: ${item.name}\n\n\`\`\`mermaid\n${mermaidSyntax}\n\`\`\``);
           }
         } else if (item.type === 'document') {
           const document = documents[item.id];
           if (document) {
             const documentContent = document.content || '*No document content*';
-            sections.push(`## Document: ${item.name}\n\n${documentContent}`);
+            sections.push(`${contentHeaderPrefix} Document: ${item.name}\n\n${documentContent}`);
           }
         }
       }

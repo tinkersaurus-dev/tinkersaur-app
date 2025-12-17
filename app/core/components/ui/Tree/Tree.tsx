@@ -9,6 +9,7 @@ import { TreeNode, type TreeNodeData } from './TreeNode';
 interface TreeProps {
   data: TreeNodeData[];
   defaultExpandAll?: boolean;
+  defaultExpandedKeys?: Set<string>; // Specific keys to expand by default (takes precedence over defaultExpandAll)
   indentSize?: number; // pixels per depth level
   onDoubleClick?: (key: string) => void;
   onContextMenu?: (event: React.MouseEvent, key: string) => void;
@@ -23,6 +24,7 @@ interface TreeProps {
 export function Tree({
   data,
   defaultExpandAll = false,
+  defaultExpandedKeys,
   indentSize = 4,
   onDoubleClick,
   onContextMenu,
@@ -48,18 +50,27 @@ export function Tree({
     return keys;
   }, [data]);
 
-  // Initialize state based on defaultExpandAll
-  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() =>
-    defaultExpandAll ? allExpandableKeys : new Set()
-  );
+  // Initialize state based on defaultExpandedKeys or defaultExpandAll
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => {
+    if (defaultExpandedKeys) return defaultExpandedKeys;
+    if (defaultExpandAll) return allExpandableKeys;
+    return new Set();
+  });
 
-  // Sync expanded keys when allExpandableKeys or defaultExpandAll changes
+  // Sync expanded keys when dependencies change
   // Use useLayoutEffect to avoid visual flashing
   useLayoutEffect(() => {
-    if (defaultExpandAll) {
+    if (defaultExpandedKeys) {
+      // When using specific keys, add any new keys that should be expanded
+      setExpandedKeys((prev) => {
+        const next = new Set(prev);
+        defaultExpandedKeys.forEach((key) => next.add(key));
+        return next;
+      });
+    } else if (defaultExpandAll) {
       setExpandedKeys(allExpandableKeys);
     }
-  }, [allExpandableKeys, defaultExpandAll]);
+  }, [allExpandableKeys, defaultExpandAll, defaultExpandedKeys]);
 
   const handleToggleExpand = (key: string) => {
     setExpandedKeys((prev) => {
@@ -87,7 +98,7 @@ export function Tree({
           onContextMenu={onContextMenu}
           onDragOver={onDragOver}
           onDrop={onDrop}
-          isEditing={editingNodeKey === node.key}
+          editingNodeKey={editingNodeKey}
           editingValue={editingValue}
           onEditingChange={onEditingChange}
           onEditingFinish={onEditingFinish}

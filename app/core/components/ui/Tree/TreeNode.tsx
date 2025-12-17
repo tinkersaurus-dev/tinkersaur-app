@@ -27,7 +27,7 @@ interface TreeNodeProps {
   onContextMenu?: (event: React.MouseEvent, key: string) => void;
   onDragOver?: (event: React.DragEvent, key: string) => void;
   onDrop?: (event: React.DragEvent, key: string) => void;
-  isEditing?: boolean;
+  editingNodeKey?: string | null;
   editingValue?: string;
   onEditingChange?: (newValue: string) => void;
   onEditingFinish?: () => void;
@@ -43,11 +43,12 @@ export function TreeNode({
   onContextMenu,
   onDragOver,
   onDrop,
-  isEditing = false,
+  editingNodeKey,
   editingValue,
   onEditingChange,
   onEditingFinish,
 }: TreeNodeProps) {
+  const isEditing = editingNodeKey === node.key;
   const hasChildren = node.children && node.children.length > 0;
   const isExpanded = expandedKeys.has(node.key);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -236,7 +237,7 @@ export function TreeNode({
               onContextMenu={onContextMenu}
               onDragOver={onDragOver}
               onDrop={onDrop}
-              isEditing={false}
+              editingNodeKey={editingNodeKey}
               editingValue={editingValue}
               onEditingChange={onEditingChange}
               onEditingFinish={onEditingFinish}

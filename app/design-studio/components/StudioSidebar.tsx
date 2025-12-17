@@ -108,6 +108,28 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     }
   }, [createDesignWork, solutionId]);
 
+  // Handle creating a new subfolder under an existing folder
+  const handleAddSubfolder = useCallback(async (parentFolderId: string) => {
+    try {
+      const newFolder = await createDesignWork({
+        solutionId,
+        parentDesignWorkId: parentFolderId,
+        name: 'New Folder',
+        version: '1.0.0',
+        diagrams: [],
+        interfaces: [],
+        documents: [],
+        references: [],
+      });
+
+      // Immediately trigger inline rename for the new folder
+      setEditingFolderId(newFolder.id);
+      setEditingFolderName('New Folder');
+    } catch (error) {
+      console.error('Failed to create subfolder:', error);
+    }
+  }, [createDesignWork, solutionId]);
+
   // Handle starting inline rename of a folder
   const handleStartRename = useCallback((folderId: string, currentName: string) => {
     setEditingFolderId(folderId);
@@ -255,6 +277,15 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
 
     return buildTreeData();
   }, [designWorks, solutionId, references]);
+
+  // Compute folder keys to expand by default (not content items like diagrams with references)
+  const defaultExpandedKeys = useMemo(() => {
+    const keys = new Set<string>();
+    designWorks
+      .filter((dw) => dw.solutionId === solutionId)
+      .forEach((dw) => keys.add(`folder-${dw.id}`));
+    return keys;
+  }, [designWorks, solutionId]);
 
   const handleDoubleClick = (key: string) => {
     // Parse key to get type and id
@@ -466,6 +497,14 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
           },
         },
         {
+          key: 'create-subfolder',
+          label: 'Create Subfolder',
+          onClick: async () => {
+            await handleAddSubfolder(id);
+            closeContextMenu();
+          },
+        },
+        {
           key: 'divider-1',
           label: '',
           type: 'divider',
@@ -531,6 +570,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     deleteDocument,
     deleteDesignWork,
     handleStartRename,
+    handleAddSubfolder,
     closeContextMenu,
   ]);
 
@@ -550,7 +590,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
 
       <Tree
         data={treeData}
-        defaultExpandAll
+        defaultExpandedKeys={defaultExpandedKeys}
         indentSize={8}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}

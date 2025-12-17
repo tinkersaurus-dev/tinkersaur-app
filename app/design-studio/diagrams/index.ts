@@ -13,3 +13,4 @@ export * as bpmn from './bpmn';
 export * as architecture from './architecture';
 export * as classDiagram from './class'; // Includes both Class and Enumeration shapes
 export * as sequence from './sequence';
+export * as entityRelationship from './entity-relationship';

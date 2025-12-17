@@ -22,17 +22,19 @@ import {
   mapClassToolToShape,
   mapSequenceToolToShape,
   mapArchitectureToolToShape,
+  mapEntityRelationshipToolToShape,
   mapGlobalToolToShape,
 } from '../../../utils/toolMappers';
 import type { Tool as BpmnTool } from '~/design-studio/diagrams/bpmn/tools';
 import type { Tool as ClassTool } from '~/design-studio/diagrams/class/tools';
 import type { Tool as SequenceTool } from '~/design-studio/diagrams/sequence/tools';
 import type { Tool as ArchitectureTool } from '~/design-studio/diagrams/architecture/tools';
+import type { Tool as EntityRelationshipTool } from '~/design-studio/diagrams/entity-relationship/tools';
 import type { ToolbarButton } from '../../toolbar/CanvasToolbar';
 import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
 import type { ViewportTransform } from '../../../utils/viewport';
 import type { CommandFactory } from '~/core/commands/CommandFactory';
-import type { Connector } from '~/core/entities/design-studio/types/Connector';
+import type { ArrowType, Connector } from '~/core/entities/design-studio/types/Connector';
 import type { UseContextMenuManagerReturn } from '../../../hooks/useContextMenuManager';
 import type { ConnectorTool } from '~/design-studio/diagrams/bpmn/connectors';
 import type { JSX } from 'react';
@@ -60,12 +62,15 @@ export interface UseCanvasToolManagerReturn {
   handleClassToolSelect: (tool: ClassTool, canvasX: number, canvasY: number) => Promise<void>;
   handleSequenceToolSelect: (tool: SequenceTool, canvasX: number, canvasY: number) => Promise<void>;
   handleArchitectureToolSelect: (tool: ArchitectureTool, canvasX: number, canvasY: number) => Promise<void>;
+  handleEntityRelationshipToolSelect: (tool: EntityRelationshipTool, canvasX: number, canvasY: number) => Promise<void>;
   handleAddRectangle: () => Promise<void>;
 
   // Connector type management
   connectorTypeManager: {
     handleConnectorSelect: (connectorTool: ConnectorTool) => void;
     handleConnectorTypeChange: (connectorTool: ConnectorTool, connectorId: string) => Promise<void>;
+    handleSourceMarkerChange: (arrowType: ArrowType, connectorId: string) => Promise<void>;
+    handleTargetMarkerChange: (arrowType: ArrowType, connectorId: string) => Promise<void>;
     availableConnectorTools: ConnectorTool[];
     activeConnectorIcon: JSX.Element;
     getConnectorConfig: (connectorType: string) => ConnectorTool | undefined;
@@ -165,6 +170,21 @@ export function useCanvasToolManager({
     },
   });
 
+  const { handleToolSelect: handleEntityRelationshipToolSelect } = useToolHandler<EntityRelationshipTool>({
+    addShape,
+    addConnector,
+    activeConnectorType,
+    menuManager,
+    toolToShapeMapper: (tool, canvasX, canvasY) => {
+      // Check if this is a global tool
+      const globalTool = getGlobalToolById(tool.id);
+      if (globalTool) {
+        return mapGlobalToolToShape(globalTool, canvasX, canvasY);
+      }
+      return mapEntityRelationshipToolToShape(tool, canvasX, canvasY);
+    },
+  });
+
   // Handle adding rectangle from simple context menu
   const handleAddRectangle = useCallback(async () => {
     if (!addShape) return;
@@ -223,6 +243,7 @@ export function useCanvasToolManager({
     handleClassToolSelect,
     handleSequenceToolSelect,
     handleArchitectureToolSelect,
+    handleEntityRelationshipToolSelect,
     handleAddRectangle,
 
     // Connector type management

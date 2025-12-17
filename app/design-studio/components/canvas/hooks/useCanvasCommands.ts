@@ -8,14 +8,16 @@
  * - Command execution via CommandManager
  * - Class shape editing (stereotype, attributes, methods)
  * - Enumeration shape editing (literals)
+ * - Entity shape editing (entity attributes)
  */
 
 import { useCallback } from 'react';
 import { commandManager } from '~/core/commands/CommandManager';
 import { useClassShapeEditing, useEnumerationShapeEditing } from '~/design-studio/diagrams/class/hooks';
+import { useEntityShapeEditing } from '~/design-studio/diagrams/entity-relationship/hooks';
 import type { Command } from '~/core/commands/command.types';
 import type { CommandFactory } from '~/core/commands/CommandFactory';
-import type { Shape } from '~/core/entities/design-studio/types/Shape';
+import type { Shape, EntityAttributeData } from '~/core/entities/design-studio/types/Shape';
 
 export interface UseCanvasCommandsProps {
   diagramId: string;
@@ -44,6 +46,12 @@ export interface UseCanvasCommandsReturn {
   deleteLiteral: (shapeId: string, literalIndex: number) => void;
   updateLiteral: (shapeId: string, literalIndex: number, oldValue: string, newValue: string) => void;
   updateLiteralLocal: (shapeId: string, literalIndex: number, newValue: string) => void;
+
+  // Entity shape editing (ER diagrams)
+  addEntityAttribute: (shapeId: string) => void;
+  deleteEntityAttribute: (shapeId: string, attributeIndex: number) => void;
+  updateEntityAttribute: (shapeId: string, attributeIndex: number, oldValue: EntityAttributeData, newValue: EntityAttributeData) => void;
+  updateEntityAttributeLocal: (shapeId: string, attributeIndex: number, newValue: EntityAttributeData) => void;
 }
 
 export function useCanvasCommands({
@@ -93,6 +101,20 @@ export function useCanvasCommands({
     executeCommand,
   });
 
+  // Entity shape editing hook (ER diagrams)
+  const {
+    addEntityAttribute,
+    deleteEntityAttribute,
+    updateEntityAttribute,
+    updateEntityAttributeLocal,
+  } = useEntityShapeEditing({
+    diagramId,
+    commandFactory,
+    getShape,
+    updateLocalShape,
+    executeCommand,
+  });
+
   return {
     // Command execution
     executeCommand,
@@ -113,5 +135,11 @@ export function useCanvasCommands({
     deleteLiteral,
     updateLiteral,
     updateLiteralLocal,
+
+    // Entity shape editing (ER diagrams)
+    addEntityAttribute,
+    deleteEntityAttribute,
+    updateEntityAttribute,
+    updateEntityAttributeLocal,
   };
 }

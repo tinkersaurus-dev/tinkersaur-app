@@ -5,7 +5,9 @@
  * with a tabbed panel for LLM-generated output (User Stories, User Documentation).
  */
 
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { LuSparkles, LuCopy } from 'react-icons/lu';
 import { Tabs } from '~/core/components/ui';
 import { Button } from '~/core/components/ui/Button';
@@ -18,6 +20,7 @@ import { TechSpecPanel } from './TechSpecPanel';
 import type { UserStory, UserDocument, TechSpecSection } from '../../lib/llm/types';
 import { userDocumentsToMarkdown, techSpecSectionsToMarkdown } from '../../lib/llm/types';
 import { useAsyncGeneration } from '../../hooks';
+import '../../styles/markdown-content.css';
 
 /**
  * Convert user stories to markdown for clipboard copy
@@ -33,20 +36,10 @@ export interface FolderEditorProps {
 }
 
 /**
- * Calculate line numbers for the content
- */
-function getLineNumbers(content: string): number[] {
-  const lines = content.split('\n');
-  return Array.from({ length: lines.length }, (_, i) => i + 1);
-}
-
-/**
  * Folder Editor Component
  */
 export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
-  const [activeTab, setActiveTab] = useState('user-stories');
-  const contentRef = useRef<HTMLPreElement>(null);
-  const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState('context');
 
   // Async generation hooks for LLM operations
   const userStoriesGen = useAsyncGeneration<UserStory>({
@@ -60,13 +53,6 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
   const techSpecGen = useAsyncGeneration<TechSpecSection>({
     generatorFn: useCallback(() => generateTechSpecStructured(content), [content]),
   });
-
-  // Sync scroll between line numbers and content
-  const handleScroll = () => {
-    if (contentRef.current && lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = contentRef.current.scrollTop;
-    }
-  };
 
   const handleCopyUserStories = async () => {
     if (userStoriesGen.data.length > 0) {
@@ -101,9 +87,23 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
     techSpecGen.setData(newSections);
   };
 
-  const lineNumbers = useMemo(() => getLineNumbers(content), [content]);
-
-  const rightPanelTabs = [
+  const tabs = [
+    {
+      key: 'context',
+      label: 'Context',
+      children: (
+        <div className="h-full flex flex-col overflow-hidden bg-[var(--bg)]">
+          {/* Toolbar placeholder for future actions */}
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)] bg-[var(--surface)]" />
+          {/* Rendered markdown content */}
+          <div className="flex-1 overflow-auto p-4 bg-[var(--bg-light)]">
+            <div className="markdown-content markdown-content--compact">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            </div>
+          </div>
+        </div>
+      ),
+    },
     {
       key: 'user-stories',
       label: 'User Stories',
@@ -258,69 +258,15 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
 
   return (
     <div className="flex flex-col w-full" style={{ height }}>
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[var(--surface)] border-b border-[var(--border)]">
-        <div className="text-xs font-medium text-[var(--text)]">Folder Content</div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel - Raw Markdown (Read-only) */}
-        <div className="flex-1 flex overflow-hidden border-r border-[var(--border)]">
-          {/* Line Numbers */}
-          <div
-            ref={lineNumbersRef}
-            className="w-[50px] bg-[var(--surface)] border-r border-[var(--border)] overflow-hidden text-right pr-2 pt-3 select-none"
-            style={{
-              fontFamily: 'monospace',
-              fontSize: '12px',
-              lineHeight: '1.5',
-              color: 'var(--text-tertiary)',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-            }}
-          >
-            <style>{`
-              .line-numbers::-webkit-scrollbar {
-                display: none;
-              }
-            `}</style>
-            {lineNumbers.map((num) => (
-              <div key={num} style={{ height: '1.5em' }}>
-                {num}
-              </div>
-            ))}
-          </div>
-
-          {/* Raw Markdown Content */}
-          <pre
-            ref={contentRef}
-            onScroll={handleScroll}
-            className="flex-1 overflow-auto p-3 m-0 bg-[var(--bg-light)] text-[var(--text)]"
-            style={{
-              fontFamily: 'monospace',
-              fontSize: '12px',
-              lineHeight: '1.5',
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word',
-            }}
-          >
-            {content}
-          </pre>
-        </div>
-
-        {/* Right Panel - LLM Output Tabs */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <Tabs
-            type="line"
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            items={rightPanelTabs}
-            hideAdd
-            style={{ height: '100%' }}
-          />
-        </div>
-      </div>
+      {/* Main Content Area - Full-width Tabs */}
+      <Tabs
+        type="line"
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={tabs}
+        hideAdd
+        style={{ height: '100%' }}
+      />
     </div>
   );
 }

@@ -126,6 +126,14 @@ export const DESIGN_STUDIO_CONFIG = {
       },
     },
 
+    /** Entity Relationship diagram element dimensions */
+    entityRelationship: {
+      entity: {
+        width: 200,
+        height: 120,
+      },
+    },
+
     /** Preview and import container dimensions */
     preview: {
       width: 300,

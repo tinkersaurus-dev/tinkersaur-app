@@ -43,20 +43,29 @@ export function Dropdown({
   const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  // Initialize position from contextMenuPosition if available (avoids flash at 0,0)
+  const [position, setPosition] = useState(() =>
+    contextMenuPosition
+      ? { top: contextMenuPosition.y, left: contextMenuPosition.x }
+      : { top: 0, left: 0 }
+  );
 
   // Calculate menu position when menu opens or position dependencies change
   useEffect(() => {
     if (!isOpen) return;
 
-    // Use requestAnimationFrame to defer state update until after render
-    const frameId = requestAnimationFrame(() => {
-      let newPosition = { top: 0, left: 0 };
+    // For context menus, use provided position directly via RAF
+    if (trigger === 'contextMenu' && contextMenuPosition) {
+      const frameId = requestAnimationFrame(() => {
+        setPosition({ top: contextMenuPosition.y, left: contextMenuPosition.x });
+      });
+      return () => cancelAnimationFrame(frameId);
+    }
 
-      // For context menus, use provided position
-      if (trigger === 'contextMenu' && contextMenuPosition) {
-        newPosition = { top: contextMenuPosition.y, left: contextMenuPosition.x };
-      } else if (triggerRef.current) {
+    // Use requestAnimationFrame for trigger-based positioning to get accurate rect
+    const frameId = requestAnimationFrame(() => {
+      if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
         let top = 0;
         let left = 0;
@@ -80,10 +89,8 @@ export function Dropdown({
             break;
         }
 
-        newPosition = { top, left };
+        setPosition({ top, left });
       }
-
-      setPosition(newPosition);
     });
 
     return () => cancelAnimationFrame(frameId);

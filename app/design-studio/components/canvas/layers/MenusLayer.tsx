@@ -10,6 +10,7 @@ import { BpmnToolsetPopover } from '~/design-studio/diagrams/bpmn/components/Too
 import { ClassToolsetPopover } from '../menus/popovers/ClassToolsetPopover';
 import { SequenceToolsetPopover } from '~/design-studio/diagrams/sequence/components/ToolsetPopover';
 import { ArchitectureToolsetPopover } from '~/design-studio/diagrams/architecture/components/ToolsetPopover';
+import { EntityRelationshipToolsetPopover } from '../menus/popovers/EntityRelationshipToolsetPopover';
 import { ConnectorToolsetPopover } from '../menus/popovers/ConnectorToolsetPopover';
 import { ConnectorContextMenu } from '../menus/ConnectorContextMenu';
 import { ShapeContextMenu } from '../menus/ShapeContextMenu';
@@ -37,6 +38,7 @@ function MenusLayerComponent() {
     handleClassToolSelect,
     handleSequenceToolSelect,
     handleArchitectureToolSelect,
+    handleEntityRelationshipToolSelect,
     connectorTypeManager,
   } = useCanvasEvents();
 
@@ -106,6 +108,20 @@ function MenusLayerComponent() {
         />
       )}
 
+      {/* Entity Relationship Toolset Popover */}
+      {menuManager.isMenuOpen(MENU_IDS.ENTITY_RELATIONSHIP_TOOLSET_POPOVER) && menuManager.activeMenuConfig && (
+        <EntityRelationshipToolsetPopover
+          x={menuManager.activeMenuConfig.screenPosition.x}
+          y={menuManager.activeMenuConfig.screenPosition.y}
+          canvasX={menuManager.activeMenuConfig.canvasPosition?.x ?? 0}
+          canvasY={menuManager.activeMenuConfig.canvasPosition?.y ?? 0}
+          isOpen={true}
+          onClose={menuManager.closeMenu}
+          onToolSelect={handleEntityRelationshipToolSelect}
+          drawingConnector={drawingConnector}
+        />
+      )}
+
       {/* Canvas Context Menu */}
       {menuManager.isMenuOpen(MENU_IDS.CANVAS_CONTEXT_MENU) && menuManager.activeMenuConfig && (
         <ContextMenu
@@ -144,8 +160,16 @@ function MenusLayerComponent() {
             await connectorTypeManager.handleConnectorTypeChange(tool, menuManager.activeMenuConfig!.metadata!.connectorId as string);
             menuManager.closeMenu();
           }}
+          onSourceMarkerChange={async (arrowType) => {
+            await connectorTypeManager.handleSourceMarkerChange(arrowType, menuManager.activeMenuConfig!.metadata!.connectorId as string);
+          }}
+          onTargetMarkerChange={async (arrowType) => {
+            await connectorTypeManager.handleTargetMarkerChange(arrowType, menuManager.activeMenuConfig!.metadata!.connectorId as string);
+          }}
           connectorTools={connectorTypeManager.availableConnectorTools}
+          currentConnector={connectors.find(c => c.id === menuManager.activeMenuConfig?.metadata?.connectorId)}
           currentConnectorType={connectors.find(c => c.id === menuManager.activeMenuConfig?.metadata?.connectorId)?.type}
+          diagramType={diagram?.type}
         />
       )}
 

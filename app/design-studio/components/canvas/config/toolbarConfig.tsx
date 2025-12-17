@@ -34,8 +34,8 @@ export function createToolbarButtons(params: ToolbarConfigParams): ToolbarButton
 
   const buttons: ToolbarButton[] = [];
 
-  // Only show connector button for BPMN, Class, and Sequence diagrams
-  if (diagramType === 'bpmn' || diagramType === 'class' || diagramType === 'sequence') {
+  // Only show connector button for BPMN, Class, Sequence, and Entity Relationship diagrams
+  if (diagramType === 'bpmn' || diagramType === 'class' || diagramType === 'sequence' || diagramType === 'entity-relationship') {
     buttons.push({
       id: 'connector-type',
       icon: activeConnectorIcon,

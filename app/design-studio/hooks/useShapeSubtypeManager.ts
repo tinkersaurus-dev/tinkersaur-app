@@ -13,7 +13,7 @@ export type ShapeTool = BpmnTool | SequenceTool | ArchitectureTool;
 
 interface UseShapeSubtypeManagerProps {
   diagramId: string;
-  diagramType: 'bpmn' | 'dataflow' | 'class' | 'sequence' | 'architecture' | undefined;
+  diagramType: 'bpmn' | 'dataflow' | 'class' | 'sequence' | 'architecture' | 'entity-relationship' | undefined;
   commandFactory: CommandFactory;
 }
 

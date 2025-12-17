@@ -88,6 +88,42 @@ export function isEnumerationShapeData(data: unknown): data is EnumerationShapeD
   );
 }
 
+// Entity attribute data (for ER diagrams)
+export interface EntityAttributeData {
+  type: string; // Data type (e.g., 'string', 'int', 'uuid')
+  name: string; // Attribute name (e.g., 'id', 'name')
+  key?: 'PK' | 'FK' | 'UK'; // Primary Key, Foreign Key, or Unique Key
+  comment?: string; // Optional comment/description
+}
+
+// Entity shape data (for ER diagrams)
+export interface EntityShapeData {
+  [key: string]: unknown; // Index signature for compatibility with Record<string, unknown>
+  attributes: EntityAttributeData[]; // Array of entity attributes
+}
+
+// Type guard for entity attribute data
+export function isEntityAttributeData(data: unknown): data is EntityAttributeData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    typeof d.type === 'string' &&
+    typeof d.name === 'string' &&
+    (d.key === undefined || d.key === 'PK' || d.key === 'FK' || d.key === 'UK') &&
+    (d.comment === undefined || typeof d.comment === 'string')
+  );
+}
+
+// Type guard for entity shape data
+export function isEntityShapeData(data: unknown): data is EntityShapeData {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    Array.isArray(d.attributes) &&
+    d.attributes.every((attr) => isEntityAttributeData(attr))
+  );
+}
+
 // Sequence diagram lifeline activation box
 export interface ActivationBox {
   startY: number; // Y-coordinate where activation starts (relative to lifeline)
@@ -298,6 +334,11 @@ export interface SuggestionCommentShape extends BaseShape {
   data: SuggestionCommentShapeData;
 }
 
+export interface EntityShape extends BaseShape {
+  type: 'entity';
+  data: EntityShapeData;
+}
+
 // Generic shape type for unknown/future shape types
 export interface GenericShape extends BaseShape {
   type: string;
@@ -319,7 +360,8 @@ export type TypedShape =
   | LLMGeneratorShape
   | LLMPreviewShape
   | MermaidEditorShape
-  | SuggestionCommentShape;
+  | SuggestionCommentShape
+  | EntityShape;
 
 // ============================================================================
 // SHAPE-LEVEL TYPE GUARDS
@@ -351,6 +393,10 @@ export function isMermaidEditorShape(shape: Shape): shape is MermaidEditorShape 
 
 export function isSuggestionCommentShape(shape: Shape): shape is SuggestionCommentShape {
   return shape.type === 'suggestion-comment';
+}
+
+export function isEntityShape(shape: Shape): shape is EntityShape {
+  return shape.type === 'entity';
 }
 
 // ============================================================================
@@ -415,4 +461,14 @@ export function getSuggestionCommentShapeData(shape: Shape): SuggestionCommentSh
     return shape.data;
   }
   return undefined;
+}
+
+/**
+ * Get entity shape data with proper typing. Returns default empty data if shape is not an entity shape.
+ */
+export function getEntityShapeData(shape: Shape): EntityShapeData {
+  if (isEntityShape(shape)) {
+    return shape.data;
+  }
+  return { attributes: [] };
 }

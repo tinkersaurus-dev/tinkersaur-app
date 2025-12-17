@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 import { TbArrowRight } from 'react-icons/tb';
 import { commandManager } from '~/core/commands/CommandManager';
 import type { CommandFactory } from '~/core/commands/CommandFactory';
-import type { Connector } from '~/core/entities/design-studio/types/Connector';
+import type { ArrowType, Connector } from '~/core/entities/design-studio/types/Connector';
 import {
   allBpmnConnectorTools,
   getBpmnConnectorToolByType,
@@ -21,10 +21,14 @@ import {
   allArchitectureConnectorTools,
   getArchitectureConnectorToolByType,
 } from '~/design-studio/diagrams/architecture/connectors';
+import {
+  allEntityRelationshipConnectorTools,
+  getERConnectorToolByType,
+} from '~/design-studio/diagrams/entity-relationship/connectors';
 
 interface UseConnectorTypeManagerProps {
   diagramId: string;
-  diagramType: 'bpmn' | 'dataflow' | 'class' | 'sequence' | 'architecture' | undefined;
+  diagramType: 'bpmn' | 'dataflow' | 'class' | 'sequence' | 'architecture' | 'entity-relationship' | undefined;
   activeConnectorType: string;
   setActiveConnectorType: (type: string) => void;
   commandFactory: CommandFactory;
@@ -37,6 +41,8 @@ interface UseConnectorTypeManagerReturn {
 
   // Context menu handlers (menu state now managed by useContextMenuManager)
   handleConnectorTypeChange: (connectorTool: ConnectorTool, connectorId: string) => Promise<void>;
+  handleSourceMarkerChange: (arrowType: ArrowType, connectorId: string) => Promise<void>;
+  handleTargetMarkerChange: (arrowType: ArrowType, connectorId: string) => Promise<void>;
 
   // Computed values
   availableConnectorTools: ConnectorTool[];
@@ -64,6 +70,8 @@ export function useConnectorTypeManager({
       return getSequenceConnectorToolByType(connectorType);
     } else if (diagramType === 'architecture') {
       return getArchitectureConnectorToolByType(connectorType);
+    } else if (diagramType === 'entity-relationship') {
+      return getERConnectorToolByType(connectorType);
     }
     return undefined;
   }, [diagramType]);
@@ -78,6 +86,8 @@ export function useConnectorTypeManager({
       return allSequenceConnectorTools;
     } else if (diagramType === 'architecture') {
       return allArchitectureConnectorTools;
+    } else if (diagramType === 'entity-relationship') {
+      return allEntityRelationshipConnectorTools;
     }
     return [];
   }, [diagramType]);
@@ -128,10 +138,48 @@ export function useConnectorTypeManager({
     }
   }, [diagramId, diagramType, commandFactory]);
 
+  // Handle source marker change from context menu
+  const handleSourceMarkerChange = useCallback(async (arrowType: ArrowType, connectorId: string) => {
+    if (!connectorId) return;
+
+    const updateData = {
+      id: connectorId,
+      markerStart: arrowType,
+    };
+
+    const command = commandFactory.createChangeConnectorType(
+      diagramId,
+      connectorId,
+      updateData
+    );
+
+    await commandManager.execute(command, diagramId);
+  }, [diagramId, commandFactory]);
+
+  // Handle target marker change from context menu
+  const handleTargetMarkerChange = useCallback(async (arrowType: ArrowType, connectorId: string) => {
+    if (!connectorId) return;
+
+    const updateData = {
+      id: connectorId,
+      markerEnd: arrowType,
+    };
+
+    const command = commandFactory.createChangeConnectorType(
+      diagramId,
+      connectorId,
+      updateData
+    );
+
+    await commandManager.execute(command, diagramId);
+  }, [diagramId, commandFactory]);
+
   return {
     // Handlers (menu state managed by useContextMenuManager)
     handleConnectorSelect,
     handleConnectorTypeChange,
+    handleSourceMarkerChange,
+    handleTargetMarkerChange,
 
     // Computed values
     availableConnectorTools,
