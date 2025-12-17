@@ -4,15 +4,22 @@ This document outlines coding standards and best practices for working with this
 
 ## React Hooks - Dependency Management
 
-### Critical Rule: NEVER Disable `exhaustive-deps` Warnings
+### Critical Rule: Avoid Disabling `exhaustive-deps` Warnings
 
-**The `react-hooks/exhaustive-deps` ESLint rule must NEVER be disabled.** This includes:
+**The `react-hooks/exhaustive-deps` ESLint rule should generally NOT be disabled**, except for documented stable references.
 
-- ❌ `// eslint-disable react-hooks/exhaustive-deps`
-- ❌ `// eslint-disable-next-line react-hooks/exhaustive-deps`
-- ❌ `/* eslint-disable react-hooks/exhaustive-deps */`
+**Acceptable to disable for:**
+- ✅ Zustand store actions/setters (stable by design)
+- ✅ `useRef.current` values (refs are stable)
+- ✅ Dispatch functions from `useReducer` (stable by design)
 
-Disabling this rule can lead to:
+**Never disable for:**
+- ❌ Props (may change)
+- ❌ State values (change on updates)
+- ❌ Values selected from stores (e.g., `state.items`)
+- ❌ Functions not wrapped in `useCallback`
+
+Improperly disabling this rule can lead to:
 - **Stale closures** - Functions capturing outdated values
 - **Missed updates** - Effects not re-running when they should
 - **Subtle bugs** - Hard-to-debug issues that only appear in specific scenarios
@@ -31,10 +38,12 @@ React's exhaustive-deps rule ensures that all values used inside `useEffect`, `u
 
 #### 1. **Zustand Store Functions** (Most Common in This Codebase)
 
-When using Zustand store selectors, the returned functions are stable and should be included in dependency arrays:
+Zustand store actions/setters are **stable by design** - they maintain referential identity across re-renders. This means they technically don't need to be in dependency arrays, though ESLint cannot know this.
+
+**Both approaches are valid:**
 
 ```typescript
-// ✅ CORRECT
+// ✅ Option A: Omit stable store functions (cleaner dependency arrays)
 export function useChanges(featureId: string | undefined) {
   const fetchChangesByFeature = useSolutionManagementEntityStore(
     (state) => state.fetchChangesByFeature
@@ -44,19 +53,27 @@ export function useChanges(featureId: string | undefined) {
     if (featureId) {
       fetchChangesByFeature(featureId);
     }
-  }, [featureId, fetchChangesByFeature]); // Include the store function
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [featureId]); // fetchChangesByFeature is stable, safe to omit
 }
 ```
 
 ```typescript
-// ❌ INCORRECT - DO NOT DO THIS
-useEffect(() => {
-  if (featureId) {
-    fetchChangesByFeature(featureId);
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [featureId]); // Missing fetchChangesByFeature
+// ✅ Option B: Include them (also valid, more verbose)
+export function useChanges(featureId: string | undefined) {
+  const fetchChangesByFeature = useSolutionManagementEntityStore(
+    (state) => state.fetchChangesByFeature
+  );
+
+  useEffect(() => {
+    if (featureId) {
+      fetchChangesByFeature(featureId);
+    }
+  }, [featureId, fetchChangesByFeature]); // Including stable refs is fine
+}
 ```
+
+**Important:** Only Zustand store *actions/setters* are stable. State *values* selected from stores (e.g., `state.items`, `state.isLoading`) are NOT stable and must always be included in dependency arrays.
 
 #### 2. **Component Functions in useCallback/useMemo**
 
@@ -176,14 +193,30 @@ If you encounter dependency warnings:
    - Move outside component (for pure functions)
    - Use refs for values that shouldn't trigger re-renders
 
-### When You Think You Need to Disable
+### When You Can Disable the Rule
 
-If you believe disabling the rule is necessary:
+Disabling `exhaustive-deps` is appropriate for **documented stable references only**:
 
-1. **Stop** - It's almost never necessary
-2. **Review** the patterns above
-3. **Ask** for a code review
-4. **Refactor** to follow proper patterns
+```typescript
+// ✅ Zustand store actions - stable by design
+const fetchData = useMyStore((state) => state.fetchData);
+useEffect(() => {
+  fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []); // fetchData is stable
+
+// ✅ useRef values - refs are stable
+const ref = useRef(someValue);
+useEffect(() => {
+  console.log(ref.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []); // ref.current is stable
+```
+
+**Before disabling, verify:**
+1. The omitted dependency is a documented stable reference (Zustand action, ref, dispatch)
+2. You understand why it's stable
+3. You're not omitting props, state values, or other reactive dependencies
 
 ### Additional Resources
 
@@ -195,4 +228,5 @@ If you believe disabling the rule is necessary:
 
 ## Summary
 
-**NEVER disable `react-hooks/exhaustive-deps`.** Always fix dependency issues properly using the patterns outlined above. This ensures code reliability, maintainability, and prevents subtle bugs.
+**Avoid disabling `react-hooks/exhaustive-deps`** except for documented stable references (Zustand store actions, refs, dispatch functions). Always fix dependency issues properly using the patterns outlined above. This ensures code reliability, maintainability, and prevents subtle bugs.
+

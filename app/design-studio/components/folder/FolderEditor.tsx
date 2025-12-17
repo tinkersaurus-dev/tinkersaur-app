@@ -5,7 +5,7 @@
  * with a tabbed panel for LLM-generated output (User Stories, User Documentation).
  */
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import { LuSparkles, LuCopy } from 'react-icons/lu';
 import { Tabs } from '~/core/components/ui';
 import { Button } from '~/core/components/ui/Button';
@@ -93,7 +93,7 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
     techSpecGen.setData(newSections);
   };
 
-  const lineNumbers = getLineNumbers(content);
+  const lineNumbers = useMemo(() => getLineNumbers(content), [content]);
 
   const rightPanelTabs = [
     {

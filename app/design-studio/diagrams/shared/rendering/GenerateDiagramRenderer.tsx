@@ -5,7 +5,7 @@
  * Contains a textarea for input and a play button to trigger generation.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { FaPlay } from 'react-icons/fa';
 import { MdClose } from 'react-icons/md';
@@ -24,7 +24,7 @@ import { queryKeys } from '~/core/query/queryKeys';
 import { STALE_TIMES } from '~/core/query/queryClient';
 import { diagramApi } from '~/core/entities/design-studio/api';
 
-export function GenerateDiagramRenderer({
+export const GenerateDiagramRenderer = memo(function GenerateDiagramRenderer({
   shape,
   context,
   onMouseDown,
@@ -57,7 +57,7 @@ export function GenerateDiagramRenderer({
   const diagramType = diagram?.type as DiagramType | undefined;
 
   // Parse shape data - this will update when shape.data changes
-  const generatorData = (shape.data || {}) as LLMGeneratorShapeData;
+  const generatorData = useMemo(() => (shape.data || {}) as LLMGeneratorShapeData, [shape.data]);
   const [prompt, setPrompt] = useState(generatorData.prompt || '');
   const [isLoading, setIsLoading] = useState(generatorData.isLoading || false);
   const [error, setError] = useState(generatorData.error);
@@ -172,7 +172,7 @@ export function GenerateDiagramRenderer({
   };
 
   // Handle removing a reference
-  const handleRemoveReference = async (diagramIdToRemove: string) => {
+  const handleRemoveReference = useCallback(async (diagramIdToRemove: string) => {
     const updatedReferencedDiagramIds = referencedDiagramIds.filter(
       (id) => id !== diagramIdToRemove
     );
@@ -192,7 +192,7 @@ export function GenerateDiagramRenderer({
     });
 
     toast.success('Diagram reference removed');
-  };
+  }, [referencedDiagramIds, generatorData, shape.id, diagramId, updateLocalShape, _internalUpdateShape]);
 
   const handleGenerate = async () => {
 
@@ -297,6 +297,11 @@ export function GenerateDiagramRenderer({
     }
   };
 
+  // Memoized handler for prompt textarea
+  const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setPrompt(e.target.value);
+  }, []);
+
   return (
     <ShapeWrapper
       shape={shape}
@@ -335,7 +340,7 @@ export function GenerateDiagramRenderer({
       <textarea
         data-interactive="true"
         value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
+        onChange={handlePromptChange}
         placeholder="Describe the diagram you want to generate..."
         disabled={isLoading}
         style={{
@@ -504,4 +509,4 @@ export function GenerateDiagramRenderer({
       </style>
     </ShapeWrapper>
   );
-}
+});

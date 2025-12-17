@@ -3,7 +3,7 @@
  * Displays use case details and its requirements in a table
  */
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
 import { useParams, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
@@ -62,17 +62,17 @@ function UseCaseDetailContent() {
     setIsModalOpen(true);
   };
 
-  const handleEdit = (requirement: Requirement) => {
+  const handleEdit = useCallback((requirement: Requirement) => {
     setEditingRequirement(requirement);
     form.setValue('text', requirement.text);
     form.setValue('type', requirement.type);
     form.setValue('priority', requirement.priority);
     setIsModalOpen(true);
-  };
+  }, [form]);
 
-  const handleDeleteClick = async (requirement: Requirement) => {
+  const handleDeleteClick = useCallback(async (requirement: Requirement) => {
     await deleteRequirement.mutateAsync(requirement.id);
-  };
+  }, [deleteRequirement]);
 
   const handleOk = async () => {
     try {
@@ -105,6 +105,17 @@ function UseCaseDetailContent() {
     setIsModalOpen(false);
     form.reset();
   };
+
+  // Memoized handlers for table actions to prevent unnecessary re-renders
+  const handleEditRecord = useCallback((record: Requirement) => {
+    handleEdit(record);
+  }, [handleEdit]);
+
+  const handleDeleteRecord = useCallback((record: Requirement) => {
+    if (confirm('Are you sure you want to delete this requirement?')) {
+      handleDeleteClick(record);
+    }
+  }, [handleDeleteClick]);
 
   const columns: TableColumn<Requirement>[] = [
     {
@@ -145,18 +156,14 @@ function UseCaseDetailContent() {
           <Button
             variant="text"
             icon={<FiEdit2 />}
-            onClick={() => handleEdit(record)}
+            onClick={() => handleEditRecord(record)}
             size="small"
           />
           <Button
             variant="danger"
             icon={<FiTrash2 />}
             size="small"
-            onClick={() => {
-              if (confirm('Are you sure you want to delete this requirement?')) {
-                handleDeleteClick(record);
-              }
-            }}
+            onClick={() => handleDeleteRecord(record)}
           />
         </HStack>
       ),

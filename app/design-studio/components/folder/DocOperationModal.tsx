@@ -51,7 +51,7 @@ const DOC_MODAL_CONFIG: OperationModalConfig<UserDocument, DocOperationType> = {
         <div className="text-xs font-medium text-[var(--text-muted)] mb-2">Document:</div>
         <div className="text-sm text-[var(--text)]">
           <span className="font-medium">{document.title}</span>
-          <span className="text-[var(--text-muted)]"> ({document.steps.length} steps)</span>
+          <span className="text-[var(--text-muted)]"> ({(document.steps ?? []).length} steps)</span>
         </div>
       </>
     );
@@ -107,7 +107,7 @@ function DocEditForm({ document, onChange }: DocEditFormProps) {
 
     updateField(
       'prerequisites',
-      document.prerequisites.filter((_, i) => i !== index)
+      (document.prerequisites ?? []).filter((_, i) => i !== index)
     );
   };
 
@@ -138,19 +138,19 @@ function DocEditForm({ document, onChange }: DocEditFormProps) {
           <label className="text-xs font-medium text-[var(--text)]">Prerequisites</label>
           <button
             type="button"
-            onClick={() => updateField('prerequisites', [...document.prerequisites, ''])}
+            onClick={() => updateField('prerequisites', [...(document.prerequisites ?? []), ''])}
             className="text-xs text-[var(--primary)] hover:underline"
           >
             + Add prerequisite
           </button>
         </div>
         <div className="flex flex-col gap-2">
-          {document.prerequisites.map((prereq, index) => (
+          {(document.prerequisites ?? []).map((prereq, index) => (
             <div key={getPrereqStableId(index)} className="flex gap-2 items-center">
               <Input
                 value={prereq}
                 onChange={(e) => {
-                  const newPrereqs = [...document.prerequisites];
+                  const newPrereqs = [...(document.prerequisites ?? [])];
                   newPrereqs[index] = e.target.value;
                   updateField('prerequisites', newPrereqs);
                 }}
@@ -172,7 +172,7 @@ function DocEditForm({ document, onChange }: DocEditFormProps) {
 
       {/* Steps */}
       <ArrayFieldCardEditor<DocumentStep>
-        items={document.steps}
+        items={document.steps ?? []}
         onChange={(steps) => updateField('steps', steps)}
         createItem={() => ({ title: '', description: '' })}
         label="Steps"

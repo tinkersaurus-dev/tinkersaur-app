@@ -5,6 +5,7 @@
  * State management is handled by useUserStoriesPanel hook.
  */
 
+import { useCallback } from 'react';
 import { LuTrash2, LuSplit, LuMerge, LuRefreshCw, LuPencil } from 'react-icons/lu';
 import { Button } from '~/core/components/ui/Button';
 import type { UserStory } from '../../lib/llm/types';
@@ -47,6 +48,12 @@ export function UserStoriesPanel({
     canEdit,
   } = useUserStoriesPanel({ initialStories, folderContent, onStoriesChange });
 
+  // Memoized handlers to prevent unnecessary re-renders
+  const handleOpenCombine = useCallback(() => openOperationModal('combine'), [openOperationModal]);
+  const handleOpenSplit = useCallback(() => openOperationModal('split'), [openOperationModal]);
+  const handleOpenRegenerate = useCallback(() => openOperationModal('regenerate'), [openOperationModal]);
+  const handleOpenEdit = useCallback(() => openOperationModal('edit'), [openOperationModal]);
+
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
@@ -73,7 +80,7 @@ export function UserStoriesPanel({
             variant="default"
             size="small"
             icon={<LuMerge />}
-            onClick={() => openOperationModal('combine')}
+            onClick={handleOpenCombine}
             disabled={!canCombine}
             title="Combine selected stories into one"
           >
@@ -84,7 +91,7 @@ export function UserStoriesPanel({
             variant="default"
             size="small"
             icon={<LuSplit />}
-            onClick={() => openOperationModal('split')}
+            onClick={handleOpenSplit}
             disabled={!canSplit}
             title="Split selected story into multiple"
           >
@@ -95,7 +102,7 @@ export function UserStoriesPanel({
             variant="default"
             size="small"
             icon={<LuRefreshCw />}
-            onClick={() => openOperationModal('regenerate')}
+            onClick={handleOpenRegenerate}
             disabled={!canRegenerate}
             title="Regenerate selected stories"
           >
@@ -106,7 +113,7 @@ export function UserStoriesPanel({
             variant="default"
             size="small"
             icon={<LuPencil />}
-            onClick={() => openOperationModal('edit')}
+            onClick={handleOpenEdit}
             disabled={!canEdit}
             title="Edit selected story"
           >

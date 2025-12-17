@@ -1,4 +1,13 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Handle both client (VITE_API_URL) and server (process.env) environments
+// Called at request time to pick up runtime environment variables
+const getApiBaseUrl = (): string => {
+  // Server-side: use process.env (checked at runtime)
+  if (typeof window === 'undefined') {
+    return process.env.API_URL || 'http://localhost:5062';
+  }
+  // Client-side: use import.meta.env (baked in at build time)
+  return import.meta.env.VITE_API_URL || 'http://localhost:5062';
+};
 
 export class ApiError extends Error {
   constructor(
@@ -14,7 +23,7 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getApiBaseUrl()}${endpoint}`;
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',

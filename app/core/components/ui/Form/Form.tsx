@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import {
   useForm as useHookForm,
   FormProvider,
@@ -38,10 +38,11 @@ export function Form<T extends FieldValues = FieldValues>({
   className = '',
 }: FormProps<T>) {
   const handleSubmit = onSubmit ? form.handleSubmit(onSubmit) : undefined;
+  const contextValue = useMemo(() => ({ layout }), [layout]);
 
   return (
     <FormProvider {...form}>
-      <FormContext.Provider value={{ layout }}>
+      <FormContext.Provider value={contextValue}>
         <form onSubmit={handleSubmit} className={className}>
           {children}
         </form>
