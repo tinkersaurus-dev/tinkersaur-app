@@ -57,6 +57,7 @@ export const DesignWorkSchema = z.object({
   parentDesignWorkId: z.string().uuid().optional(),
   name: z.string().min(1, 'Design work name is required').max(200),
   version: z.string().min(1, 'Version is required'),
+  order: z.number().int().nonnegative(),
   diagrams: z.array(DiagramRefSchema).default([]),
   interfaces: z.array(InterfaceRefSchema).default([]),
   documents: z.array(DocumentRefSchema).default([]),
@@ -68,11 +69,14 @@ export const DesignWorkSchema = z.object({
 // TypeScript type derived from schema
 export type DesignWork = z.infer<typeof DesignWorkSchema>;
 
-// Schema for creating (without generated fields)
+// Schema for creating (without generated fields, order is optional as backend auto-calculates)
 export const CreateDesignWorkSchema = DesignWorkSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  order: true,
+}).extend({
+  order: z.number().int().nonnegative().optional(),
 });
 
 export type CreateDesignWorkDto = z.infer<typeof CreateDesignWorkSchema>;

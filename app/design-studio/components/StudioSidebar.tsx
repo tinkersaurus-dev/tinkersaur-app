@@ -8,7 +8,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { MdFolder, MdDescription, MdAccountTree, MdDashboard, MdLink, MdLink as MdLinkIcon } from 'react-icons/md';
 import { FiFolderPlus } from 'react-icons/fi';
 import { Tree, Dropdown } from '~/core/components';
-import type { TreeNodeData, DropdownMenuItem } from '~/core/components';
+import type { TreeNodeData, DropdownMenuItem, DropPosition } from '~/core/components';
 import { Button } from '~/core/components/ui/Button';
 import { useDesignStudioUIStore } from '../store';
 import { type DesignContentType, type DiagramType } from '~/core/entities/design-studio';
@@ -168,114 +168,230 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     }
   };
 
+  // Get reorderItems action from store
+  const reorderItems = useDesignWorkStore((state) => state.reorderItems);
+
+  // Helper to get all items at a given level (child folders + content of parent folder)
+  const getAllItemsAtLevel = useCallback(
+    (parentFolderId: string | undefined): Array<{ id: string; type: string; order: number }> => {
+      if (!parentFolderId) {
+        // Root level: only folders
+        return designWorks
+          .filter((dw) => dw.solutionId === solutionId && !dw.parentDesignWorkId)
+          .map((dw) => ({ id: dw.id, type: 'folder', order: dw.order }));
+      }
+
+      // Inside a folder: child folders + content items
+      const parentFolder = designWorks.find((dw) => dw.id === parentFolderId);
+      if (!parentFolder) return [];
+
+      const childFolders = designWorks
+        .filter((dw) => dw.parentDesignWorkId === parentFolderId)
+        .map((dw) => ({ id: dw.id, type: 'folder', order: dw.order }));
+
+      const diagrams = (parentFolder.diagrams || []).map((d) => ({ id: d.id, type: 'diagram', order: d.order }));
+      const interfaces = (parentFolder.interfaces || []).map((i) => ({ id: i.id, type: 'interface', order: i.order }));
+      const documents = (parentFolder.documents || []).map((d) => ({ id: d.id, type: 'document', order: d.order }));
+
+      return [...childFolders, ...diagrams, ...interfaces, ...documents].sort((a, b) => a.order - b.order);
+    },
+    [designWorks, solutionId]
+  );
+
+  // Handle drag-and-drop reordering
+  const handleReorder = useCallback(
+    async (draggedKey: string, targetKey: string, position: DropPosition) => {
+      // Parse dragged item key
+      const [draggedType, ...draggedIdParts] = draggedKey.split('-');
+      const draggedId = draggedIdParts.join('-');
+
+      // Parse target item key
+      const [targetType, ...targetIdParts] = targetKey.split('-');
+      const targetId = targetIdParts.join('-');
+
+      // Determine item types
+      const draggedItemType = draggedType as 'folder' | 'diagram' | 'interface' | 'document';
+      const targetItemType = targetType as 'folder' | 'diagram' | 'interface' | 'document';
+
+      // Find the parent folder of the target item and its order
+      let newParentId: string | undefined;
+      let targetItemOrder: number;
+
+      if (targetItemType === 'folder') {
+        const targetFolder = designWorks.find((dw) => dw.id === targetId);
+        if (!targetFolder) return;
+        targetItemOrder = targetFolder.order;
+
+        if (position === 'inside') {
+          // Dropping inside a folder - become a child at the end
+          newParentId = targetId;
+          const allChildren = getAllItemsAtLevel(targetId);
+          const maxOrder = allChildren.length > 0 ? Math.max(...allChildren.map((c) => c.order)) : -1;
+          await reorderItems([
+            {
+              id: draggedId,
+              itemType: draggedItemType,
+              newOrder: maxOrder + 1,
+              newParentDesignWorkId: newParentId,
+            },
+          ]);
+          return;
+        } else {
+          // Dropping before/after a folder - same parent level
+          newParentId = targetFolder.parentDesignWorkId;
+        }
+      } else {
+        // Target is a content item (diagram, interface, document)
+        // Find which folder contains this content item
+        let containingFolder: typeof designWorks[0] | undefined;
+        for (const dw of designWorks) {
+          const hasItem =
+            dw.diagrams?.some((d) => d.id === targetId) ||
+            dw.interfaces?.some((i) => i.id === targetId) ||
+            dw.documents?.some((d) => d.id === targetId);
+          if (hasItem) {
+            containingFolder = dw;
+            break;
+          }
+        }
+        if (!containingFolder) return;
+
+        newParentId = containingFolder.id;
+
+        // Get target item's order
+        if (targetType === 'diagram') {
+          targetItemOrder = containingFolder.diagrams?.find((d) => d.id === targetId)?.order ?? 0;
+        } else if (targetType === 'interface') {
+          targetItemOrder = containingFolder.interfaces?.find((i) => i.id === targetId)?.order ?? 0;
+        } else {
+          targetItemOrder = containingFolder.documents?.find((d) => d.id === targetId)?.order ?? 0;
+        }
+      }
+
+      // Calculate the new order based on position relative to target
+      // 'before' = take target's order (target and everything after shifts up)
+      // 'after' = take target's order + 1 (everything after target shifts up)
+      const newOrder = position === 'before' ? targetItemOrder : targetItemOrder + 1;
+
+      await reorderItems([
+        {
+          id: draggedId,
+          itemType: draggedItemType,
+          newOrder,
+          newParentDesignWorkId: newParentId,
+        },
+      ]);
+    },
+    [designWorks, reorderItems, getAllItemsAtLevel]
+  );
+
   // Memoize tree data to avoid rebuilding on every render
   const treeData = useMemo(() => {
-    // Build tree recursively from DesignWorks (folders) using embedded metadata
-    const buildTreeData = (parentDesignWorkId?: string): TreeNodeData[] => {
-      const nodes: TreeNodeData[] = [];
+    // Helper to build a folder node with its children
+    const buildFolderNode = (designWork: typeof designWorks[0]): TreeNodeData => {
+      // Get child folders
+      const childFolders = designWorks.filter((dw) => dw.parentDesignWorkId === designWork.id);
 
-      // Get child design works (folders) at this level
-      const childDesignWorks = parentDesignWorkId
-        ? designWorks.filter((dw) => dw.parentDesignWorkId === parentDesignWorkId)
-        : designWorks.filter((dw) => dw.solutionId === solutionId && !dw.parentDesignWorkId);
+      // Combine all items at this level: child folders + content items
+      const allItems: Array<{ order: number; itemType: string; node: TreeNodeData }> = [
+        // Child folders
+        ...childFolders.map((childFolder) => ({
+          order: childFolder.order,
+          itemType: 'folder',
+          node: buildFolderNode(childFolder),
+        })),
+        // Diagrams with their references as children
+        ...(designWork.diagrams || []).map((diagramRef) => {
+          // Get references for this diagram
+          const diagramReferences = Object.values(references).filter(
+            (ref) => ref.contentId === diagramRef.id
+          );
 
-      // Add each DesignWork as a folder
-      childDesignWorks.forEach((designWork) => {
-        // Build children (nested folders and content)
-        const children: TreeNodeData[] = [];
+          // Build reference nodes
+          const referenceChildren: TreeNodeData[] = diagramReferences.map((fullReference) => ({
+            title: fullReference.name,
+            key: `reference-${fullReference.id}`,
+            icon: getContentIcon('reference'),
+            isLeaf: true,
+            draggable: true,
+            dragData: {
+              type: 'reference',
+              referenceId: fullReference.id,
+              contentId: fullReference.contentId,
+              contentType: fullReference.contentType,
+              metadata: fullReference.metadata,
+            },
+          }));
 
-        // Add nested folders recursively
-        const nestedFolders = buildTreeData(designWork.id);
-        children.push(...nestedFolders);
-
-        // Combine all content items with their order
-        const allContent: Array<{ order: number; node: TreeNodeData }> = [
-          // Diagrams with their references as children
-          ...(designWork.diagrams || []).map((diagramRef) => {
-            // Get references for this diagram
-            const diagramReferences = Object.values(references).filter(
-              (ref) => ref.contentId === diagramRef.id
-            );
-
-            // Build reference nodes
-            const referenceChildren: TreeNodeData[] = diagramReferences.map((fullReference) => ({
-              title: fullReference.name,
-              key: `reference-${fullReference.id}`,
-              icon: getContentIcon('reference'),
-              isLeaf: true,
+          return {
+            order: diagramRef.order,
+            itemType: 'diagram',
+            node: {
+              title: diagramRef.name,
+              key: `diagram-${diagramRef.id}`,
+              icon: getContentIcon('diagram'),
+              isLeaf: referenceChildren.length === 0,
+              children: referenceChildren.length > 0 ? referenceChildren : undefined,
               draggable: true,
               dragData: {
-                type: 'reference',
-                referenceId: fullReference.id,
-                contentId: fullReference.contentId,
-                contentType: fullReference.contentType,
-                metadata: fullReference.metadata,
+                type: 'diagram',
+                diagramId: diagramRef.id,
+                diagramName: diagramRef.name,
               },
-            }));
-
-            return {
-              order: diagramRef.order,
-              node: {
-                title: diagramRef.name,
-                key: `diagram-${diagramRef.id}`,
-                icon: getContentIcon('diagram'),
-                isLeaf: referenceChildren.length === 0,
-                children: referenceChildren.length > 0 ? referenceChildren : undefined,
-                draggable: true,
-                dragData: {
-                  type: 'diagram',
-                  diagramId: diagramRef.id,
-                  diagramName: diagramRef.name,
-                },
-              },
-            };
-          }),
-          ...(designWork.interfaces || []).map((interfaceRef) => ({
-            order: interfaceRef.order,
-            node: {
-              title: interfaceRef.name,
-              key: `interface-${interfaceRef.id}`,
-              icon: getContentIcon('interface'),
-              isLeaf: true,
             },
-          })),
-          ...(designWork.documents || []).map((documentRef) => ({
-            order: documentRef.order,
-            node: {
-              title: documentRef.name,
-              key: `document-${documentRef.id}`,
-              icon: getContentIcon('document'),
-              isLeaf: true,
-            },
-          })),
-        ];
+          };
+        }),
+        ...(designWork.interfaces || []).map((interfaceRef) => ({
+          order: interfaceRef.order,
+          itemType: 'interface',
+          node: {
+            title: interfaceRef.name,
+            key: `interface-${interfaceRef.id}`,
+            icon: getContentIcon('interface'),
+            isLeaf: true,
+          },
+        })),
+        ...(designWork.documents || []).map((documentRef) => ({
+          order: documentRef.order,
+          itemType: 'document',
+          node: {
+            title: documentRef.name,
+            key: `document-${documentRef.id}`,
+            icon: getContentIcon('document'),
+            isLeaf: true,
+          },
+        })),
+      ];
 
-        // Sort by order and add to children
-        allContent.sort((a, b) => a.order - b.order);
-        children.push(...allContent.map(item => item.node));
+      // Sort all items by order
+      allItems.sort((a, b) => a.order - b.order);
+      const children = allItems.map((item) => item.node);
 
-        // Create folder icon, with link indicator if linked to a use case
-        const folderIcon = designWork.useCaseId ? (
-          <span className="flex items-center gap-0.5">
-            <MdFolder />
-            <MdLinkIcon className="text-[10px] text-[var(--text-secondary)]" />
-          </span>
-        ) : (
+      // Create folder icon, with link indicator if linked to a use case
+      const folderIcon = designWork.useCaseId ? (
+        <span className="flex items-center gap-0.5">
           <MdFolder />
-        );
+          <MdLinkIcon className="text-[10px] text-[var(--text-secondary)]" />
+        </span>
+      ) : (
+        <MdFolder />
+      );
 
-        nodes.push({
-          title: designWork.name,
-          key: `folder-${designWork.id}`,
-          icon: folderIcon,
-          children: children.length > 0 ? children : undefined,
-        });
-      });
-
-      return nodes;
+      return {
+        title: designWork.name,
+        key: `folder-${designWork.id}`,
+        icon: folderIcon,
+        children: children.length > 0 ? children : undefined,
+      };
     };
 
-    return buildTreeData();
+    // Build tree recursively from DesignWorks (folders) using embedded metadata
+    // Get root level folders (no parent), sorted by order
+    const rootFolders = designWorks
+      .filter((dw) => dw.solutionId === solutionId && !dw.parentDesignWorkId)
+      .sort((a, b) => a.order - b.order);
+
+    return rootFolders.map((folder) => buildFolderNode(folder));
   }, [designWorks, solutionId, references]);
 
   // Compute folder keys to expand by default (not content items like diagrams with references)
@@ -600,6 +716,8 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         editingValue={editingFolderName}
         onEditingChange={handleFolderNameChange}
         onEditingFinish={handleFinishRename}
+        allowReorder={true}
+        onReorder={handleReorder}
       />
 
       {contextMenu && (

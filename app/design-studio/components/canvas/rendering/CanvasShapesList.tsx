@@ -1,4 +1,4 @@
-import { useMemo, memo, Suspense } from 'react';
+import { useMemo, memo } from 'react';
 import type { Shape } from '~/core/entities/design-studio/types';
 import type { ViewportTransform } from '../../../utils/viewport';
 import { ShapeRenderer } from '~/design-studio/diagrams/shared/rendering/ShapeRenderer';
@@ -147,36 +147,34 @@ function CanvasShapesListComponent({
 
   return (
     <>
-      <Suspense fallback={null}>
-        {sortedShapes.map((shape) => {
-          const shapeContext: RenderContext = {
-            isSelected: selectedShapeIds.includes(shape.id),
-            isHovered: shape.id === hoveredShapeId,
-            isHoveredContainer: shape.id === hoveredContainerId,
-            zoom: viewportTransform.viewport.zoom,
-            readOnly: false,
-          };
+      {sortedShapes.map((shape) => {
+        const shapeContext: RenderContext = {
+          isSelected: selectedShapeIds.includes(shape.id),
+          isHovered: shape.id === hoveredShapeId,
+          isHoveredContainer: shape.id === hoveredContainerId,
+          zoom: viewportTransform.viewport.zoom,
+          readOnly: false,
+        };
 
-          const isEditing = editingEntityId === shape.id && editingEntityType === 'shape';
+        const isEditing = editingEntityId === shape.id && editingEntityType === 'shape';
 
-          return (
-            <ShapeRenderer
-              key={shape.id}
-              shape={shape}
-              context={shapeContext}
-              isEditing={isEditing}
-              onMouseDown={onMouseDown}
-              onMouseEnter={onMouseEnter}
-              onMouseLeave={onMouseLeave}
-              onDoubleClick={onDoubleClick}
-              onLabelChange={onLabelChange}
-              onFinishEditing={onFinishEditing}
-              onConnectionPointMouseDown={onConnectionPointMouseDown}
-              onConnectionPointMouseUp={onConnectionPointMouseUp}
-            />
-          );
-        })}
-      </Suspense>
+        return (
+          <ShapeRenderer
+            key={shape.id}
+            shape={shape}
+            context={shapeContext}
+            isEditing={isEditing}
+            onMouseDown={onMouseDown}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            onDoubleClick={onDoubleClick}
+            onLabelChange={onLabelChange}
+            onFinishEditing={onFinishEditing}
+            onConnectionPointMouseDown={onConnectionPointMouseDown}
+            onConnectionPointMouseUp={onConnectionPointMouseUp}
+          />
+        );
+      })}
 
       {/* Render resize handles for selected container shapes */}
       {onResizeStart &&

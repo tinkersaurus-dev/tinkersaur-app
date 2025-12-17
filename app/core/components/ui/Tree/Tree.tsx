@@ -4,7 +4,9 @@
  */
 
 import { useState, useMemo, useLayoutEffect } from 'react';
-import { TreeNode, type TreeNodeData } from './TreeNode';
+import { TreeNode, type TreeNodeData, type DropPosition } from './TreeNode';
+
+export type { DropPosition };
 
 interface TreeProps {
   data: TreeNodeData[];
@@ -19,6 +21,9 @@ interface TreeProps {
   editingValue?: string;
   onEditingChange?: (newValue: string) => void;
   onEditingFinish?: () => void;
+  // Reorder support
+  allowReorder?: boolean;
+  onReorder?: (draggedKey: string, targetKey: string, position: DropPosition) => void;
 }
 
 export function Tree({
@@ -34,7 +39,11 @@ export function Tree({
   editingValue,
   onEditingChange,
   onEditingFinish,
+  allowReorder = false,
+  onReorder,
 }: TreeProps) {
+  // Track which node is being dragged (for reorder)
+  const [draggedKey, setDraggedKey] = useState<string | null>(null);
   // Calculate all keys that can be expanded
   const allExpandableKeys = useMemo(() => {
     const keys = new Set<string>();
@@ -84,6 +93,21 @@ export function Tree({
     });
   };
 
+  const handleReorderDragStart = (key: string) => {
+    setDraggedKey(key);
+  };
+
+  const handleReorderDragEnd = () => {
+    setDraggedKey(null);
+  };
+
+  const handleReorderDrop = (targetKey: string, position: DropPosition) => {
+    if (draggedKey && onReorder && draggedKey !== targetKey) {
+      onReorder(draggedKey, targetKey, position);
+    }
+    setDraggedKey(null);
+  };
+
   return (
     <div className='bg-[var(--bg-dark)]' style={{ fontSize: '10px' }}>
       {data.map((node) => (
@@ -102,6 +126,11 @@ export function Tree({
           editingValue={editingValue}
           onEditingChange={onEditingChange}
           onEditingFinish={onEditingFinish}
+          allowReorder={allowReorder}
+          draggedKey={draggedKey}
+          onReorderDragStart={handleReorderDragStart}
+          onReorderDragEnd={handleReorderDragEnd}
+          onReorderDrop={handleReorderDrop}
         />
       ))}
     </div>

@@ -17,9 +17,12 @@ interface ContentItem {
 
 /**
  * Recursively collect all descendant folder IDs including the given folder
+ * Child folders are sorted by their order property
  */
 function getDescendantFolderIds(folderId: string, designWorks: DesignWork[]): string[] {
-  const children = designWorks.filter((dw) => dw.parentDesignWorkId === folderId);
+  const children = designWorks
+    .filter((dw) => dw.parentDesignWorkId === folderId)
+    .sort((a, b) => a.order - b.order);
   return [folderId, ...children.flatMap((child) => getDescendantFolderIds(child.id, designWorks))];
 }
 
@@ -159,29 +162,13 @@ export function useFolderContent(folderId: string | undefined) {
 
     const sections: string[] = [];
 
-    // Helper to get the depth of a folder relative to the root
-    const getFolderDepth = (folder: DesignWork): number => {
-      let depth = 0;
-      let current = folder;
-      while (current.parentDesignWorkId && current.id !== folderId) {
-        depth++;
-        const parent = designWorks.find((dw) => dw.id === current.parentDesignWorkId);
-        if (!parent) break;
-        current = parent;
-      }
-      return depth;
-    };
-
-    for (const id of folderIds) {
-      const folder = designWorks.find((dw) => dw.id === id);
-      if (!folder) continue;
-
-      const isRootFolder = id === folderId;
-      const depth = getFolderDepth(folder);
+    // Helper to recursively render a folder and its contents
+    const renderFolder = (currentFolderId: string, depth: number, isRoot: boolean): void => {
+      const folder = designWorks.find((dw) => dw.id === currentFolderId);
+      if (!folder) return;
 
       // Add folder header for child folders (not the root folder)
-      if (!isRootFolder) {
-        // Use h2 for direct children, h3 for grandchildren, etc.
+      if (!isRoot) {
         const headerLevel = Math.min(depth + 1, 4); // Cap at h4
         const headerPrefix = '#'.repeat(headerLevel);
         sections.push(`${headerPrefix} ${folder.name}`);
@@ -197,18 +184,19 @@ export function useFolderContent(folderId: string | undefined) {
         sections.push(useCaseSection);
       }
 
-      // Get content items for this folder, sorted by order
+      // Get all items for this folder (diagrams, documents, and child folders), sorted by order
+      const childFolders = designWorks.filter((dw) => dw.parentDesignWorkId === currentFolderId);
       const folderItems = [
         ...(folder.diagrams || []).map((d) => ({ ...d, type: 'diagram' as const })),
         ...(folder.documents || []).map((d) => ({ ...d, type: 'document' as const })),
+        ...childFolders.map((cf) => ({ id: cf.id, name: cf.name, order: cf.order, type: 'folder' as const })),
       ].sort((a, b) => a.order - b.order);
 
       // Determine header level for content items based on folder depth
-      // Root folder content uses ##, child folder content uses ### (one level deeper than folder header)
       const contentHeaderLevel = Math.min(depth + 2, 5); // Cap at h5
       const contentHeaderPrefix = '#'.repeat(contentHeaderLevel);
 
-      // Add content for each item
+      // Render each item in order
       for (const item of folderItems) {
         if (item.type === 'diagram') {
           const diagram = diagrams[item.id];
@@ -222,9 +210,14 @@ export function useFolderContent(folderId: string | undefined) {
             const documentContent = document.content || '*No document content*';
             sections.push(`${contentHeaderPrefix} Document: ${item.name}\n\n${documentContent}`);
           }
+        } else if (item.type === 'folder') {
+          renderFolder(item.id, depth + 1, false);
         }
       }
-    }
+    };
+
+    // Start rendering from the root folder
+    renderFolder(folderId, 0, true);
 
     return sections.length > 0 ? sections.join('\n\n') : '*No content in this folder*';
   }, [folderId, folderIds, designWorks, useCase, diagrams, documents]);

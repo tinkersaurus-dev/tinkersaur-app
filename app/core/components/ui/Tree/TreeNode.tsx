@@ -1,11 +1,13 @@
 /**
  * TreeNode Component
- * Recursive tree node with expand/collapse and custom indentation
+ * Recursive tree node with expand/collapse, custom indentation, and drag-drop reorder support
  */
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { FiChevronRight, FiChevronDown } from 'react-icons/fi';
+
+export type DropPosition = 'before' | 'after' | 'inside';
 
 export interface TreeNodeData {
   title: string;
@@ -31,6 +33,12 @@ interface TreeNodeProps {
   editingValue?: string;
   onEditingChange?: (newValue: string) => void;
   onEditingFinish?: () => void;
+  // Reorder support
+  allowReorder?: boolean;
+  draggedKey?: string | null;
+  onReorderDragStart?: (key: string) => void;
+  onReorderDragEnd?: () => void;
+  onReorderDrop?: (targetKey: string, position: DropPosition) => void;
 }
 
 export function TreeNode({
@@ -47,11 +55,26 @@ export function TreeNode({
   editingValue,
   onEditingChange,
   onEditingFinish,
+  allowReorder = false,
+  draggedKey,
+  onReorderDragStart,
+  onReorderDragEnd,
+  onReorderDrop,
 }: TreeNodeProps) {
   const isEditing = editingNodeKey === node.key;
   const hasChildren = node.children && node.children.length > 0;
   const isExpanded = expandedKeys.has(node.key);
   const inputRef = useRef<HTMLInputElement>(null);
+  const nodeRef = useRef<HTMLDivElement>(null);
+
+  // Drop position state for visual indicator
+  const [dropPosition, setDropPosition] = useState<DropPosition | null>(null);
+
+  // Is this node a folder (has key starting with folder-)?
+  const isFolder = node.key.startsWith('folder-');
+
+  // Is this node being dragged?
+  const isDragging = draggedKey === node.key;
 
   // Auto-focus and select text when editing starts
   useEffect(() => {
@@ -87,6 +110,30 @@ export function TreeNode({
   };
 
   const handleDragStart = (event: React.DragEvent) => {
+    // Handle reorder drag
+    if (allowReorder && onReorderDragStart) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', node.key);
+      onReorderDragStart(node.key);
+
+      // Create custom drag image
+      const dragImage = document.createElement('div');
+      dragImage.style.position = 'absolute';
+      dragImage.style.top = '-1000px';
+      dragImage.style.padding = '4px 8px';
+      dragImage.style.backgroundColor = 'var(--bg-light)';
+      dragImage.style.border = '1px solid var(--border)';
+      dragImage.style.borderRadius = '4px';
+      dragImage.style.fontSize = '10px';
+      dragImage.style.color = 'var(--text)';
+      dragImage.textContent = node.title;
+      document.body.appendChild(dragImage);
+      event.dataTransfer.setDragImage(dragImage, 0, 0);
+      setTimeout(() => document.body.removeChild(dragImage), 0);
+      return;
+    }
+
+    // Handle legacy draggable behavior (for reference drops etc.)
     if (node.draggable && node.dragData) {
       event.dataTransfer.effectAllowed = 'copy';
       event.dataTransfer.setData('application/json', JSON.stringify(node.dragData));
@@ -108,38 +155,114 @@ export function TreeNode({
     }
   };
 
+  const handleDragEnd = () => {
+    if (allowReorder && onReorderDragEnd) {
+      onReorderDragEnd();
+    }
+  };
+
   const handleDragOver = (event: React.DragEvent) => {
+    // Handle reorder drag over
+    if (allowReorder && draggedKey && draggedKey !== node.key) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+
+      // Calculate drop position based on mouse position
+      const rect = nodeRef.current?.getBoundingClientRect();
+      if (rect) {
+        const y = event.clientY - rect.top;
+        const height = rect.height;
+
+        if (isFolder) {
+          // For folders: top 25% = before, middle 50% = inside, bottom 25% = after
+          if (y < height * 0.25) {
+            setDropPosition('before');
+          } else if (y > height * 0.75) {
+            setDropPosition('after');
+          } else {
+            setDropPosition('inside');
+          }
+        } else {
+          // For non-folders: top 50% = before, bottom 50% = after
+          if (y < height * 0.5) {
+            setDropPosition('before');
+          } else {
+            setDropPosition('after');
+          }
+        }
+      }
+      return;
+    }
+
+    // Handle legacy drag over
     if (onDragOver) {
       onDragOver(event, node.key);
     }
   };
 
+  const handleDragLeave = () => {
+    setDropPosition(null);
+  };
+
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
     event.stopPropagation();
+
+    // Handle reorder drop
+    if (allowReorder && dropPosition && onReorderDrop && draggedKey !== node.key) {
+      onReorderDrop(node.key, dropPosition);
+      setDropPosition(null);
+      return;
+    }
+
+    // Handle legacy drop
     if (onDrop) {
       onDrop(event, node.key);
     }
+    setDropPosition(null);
   };
 
+  // Determine if this node should be draggable for reorder
+  const canDrag = allowReorder || node.draggable;
+
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
+      {/* Drop indicator - before */}
+      {dropPosition === 'before' && (
+        <div
+          style={{
+            position: 'absolute',
+            left: `${depth * indentSize + 16}px`,
+            right: 0,
+            top: 0,
+            height: '2px',
+            backgroundColor: 'var(--primary)',
+            zIndex: 10,
+          }}
+        />
+      )}
+
       {/* Node row */}
       <div
+        ref={nodeRef}
         className='hover:bg-[var(--highlight)]'
         style={{
           paddingLeft: `${depth * indentSize}px`,
           height: '24px',
           display: 'flex',
           alignItems: 'center',
-          cursor: node.draggable ? 'grab' : 'pointer',
+          cursor: canDrag ? 'grab' : 'pointer',
           transition: 'background-color 0.2s',
           overflow: 'hidden',
           minWidth: 0,
+          opacity: isDragging ? 0.5 : 1,
+          backgroundColor: dropPosition === 'inside' ? 'var(--highlight)' : undefined,
         }}
-        draggable={node.draggable}
+        draggable={canDrag}
         onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
@@ -222,6 +345,21 @@ export function TreeNode({
         )}
       </div>
 
+      {/* Drop indicator - after */}
+      {dropPosition === 'after' && (
+        <div
+          style={{
+            position: 'absolute',
+            left: `${depth * indentSize + 16}px`,
+            right: 0,
+            bottom: 0,
+            height: '2px',
+            backgroundColor: 'var(--primary)',
+            zIndex: 10,
+          }}
+        />
+      )}
+
       {/* Children (recursive) */}
       {hasChildren && isExpanded && (
         <div>
@@ -241,6 +379,11 @@ export function TreeNode({
               editingValue={editingValue}
               onEditingChange={onEditingChange}
               onEditingFinish={onEditingFinish}
+              allowReorder={allowReorder}
+              draggedKey={draggedKey}
+              onReorderDragStart={onReorderDragStart}
+              onReorderDragEnd={onReorderDragEnd}
+              onReorderDrop={onReorderDrop}
             />
           ))}
         </div>

@@ -1,12 +1,15 @@
-import { lazy, Suspense, type ComponentType } from 'react';
+import { lazy, type ComponentType } from 'react';
 import type { ShapeRendererProps, ShapeRendererComponent } from './types';
-import { ShapeLoadingFallback } from './ShapeLoadingFallback';
 
 /**
  * Creates a lazy-loaded shape renderer component from a named export.
  *
- * Wraps a dynamic import with React.lazy() and Suspense to enable
- * code splitting for diagram-specific renderers.
+ * Wraps a dynamic import with React.lazy() to enable code splitting
+ * for diagram-specific renderers. The component will suspend during loading,
+ * which should be caught by a parent Suspense boundary (in CanvasContentLayer).
+ *
+ * Note: No Suspense wrapper here - we let the suspension bubble up so that
+ * shapes and connectors can be rendered together after all lazy components load.
  *
  * @param importFn - Function that returns a promise resolving to an object with the named export
  * @param exportName - The name of the export to use from the module
@@ -29,10 +32,6 @@ export function createLazyRenderer(
   );
 
   return function LazyRenderer(props: ShapeRendererProps) {
-    return (
-      <Suspense fallback={<ShapeLoadingFallback />}>
-        <LazyComponent {...props} />
-      </Suspense>
-    );
+    return <LazyComponent {...props} />;
   };
 }

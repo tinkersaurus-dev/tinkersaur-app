@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, Suspense } from 'react';
 import { useCanvasDiagram } from '../core/CanvasDiagramContext';
 import { useCanvasViewport } from '../core/CanvasViewportContext';
 import { useCanvasSelection } from '../core/CanvasSelectionContext';
@@ -59,42 +59,46 @@ function CanvasContentLayerComponent() {
         transformOrigin: '0 0',
       }}
     >
-      {/* Render all shapes */}
-      <CanvasShapesList
-        shapes={shapes}
-        selectedShapeIds={selectedShapeIds}
-        hoveredShapeId={hoveredShapeId}
-        hoveredContainerId={hoveredContainerId}
-        viewportTransform={viewportTransform}
-        editingEntityId={editingEntityId}
-        editingEntityType={editingEntityType}
-        onMouseDown={handleShapeMouseDown}
-        onMouseEnter={handleShapeMouseEnter}
-        onMouseLeave={handleShapeMouseLeave}
-        onDoubleClick={handleShapeDoubleClick}
-        onLabelChange={handleLabelChange}
-        onFinishEditing={handleFinishEditing}
-        onConnectionPointMouseDown={handleStartDrawingConnector}
-        onConnectionPointMouseUp={handleFinishDrawingConnector}
-        onResizeStart={handleResizeStart}
-      />
+      {/* Wrap shapes and connectors in Suspense so they appear together
+          after lazy-loaded shape renderers finish loading */}
+      <Suspense fallback={null}>
+        {/* Render all shapes */}
+        <CanvasShapesList
+          shapes={shapes}
+          selectedShapeIds={selectedShapeIds}
+          hoveredShapeId={hoveredShapeId}
+          hoveredContainerId={hoveredContainerId}
+          viewportTransform={viewportTransform}
+          editingEntityId={editingEntityId}
+          editingEntityType={editingEntityType}
+          onMouseDown={handleShapeMouseDown}
+          onMouseEnter={handleShapeMouseEnter}
+          onMouseLeave={handleShapeMouseLeave}
+          onDoubleClick={handleShapeDoubleClick}
+          onLabelChange={handleLabelChange}
+          onFinishEditing={handleFinishEditing}
+          onConnectionPointMouseDown={handleStartDrawingConnector}
+          onConnectionPointMouseUp={handleFinishDrawingConnector}
+          onResizeStart={handleResizeStart}
+        />
 
-      {/* Render all connectors */}
-      <CanvasConnectorsList
-        connectors={connectors}
-        shapes={shapes}
-        selectedConnectorIds={selectedConnectorIds}
-        hoveredConnectorId={hoveredConnectorId}
-        viewportTransform={viewportTransform}
-        editingEntityId={editingEntityId}
-        editingEntityType={editingEntityType}
-        onMouseDown={handleConnectorMouseDown}
-        onMouseEnter={handleConnectorMouseEnter}
-        onMouseLeave={handleConnectorMouseLeave}
-        onDoubleClick={handleConnectorDoubleClick}
-        onLabelChange={handleLabelChange}
-        onFinishEditing={handleFinishEditing}
-      />
+        {/* Render all connectors */}
+        <CanvasConnectorsList
+          connectors={connectors}
+          shapes={shapes}
+          selectedConnectorIds={selectedConnectorIds}
+          hoveredConnectorId={hoveredConnectorId}
+          viewportTransform={viewportTransform}
+          editingEntityId={editingEntityId}
+          editingEntityType={editingEntityType}
+          onMouseDown={handleConnectorMouseDown}
+          onMouseEnter={handleConnectorMouseEnter}
+          onMouseLeave={handleConnectorMouseLeave}
+          onDoubleClick={handleConnectorDoubleClick}
+          onLabelChange={handleLabelChange}
+          onFinishEditing={handleFinishEditing}
+        />
+      </Suspense>
 
       {/* Connector drawing preview line */}
       {drawingConnector && (

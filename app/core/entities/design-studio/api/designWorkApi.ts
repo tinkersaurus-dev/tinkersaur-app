@@ -16,6 +16,7 @@ interface ContentMetadataDto {
   id: string;
   name: string;
   type: string;
+  order: number;
 }
 
 /**
@@ -46,6 +47,7 @@ interface DesignWorkWithContentDto {
   parentDesignWorkId?: string;
   name: string;
   version: string;
+  order: number;
   createdAt: string;
   updatedAt: string;
   diagrams: ContentMetadataDto[];
@@ -66,35 +68,35 @@ export interface DesignWorksWithReferences {
 /**
  * Transform backend ContentMetadataDto to frontend DiagramRef
  */
-function toDiagramRef(dto: ContentMetadataDto, index: number): DiagramRef {
+function toDiagramRef(dto: ContentMetadataDto): DiagramRef {
   return {
     id: dto.id,
     name: dto.name,
     type: dto.type as DiagramRef['type'],
-    order: index,
+    order: dto.order,
   };
 }
 
 /**
  * Transform backend ContentMetadataDto to frontend InterfaceRef
  */
-function toInterfaceRef(dto: ContentMetadataDto, index: number): InterfaceRef {
+function toInterfaceRef(dto: ContentMetadataDto): InterfaceRef {
   return {
     id: dto.id,
     name: dto.name,
     fidelity: dto.type as InterfaceRef['fidelity'],
-    order: index,
+    order: dto.order,
   };
 }
 
 /**
  * Transform backend ContentMetadataDto to frontend DocumentRef
  */
-function toDocumentRef(dto: ContentMetadataDto, index: number): DocumentRef {
+function toDocumentRef(dto: ContentMetadataDto): DocumentRef {
   return {
     id: dto.id,
     name: dto.name,
-    order: index,
+    order: dto.order,
   };
 }
 
@@ -149,6 +151,7 @@ function transformDesignWorkWithContent(dto: DesignWorkWithContentDto): DesignWo
     parentDesignWorkId: dto.parentDesignWorkId,
     name: dto.name,
     version: dto.version,
+    order: dto.order,
     createdAt: new Date(dto.createdAt),
     updatedAt: new Date(dto.updatedAt),
     diagrams: (dto.diagrams || []).map(toDiagramRef),
@@ -272,6 +275,24 @@ class DesignWorkApi {
     collectDescendants(id);
     return allIds;
   }
+
+  /**
+   * Reorder items (folders, diagrams, interfaces, documents)
+   * Updates order and optionally moves items to different parents
+   */
+  async reorder(items: ReorderItemDto[]): Promise<void> {
+    await httpClient.post('/api/design-works/reorder', { items });
+  }
+}
+
+/**
+ * DTO for reordering items
+ */
+export interface ReorderItemDto {
+  id: string;
+  itemType: 'folder' | 'diagram' | 'interface' | 'document';
+  newOrder: number;
+  newParentDesignWorkId?: string;
 }
 
 export const designWorkApi = new DesignWorkApi();
