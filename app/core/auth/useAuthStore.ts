@@ -48,6 +48,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         // Restore Date objects
         user.createdAt = new Date(user.createdAt);
         user.updatedAt = new Date(user.updatedAt);
+        user.lastLoginAt = user.lastLoginAt ? new Date(user.lastLoginAt) : null;
         set({ currentUser: user, isAuthenticated: true, initialized: true });
       } catch {
         localStorage.removeItem(AUTH_STORAGE_KEY);

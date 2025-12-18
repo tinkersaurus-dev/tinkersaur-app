@@ -11,6 +11,7 @@ export const UserSchema = z.object({
   teamId: z.string().uuid(),
   name: z.string().min(1, 'User name is required').max(200),
   email: z.string().email('Invalid email format').max(200),
+  lastLoginAt: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

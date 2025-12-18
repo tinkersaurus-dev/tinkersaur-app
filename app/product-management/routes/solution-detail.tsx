@@ -4,20 +4,28 @@
  */
 
 import { useState } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiHome, FiSettings } from 'react-icons/fi';
 import { MdDesignServices } from 'react-icons/md';
 import { useParams, Link, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { SolutionManagementLayout } from '../components';
-import { Button, Input, HStack, Breadcrumb, Table, Form, useForm, Modal } from '~/core/components/ui';
+import { Button, Input, HStack, Breadcrumb, Table, Form, useForm, Modal, Select, Tabs } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
-import type { UseCase } from '~/core/entities/product-management';
+import type { UseCase, SolutionType } from '~/core/entities/product-management';
 import { useSolutionQuery, useUseCasesQuery } from '../queries';
-import { useCreateUseCase, useUpdateUseCase, useDeleteUseCase } from '../mutations';
+import { useCreateUseCase, useUpdateUseCase, useDeleteUseCase, useUpdateSolution, useDeleteSolution } from '../mutations';
 import { loadSolutionDetail } from '../loaders';
 import type { SolutionDetailLoaderData } from '../loaders';
 import type { Route } from './+types/solution-detail';
+
+const solutionTypeOptions = [
+  { value: 'product', label: 'Product' },
+  { value: 'service', label: 'Service' },
+  { value: 'process', label: 'Process' },
+  { value: 'pipeline', label: 'Pipeline' },
+  { value: 'infrastructure', label: 'Infrastructure' },
+];
 
 // Loader function for SSR data fetching
 export async function loader({ params }: Route.LoaderArgs) {
@@ -33,6 +41,8 @@ function SolutionDetailContent() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUseCase, setEditingUseCase] = useState<UseCase | null>(null);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   // TanStack Query hooks
   const { data: solution, isLoading: solutionLoading, isError } = useSolutionQuery(solutionId);
@@ -40,6 +50,8 @@ function SolutionDetailContent() {
   const createUseCase = useCreateUseCase();
   const updateUseCase = useUpdateUseCase();
   const deleteUseCase = useDeleteUseCase();
+  const updateSolution = useUpdateSolution();
+  const deleteSolution = useDeleteSolution();
 
   const form = useForm<{
     name: string;
@@ -48,6 +60,53 @@ function SolutionDetailContent() {
     name: '',
     description: '',
   });
+
+  const settingsForm = useForm<{
+    name: string;
+    description: string;
+    type: SolutionType;
+  }>({
+    name: '',
+    description: '',
+    type: 'product',
+  });
+
+  const handleOpenSettings = () => {
+    if (solution) {
+      settingsForm.setValue('name', solution.name);
+      settingsForm.setValue('description', solution.description);
+      settingsForm.setValue('type', solution.type);
+    }
+    setDeleteConfirmText('');
+    setIsSettingsModalOpen(true);
+  };
+
+  const handleCloseSettings = () => {
+    setIsSettingsModalOpen(false);
+    setDeleteConfirmText('');
+    settingsForm.reset();
+  };
+
+  const handleSaveSettings = async () => {
+    const isValid = await settingsForm.trigger();
+    if (!isValid) return;
+
+    const values = settingsForm.getValues();
+    await updateSolution.mutateAsync({
+      id: solutionId!,
+      updates: values,
+    });
+    handleCloseSettings();
+  };
+
+  const handleDeleteSolution = async () => {
+    if (deleteConfirmText !== 'CONFIRM') return;
+
+    const success = await deleteSolution.mutateAsync(solutionId!);
+    if (success) {
+      navigate('/solutions');
+    }
+  };
 
   const handleOpenDesignStudio = () => {
     navigate(`/studio/${solutionId}`);
@@ -193,9 +252,14 @@ function SolutionDetailContent() {
           />
         }
         actions={
-          <Button variant="default" icon={<MdDesignServices />} onClick={handleOpenDesignStudio}>
-            Open Design Studio
-          </Button>
+          <HStack gap="sm">
+            <Button variant="text" icon={<FiSettings />} onClick={handleOpenSettings}>
+              Settings
+            </Button>
+            <Button variant="default" icon={<MdDesignServices />} onClick={handleOpenDesignStudio}>
+              Open Design Studio
+            </Button>
+          </HStack>
         }
       />
 
@@ -265,6 +329,127 @@ function SolutionDetailContent() {
             </Form.Item>
           </div>
         </Form>
+      </Modal>
+
+      {/* Settings Modal */}
+      <Modal
+        title="Solution Settings"
+        open={isSettingsModalOpen}
+        onCancel={handleCloseSettings}
+        footer={null}
+        width={600}
+      >
+        <Tabs
+          items={[
+            {
+              key: 'info',
+              label: 'Info',
+              children: (
+                <div className="pt-4">
+                  <Form form={settingsForm} layout="vertical">
+                    <div className="space-y-4">
+                      <Form.Item
+                        name="name"
+                        label="Name"
+                        required
+                        rules={{
+                          required: 'Please enter a solution name',
+                        }}
+                      >
+                        {({ field, error }) => (
+                          <Input
+                            {...field}
+                            placeholder="Enter solution name"
+                            error={!!error}
+                          />
+                        )}
+                      </Form.Item>
+
+                      <Form.Item
+                        name="type"
+                        label="Type"
+                        required
+                        rules={{
+                          required: 'Please select a solution type',
+                        }}
+                      >
+                        {({ field, error }) => (
+                          <Select
+                            {...field}
+                            options={solutionTypeOptions}
+                            placeholder="Select solution type"
+                            error={!!error}
+                          />
+                        )}
+                      </Form.Item>
+
+                      <Form.Item
+                        name="description"
+                        label="Description"
+                        required
+                        rules={{
+                          required: 'Please enter a description',
+                        }}
+                      >
+                        {({ field, error }) => (
+                          <Input.TextArea
+                            {...field}
+                            placeholder="Enter solution description"
+                            rows={4}
+                            error={!!error}
+                          />
+                        )}
+                      </Form.Item>
+                    </div>
+                  </Form>
+                  <div className="flex justify-end mt-6 pt-4 border-t border-[var(--border)]">
+                    <Button
+                      variant="primary"
+                      onClick={handleSaveSettings}
+                      loading={updateSolution.isPending}
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              key: 'lifecycle',
+              label: 'Lifecycle',
+              children: (
+                <div className="pt-4">
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-sm mb-4">
+                    <h4 className="text-red-800 font-medium mb-2">Delete Solution</h4>
+                    <p className="text-red-700 text-sm mb-4">
+                      This will permanently delete this solution and all associated use cases and design work. This action cannot be undone.
+                    </p>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm text-red-700 mb-1">
+                          Type <strong>CONFIRM</strong> to enable deletion
+                        </label>
+                        <Input
+                          value={deleteConfirmText}
+                          onChange={(e) => setDeleteConfirmText(e.target.value)}
+                          placeholder="Type CONFIRM to delete"
+                        />
+                      </div>
+                      <Button
+                        variant="danger"
+                        onClick={handleDeleteSolution}
+                        disabled={deleteConfirmText !== 'CONFIRM'}
+                        loading={deleteSolution.isPending}
+                      >
+                        Delete Solution
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ),
+            },
+          ]}
+        />
       </Modal>
     </SolutionManagementLayout>
   );
