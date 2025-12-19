@@ -102,10 +102,9 @@ function SolutionDetailContent() {
   const handleDeleteSolution = async () => {
     if (deleteConfirmText !== 'CONFIRM') return;
 
-    const success = await deleteSolution.mutateAsync(solutionId!);
-    if (success) {
-      navigate('/solutions');
-    }
+    // Navigate first to unmount this component and prevent 404 errors from query refetching
+    navigate('/solutions');
+    deleteSolution.mutate(solutionId!);
   };
 
   const handleOpenDesignStudio = () => {
