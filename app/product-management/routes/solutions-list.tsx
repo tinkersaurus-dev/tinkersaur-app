@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
-import { SolutionManagementLayout } from '../components';
+import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Input, Form, useForm, Modal, Select, Empty } from '~/core/components/ui';
 import type { SolutionType } from '~/core/entities/product-management';
 import { useSolutionsQuery } from '../queries';
@@ -77,7 +77,7 @@ export default function SolutionsListPage() {
   };
 
   return (
-    <SolutionManagementLayout>
+    <MainLayout>
       <PageHeader
         title="Solutions"
         actions={
@@ -167,6 +167,6 @@ export default function SolutionsListPage() {
           </div>
         </Form>
       </Modal>
-    </SolutionManagementLayout>
+    </MainLayout>
   );
 }

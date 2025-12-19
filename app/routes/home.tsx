@@ -8,7 +8,7 @@ export function meta() {
 }
 
 export function loader() {
-  return redirect("/solutions");
+  return redirect("/discovery");
 }
 
 export default function Home() {

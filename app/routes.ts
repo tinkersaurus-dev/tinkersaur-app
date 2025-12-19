@@ -18,14 +18,18 @@ export default [
   route("api/generate-tech-spec-structured", "routes/api.generate-tech-spec-structured.ts"),
   route("api/generate-tech-spec-regenerate", "routes/api.generate-tech-spec-regenerate.ts"),
 
-  // Solution Management routes
-  route("solutions", "product-management/routes/solutions-list.tsx"),
-  route("solutions/:solutionId", "product-management/routes/solution-detail.tsx"),
-  route("solutions/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
+  // Discovery routes
+  route("discovery", "routes/discovery.tsx"),
+  route("discovery/solutions", "product-management/routes/solutions-list.tsx"),
+  route("discovery/solutions/:solutionId", "product-management/routes/solution-detail.tsx"),
+  route("discovery/solutions/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
+  route("discovery/personas", "product-management/routes/personas-list.tsx"),
+  route("discovery/personas/:personaId", "product-management/routes/persona-detail.tsx"),
 
-  // Persona routes
-  route("personas", "product-management/routes/personas-list.tsx"),
-  route("personas/:personaId", "product-management/routes/persona-detail.tsx"),
+  // Main section placeholder routes
+  route("design", "routes/design.tsx"),
+  route("planning", "routes/planning.tsx"),
+  route("delivery", "routes/delivery.tsx"),
 
   // Design Studio routes (separate module, solution-based)
   route("studio/:solutionId", "design-studio/routes/studio.tsx"),

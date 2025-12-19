@@ -34,7 +34,7 @@ export function SolutionCard({ solution }: SolutionCardProps) {
   const navigate = useNavigate();
 
   const handleDoubleClick = () => {
-    navigate(`/solutions/${solution.id}`);
+    navigate(`/discovery/solutions/${solution.id}`);
   };
 
   const typeLabel = solution.type.charAt(0).toUpperCase() + solution.type.slice(1);

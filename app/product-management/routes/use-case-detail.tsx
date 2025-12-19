@@ -8,7 +8,7 @@ import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
 import { useParams, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
-import { SolutionManagementLayout } from '../components';
+import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
@@ -173,16 +173,16 @@ function UseCaseDetailContent() {
   // Handle case where data is not yet loaded
   if (!solution || !useCase) {
     return (
-      <SolutionManagementLayout>
+      <MainLayout>
         <PageContent>
           <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
         </PageContent>
-      </SolutionManagementLayout>
+      </MainLayout>
     );
   }
 
   return (
-    <SolutionManagementLayout>
+    <MainLayout>
       <PageHeader
         titlePrefix='Use Case: '
         title={useCase.name}
@@ -191,11 +191,11 @@ function UseCaseDetailContent() {
             items={[
               {
                 title: <><FiHome /> Solutions</>,
-                href: '/solutions',
+                href: '/discovery/solutions',
               },
               {
                 title: solution.name,
-                href: `/solutions/${solutionId}`,
+                href: `/discovery/solutions/${solutionId}`,
               },
               {
                 title: useCase.name,
@@ -299,7 +299,7 @@ function UseCaseDetailContent() {
           </div>
         </Form>
       </Modal>
-    </SolutionManagementLayout>
+    </MainLayout>
   );
 }
 

@@ -47,8 +47,8 @@ export function AppHeader() {
   // Module navigation items (no icons)
   const moduleMenuItems: MenuItemType[] = [
     {
-      key: 'solutions',
-      label: <Link to="/solutions">Solution Management</Link>,
+      key: 'discovery',
+      label: <Link to="/discovery">Solution Management</Link>,
     },
     {
       key: 'studio',
@@ -58,8 +58,8 @@ export function AppHeader() {
   ];
 
   // Determine selected module based on current path
-  const selectedModule = location.pathname.startsWith('/solutions')
-    ? 'solutions'
+  const selectedModule = location.pathname.startsWith('/discovery')
+    ? 'discovery'
     : location.pathname.startsWith('/studio')
     ? 'studio'
     : '';

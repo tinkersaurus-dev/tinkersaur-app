@@ -3,6 +3,8 @@
  */
 export { AppLayout } from './AppLayout';
 export { AppHeader } from './AppHeader';
+export { MainLayout } from './MainLayout';
+export { GlobalSidebar } from './GlobalSidebar';
 export { PageHeader } from './PageHeader';
 export { PageContent } from './PageContent';
 export { Tree } from './ui/Tree';

@@ -8,7 +8,7 @@ import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
-import { SolutionManagementLayout } from '../components';
+import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Card, Modal } from '~/core/components/ui';
 import type { PersonaUseCase } from '~/core/entities/product-management/types';
 import { usePersonaQuery, usePersonaUseCasesQuery } from '../queries';
@@ -45,13 +45,13 @@ function PersonaDetailContent() {
   const availableUseCases: Array<{ id: string; name: string; description?: string }> = [];
 
   const handleBack = () => {
-    navigate('/personas');
+    navigate('/discovery/personas');
   };
 
   const handleDeleteConfirm = async () => {
     if (personaId) {
       await deletePersona.mutateAsync(personaId);
-      navigate('/personas');
+      navigate('/discovery/personas');
     }
     setIsDeleteModalOpen(false);
   };
@@ -78,16 +78,16 @@ function PersonaDetailContent() {
   // Handle case where persona is not yet loaded
   if (!persona) {
     return (
-      <SolutionManagementLayout>
+      <MainLayout>
         <PageContent>
           <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
         </PageContent>
-      </SolutionManagementLayout>
+      </MainLayout>
     );
   }
 
   return (
-    <SolutionManagementLayout>
+    <MainLayout>
       <PageHeader
         title={persona.name}
         extra={
@@ -300,7 +300,7 @@ function PersonaDetailContent() {
           </ul>
         )}
       </Modal>
-    </SolutionManagementLayout>
+    </MainLayout>
   );
 }
 

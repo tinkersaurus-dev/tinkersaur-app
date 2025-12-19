@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
-import { SolutionManagementLayout } from '../components';
+import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Input, Form, useForm, Modal, Empty } from '~/core/components/ui';
 import type { Demographics } from '~/core/entities/product-management';
 import { usePersonasQuery } from '../queries';
@@ -101,7 +101,7 @@ export default function PersonasListPage() {
   };
 
   return (
-    <SolutionManagementLayout>
+    <MainLayout>
       <PageHeader
         title="Personas"
         actions={
@@ -257,6 +257,6 @@ export default function PersonasListPage() {
           </div>
         </Form>
       </Modal>
-    </SolutionManagementLayout>
+    </MainLayout>
   );
 }

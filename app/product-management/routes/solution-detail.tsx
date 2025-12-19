@@ -9,7 +9,7 @@ import { MdDesignServices } from 'react-icons/md';
 import { useParams, Link, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
-import { SolutionManagementLayout } from '../components';
+import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Input, HStack, Breadcrumb, Table, Form, useForm, Modal, Select, Tabs } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { UseCase, SolutionType } from '~/core/entities/product-management';
@@ -103,7 +103,7 @@ function SolutionDetailContent() {
     if (deleteConfirmText !== 'CONFIRM') return;
 
     // Navigate first to unmount this component and prevent 404 errors from query refetching
-    navigate('/solutions');
+    navigate('/discovery/solutions');
     deleteSolution.mutate(solutionId!);
   };
 
@@ -166,7 +166,7 @@ function SolutionDetailContent() {
       dataIndex: 'name',
       key: 'name',
       render: (value, record) => (
-        <Link to={`/solutions/${solutionId}/use-cases/${record.id}`} className="text-[var(--primary)] hover:underline">
+        <Link to={`/discovery/solutions/${solutionId}/use-cases/${record.id}`} className="text-[var(--primary)] hover:underline">
           {value as string}
         </Link>
       ),
@@ -213,27 +213,27 @@ function SolutionDetailContent() {
   // Handle loading state
   if (solutionLoading) {
     return (
-      <SolutionManagementLayout>
+      <MainLayout>
         <PageContent>
           <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
         </PageContent>
-      </SolutionManagementLayout>
+      </MainLayout>
     );
   }
 
   // Handle error or not found state
   if (isError || !solution) {
     return (
-      <SolutionManagementLayout>
+      <MainLayout>
         <PageContent>
           <div className="text-center py-8 text-[var(--text-muted)]">Solution not found</div>
         </PageContent>
-      </SolutionManagementLayout>
+      </MainLayout>
     );
   }
 
   return (
-    <SolutionManagementLayout>
+    <MainLayout>
       <PageHeader
         titlePrefix={solution.type.charAt(0).toUpperCase() + solution.type.slice(1) + ': '}
         title={solution.name}
@@ -242,7 +242,7 @@ function SolutionDetailContent() {
             items={[
               {
                 title: <><FiHome /> Solutions</>,
-                href: '/solutions',
+                href: '/discovery/solutions',
               },
               {
                 title: solution.name,
@@ -450,7 +450,7 @@ function SolutionDetailContent() {
           ]}
         />
       </Modal>
-    </SolutionManagementLayout>
+    </MainLayout>
   );
 }
 
