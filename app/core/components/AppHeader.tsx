@@ -14,7 +14,7 @@ export function AppHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const currentUser = useAuthStore((state) => state.currentUser);
+  const userInfo = useAuthStore((state) => state.userInfo);
   const logout = useAuthStore((state) => state.logout);
 
   const handleLogout = () => {
@@ -98,7 +98,7 @@ export function AppHeader() {
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
           <HStack gap="sm" align="center" className="cursor-pointer text-white">
             <Avatar size="small" icon={<FaUser />} />
-            <span>{currentUser?.name ?? 'Guest'}</span>
+            <span>{userInfo?.name ?? 'Guest'}</span>
           </HStack>
         </Dropdown>
       </HStack>

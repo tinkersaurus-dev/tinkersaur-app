@@ -1,9 +1,12 @@
-import { httpClient, deserializeDates } from '~/core/api/httpClient';
-import type { User } from '~/core/entities/product-management';
+import { httpClient, clearAuthToken } from '~/core/api/httpClient';
+import type { TeamAccessResponse } from './types';
 
 export const authApi = {
-  login: async (email: string): Promise<User> => {
-    const response = await httpClient.post<User>('/api/auth/login', { email });
-    return deserializeDates(response);
+  login: async (email: string): Promise<TeamAccessResponse> => {
+    return httpClient.post<TeamAccessResponse>('/api/auth/login', { email });
+  },
+
+  logout: (): void => {
+    clearAuthToken();
   },
 };

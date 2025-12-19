@@ -7,6 +7,7 @@
 
 import { useLocation, useNavigate } from 'react-router';
 import { FiCompass, FiPenTool, FiCalendar, FiPackage, FiBox, FiUsers } from 'react-icons/fi';
+import { TeamSelector } from './TeamSelector';
 
 interface NavSection {
   key: string;
@@ -58,10 +59,8 @@ export function GlobalSidebar() {
   return (
     <div className="h-full flex flex-col bg-[var(--bg-dark)] border-r border-[var(--border)]">
       {/* Team Selector Header */}
-      <div className="px-4 py-4 border-b border-[var(--border)]">
-        <div className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
-          INSERT TEAM SELECTOR HERE
-        </div>
+      <div className="px-3 py-3 border-b border-[var(--border)]">
+        <TeamSelector />
       </div>
 
       {/* Navigation Sections */}

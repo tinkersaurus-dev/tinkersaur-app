@@ -1,22 +1,36 @@
 import { create } from 'zustand';
-import type { User } from '~/core/entities/product-management';
 import { authApi } from './authApi';
+import type { TeamAccess, SelectedTeam } from './types';
 
-const AUTH_STORAGE_KEY = 'tinkersaur_currentUser';
+const TEAM_ACCESS_KEY = 'tinkersaur_team_access';
+const SELECTED_TEAM_KEY = 'tinkersaur_selected_team';
+const USER_INFO_KEY = 'tinkersaur_user_info';
+
+interface UserInfo {
+  userId: string;
+  email: string;
+  name: string;
+  primaryTeamId: string;
+}
 
 interface AuthState {
-  currentUser: User | null;
+  userInfo: UserInfo | null;
+  teamAccess: TeamAccess[];
+  selectedTeam: SelectedTeam | null;
   isAuthenticated: boolean;
   initialized: boolean;
   loading: boolean;
   error: string | null;
   login: (email: string) => Promise<void>;
   logout: () => void;
-  initialize: () => void;
+  initialize: () => Promise<void>;
+  selectTeam: (teamId: string) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  currentUser: null,
+export const useAuthStore = create<AuthState>((set, get) => ({
+  userInfo: null,
+  teamAccess: [],
+  selectedTeam: null,
   isAuthenticated: false,
   initialized: false,
   loading: false,
@@ -25,9 +39,40 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email: string) => {
     set({ loading: true, error: null });
     try {
-      const user = await authApi.login(email);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-      set({ currentUser: user, isAuthenticated: true, loading: false });
+      // Login via email lookup
+      const meResponse = await authApi.login(email);
+
+      const userInfo: UserInfo = {
+        userId: meResponse.userId,
+        email: meResponse.email,
+        name: meResponse.name,
+        primaryTeamId: meResponse.primaryTeamId,
+      };
+
+      // Find primary team for default selection
+      const primaryTeam = meResponse.teamAccess.find(t => t.isPrimary);
+      const selectedTeam: SelectedTeam | null = primaryTeam
+        ? {
+            teamId: primaryTeam.teamId,
+            teamName: primaryTeam.teamName,
+            canEdit: primaryTeam.role === 'Edit',
+          }
+        : null;
+
+      // Persist to localStorage
+      localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+      localStorage.setItem(TEAM_ACCESS_KEY, JSON.stringify(meResponse.teamAccess));
+      if (selectedTeam) {
+        localStorage.setItem(SELECTED_TEAM_KEY, JSON.stringify(selectedTeam));
+      }
+
+      set({
+        userInfo,
+        teamAccess: meResponse.teamAccess,
+        selectedTeam,
+        isAuthenticated: true,
+        loading: false,
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       set({ error: message, loading: false });
@@ -36,26 +81,64 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
-    localStorage.removeItem(AUTH_STORAGE_KEY);
-    set({ currentUser: null, isAuthenticated: false, error: null });
+    authApi.logout();
+    localStorage.removeItem(USER_INFO_KEY);
+    localStorage.removeItem(TEAM_ACCESS_KEY);
+    localStorage.removeItem(SELECTED_TEAM_KEY);
+    set({
+      userInfo: null,
+      teamAccess: [],
+      selectedTeam: null,
+      isAuthenticated: false,
+      error: null,
+    });
   },
 
-  initialize: () => {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (stored) {
+  initialize: async () => {
+    // Try to restore from localStorage
+    const storedUserInfo = localStorage.getItem(USER_INFO_KEY);
+    const storedTeamAccess = localStorage.getItem(TEAM_ACCESS_KEY);
+    const storedSelectedTeam = localStorage.getItem(SELECTED_TEAM_KEY);
+
+    if (storedUserInfo && storedTeamAccess) {
       try {
-        const user = JSON.parse(stored) as User;
-        // Restore Date objects
-        user.createdAt = new Date(user.createdAt);
-        user.updatedAt = new Date(user.updatedAt);
-        user.lastLoginAt = user.lastLoginAt ? new Date(user.lastLoginAt) : null;
-        set({ currentUser: user, isAuthenticated: true, initialized: true });
+        const userInfo = JSON.parse(storedUserInfo) as UserInfo;
+        const teamAccess = JSON.parse(storedTeamAccess) as TeamAccess[];
+        const selectedTeam = storedSelectedTeam
+          ? (JSON.parse(storedSelectedTeam) as SelectedTeam)
+          : null;
+
+        set({
+          userInfo,
+          teamAccess,
+          selectedTeam,
+          isAuthenticated: true,
+          initialized: true,
+        });
+        return;
       } catch {
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-        set({ initialized: true });
+        // Clear invalid data
+        localStorage.removeItem(USER_INFO_KEY);
+        localStorage.removeItem(TEAM_ACCESS_KEY);
+        localStorage.removeItem(SELECTED_TEAM_KEY);
       }
-    } else {
-      set({ initialized: true });
     }
+
+    set({ initialized: true });
+  },
+
+  selectTeam: (teamId: string) => {
+    const { teamAccess } = get();
+    const team = teamAccess.find(t => t.teamId === teamId);
+    if (!team) return;
+
+    const selectedTeam: SelectedTeam = {
+      teamId: team.teamId,
+      teamName: team.teamName,
+      canEdit: team.role === 'Edit',
+    };
+
+    localStorage.setItem(SELECTED_TEAM_KEY, JSON.stringify(selectedTeam));
+    set({ selectedTeam });
   },
 }));

@@ -9,6 +9,27 @@ const getApiBaseUrl = (): string => {
   return import.meta.env.VITE_API_URL || 'http://localhost:5062';
 };
 
+const AUTH_TOKEN_KEY = 'tinkersaur_auth_token';
+
+export function setAuthToken(token: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  }
+}
+
+export function getAuthToken(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(AUTH_TOKEN_KEY);
+  }
+  return null;
+}
+
+export function clearAuthToken(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -24,15 +45,27 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${getApiBaseUrl()}${endpoint}`;
+  const token = getAuthToken();
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
     ...options,
   });
 
   if (!response.ok) {
+    // Handle 401 Unauthorized - clear token
+    if (response.status === 401) {
+      clearAuthToken();
+    }
     throw new ApiError(response.status, `HTTP error! status: ${response.status}`);
   }
 

@@ -37,8 +37,8 @@ export default function PersonasListPage() {
     industry: '',
   });
 
-  const currentUser = useAuthStore((state) => state.currentUser);
-  const teamId = currentUser?.teamId;
+  const selectedTeam = useAuthStore((state) => state.selectedTeam);
+  const teamId = selectedTeam?.teamId;
 
   // TanStack Query hooks
   const { data: personas = [], isLoading } = usePersonasQuery(teamId);
