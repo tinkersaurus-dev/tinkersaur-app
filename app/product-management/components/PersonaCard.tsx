@@ -17,7 +17,7 @@ export function PersonaCard({ persona }: PersonaCardProps) {
   const navigate = useNavigate();
 
   const handleDoubleClick = () => {
-    navigate(`/discovery/personas/${persona.id}`);
+    navigate(`/solution/scope/personas/${persona.id}`);
   };
 
   return (

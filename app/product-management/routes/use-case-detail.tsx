@@ -191,11 +191,11 @@ function UseCaseDetailContent() {
             items={[
               {
                 title: <><FiHome /> Solutions</>,
-                href: '/discovery/solutions',
+                href: '/solution/scope',
               },
               {
                 title: solution.name,
-                href: `/discovery/solutions/${solutionId}`,
+                href: `/solution/scope/${solutionId}`,
               },
               {
                 title: useCase.name,

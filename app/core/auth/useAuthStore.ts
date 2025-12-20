@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { authApi } from './authApi';
 import type { TeamAccess, SelectedTeam } from './types';
+import { useSolutionStore } from '~/core/solution';
 
 const TEAM_ACCESS_KEY = 'tinkersaur_team_access';
 const SELECTED_TEAM_KEY = 'tinkersaur_selected_team';
@@ -85,6 +86,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.removeItem(USER_INFO_KEY);
     localStorage.removeItem(TEAM_ACCESS_KEY);
     localStorage.removeItem(SELECTED_TEAM_KEY);
+    // Clear solution selection on logout
+    useSolutionStore.getState().clearSolution();
     set({
       userInfo: null,
       teamAccess: [],
@@ -137,6 +140,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       teamName: team.teamName,
       canEdit: team.role === 'Edit',
     };
+
+    // Clear solution selection when switching teams (solution may not belong to new team)
+    useSolutionStore.getState().clearSolution();
 
     localStorage.setItem(SELECTED_TEAM_KEY, JSON.stringify(selectedTeam));
     set({ selectedTeam });

@@ -18,19 +18,19 @@ export default [
   route("api/generate-tech-spec-structured", "routes/api.generate-tech-spec-structured.ts"),
   route("api/generate-tech-spec-regenerate", "routes/api.generate-tech-spec-regenerate.ts"),
 
-  // Discovery routes
+  // Discovery route
   route("discovery", "routes/discovery.tsx"),
-  route("discovery/solutions", "product-management/routes/solutions-list.tsx"),
-  route("discovery/solutions/:solutionId", "product-management/routes/solution-detail.tsx"),
-  route("discovery/solutions/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
-  route("discovery/personas", "product-management/routes/personas-list.tsx"),
-  route("discovery/personas/:personaId", "product-management/routes/persona-detail.tsx"),
 
-  // Main section placeholder routes
-  route("design", "routes/design.tsx"),
-  route("planning", "routes/planning.tsx"),
+  // Solution Management routes (nested under /solution)
+  route("solution/scope", "routes/scope.tsx"),
+  route("solution/scope/:solutionId", "product-management/routes/solution-detail.tsx"),
+  route("solution/scope/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
+  route("solution/scope/personas", "product-management/routes/personas-list.tsx"),
+  route("solution/scope/personas/:personaId", "product-management/routes/persona-detail.tsx"),
+  route("solution/design", "routes/design.tsx"),
+  route("solution/design/:solutionId", "design-studio/routes/studio.tsx"),
+  route("solution/plan", "routes/plan.tsx"),
+
+  // Delivery route
   route("delivery", "routes/delivery.tsx"),
-
-  // Design Studio routes (separate module, solution-based)
-  route("studio/:solutionId", "design-studio/routes/studio.tsx"),
 ] satisfies RouteConfig;

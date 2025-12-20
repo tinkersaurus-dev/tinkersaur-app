@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { queryKeys } from '~/core/query/queryKeys';
 import { solutionApi } from '~/core/entities/product-management/api';
 import type { CreateSolutionDto } from '~/core/entities/product-management/types';
+import { useSolutionStore } from '~/core/solution';
 
 /**
  * Mutation hook for creating a solution
@@ -52,11 +53,16 @@ export function useUpdateSolution() {
  */
 export function useDeleteSolution() {
   const queryClient = useQueryClient();
+  const { selectedSolution, clearSolution } = useSolutionStore.getState();
 
   return useMutation({
     mutationFn: (id: string) => solutionApi.delete(id),
     onSuccess: async (success, id) => {
       if (success) {
+        // Clear solution selection if the deleted solution was selected
+        if (selectedSolution?.solutionId === id) {
+          clearSolution();
+        }
         // Cancel any in-flight queries for the deleted solution to prevent 404 errors
         await queryClient.cancelQueries({ queryKey: queryKeys.solutions.detail(id) });
         // Remove the specific solution from cache

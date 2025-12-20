@@ -6,8 +6,9 @@
  */
 
 import { useLocation, useNavigate } from 'react-router';
-import { FiCompass, FiPenTool, FiCalendar, FiPackage, FiBox, FiUsers } from 'react-icons/fi';
+import { FiCompass, FiPenTool, FiCalendar, FiUsers } from 'react-icons/fi';
 import { TeamSelector } from './TeamSelector';
+import { SolutionSelector } from './SolutionSelector';
 
 interface NavSection {
   key: string;
@@ -23,32 +24,25 @@ export function GlobalSidebar() {
 
   const navSections: NavSection[] = [
     {
-      key: 'discovery',
-      label: 'Discovery',
+      key: 'scope',
+      label: 'Scope',
       icon: <FiCompass />,
-      path: '/discovery',
+      path: '/solution/scope',
       children: [
-        { key: 'solutions', label: 'Solutions', path: '/discovery/solutions', icon: <FiBox /> },
-        { key: 'personas', label: 'Personas', path: '/discovery/personas', icon: <FiUsers /> },
+        { key: 'personas', label: 'Personas', path: '/solution/scope/personas', icon: <FiUsers /> },
       ],
     },
     {
       key: 'design',
       label: 'Design',
       icon: <FiPenTool />,
-      path: '/design',
+      path: '/solution/design',
     },
     {
-      key: 'planning',
-      label: 'Planning',
+      key: 'plan',
+      label: 'Plan',
       icon: <FiCalendar />,
-      path: '/planning',
-    },
-    {
-      key: 'delivery',
-      label: 'Delivery',
-      icon: <FiPackage />,
-      path: '/delivery',
+      path: '/solution/plan',
     },
   ];
 
@@ -56,11 +50,15 @@ export function GlobalSidebar() {
   const isExactActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
   const isExpanded = (section: NavSection) => section.children && isActive(section.path);
 
+  // Show solution selector only for Solution Management module (not Discovery or Delivery)
+  const showSolutionSelector = location.pathname.startsWith('/solution');
+
   return (
     <div className="h-full flex flex-col bg-[var(--bg-dark)] border-r border-[var(--border)]">
-      {/* Team Selector Header */}
-      <div className="px-3 py-3 border-b border-[var(--border)]">
+      {/* Selector Header */}
+      <div className="px-3 py-1 border-b border-[var(--border)]">
         <TeamSelector />
+        {showSolutionSelector && <SolutionSelector />}
       </div>
 
       {/* Navigation Sections */}

@@ -3,7 +3,7 @@
  * Displays solution details and its use cases in a table
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome, FiSettings } from 'react-icons/fi';
 import { MdDesignServices } from 'react-icons/md';
 import { useParams, Link, useNavigate, useLoaderData } from 'react-router';
@@ -18,6 +18,7 @@ import { useCreateUseCase, useUpdateUseCase, useDeleteUseCase, useUpdateSolution
 import { loadSolutionDetail } from '../loaders';
 import type { SolutionDetailLoaderData } from '../loaders';
 import type { Route } from './+types/solution-detail';
+import { useSolutionStore } from '~/core/solution';
 
 const solutionTypeOptions = [
   { value: 'product', label: 'Product' },
@@ -44,6 +45,11 @@ function SolutionDetailContent() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
+  // Solution store for auto-select and team change detection
+  const selectSolution = useSolutionStore((state) => state.selectSolution);
+  const clearSolution = useSolutionStore((state) => state.clearSolution);
+  const selectedSolution = useSolutionStore((state) => state.selectedSolution);
+
   // TanStack Query hooks
   const { data: solution, isLoading: solutionLoading, isError } = useSolutionQuery(solutionId);
   const { data: useCases = [], isLoading } = useUseCasesQuery(solutionId);
@@ -52,6 +58,20 @@ function SolutionDetailContent() {
   const deleteUseCase = useDeleteUseCase();
   const updateSolution = useUpdateSolution();
   const deleteSolution = useDeleteSolution();
+
+  // Auto-select solution when viewing it
+  useEffect(() => {
+    if (solution) {
+      selectSolution(solution);
+    }
+  }, [solution, selectSolution]);
+
+  // Redirect to empty state when solution is cleared (e.g., team change)
+  useEffect(() => {
+    if (solutionId && !selectedSolution) {
+      navigate('/solution/scope', { replace: true });
+    }
+  }, [selectedSolution, solutionId, navigate]);
 
   const form = useForm<{
     name: string;
@@ -102,13 +122,14 @@ function SolutionDetailContent() {
   const handleDeleteSolution = async () => {
     if (deleteConfirmText !== 'CONFIRM') return;
 
-    // Navigate first to unmount this component and prevent 404 errors from query refetching
-    navigate('/discovery/solutions');
+    // Clear solution selection and navigate to empty state
+    clearSolution();
+    navigate('/solution/scope');
     deleteSolution.mutate(solutionId!);
   };
 
   const handleOpenDesignStudio = () => {
-    navigate(`/studio/${solutionId}`);
+    navigate(`/solution/design/${solutionId}`);
   };
 
   const handleAdd = () => {
@@ -166,7 +187,7 @@ function SolutionDetailContent() {
       dataIndex: 'name',
       key: 'name',
       render: (value, record) => (
-        <Link to={`/discovery/solutions/${solutionId}/use-cases/${record.id}`} className="text-[var(--primary)] hover:underline">
+        <Link to={`/solution/scope/${solutionId}/use-cases/${record.id}`} className="text-[var(--primary)] hover:underline">
           {value as string}
         </Link>
       ),
@@ -242,7 +263,7 @@ function SolutionDetailContent() {
             items={[
               {
                 title: <><FiHome /> Solutions</>,
-                href: '/discovery/solutions',
+                href: '/solution/scope',
               },
               {
                 title: solution.name,

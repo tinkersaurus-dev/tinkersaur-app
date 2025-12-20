@@ -8,7 +8,7 @@ export function meta() {
 }
 
 export function loader() {
-  return redirect("/discovery");
+  return redirect("/solution/scope");
 }
 
 export default function Home() {

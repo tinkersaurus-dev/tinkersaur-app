@@ -45,13 +45,13 @@ function PersonaDetailContent() {
   const availableUseCases: Array<{ id: string; name: string; description?: string }> = [];
 
   const handleBack = () => {
-    navigate('/discovery/personas');
+    navigate('/solution/scope/personas');
   };
 
   const handleDeleteConfirm = async () => {
     if (personaId) {
       await deletePersona.mutateAsync(personaId);
-      navigate('/discovery/personas');
+      navigate('/solution/scope/personas');
     }
     setIsDeleteModalOpen(false);
   };

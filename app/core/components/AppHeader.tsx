@@ -48,20 +48,25 @@ export function AppHeader() {
   const moduleMenuItems: MenuItemType[] = [
     {
       key: 'discovery',
-      label: <Link to="/discovery">Solution Management</Link>,
+      label: <Link to="/discovery">Discovery</Link>,
     },
     {
-      key: 'studio',
-      label: 'Design Studio',
-      disabled: true, // Enabled via specific design work link
+      key: 'solution',
+      label: <Link to="/solution/scope">Solution Management</Link>,
+    },
+    {
+      key: 'delivery',
+      label: <Link to="/delivery">Delivery</Link>,
     },
   ];
 
   // Determine selected module based on current path
   const selectedModule = location.pathname.startsWith('/discovery')
     ? 'discovery'
-    : location.pathname.startsWith('/studio')
-    ? 'studio'
+    : location.pathname.startsWith('/solution')
+    ? 'solution'
+    : location.pathname.startsWith('/delivery')
+    ? 'delivery'
     : '';
 
   return (

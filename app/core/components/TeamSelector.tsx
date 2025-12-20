@@ -77,11 +77,16 @@ export function TeamSelector() {
   }
 
   return (
+    <div className="px-1 py-1.5">
+      <span className="text-[10px] uppercase tracking-wide text-[var(--text-disabled)] block mb-0.5">
+            Team
+          </span>
+    
     <div ref={dropdownRef} className="relative">
       {/* Trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-2 text-left hover:bg-[var(--bg-hover)] rounded px-1 py-1 transition-colors"
+        className="w-full flex items-center gap-2 text-left hover:bg-[var(--bg-hover)] rounded py-1 transition-colors"
       >
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-[var(--text)] truncate">
@@ -101,7 +106,7 @@ export function TeamSelector() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-dark)] border border-[var(--border)] rounded-md shadow-lg z-50 py-1 max-h-80 overflow-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-light)] border border-[var(--border)] rounded-sm shadow-md z-50 py-1 max-h-80 overflow-auto">
           {/* Primary Team */}
           {primaryTeam && (
             <>
@@ -133,6 +138,7 @@ export function TeamSelector() {
           )}
         </div>
       )}
+    </div>
     </div>
   );
 }
