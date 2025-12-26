@@ -3,8 +3,11 @@
  */
 export { AppLayout } from './AppLayout';
 export { AppHeader } from './AppHeader';
+export { ContextualSubHeader } from './ContextualSubHeader';
 export { MainLayout } from './MainLayout';
 export { GlobalSidebar } from './GlobalSidebar';
+export { InlineTeamSelector } from './InlineTeamSelector';
+export { InlineSolutionSelector } from './InlineSolutionSelector';
 export { PageHeader } from './PageHeader';
 export { PageContent } from './PageContent';
 export { Tree } from './ui/Tree';

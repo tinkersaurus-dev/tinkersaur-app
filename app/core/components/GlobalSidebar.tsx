@@ -7,8 +7,6 @@
 
 import { useLocation, useNavigate } from 'react-router';
 import { FiCompass, FiPenTool, FiCalendar, FiUsers } from 'react-icons/fi';
-import { TeamSelector } from './TeamSelector';
-import { SolutionSelector } from './SolutionSelector';
 
 interface NavSection {
   key: string;
@@ -50,17 +48,8 @@ export function GlobalSidebar() {
   const isExactActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
   const isExpanded = (section: NavSection) => section.children && isActive(section.path);
 
-  // Show solution selector only for Solution Management module (not Discovery or Delivery)
-  const showSolutionSelector = location.pathname.startsWith('/solution');
-
   return (
     <div className="h-full flex flex-col bg-[var(--bg-dark)] border-r border-[var(--border)]">
-      {/* Selector Header */}
-      <div className="px-3 py-1 border-b border-[var(--border)]">
-        <TeamSelector />
-        {showSolutionSelector && <SolutionSelector />}
-      </div>
-
       {/* Navigation Sections */}
       <nav className="flex-1 overflow-auto py-2">
         {navSections.map((section) => (

@@ -10,7 +10,7 @@ import { MainLayout } from '~/core/components/MainLayout';
 import { PageHeader, PageContent } from '~/core/components';
 import { Empty, Button } from '~/core/components/ui';
 import { FiPlus } from 'react-icons/fi';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { CreateSolutionModal } from '~/core/components/CreateSolutionModal';
 import { useSolutionStore } from '~/core/solution';
@@ -30,11 +30,12 @@ export default function ScopeIndex() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const selectedSolution = useSolutionStore((state) => state.selectedSolution);
 
-  // If a solution is selected, redirect to it
-  if (selectedSolution?.solutionId) {
-    navigate(`/solution/scope/${selectedSolution.solutionId}`, { replace: true });
-    return null;
-  }
+  // Redirect to selected solution via effect (not during render)
+  useEffect(() => {
+    if (selectedSolution?.solutionId) {
+      navigate(`/solution/scope/${selectedSolution.solutionId}`, { replace: true });
+    }
+  }, [selectedSolution?.solutionId, navigate]);
 
   const handleCreateSuccess = (solution: { id: string }) => {
     setIsCreateModalOpen(false);

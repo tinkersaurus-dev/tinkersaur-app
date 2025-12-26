@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router';
 import { FiChevronsRight } from 'react-icons/fi';
 import { useSolutionStore } from '~/core/solution';
 import { SolutionSelectorModal } from './SolutionSelectorModal';
@@ -13,9 +14,15 @@ import { HStack } from './ui';
 export function SolutionSelector() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { selectedSolution, selectSolution } = useSolutionStore();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSelect = (solution: Solution) => {
     selectSolution(solution);
+    // Navigate to the solution detail page if we're in the scope area
+    if (location.pathname.startsWith('/solution/scope')) {
+      navigate(`/solution/scope/${solution.id}`);
+    }
   };
 
   return (

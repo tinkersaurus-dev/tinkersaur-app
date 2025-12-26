@@ -15,7 +15,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   return (
     <AppLayout>
-      <div className="flex h-[calc(100vh-48px)]">
+      <div className="flex h-[calc(100vh-88px)]">
         <Layout.Sider width={300}>
           <GlobalSidebar />
         </Layout.Sider>
