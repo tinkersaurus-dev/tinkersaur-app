@@ -3,7 +3,7 @@ import type { Shape } from '~/core/entities/design-studio/types/Shape';
 import {
   findOrthogonalRoute,
   type Direction
-} from '~/design-studio/utils/orthogonalRouting';
+} from '~/design-studio/utils/routing';
 import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
 
 // Connection point direction for routing
@@ -219,8 +219,6 @@ export function getAdvancedOrthogonalPath(
     allShapes, // Use all shapes, not just filtered ones
     startDirection as Direction,
     endDirection as Direction,
-    true, // Enable path refinement
-    true, // Use cache
     connectionCorridors // Pass all connection points for visibility extensions
   );
 

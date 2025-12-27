@@ -1,4 +1,4 @@
-import type { OrthogonalVisibilityGraph } from '../../../utils/orthogonalRouting';
+import type { OrthogonalVisibilityGraph } from '../../../utils/routing';
 
 /**
  * Global debug state for routing visualization

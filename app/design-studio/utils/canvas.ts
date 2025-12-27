@@ -6,7 +6,7 @@
  */
 
 import { getConnectionPointsForShape } from './connectionPoints';
-import { findOrthogonalRoute, type Direction } from './orthogonalRouting';
+import { findOrthogonalRoute, type Direction } from './routing';
 import type { Shape } from '~/core/entities/design-studio/types/Shape';
 import { DESIGN_STUDIO_CONFIG } from '../config/design-studio-config';
 
@@ -554,8 +554,6 @@ export function findOptimalConnectionPoints(
         obstacleShapes,
         sourcePoint.direction as Direction,
         targetPoint.direction as Direction,
-        true, // refine
-        true, // useCache
         allConnectionPoints
       );
 
