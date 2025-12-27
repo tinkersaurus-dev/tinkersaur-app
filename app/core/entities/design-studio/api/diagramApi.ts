@@ -31,6 +31,17 @@ class DiagramApi {
   }
 
   /**
+   * Get a single shape from a diagram by ID
+   */
+  async getShape(diagramId: string, shapeId: string): Promise<Shape | null> {
+    try {
+      return await httpClient.get<Shape>(`/api/diagrams/${diagramId}/shapes/${shapeId}`);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Create a new diagram
    */
   async create(data: CreateDiagramDto): Promise<Diagram> {

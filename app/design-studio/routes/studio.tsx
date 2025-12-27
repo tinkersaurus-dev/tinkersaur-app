@@ -13,7 +13,7 @@ import { useDesignStudioUIStore } from '../store';
 import { useDesignWorks } from '../hooks';
 import { useSolutionQuery } from '~/product-management/queries';
 import { useSolutionStore } from '~/core/solution';
-import { StudioSidebar } from '../components/StudioSidebar';
+import { StudioSidebar } from '../components/sidebar';
 import { OverviewTab } from '../components/OverviewTab';
 import { DiagramView } from '../components/DiagramView';
 import { InterfaceView } from '../components/InterfaceView';

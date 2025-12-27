@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useReferenceStore } from '~/core/entities/design-studio/store/reference/useReferenceStore';
 import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
 import { useDocumentStore } from '~/core/entities/design-studio/store/document/useDocumentStore';
-import { useDiagramStore } from '~/core/entities/design-studio/store/diagram/useDiagramStore';
+import { diagramApi } from '~/core/entities/design-studio/api';
 import { canShapeBeFolderReferenceSource } from '../config/reference-types';
 import {
   generateClassMermaid,
@@ -20,7 +20,6 @@ export function useFolderReferenceDrop(solutionId: string | undefined) {
   const createDocument = useDocumentStore((state) => state.createDocument);
   const updateDocument = useDocumentStore((state) => state.updateDocument);
   const documents = useDocumentStore((state) => state.documents);
-  const diagrams = useDiagramStore((state) => state.diagrams);
 
   /**
    * Find or create "References" subfolder under the target folder
@@ -96,16 +95,8 @@ export function useFolderReferenceDrop(solutionId: string | undefined) {
         return;
       }
 
-      // Get source diagram and shape
-      const sourceDiagram = diagrams[reference.contentId];
-      if (!sourceDiagram) {
-        console.error('Source diagram not found');
-        return;
-      }
-
-      const sourceShape = sourceDiagram.shapes.find(
-        (s) => s.id === reference.sourceShapeId
-      );
+      // Fetch the source shape via API
+      const sourceShape = await diagramApi.getShape(reference.contentId, reference.sourceShapeId);
       if (!sourceShape) {
         console.error('Source shape not found');
         return;
@@ -140,15 +131,12 @@ export function useFolderReferenceDrop(solutionId: string | undefined) {
 
         if (existingDocRef) {
           // Document exists - update its content
-          // First, make sure we have the document loaded
           const existingDoc = documents[existingDocRef.id];
           if (existingDoc) {
             await updateDocument(existingDocRef.id, { content: mermaidContent });
           } else {
-            // Document not loaded yet - fetch and update
             await updateDocument(existingDocRef.id, { content: mermaidContent });
           }
-          console.warn(`Updated existing document: ${documentName}`);
         } else {
           // Create new document
           await createDocument({
@@ -156,7 +144,6 @@ export function useFolderReferenceDrop(solutionId: string | undefined) {
             name: documentName,
             content: mermaidContent,
           });
-          console.warn(`Created new document: ${documentName}`);
         }
       } catch (error) {
         console.error('Failed to handle folder drop:', error);
@@ -166,7 +153,6 @@ export function useFolderReferenceDrop(solutionId: string | undefined) {
     [
       solutionId,
       references,
-      diagrams,
       designWorks,
       documents,
       getOrCreateReferencesFolder,

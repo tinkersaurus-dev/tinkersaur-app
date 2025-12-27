@@ -1,6 +1,6 @@
 /**
  * TreeNode Component
- * Recursive tree node with expand/collapse, custom indentation, and drag-drop reorder support
+ * Recursive tree node with expand/collapse, custom indentation, and drag-drop support
  */
 
 import { useRef, useEffect, useState } from 'react';
@@ -69,12 +69,17 @@ export function TreeNode({
 
   // Drop position state for visual indicator
   const [dropPosition, setDropPosition] = useState<DropPosition | null>(null);
+  // Track if this node is a valid drop target (for reference drops)
+  const [isDropTarget, setIsDropTarget] = useState(false);
 
   // Is this node a folder (has key starting with folder-)?
   const isFolder = node.key.startsWith('folder-');
 
-  // Is this node being dragged?
+  // Is this node being dragged (for reorder)?
   const isDragging = draggedKey === node.key;
+
+  // Is this a reorder drag in progress?
+  const isReorderDrag = allowReorder && draggedKey != null;
 
   // Auto-focus and select text when editing starts
   useEffect(() => {
@@ -86,7 +91,6 @@ export function TreeNode({
 
   const handleClick = () => {
     // Row click no longer expands/collapses - only chevron does that
-    // This can be used for selection or other node interactions in the future
   };
 
   const handleChevronClick = (event: React.MouseEvent) => {
@@ -109,50 +113,40 @@ export function TreeNode({
     }
   };
 
+  const createDragImage = (title: string): HTMLElement => {
+    const dragImage = document.createElement('div');
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-1000px';
+    dragImage.style.padding = '4px 8px';
+    dragImage.style.backgroundColor = 'var(--bg-light)';
+    dragImage.style.border = '1px solid var(--border)';
+    dragImage.style.borderRadius = '4px';
+    dragImage.style.fontSize = '10px';
+    dragImage.style.color = 'var(--text)';
+    dragImage.textContent = title;
+    return dragImage;
+  };
+
   const handleDragStart = (event: React.DragEvent) => {
-    // Handle reorder drag
-    if (allowReorder && onReorderDragStart) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', node.key);
-      onReorderDragStart(node.key);
-
-      // Create custom drag image
-      const dragImage = document.createElement('div');
-      dragImage.style.position = 'absolute';
-      dragImage.style.top = '-1000px';
-      dragImage.style.padding = '4px 8px';
-      dragImage.style.backgroundColor = 'var(--bg-light)';
-      dragImage.style.border = '1px solid var(--border)';
-      dragImage.style.borderRadius = '4px';
-      dragImage.style.fontSize = '10px';
-      dragImage.style.color = 'var(--text)';
-      dragImage.textContent = node.title;
-      document.body.appendChild(dragImage);
-      event.dataTransfer.setDragImage(dragImage, 0, 0);
-      setTimeout(() => document.body.removeChild(dragImage), 0);
-      return;
-    }
-
-    // Handle legacy draggable behavior (for reference drops etc.)
+    // Reference nodes have custom dragData - use copy effect
     if (node.draggable && node.dragData) {
       event.dataTransfer.effectAllowed = 'copy';
       event.dataTransfer.setData('application/json', JSON.stringify(node.dragData));
-
-      // Create custom drag image showing just the title
-      const dragImage = document.createElement('div');
-      dragImage.style.position = 'absolute';
-      dragImage.style.top = '-1000px';
-      dragImage.style.padding = '4px 8px';
-      dragImage.style.backgroundColor = 'var(--bg-light)';
-      dragImage.style.border = '1px solid var(--border)';
-      dragImage.style.borderRadius = '4px';
-      dragImage.style.fontSize = '10px';
-      dragImage.style.color = 'var(--text)';
-      dragImage.textContent = node.title;
-      document.body.appendChild(dragImage);
-      event.dataTransfer.setDragImage(dragImage, 0, 0);
-      setTimeout(() => document.body.removeChild(dragImage), 0);
     }
+    // Content nodes use reorder - use move effect
+    else if (allowReorder && onReorderDragStart) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', node.key);
+      onReorderDragStart(node.key);
+    } else {
+      return; // Not draggable
+    }
+
+    // Create drag image
+    const dragImage = createDragImage(node.title);
+    document.body.appendChild(dragImage);
+    event.dataTransfer.setDragImage(dragImage, 0, 0);
+    setTimeout(() => document.body.removeChild(dragImage), 0);
   };
 
   const handleDragEnd = () => {
@@ -162,12 +156,11 @@ export function TreeNode({
   };
 
   const handleDragOver = (event: React.DragEvent) => {
-    // Handle reorder drag over
-    if (allowReorder && draggedKey && draggedKey !== node.key) {
+    // If a reorder drag is in progress, handle reorder positioning
+    if (isReorderDrag && draggedKey !== node.key) {
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
 
-      // Calculate drop position based on mouse position
       const rect = nodeRef.current?.getBoundingClientRect();
       if (rect) {
         const y = event.clientY - rect.top;
@@ -194,36 +187,42 @@ export function TreeNode({
       return;
     }
 
-    // Handle legacy drag over
+    // Not a reorder drag - delegate to consumer for reference drops
     if (onDragOver) {
+      const wasDefaultPrevented = event.defaultPrevented;
       onDragOver(event, node.key);
+      // If consumer called preventDefault, this is a valid drop target
+      if (!wasDefaultPrevented && event.defaultPrevented) {
+        setIsDropTarget(true);
+      }
     }
   };
 
   const handleDragLeave = () => {
     setDropPosition(null);
+    setIsDropTarget(false);
   };
 
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
     event.stopPropagation();
 
-    // Handle reorder drop
-    if (allowReorder && dropPosition && onReorderDrop && draggedKey !== node.key) {
+    // Reorder drop
+    if (isReorderDrag && dropPosition && onReorderDrop && draggedKey !== node.key) {
       onReorderDrop(node.key, dropPosition);
       setDropPosition(null);
       return;
     }
 
-    // Handle legacy drop
+    // Reference drop - delegate to consumer
     if (onDrop) {
       onDrop(event, node.key);
     }
     setDropPosition(null);
+    setIsDropTarget(false);
   };
 
-  // Determine if this node should be draggable for reorder
-  const canDrag = allowReorder || node.draggable;
+  const canDrag = allowReorder || !!(node.draggable && node.dragData);
 
   return (
     <div style={{ position: 'relative' }}>
@@ -256,7 +255,10 @@ export function TreeNode({
           overflow: 'hidden',
           minWidth: 0,
           opacity: isDragging ? 0.5 : 1,
-          backgroundColor: dropPosition === 'inside' ? 'var(--highlight)' : undefined,
+          backgroundColor:
+            dropPosition === 'inside' || isDropTarget
+              ? 'var(--highlight)'
+              : undefined,
         }}
         draggable={canDrag}
         onDragStart={handleDragStart}
