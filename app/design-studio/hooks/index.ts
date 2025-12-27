@@ -25,3 +25,7 @@ export { useDesignStudioCRUD } from './useDesignStudioCRUD';
 
 // Async generation hook
 export { useAsyncGeneration, type UseAsyncGenerationReturn } from './useAsyncGeneration';
+
+// Generator diagram hooks
+export { useGeneratorReferences, type UseGeneratorReferencesReturn } from './useGeneratorReferences';
+export { useGenerateDiagram, type UseGenerateDiagramReturn } from './useGenerateDiagram';

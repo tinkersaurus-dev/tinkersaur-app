@@ -15,6 +15,9 @@ export { MermaidEditorRenderer } from './rendering/MermaidEditorRenderer';
 export * from './rendering/pathUtils';
 export * from './rendering/types';
 export * from './rendering/connector-types';
+export * from './rendering/strokeStyles';
+export * from './rendering/svgMarkers';
+export * from './rendering/labelPositioning';
 
 // Mermaid
 export * from './mermaid';

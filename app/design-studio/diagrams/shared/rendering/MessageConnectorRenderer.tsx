@@ -14,6 +14,8 @@ import React from 'react';
 import type { ConnectorRendererProps } from './connector-types';
 import { EditableLabel } from '~/design-studio/components/canvas/editors/EditableLabel';
 import { getConnectionPointsForShape, calculateAbsolutePosition } from '~/design-studio/utils/connectionPoints';
+import { getStrokeDasharray } from './strokeStyles';
+import { getSequenceDiagramMarker } from './svgMarkers';
 import { THEME_CONFIG } from '~/core/config/theme-config';
 
 /**
@@ -118,8 +120,8 @@ export const MessageConnectorRenderer: React.FC<ConnectorRendererProps> = ({
     <g>
       {/* Define markers if needed */}
       <defs>
-        {markerStartType !== 'none' && getMarker(markerStartId, markerStartType, strokeColor, strokeWidth)}
-        {markerEndType !== 'none' && getMarker(markerEndId, markerEndType, strokeColor, strokeWidth)}
+        {markerStartType !== 'none' && getSequenceDiagramMarker(markerStartId, markerStartType, strokeColor, strokeWidth)}
+        {markerEndType !== 'none' && getSequenceDiagramMarker(markerEndId, markerEndType, strokeColor, strokeWidth)}
       </defs>
 
       {/* Invisible wider path for easier clicking */}
@@ -231,158 +233,3 @@ function getSelfMessagePath(
   };
 }
 
-/**
- * Get stroke dasharray based on line type
- */
-function getStrokeDasharray(lineType: 'solid' | 'dotted' | 'dashed', strokeWidth: number): string | undefined {
-  switch (lineType) {
-    case 'dashed':
-      return `${THEME_CONFIG.dashPatterns.dashed.dashLength * strokeWidth} ${THEME_CONFIG.dashPatterns.dashed.gapLength * strokeWidth}`;
-    case 'dotted':
-      return `${THEME_CONFIG.dashPatterns.dotted.dashLength * strokeWidth} ${THEME_CONFIG.dashPatterns.dotted.gapLength * strokeWidth}`;
-    case 'solid':
-    default:
-      return undefined;
-  }
-}
-
-/**
- * Generate SVG marker (arrow head, diamond, etc.)
- */
-function getMarker(
-  id: string,
-  type: string,
-  color: string,
-  strokeWidth: number
-): React.ReactElement {
-  const scale = strokeWidth / 2;
-  const size = 8 * scale;
-
-  switch (type) {
-    case 'arrow':
-      return (
-        <marker
-          id={id}
-          markerWidth={size}
-          markerHeight={size}
-          refX={size / 2}
-          refY={size / 2}
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-        >
-          <path
-            d={`M 0 0 L ${size} ${size / 2} L 0 ${size}`}
-            fill="none"
-            stroke={color}
-            strokeWidth={strokeWidth}
-            strokeLinejoin="round"
-          />
-        </marker>
-      );
-
-    case 'filled-arrow':
-      return (
-        <marker
-          id={id}
-          markerWidth={size}
-          markerHeight={size}
-          refX={size}
-          refY={size / 2}
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-        >
-          <path d={`M 0 0 L ${size} ${size / 2} L 0 ${size} Z`} fill={color} stroke="none" />
-        </marker>
-      );
-
-    case 'cross':
-      return (
-        <marker
-          id={id}
-          markerWidth={size}
-          markerHeight={size}
-          refX={size / 2}
-          refY={size / 2}
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-        >
-          <g>
-            <line x1={0} y1={0} x2={size} y2={size} stroke={color} strokeWidth={strokeWidth * 1.5} />
-            <line x1={size} y1={0} x2={0} y2={size} stroke={color} strokeWidth={strokeWidth * 1.5} />
-          </g>
-        </marker>
-      );
-
-    case 'diamond':
-      return (
-        <marker
-          id={id}
-          markerWidth={size}
-          markerHeight={size}
-          refX={size / 2}
-          refY={size / 2}
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-        >
-          <path
-            d={`M 0 ${size / 2} L ${size / 2} 0 L ${size} ${size / 2} L ${size / 2} ${size} Z`}
-            fill="none"
-            stroke={color}
-            strokeWidth={strokeWidth}
-          />
-        </marker>
-      );
-
-    case 'filled-diamond':
-      return (
-        <marker
-          id={id}
-          markerWidth={size}
-          markerHeight={size}
-          refX={size / 2}
-          refY={size / 2}
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-        >
-          <path
-            d={`M 0 ${size / 2} L ${size / 2} 0 L ${size} ${size / 2} L ${size / 2} ${size} Z`}
-            fill={color}
-            stroke="none"
-          />
-        </marker>
-      );
-
-    case 'circle':
-      return (
-        <marker
-          id={id}
-          markerWidth={size}
-          markerHeight={size}
-          refX={size / 2}
-          refY={size / 2}
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-        >
-          <circle cx={size / 2} cy={size / 2} r={size / 3} fill="none" stroke={color} strokeWidth={strokeWidth} />
-        </marker>
-      );
-
-    case 'triangle':
-      return (
-        <marker
-          id={id}
-          markerWidth={size}
-          markerHeight={size}
-          refX={size}
-          refY={size / 2}
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-        >
-          <path d={`M 0 0 L ${size} ${size / 2} L 0 ${size} Z`} fill="none" stroke={color} strokeWidth={strokeWidth} />
-        </marker>
-      );
-
-    default:
-      return <marker id={id} />;
-  }
-}
