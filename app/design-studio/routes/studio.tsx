@@ -6,12 +6,13 @@
  */
 
 import { useEffect } from 'react';
-import { useParams } from 'react-router';
-import { AppLayout } from '~/core/components';
+import { useParams, useNavigate } from 'react-router';
+import { MainLayout } from '~/core/components/MainLayout';
 import { Layout, Tabs } from '~/core/components/ui';
 import { useDesignStudioUIStore } from '../store';
 import { useDesignWorks } from '../hooks';
 import { useSolutionQuery } from '~/product-management/queries';
+import { useSolutionStore } from '~/core/solution';
 import { StudioSidebar } from '../components/StudioSidebar';
 import { OverviewTab } from '../components/OverviewTab';
 import { DiagramView } from '../components/DiagramView';
@@ -21,12 +22,15 @@ import { FolderView } from '../components/FolderView';
 
 export default function StudioPage() {
   const { solutionId } = useParams();
+  const navigate = useNavigate();
+  const selectedSolution = useSolutionStore((state) => state.selectedSolution);
 
   // Use TanStack Query for solution data
   const { data: solution, isLoading: loadingSolution, isError } = useSolutionQuery(solutionId);
 
   // Use UI store for tab management
-  const { activeTabs, activeTabId, setActiveTab, closeTab, initializeTabs } = useDesignStudioUIStore();
+  const { activeTabs, activeTabId, setActiveTab, closeTab, initializeTabs } =
+    useDesignStudioUIStore();
 
   // Only fetch DesignWorks metadata (tree structure with content references)
   // Individual content items are lazy loaded when opened
@@ -39,19 +43,30 @@ export default function StudioPage() {
     }
   }, [solutionId, initializeTabs]);
 
+  // Redirect to new solution when selected solution changes
+  useEffect(() => {
+    if (selectedSolution?.solutionId && selectedSolution.solutionId !== solutionId) {
+      navigate(`/solution/design/${selectedSolution.solutionId}`, { replace: true });
+    }
+  }, [selectedSolution?.solutionId, solutionId, navigate]);
+
   if (loadingSolution || loadingDesignWorks) {
     return (
-      <AppLayout>
-        <div style={{ padding: '24px' }}>Loading...</div>
-      </AppLayout>
+      <MainLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-[var(--text-muted)]">Loading...</div>
+        </div>
+      </MainLayout>
     );
   }
 
   if (isError || !solution) {
     return (
-      <AppLayout>
-        <div style={{ padding: '24px' }}>Solution not found (id: {solutionId})</div>
-      </AppLayout>
+      <MainLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-[var(--text-muted)]">Solution not found (id: {solutionId})</div>
+        </div>
+      </MainLayout>
     );
   }
 
@@ -84,10 +99,11 @@ export default function StudioPage() {
   }));
 
   return (
-    <AppLayout>
-      <div className="flex h-[calc(100vh-48px)]">
-        {/* Sidebar with Tree */}
-        <Layout.Sider width={200} className="bg-gray-50">
+    <MainLayout>
+      {/* Studio content area - full height within MainLayout's content slot */}
+      <div className="flex h-full">
+        {/* StudioSidebar with Tree - inside the main content area */}
+        <Layout.Sider width={200} className="bg-[var(--surface)] border-r border-[var(--border)]">
           <StudioSidebar solutionId={solutionId || ''} />
         </Layout.Sider>
 
@@ -108,6 +124,6 @@ export default function StudioPage() {
           />
         </div>
       </div>
-    </AppLayout>
+    </MainLayout>
   );
 }

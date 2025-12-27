@@ -3,6 +3,8 @@ import type { CSSProperties, ReactNode } from 'react';
 export interface LayoutSiderProps {
   children: ReactNode;
   width?: number | string;
+  collapsedWidth?: number;
+  collapsed?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -10,6 +12,8 @@ export interface LayoutSiderProps {
 export function LayoutSider({
   children,
   width = 200,
+  collapsedWidth = 48,
+  collapsed = false,
   className = '',
   style,
 }: LayoutSiderProps) {
@@ -18,14 +22,23 @@ export function LayoutSider({
     'bg-[var(--bg-dark)]',
     'border-r',
     'border-[var(--border)]',
-    'overflow-auto',
+    'overflow-hidden',
     className,
   ]
     .filter(Boolean)
     .join(' ');
 
+  const resolvedWidth = collapsed
+    ? typeof collapsedWidth === 'number'
+      ? `${collapsedWidth}px`
+      : collapsedWidth
+    : typeof width === 'number'
+      ? `${width}px`
+      : width;
+
   const siderStyle: CSSProperties = {
-    width: typeof width === 'number' ? `${width}px` : width,
+    width: resolvedWidth,
+    transition: 'width 600ms cubic-bezier(0.4, 0, 0.2, 1)',
     ...style,
   };
 
