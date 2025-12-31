@@ -54,3 +54,5 @@ export type { TabsProps, TabItem } from './Tabs';
 
 export { Descriptions } from './Descriptions';
 export type { DescriptionsProps, DescriptionsItemProps, DescriptionsItemType } from './Descriptions';
+
+export { MarkdownContent } from './MarkdownContent';

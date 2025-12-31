@@ -18,6 +18,7 @@ import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
 import { THEME_CONFIG } from '~/core/config/theme-config';
 import { useCanvasEvents } from '~/design-studio/components/canvas/core/CanvasEventsContext';
+import { useShapeInteractivity } from '~/design-studio/hooks';
 
 export function EnumerationRenderer({
   shape,
@@ -33,7 +34,7 @@ export function EnumerationRenderer({
   onConnectionPointMouseUp,
 }: ShapeRendererProps): React.ReactElement {
   const { width, height } = shape;
-  const { isSelected, isHovered, zoom } = context;
+  const { zoom } = context;
 
   // Get enumeration editing callbacks from context instead of props
   const {
@@ -43,19 +44,18 @@ export function EnumerationRenderer({
     updateLiteralLocal,
   } = useCanvasEvents();
 
-  // Disable interactivity for preview shapes
-  const isInteractive = !shape.isPreview;
-  const showHover = isInteractive && isHovered;
-  const showSelected = isInteractive && isSelected;
-
-  // Wrap connection point handlers to prepend shape ID
-  const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
-    onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
-  };
-
-  const handleConnectionPointMouseUp = (connectionPointId: string, e: React.MouseEvent) => {
-    onConnectionPointMouseUp?.(`${shape.id}-${connectionPointId}`, e);
-  };
+  const {
+    isInteractive,
+    showHover,
+    showSelected,
+    handleConnectionPointMouseDown,
+    handleConnectionPointMouseUp,
+  } = useShapeInteractivity({
+    shape,
+    context,
+    onConnectionPointMouseDown,
+    onConnectionPointMouseUp,
+  });
 
   // Parse enumeration shape data using type-safe helper
   const enumerationData = getEnumerationShapeData(shape);

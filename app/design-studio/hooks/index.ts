@@ -29,3 +29,6 @@ export { useAsyncGeneration, type UseAsyncGenerationReturn } from './useAsyncGen
 // Generator diagram hooks
 export { useGeneratorReferences, type UseGeneratorReferencesReturn } from './useGeneratorReferences';
 export { useGenerateDiagram, type UseGenerateDiagramReturn } from './useGenerateDiagram';
+
+// Shape rendering hooks
+export { useShapeInteractivity } from './useShapeInteractivity';

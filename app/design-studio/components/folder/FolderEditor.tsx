@@ -6,10 +6,8 @@
  */
 
 import { useState, useCallback } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { LuSparkles, LuCopy } from 'react-icons/lu';
-import { Tabs } from '~/core/components/ui';
+import { MarkdownContent, Tabs } from '~/core/components/ui';
 import { Button } from '~/core/components/ui/Button';
 import { generateUserStories } from '../../lib/llm/user-stories-generator-api';
 import { generateUserDocsStructured } from '../../lib/llm/user-docs-generator-api';
@@ -98,7 +96,7 @@ export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
           {/* Rendered markdown content */}
           <div className="flex-1 overflow-auto p-4 bg-[var(--bg-light)]">
             <div className="markdown-content markdown-content--compact">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+              <MarkdownContent content={content} />
             </div>
           </div>
         </div>

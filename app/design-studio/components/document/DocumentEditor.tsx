@@ -6,9 +6,8 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { LuEye, LuPencil, LuColumns2 } from 'react-icons/lu';
+import { MarkdownContent } from '~/core/components/ui';
 import { Button } from '~/core/components/ui/Button';
 import '../../styles/markdown-content.css';
 
@@ -199,9 +198,7 @@ export function DocumentEditor({
             }`}
           >
             <div className="markdown-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {content || '*No content to preview*'}
-              </ReactMarkdown>
+              <MarkdownContent content={content || '*No content to preview*'} />
             </div>
           </div>
         )}

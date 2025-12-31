@@ -5,9 +5,8 @@
  * Renders story content as markdown with compact styling.
  */
 
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { LuChevronUp, LuChevronDown } from 'react-icons/lu';
+import { MarkdownContent } from '~/core/components/ui';
 import type { UserStory } from '../../lib/llm/types';
 import '../../styles/markdown-content.css';
 
@@ -136,9 +135,7 @@ export function UserStoryCard({
 
       {/* Story content - render markdown content directly */}
       <div className="p-3 text-[var(--text)] markdown-content markdown-content--compact markdown-content--story-card text-xs">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {story.content}
-        </ReactMarkdown>
+        <MarkdownContent content={story.content} />
       </div>
     </div>
   );

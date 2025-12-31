@@ -19,9 +19,6 @@ export function DocumentView({ documentId }: DocumentViewProps) {
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  // Track document version to force editor reset on refetch
-  // Use updatedAt as the version fingerprint
-  const documentVersion = document?.updatedAt?.toString() ?? '';
 
   // Track if we've successfully loaded the document at least once
   useEffect(() => {
@@ -82,7 +79,7 @@ export function DocumentView({ documentId }: DocumentViewProps) {
   return (
     <div className='bg-[var(--bg)] h-full'>
       <DocumentEditor
-        key={documentVersion}
+        key={documentId}
         initialContent={document.content}
         onContentChange={handleContentChange}
         onSave={handleSave}

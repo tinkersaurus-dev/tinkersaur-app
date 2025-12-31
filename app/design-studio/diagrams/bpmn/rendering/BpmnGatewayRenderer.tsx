@@ -11,6 +11,7 @@ import { ConnectionPointRenderer } from '../../shared/rendering/ConnectionPointR
 import { EditableLabel } from '~/design-studio/components/canvas/editors/EditableLabel';
 import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
 import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
+import { useShapeInteractivity } from '~/design-studio/hooks';
 
 export function BpmnGatewayRenderer({
   shape,
@@ -26,21 +27,20 @@ export function BpmnGatewayRenderer({
   onConnectionPointMouseUp,
 }: ShapeRendererProps): React.ReactElement {
   const { width, height, subtype } = shape;
-  const { isSelected, isHovered, zoom } = context;
+  const { zoom } = context;
 
-  // Disable interactivity for preview shapes
-  const isInteractive = !shape.isPreview;
-  const showHover = isInteractive && isHovered;
-  const showSelected = isInteractive && isSelected;
-
-  // Wrap connection point handlers to prepend shape ID
-  const handleConnectionPointMouseDown = (connectionPointId: string, e: React.MouseEvent) => {
-    onConnectionPointMouseDown?.(`${shape.id}-${connectionPointId}`, e);
-  };
-
-  const handleConnectionPointMouseUp = (connectionPointId: string, e: React.MouseEvent) => {
-    onConnectionPointMouseUp?.(`${shape.id}-${connectionPointId}`, e);
-  };
+  const {
+    isInteractive,
+    showHover,
+    showSelected,
+    handleConnectionPointMouseDown,
+    handleConnectionPointMouseUp,
+  } = useShapeInteractivity({
+    shape,
+    context,
+    onConnectionPointMouseDown,
+    onConnectionPointMouseUp,
+  });
 
   // Gateways are diamonds (squares rotated 45 degrees)
   // The width/height represent the DIAGONAL span, so we need to divide by √2

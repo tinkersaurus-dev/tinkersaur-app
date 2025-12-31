@@ -5,8 +5,7 @@
  * Optimized for displaying code blocks, tables, and technical documentation.
  */
 
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { MarkdownContent } from '~/core/components/ui';
 import type { TechSpecSection } from '../../lib/llm/types';
 import { TECH_SPEC_SECTION_LABELS } from '../../lib/llm/types';
 import '../../styles/markdown-content.css';
@@ -25,9 +24,7 @@ export function TechSpecCard({ section }: TechSpecCardProps) {
       <h1>{section.title}</h1>
 
       <div className="markdown-content">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {section.content}
-        </ReactMarkdown>
+        <MarkdownContent content={section.content} />
       </div>
 
       {section.subsections && section.subsections.length > 0 && (
@@ -35,9 +32,7 @@ export function TechSpecCard({ section }: TechSpecCardProps) {
           {section.subsections.map((subsection) => (
             <div key={subsection.title} className="subsection">
               <h2>{subsection.title}</h2>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {subsection.content}
-              </ReactMarkdown>
+              <MarkdownContent content={subsection.content} />
             </div>
           ))}
         </div>
