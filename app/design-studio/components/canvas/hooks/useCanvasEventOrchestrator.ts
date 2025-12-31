@@ -10,12 +10,13 @@
  * - Label editing (useCanvasLabelEditing)
  * - Selection (useCanvasSelection)
  * - Connector drawing (useConnectorDrawing)
+ * - Connector interaction (useConnectorInteraction)
  * - Shape dragging (useShapeDragging)
  * - Shape resizing (useShapeResizing)
  * - Shape interaction (useShapeInteraction)
  * - Keyboard handlers (useCanvasKeyboardHandlers)
  * - Mouse orchestration (useCanvasMouseOrchestration)
- * - Context menu handling
+ * - Context menu handling (useCanvasContextMenu)
  */
 
 import { useCallback, type MutableRefObject, type RefObject } from 'react';
@@ -31,10 +32,12 @@ import { useCanvasPanning } from '../../../hooks/useCanvasPanning';
 import { useCanvasLabelEditing } from '../../../hooks/useCanvasLabelEditing';
 import { useCanvasSelection } from '../../../hooks/useCanvasSelection';
 import { useConnectorDrawing } from '../../../hooks/useConnectorDrawing';
+import { useConnectorInteraction } from '../../../hooks/useConnectorInteraction';
 import { useShapeDragging } from '../../../hooks/useShapeDragging';
 import { useShapeResizing } from '../../../hooks/useShapeResizing';
 import { useShapeInteraction } from '../../../hooks/useShapeInteraction';
 import { useCanvasKeyboardHandlers } from '../../../hooks/useCanvasKeyboardHandlers';
+import { useCanvasContextMenu } from '../../../hooks/useCanvasContextMenu';
 import { useCanvasMouseOrchestration } from './useCanvasMouseOrchestration';
 import { isContainerType } from '../../../utils/containment-utils';
 import { MENU_IDS } from '../../../hooks/useContextMenuManager';
@@ -305,6 +308,26 @@ export function useCanvasEventOrchestrator({
     onShapeRightClick: menuManager.openShapeContextMenu,
   });
 
+  // Connector interaction hook
+  const {
+    handleConnectorMouseDown,
+    handleConnectorMouseEnter,
+    handleConnectorMouseLeave,
+  } = useConnectorInteraction({
+    selectedConnectorIds,
+    setSelectedConnectors: storeActions.setSelectedConnectors,
+    setHoveredConnectorId: storeActions.setHoveredConnectorId,
+    onConnectorRightClick: menuManager.openConnectorContextMenu,
+  });
+
+  // Context menu hook
+  const { handleContextMenu } = useCanvasContextMenu({
+    containerRef,
+    viewportTransform,
+    diagramType,
+    openMenu: menuManager.openMenu,
+  });
+
   // Handle resize start from resize handles
   const handleResizeStart = useCallback(
     (shapeId: string, handle: ResizeHandle, e: React.MouseEvent) => {
@@ -332,43 +355,6 @@ export function useCanvasEventOrchestrator({
     },
     [containerRef, viewportTransform, selectedShapeIds, shapes, startResizing, transitionToResizing]
   );
-
-  // Handle canvas right-click context menu
-  const handleContextMenu = useCallback((event: React.MouseEvent) => {
-    event.preventDefault();
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    // Get click position in screen coordinates
-    const rect = container.getBoundingClientRect();
-    const screenX = event.clientX - rect.left;
-    const screenY = event.clientY - rect.top;
-
-    // Convert to canvas coordinates for shape placement
-    const { x: canvasX, y: canvasY } = viewportTransform.screenToCanvas(screenX, screenY);
-
-    // Determine which menu to open based on diagram type
-    let menuId: string = MENU_IDS.CANVAS_CONTEXT_MENU;
-    if (diagramType === 'bpmn') {
-      menuId = MENU_IDS.BPMN_TOOLSET_POPOVER;
-    } else if (diagramType === 'class') {
-      menuId = MENU_IDS.CLASS_TOOLSET_POPOVER;
-    } else if (diagramType === 'sequence') {
-      menuId = MENU_IDS.SEQUENCE_TOOLSET_POPOVER;
-    } else if (diagramType === 'architecture') {
-      menuId = MENU_IDS.ARCHITECTURE_TOOLSET_POPOVER;
-    } else if (diagramType === 'entity-relationship') {
-      menuId = MENU_IDS.ENTITY_RELATIONSHIP_TOOLSET_POPOVER;
-    }
-
-    // Open the appropriate menu
-    menuManager.openMenu({
-      id: menuId,
-      screenPosition: { x: event.clientX, y: event.clientY },
-      canvasPosition: { x: canvasX, y: canvasY },
-    });
-  }, [containerRef, viewportTransform, diagramType, menuManager]);
 
   // Handle connector drag released on canvas (not on connection point)
   // Opens toolset popover for shape creation with pending connector
@@ -473,60 +459,6 @@ export function useCanvasEventOrchestrator({
       resetInteraction();
     },
     [finishDrawingConnector, resetInteraction]
-  );
-
-  // Handle connector mouse down for selection
-  const handleConnectorMouseDown = useCallback(
-    (e: React.MouseEvent, connectorId: string) => {
-      e.stopPropagation();
-
-      // Handle right-click for context menu
-      if (e.button === 2) {
-        e.preventDefault();
-        menuManager.openConnectorContextMenu(connectorId, e.clientX, e.clientY);
-        return;
-      }
-
-      // Only handle left mouse button for selection
-      if (e.button !== 0) return;
-
-      // Check for multi-select modifiers (Shift, Ctrl, or Cmd on Mac)
-      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-
-      if (isMultiSelect) {
-        // Toggle connector in selection
-        if (selectedConnectorIds.includes(connectorId)) {
-          // Remove from selection
-          storeActions.setSelectedConnectors(selectedConnectorIds.filter((id) => id !== connectorId));
-        } else {
-          // Add to selection
-          storeActions.setSelectedConnectors([...selectedConnectorIds, connectorId]);
-        }
-      } else {
-        // If clicking on a non-selected connector, select only that connector
-        if (!selectedConnectorIds.includes(connectorId)) {
-          storeActions.setSelectedConnectors([connectorId]);
-        }
-        // If clicking on an already selected connector, keep the current selection
-      }
-    },
-    [selectedConnectorIds, storeActions, menuManager]
-  );
-
-  // Handle connector mouse enter for hover state
-  const handleConnectorMouseEnter = useCallback(
-    (_e: React.MouseEvent, connectorId: string) => {
-      storeActions.setHoveredConnectorId(connectorId);
-    },
-    [storeActions]
-  );
-
-  // Handle connector mouse leave for hover state
-  const handleConnectorMouseLeave = useCallback(
-    (_e: React.MouseEvent, _connectorId: string) => {
-      storeActions.setHoveredConnectorId(null);
-    },
-    [storeActions]
   );
 
   return {
