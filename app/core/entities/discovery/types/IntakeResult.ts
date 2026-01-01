@@ -1,0 +1,62 @@
+import { z } from 'zod';
+import { ExtractedFeedbackSchema } from './Feedback';
+
+/**
+ * Intake Result Types
+ * Represents the structured output from analyzing intake sources.
+ * Contains extracted personas, use cases, and feedback.
+ */
+
+// Demographics schema (matches Persona entity structure)
+export const ExtractedDemographicsSchema = z.object({
+  education: z.string().optional(),
+  experience: z.string().optional(),
+  industry: z.string().optional(),
+});
+
+export type ExtractedDemographics = z.infer<typeof ExtractedDemographicsSchema>;
+
+// Extracted persona from transcript (no ID - assigned by API when saved)
+export const ExtractedPersonaSchema = z.object({
+  name: z.string(), // Descriptive name based on role
+  role: z.string(), // Job title or role description
+  description: z.string(), // Detailed description of who this person is
+  goals: z.array(z.string()), // What they're trying to achieve
+  painPoints: z.array(z.string()), // Frustrations or obstacles
+  demographics: ExtractedDemographicsSchema,
+  quotes: z.array(z.string()), // Supporting quotes from transcript
+  confidence: z.number().min(0).max(1), // LLM confidence score
+});
+
+export type ExtractedPersona = z.infer<typeof ExtractedPersonaSchema>;
+
+// Extracted use case from transcript (no ID - assigned by API when saved)
+export const ExtractedUseCaseSchema = z.object({
+  name: z.string(), // Short name for the use case
+  description: z.string(), // Detailed description of the workflow/task
+  quotes: z.array(z.string()), // Supporting quotes from transcript
+  confidence: z.number().min(0).max(1), // LLM confidence score
+  linkedPersonaIndexes: z.array(z.number()), // Indexes into personas array
+});
+
+export type ExtractedUseCase = z.infer<typeof ExtractedUseCaseSchema>;
+
+// Complete intake result from parsing
+export const IntakeResultSchema = z.object({
+  sourceType: z.string(),
+  metadata: z.record(z.string(), z.unknown()),
+  personas: z.array(ExtractedPersonaSchema),
+  useCases: z.array(ExtractedUseCaseSchema),
+  feedback: z.array(ExtractedFeedbackSchema),
+  summary: z.string().optional(), // Brief summary of the transcript
+  processingTime: z.number(), // Milliseconds for LLM processing
+});
+
+export type IntakeResult = z.infer<typeof IntakeResultSchema>;
+
+// API response type
+export interface ParseTranscriptResponse {
+  success: boolean;
+  result?: IntakeResult;
+  error?: string;
+}
