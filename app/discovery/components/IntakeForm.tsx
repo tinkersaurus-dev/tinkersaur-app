@@ -163,7 +163,7 @@ export function IntakeForm({ isLoading, onSubmit }: IntakeFormProps) {
             disabled={!isContentValid || isLoading}
             icon={isLoading ? <FiLoader className="animate-spin" /> : <FiZap />}
           >
-            {isLoading ? 'Analyzing...' : 'Analyze'}
+            {isLoading ? 'Parsing...' : 'Parse'}
           </Button>
         </div>
       </form>

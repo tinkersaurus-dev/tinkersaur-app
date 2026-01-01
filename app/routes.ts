@@ -27,13 +27,15 @@ export default [
   route("discovery/organize/personas", "product-management/routes/personas-list.tsx"),
   route("discovery/organize/personas/:personaId", "product-management/routes/persona-detail.tsx"),
 
-  // Solution Management routes (nested under /solution)
-  route("solution/scope", "routes/scope.tsx"),
-  route("solution/scope/:solutionId", "product-management/routes/solution-detail.tsx"),
-  route("solution/scope/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
-  route("solution/design", "routes/design.tsx"),
-  route("solution/design/:solutionId", "design-studio/routes/studio.tsx"),
-  route("solution/plan", "routes/plan.tsx"),
+  // Strategy routes
+  route("strategy/scope", "routes/scope.tsx"),
+  route("strategy/scope/:solutionId", "product-management/routes/solution-detail.tsx"),
+  route("strategy/scope/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
+  route("strategy/plan", "routes/plan.tsx"),
+
+  // Design routes
+  route("design/spec", "routes/spec.tsx"),
+  route("design/spec/:solutionId", "design-studio/routes/studio.tsx"),
 
   // Delivery routes
   route("delivery", "routes/delivery.tsx"),

@@ -7,7 +7,8 @@ import type { ModuleType } from '~/core/config/navigation-config';
 
 export function getActiveModule(pathname: string): ModuleType | null {
   if (pathname.startsWith('/discovery')) return 'discovery';
-  if (pathname.startsWith('/solution')) return 'solution';
+  if (pathname.startsWith('/strategy')) return 'strategy';
+  if (pathname.startsWith('/design')) return 'design';
   if (pathname.startsWith('/delivery')) return 'delivery';
   return null;
 }

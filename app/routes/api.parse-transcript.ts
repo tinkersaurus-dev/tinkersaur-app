@@ -222,7 +222,6 @@ export async function action({ request }: ActionFunctionArgs) {
       personas?: unknown[];
       useCases?: unknown[];
       feedback?: unknown[];
-      summary?: string;
     };
 
     const result: IntakeResult = {
@@ -237,7 +236,6 @@ export async function action({ request }: ActionFunctionArgs) {
       feedback: Array.isArray(llmResult.feedback)
         ? (llmResult.feedback as IntakeResult['feedback'])
         : [],
-      summary: llmResult.summary,
       processingTime,
     };
 

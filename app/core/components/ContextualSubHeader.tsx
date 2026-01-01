@@ -13,8 +13,10 @@ import { InlineSolutionSelector } from './InlineSolutionSelector';
 export function ContextualSubHeader() {
   const location = useLocation();
 
-  // Show solution selector only for Solution Management module
-  const showSolutionSelector = location.pathname.startsWith('/solution');
+  // Show solution selector for Strategy and Design modules
+  const showSolutionSelector =
+    location.pathname.startsWith('/strategy') ||
+    location.pathname.startsWith('/design');
 
   return (
     <div className="h-10 flex items-center px-6 bg-[var(--bg)] border-b border-[var(--border)] flex-shrink-0">

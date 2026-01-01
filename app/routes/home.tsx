@@ -8,7 +8,7 @@ export function meta() {
 }
 
 export function loader() {
-  return redirect("/solution/scope");
+  return redirect("/strategy/scope");
 }
 
 export default function Home() {

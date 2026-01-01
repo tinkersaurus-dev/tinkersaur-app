@@ -16,7 +16,7 @@ import {
   FiTool,
 } from 'react-icons/fi';
 
-export type ModuleType = 'discovery' | 'solution' | 'delivery';
+export type ModuleType = 'discovery' | 'strategy' | 'design' | 'delivery';
 
 export interface NavSection {
   key: string;
@@ -27,24 +27,26 @@ export interface NavSection {
 }
 
 export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
-  solution: [
+  strategy: [
     {
       key: 'scope',
       label: 'Scope',
       icon: <FiCompass />,
-      path: '/solution/scope',
-    },
-    {
-      key: 'design',
-      label: 'Design',
-      icon: <FiPenTool />,
-      path: '/solution/design',
+      path: '/strategy/scope',
     },
     {
       key: 'plan',
       label: 'Plan',
       icon: <FiCalendar />,
-      path: '/solution/plan',
+      path: '/strategy/plan',
+    },
+  ],
+  design: [
+    {
+      key: 'spec',
+      label: 'Spec',
+      icon: <FiPenTool />,
+      path: '/design/spec',
     },
   ],
   discovery: [

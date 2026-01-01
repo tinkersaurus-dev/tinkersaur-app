@@ -28,7 +28,7 @@ export default function LoginPage() {
 
     try {
       await login(email);
-      navigate('/solution/scope');
+      navigate('/strategy/scope');
     } catch (err) {
       if (err instanceof Error && err.message.includes('404')) {
         setError('No user found with this email');

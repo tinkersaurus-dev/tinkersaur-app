@@ -19,7 +19,7 @@ export function clientLoader() {
   const solutionId = getSelectedSolutionId();
 
   if (solutionId) {
-    return redirect(`/solution/scope/${solutionId}`);
+    return redirect(`/strategy/scope/${solutionId}`);
   }
 
   return null;
@@ -33,13 +33,13 @@ export default function ScopeIndex() {
   // Redirect to selected solution via effect (not during render)
   useEffect(() => {
     if (selectedSolution?.solutionId) {
-      navigate(`/solution/scope/${selectedSolution.solutionId}`, { replace: true });
+      navigate(`/strategy/scope/${selectedSolution.solutionId}`, { replace: true });
     }
   }, [selectedSolution?.solutionId, navigate]);
 
   const handleCreateSuccess = (solution: { id: string }) => {
     setIsCreateModalOpen(false);
-    navigate(`/solution/scope/${solution.id}`);
+    navigate(`/strategy/scope/${solution.id}`);
   };
 
   return (

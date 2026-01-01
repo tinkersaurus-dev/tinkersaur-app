@@ -121,8 +121,8 @@ export function GlobalSidebar() {
   // Resolve the actual path for sections that depend on selected solution
   const getResolvedPath = useCallback(
     (section: NavSection): string => {
-      if (section.key === 'design' && selectedSolution?.solutionId) {
-        return `/solution/design/${selectedSolution.solutionId}`;
+      if (section.key === 'spec' && selectedSolution?.solutionId) {
+        return `/design/spec/${selectedSolution.solutionId}`;
       }
       return section.path;
     },

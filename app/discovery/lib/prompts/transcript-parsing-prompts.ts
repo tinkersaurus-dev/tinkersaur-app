@@ -45,8 +45,7 @@ You MUST return a valid JSON object with this exact structure:
       "linkedPersonaIndexes": [0],
       "linkedUseCaseIndexes": [0]
     }
-  ],
-  "summary": "Brief 2-3 sentence summary of the transcript's main themes"
+  ]
 }
 
 ## Extraction Guidelines
@@ -83,12 +82,13 @@ You MUST return a valid JSON object with this exact structure:
 
 ## Important Rules
 1. Return ONLY valid JSON - no markdown code blocks, no explanations, no text before or after
-2. Use exact quotes from the transcript (copy verbatim, including speaker attribution if present)
-3. Use array indexes (0, 1, 2...) for linkedPersonaIndexes and linkedUseCaseIndexes
-4. Set confidence scores realistically based on available information
-5. If no personas/use cases/feedback found in a category, return an empty array []
-6. Focus on actionable product insights that inform product decisions
-7. Do not invent or assume information not present in the transcript`;
+2. NEVER include real human names from the transcript - replace all names with role-based identifiers. In quotes, replace names with [Interviewer], [Product Manager], [Engineer], etc.
+3. Use exact quotes from the transcript, but anonymize any names within them using bracketed role identifiers
+4. Use array indexes (0, 1, 2...) for linkedPersonaIndexes and linkedUseCaseIndexes
+5. Set confidence scores realistically based on available information
+6. If no personas/use cases/feedback found in a category, return an empty array []
+7. Focus on actionable product insights that inform product decisions
+8. Do not invent or assume information not present in the transcript`;
 
 /**
  * Builds the user prompt with transcript content and metadata

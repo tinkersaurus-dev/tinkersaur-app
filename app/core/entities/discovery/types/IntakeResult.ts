@@ -48,7 +48,6 @@ export const IntakeResultSchema = z.object({
   personas: z.array(ExtractedPersonaSchema),
   useCases: z.array(ExtractedUseCaseSchema),
   feedback: z.array(ExtractedFeedbackSchema),
-  summary: z.string().optional(), // Brief summary of the transcript
   processingTime: z.number(), // Milliseconds for LLM processing
 });
 

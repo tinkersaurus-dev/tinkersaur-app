@@ -59,35 +59,18 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Summary Card */}
-      {result.summary && (
-        <Card>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-medium text-[var(--text)]">
-                Analysis Summary
-              </h2>
-              <p className="text-sm text-[var(--text-muted)] mt-2">
-                {result.summary}
-              </p>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-[var(--text-muted)]">
-              <span className="flex items-center gap-1">
-                <FiClock className="w-4 h-4" />
-                {formatProcessingTime(result.processingTime)}
-              </span>
-              <Button
-                variant="default"
-                size="small"
-                icon={<FiRefreshCw />}
-                onClick={onNewAnalysis}
-              >
-                New Analysis
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
+      {/* Header with processing time */}
+      <Card>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-medium text-[var(--text)]">
+            Parsing Results
+          </h2>
+          <span className="flex items-center gap-1 text-sm text-[var(--text-muted)]">
+            <FiClock className="w-4 h-4" />
+            {formatProcessingTime(result.processingTime)}
+          </span>
+        </div>
+      </Card>
 
       {/* Tabs for detailed results */}
       <Card>

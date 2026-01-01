@@ -1,5 +1,5 @@
 /**
- * Design Index Route
+ * Spec Index Route
  * Redirects to selected solution's Design Studio or shows empty state
  */
 
@@ -9,14 +9,14 @@ import { MainLayout } from '~/core/components/MainLayout';
 import { useSolutionStore } from '~/core/solution';
 import { FiPenTool } from 'react-icons/fi';
 
-export default function DesignIndex() {
+export default function SpecIndex() {
   const navigate = useNavigate();
   const selectedSolution = useSolutionStore((state) => state.selectedSolution);
 
   // Redirect to Design Studio if a solution is selected
   useEffect(() => {
     if (selectedSolution?.solutionId) {
-      navigate(`/solution/design/${selectedSolution.solutionId}`, { replace: true });
+      navigate(`/design/spec/${selectedSolution.solutionId}`, { replace: true });
     }
   }, [selectedSolution?.solutionId, navigate]);
 

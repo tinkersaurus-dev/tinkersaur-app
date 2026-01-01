@@ -22,8 +22,8 @@ export function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation();
   const { isCollapsed, setCollapsed } = useSidebarUIStore();
 
-  // Detect if we're in the Design Studio (has solutionId in design path)
-  const isDesignStudio = /^\/solution\/design\/[^/]+/.test(location.pathname);
+  // Detect if we're in the Design Studio (has solutionId in spec path)
+  const isDesignStudio = /^\/design\/spec\/[^/]+/.test(location.pathname);
 
   // Update collapsed state when route changes
   // Use setTimeout to ensure the DOM has rendered before triggering animation

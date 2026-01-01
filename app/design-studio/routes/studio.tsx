@@ -46,7 +46,7 @@ export default function StudioPage() {
   // Redirect to new solution when selected solution changes
   useEffect(() => {
     if (selectedSolution?.solutionId && selectedSolution.solutionId !== solutionId) {
-      navigate(`/solution/design/${selectedSolution.solutionId}`, { replace: true });
+      navigate(`/design/spec/${selectedSolution.solutionId}`, { replace: true });
     }
   }, [selectedSolution?.solutionId, solutionId, navigate]);
 
