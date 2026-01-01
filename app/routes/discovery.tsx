@@ -1,23 +1,22 @@
 /**
- * Discovery Page (Placeholder)
- * Coming soon page for Discovery section
+ * Discovery Page
+ * Redirects to Discovery > Intake
  */
 
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { MainLayout } from '~/core/components/MainLayout';
 
 export default function DiscoveryPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate('/discovery/intake', { replace: true });
+  }, [navigate]);
+
   return (
     <MainLayout>
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-[var(--text)] mb-2">
-            Discovery
-          </h1>
-          <p className="text-[var(--text-muted)]">
-            Coming Soon
-          </p>
-        </div>
-      </div>
+      <div />
     </MainLayout>
   );
 }

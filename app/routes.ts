@@ -18,19 +18,25 @@ export default [
   route("api/generate-tech-spec-structured", "routes/api.generate-tech-spec-structured.ts"),
   route("api/generate-tech-spec-regenerate", "routes/api.generate-tech-spec-regenerate.ts"),
 
-  // Discovery route
+  // Discovery routes
   route("discovery", "routes/discovery.tsx"),
+  route("discovery/intake", "routes/discovery/intake.tsx"),
+  route("discovery/analyze", "routes/discovery/analyze.tsx"),
+  route("discovery/organize", "routes/discovery/organize.tsx"),
+  route("discovery/organize/personas", "product-management/routes/personas-list.tsx"),
+  route("discovery/organize/personas/:personaId", "product-management/routes/persona-detail.tsx"),
 
   // Solution Management routes (nested under /solution)
   route("solution/scope", "routes/scope.tsx"),
   route("solution/scope/:solutionId", "product-management/routes/solution-detail.tsx"),
   route("solution/scope/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
-  route("solution/scope/personas", "product-management/routes/personas-list.tsx"),
-  route("solution/scope/personas/:personaId", "product-management/routes/persona-detail.tsx"),
   route("solution/design", "routes/design.tsx"),
   route("solution/design/:solutionId", "design-studio/routes/studio.tsx"),
   route("solution/plan", "routes/plan.tsx"),
 
-  // Delivery route
+  // Delivery routes
   route("delivery", "routes/delivery.tsx"),
+  route("delivery/prioritize", "routes/delivery/prioritize.tsx"),
+  route("delivery/build", "routes/delivery/build.tsx"),
+  route("delivery/release", "routes/delivery/release.tsx"),
 ] satisfies RouteConfig;

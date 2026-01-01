@@ -7,24 +7,11 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { createPortal } from 'react-dom';
-import {
-  FiCompass,
-  FiPenTool,
-  FiCalendar,
-  FiUsers,
-  FiChevronLeft,
-  FiChevronRight,
-} from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useSidebarUIStore } from '~/core/stores/sidebarUIStore';
 import { useSolutionStore } from '~/core/solution';
-
-interface NavSection {
-  key: string;
-  label: string;
-  icon: React.ReactNode;
-  path: string;
-  children?: { key: string; label: string; path: string; icon: React.ReactNode }[];
-}
+import { MODULE_NAVIGATION, type NavSection } from '~/core/config/navigation-config';
+import { getActiveModule } from '~/core/utils/getActiveModule';
 
 interface FlyoutMenuProps {
   section: NavSection;
@@ -142,29 +129,9 @@ export function GlobalSidebar() {
     [selectedSolution]
   );
 
-  const navSections: NavSection[] = [
-    {
-      key: 'scope',
-      label: 'Scope',
-      icon: <FiCompass />,
-      path: '/solution/scope',
-      children: [
-        { key: 'personas', label: 'Personas', path: '/solution/scope/personas', icon: <FiUsers /> },
-      ],
-    },
-    {
-      key: 'design',
-      label: 'Design',
-      icon: <FiPenTool />,
-      path: '/solution/design',
-    },
-    {
-      key: 'plan',
-      label: 'Plan',
-      icon: <FiCalendar />,
-      path: '/solution/plan',
-    },
-  ];
+  // Get navigation sections based on active module
+  const activeModule = getActiveModule(location.pathname);
+  const navSections: NavSection[] = activeModule ? MODULE_NAVIGATION[activeModule] : [];
 
   const isActive = (path: string) => location.pathname.startsWith(path);
   const isExactActive = (path: string) =>

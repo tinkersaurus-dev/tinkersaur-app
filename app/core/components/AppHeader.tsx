@@ -9,6 +9,7 @@ import { FaUser, FaRegLightbulb, FaLightbulb } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useTheme } from '../theme/ThemeProvider';
 import { useAuthStore } from '~/core/auth';
+import { getActiveModule } from '~/core/utils/getActiveModule';
 
 export function AppHeader() {
   const location = useLocation();
@@ -48,7 +49,7 @@ export function AppHeader() {
   const moduleMenuItems: MenuItemType[] = [
     {
       key: 'discovery',
-      label: <Link to="/discovery">Discovery</Link>,
+      label: <Link to="/discovery/intake">Discovery</Link>,
     },
     {
       key: 'solution',
@@ -56,18 +57,12 @@ export function AppHeader() {
     },
     {
       key: 'delivery',
-      label: <Link to="/delivery">Delivery</Link>,
+      label: <Link to="/delivery/prioritize">Delivery</Link>,
     },
   ];
 
   // Determine selected module based on current path
-  const selectedModule = location.pathname.startsWith('/discovery')
-    ? 'discovery'
-    : location.pathname.startsWith('/solution')
-    ? 'solution'
-    : location.pathname.startsWith('/delivery')
-    ? 'delivery'
-    : '';
+  const selectedModule = getActiveModule(location.pathname) ?? '';
 
   return (
     <Layout.Header className="flex items-center justify-between bg-[var(--bg-brand)]">
