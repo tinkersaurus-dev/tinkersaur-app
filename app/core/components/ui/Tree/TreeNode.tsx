@@ -128,16 +128,16 @@ export function TreeNode({
   };
 
   const handleDragStart = (event: React.DragEvent) => {
-    // Reference nodes have custom dragData - use copy effect
-    if (node.draggable && node.dragData) {
-      event.dataTransfer.effectAllowed = 'copy';
-      event.dataTransfer.setData('application/json', JSON.stringify(node.dragData));
-    }
-    // Content nodes use reorder - use move effect
-    else if (allowReorder && onReorderDragStart) {
+    // Handle reorder drag first (takes priority)
+    if (allowReorder && onReorderDragStart) {
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', node.key);
       onReorderDragStart(node.key);
+    }
+    // Handle reference drops (copy effect for nodes with dragData but no reorder)
+    else if (node.draggable && node.dragData) {
+      event.dataTransfer.effectAllowed = 'copy';
+      event.dataTransfer.setData('application/json', JSON.stringify(node.dragData));
     } else {
       return; // Not draggable
     }
