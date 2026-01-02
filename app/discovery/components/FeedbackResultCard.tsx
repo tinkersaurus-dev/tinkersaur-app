@@ -9,6 +9,7 @@ import {
   FiClipboard,
   FiChevronDown,
   FiChevronUp,
+  FiTrash2,
 } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
 import { Tag } from '~/core/components/ui/Tag';
@@ -27,6 +28,9 @@ interface FeedbackResultCardProps {
   index: number;
   personas: ExtractedPersona[];
   useCases: ExtractedUseCase[];
+  onDelete?: (index: number) => void;
+  deletedPersonaIndexes?: Set<number>;
+  deletedUseCaseIndexes?: Set<number>;
 }
 
 // Icon mapping for feedback types
@@ -60,6 +64,9 @@ export function FeedbackResultCard({
   index,
   personas,
   useCases,
+  onDelete,
+  deletedPersonaIndexes,
+  deletedUseCaseIndexes,
 }: FeedbackResultCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -68,12 +75,14 @@ export function FeedbackResultCard({
   const iconColor = FEEDBACK_COLORS[feedback.type];
   const tagColor = TAG_COLORS[feedback.type];
 
-  // Get linked items
+  // Get linked items (excluding deleted items)
   const linkedPersonas = feedback.linkedPersonaIndexes
+    .filter((idx) => !deletedPersonaIndexes?.has(idx))
     .map((idx) => personas[idx])
     .filter(Boolean);
 
   const linkedUseCases = feedback.linkedUseCaseIndexes
+    .filter((idx) => !deletedUseCaseIndexes?.has(idx))
     .map((idx) => useCases[idx])
     .filter(Boolean);
 
@@ -93,6 +102,16 @@ export function FeedbackResultCard({
             </div>
           </div>
         </div>
+        {onDelete && (
+          <button
+            type="button"
+            onClick={() => onDelete(index)}
+            className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
+            title="Remove feedback"
+          >
+            <FiTrash2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Content */}

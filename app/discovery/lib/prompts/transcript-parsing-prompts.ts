@@ -51,7 +51,7 @@ You MUST return a valid JSON object with this exact structure:
 ## Extraction Guidelines
 
 ### Personas
-- Identify distinct individuals or user archetypes mentioned in the transcript
+- Identify user archetypes mentioned in the transcript
 - Use descriptive names based on their role (e.g., "The Engineering Lead", "The End User", "The IT Administrator")
 - Extract goals: What are they trying to achieve? What outcomes do they want?
 - Extract pain points: What frustrations, obstacles, or challenges do they face?
@@ -77,13 +77,13 @@ You MUST return a valid JSON object with this exact structure:
   - "praise": Positive feedback, satisfaction, or appreciation
   - "question": Unanswered question, confusion, or need for clarification
 - Link feedback to relevant personas and use cases using array indexes
-- Include the exact quote that contains the feedback
+- Include the exact quote that contains the feedback, with anonymized names as described in the Important Rules.
 - Provide context about when or why it was mentioned
 
 ## Important Rules
 1. Return ONLY valid JSON - no markdown code blocks, no explanations, no text before or after
-2. NEVER include real human names from the transcript - You MUST replace all names with role-based identifiers, in summaries and direct quotes.
-3. Use exact quotes from the transcript, but anonymize any names within them using bracketed role identifiers
+2. NEVER include real human names from the transcript, whether they are participants or mentioned. You MUST replace all names with role-based identifiers, in summaries, context, direct quotes, etc. EVERYWHERE. This is not optional, and is important for privacy.
+3. Use exact quotes from the transcript, but anonymize any human names within them as described in 2.
 4. Use array indexes (0, 1, 2...) for linkedPersonaIndexes and linkedUseCaseIndexes
 5. Set confidence scores realistically based on available information
 6. If no personas/use cases/feedback found in a category, return an empty array []

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiUser, FiTarget, FiAlertCircle, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiUser, FiTarget, FiAlertCircle, FiChevronDown, FiChevronUp, FiTrash2 } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
 import { Tag } from '~/core/components/ui/Tag';
 import type { ExtractedPersona } from '~/core/entities/discovery';
@@ -9,9 +9,10 @@ import { QuotesList } from './QuoteHighlight';
 interface PersonaResultCardProps {
   persona: ExtractedPersona;
   index: number;
+  onDelete?: (index: number) => void;
 }
 
-export function PersonaResultCard({ persona, index }: PersonaResultCardProps) {
+export function PersonaResultCard({ persona, index, onDelete }: PersonaResultCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const hasGoals = persona.goals.length > 0;
@@ -34,7 +35,19 @@ export function PersonaResultCard({ persona, index }: PersonaResultCardProps) {
             <p className="text-sm text-[var(--text-muted)]">{persona.role}</p>
           </div>
         </div>
-        <ConfidenceBadge confidence={persona.confidence} />
+        <div className="flex items-center gap-2">
+          <ConfidenceBadge confidence={persona.confidence} />
+          {onDelete && (
+            <button
+              type="button"
+              onClick={() => onDelete(index)}
+              className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
+              title="Remove persona"
+            >
+              <FiTrash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Description */}
