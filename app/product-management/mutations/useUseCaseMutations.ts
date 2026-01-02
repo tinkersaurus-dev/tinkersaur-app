@@ -71,3 +71,22 @@ export function useDeleteUseCase() {
     },
   });
 }
+
+/**
+ * Mutation hook for assigning or unassigning a use case to a solution
+ */
+export function useAssignUseCaseToSolution() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, solutionId }: { id: string; solutionId: string | null }) =>
+      useCaseApi.update(id, { solutionId: solutionId ?? undefined }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.useCases.all });
+      toast.success('Use case assignment updated');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update use case assignment');
+    },
+  });
+}

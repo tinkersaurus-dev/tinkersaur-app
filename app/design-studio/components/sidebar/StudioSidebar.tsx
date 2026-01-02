@@ -274,6 +274,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
 
       <SidebarModals
         solutionId={solutionId}
+        teamId={sidebarState.teamId}
         modalState={modalState}
         onCloseDiagramModal={handleCloseDiagramModal}
         onCloseLinkUseCaseModal={handleCloseLinkUseCaseModal}

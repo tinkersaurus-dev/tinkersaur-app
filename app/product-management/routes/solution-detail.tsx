@@ -13,7 +13,7 @@ import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Input, HStack, Breadcrumb, Table, Form, useForm, Modal, Select, Tabs } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { UseCase, SolutionType } from '~/core/entities/product-management';
-import { useSolutionQuery, useUseCasesQuery } from '../queries';
+import { useSolutionQuery, useUseCasesBySolutionQuery } from '../queries';
 import { useCreateUseCase, useUpdateUseCase, useDeleteUseCase, useUpdateSolution, useDeleteSolution } from '../mutations';
 import { loadSolutionDetail } from '../loaders';
 import type { SolutionDetailLoaderData } from '../loaders';
@@ -52,7 +52,7 @@ function SolutionDetailContent() {
 
   // TanStack Query hooks
   const { data: solution, isLoading: solutionLoading, isError } = useSolutionQuery(solutionId);
-  const { data: useCases = [], isLoading } = useUseCasesQuery(solutionId);
+  const { data: useCases = [], isLoading } = useUseCasesBySolutionQuery(solutionId);
   const createUseCase = useCreateUseCase();
   const updateUseCase = useUpdateUseCase();
   const deleteUseCase = useDeleteUseCase();
@@ -163,6 +163,7 @@ function SolutionDetailContent() {
         });
       } else {
         await createUseCase.mutateAsync({
+          teamId: solution!.teamId,
           solutionId: solutionId!,
           ...values,
         });

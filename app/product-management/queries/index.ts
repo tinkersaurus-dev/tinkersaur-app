@@ -18,8 +18,12 @@ export {
 } from './usePersonasQuery';
 
 export {
+  useUseCasesByTeamQuery,
+  useUseCasesBySolutionQuery,
   useUseCasesQuery,
   useUseCaseQuery,
+  prefetchUseCasesByTeam,
+  prefetchUseCasesBySolution,
   prefetchUseCases,
   prefetchUseCase,
 } from './useUseCasesQuery';

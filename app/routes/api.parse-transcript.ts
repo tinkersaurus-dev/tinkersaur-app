@@ -33,11 +33,17 @@ interface BedrockOutput {
   text?: string;
 }
 
+interface BedrockUsage {
+  inputTokens?: number;
+  outputTokens?: number;
+}
+
 interface BedrockResponseBody {
   choices?: Array<{ message?: { content?: string } }>;
   content?: BedrockMessageContent[];
   output?: BedrockOutput;
   text?: string;
+  usage?: BedrockUsage;
 }
 
 // Bedrock configuration
@@ -224,6 +230,10 @@ export async function action({ request }: ActionFunctionArgs) {
       feedback?: unknown[];
     };
 
+    // Extract token usage from response
+    const inputTokens = responseBody.usage?.inputTokens;
+    const outputTokens = responseBody.usage?.outputTokens;
+
     const result: IntakeResult = {
       sourceType,
       metadata,
@@ -237,6 +247,8 @@ export async function action({ request }: ActionFunctionArgs) {
         ? (llmResult.feedback as IntakeResult['feedback'])
         : [],
       processingTime,
+      inputTokens,
+      outputTokens,
     };
 
     logger.info('Successfully parsed transcript', {
@@ -244,6 +256,8 @@ export async function action({ request }: ActionFunctionArgs) {
       useCaseCount: result.useCases.length,
       feedbackCount: result.feedback.length,
       processingTime,
+      inputTokens,
+      outputTokens,
     });
 
     return Response.json({

@@ -20,7 +20,10 @@ export const queryKeys = {
   },
   useCases: {
     all: ['useCases'] as const,
-    list: (solutionId: string) => [...queryKeys.useCases.all, 'list', solutionId] as const,
+    listByTeam: (teamId: string, unassignedOnly = false) =>
+      [...queryKeys.useCases.all, 'list', 'team', teamId, unassignedOnly] as const,
+    listBySolution: (solutionId: string) =>
+      [...queryKeys.useCases.all, 'list', 'solution', solutionId] as const,
     detail: (id: string) => [...queryKeys.useCases.all, 'detail', id] as const,
   },
   requirements: {
@@ -47,6 +50,23 @@ export const queryKeys = {
     all: ['personaUseCases'] as const,
     list: (personaId: string) => [...queryKeys.personaUseCases.all, 'list', personaId] as const,
     byUseCase: (useCaseId: string) => [...queryKeys.personaUseCases.all, 'byUseCase', useCaseId] as const,
+  },
+
+  // Discovery
+  feedbacks: {
+    all: ['feedbacks'] as const,
+    list: (teamId: string) => [...queryKeys.feedbacks.all, 'list', teamId] as const,
+    detail: (id: string) => [...queryKeys.feedbacks.all, 'detail', id] as const,
+  },
+  feedbackPersonas: {
+    all: ['feedbackPersonas'] as const,
+    byFeedback: (feedbackId: string) => [...queryKeys.feedbackPersonas.all, 'byFeedback', feedbackId] as const,
+    byPersona: (personaId: string) => [...queryKeys.feedbackPersonas.all, 'byPersona', personaId] as const,
+  },
+  feedbackUseCases: {
+    all: ['feedbackUseCases'] as const,
+    byFeedback: (feedbackId: string) => [...queryKeys.feedbackUseCases.all, 'byFeedback', feedbackId] as const,
+    byUseCase: (useCaseId: string) => [...queryKeys.feedbackUseCases.all, 'byUseCase', useCaseId] as const,
   },
 
   // Design Studio

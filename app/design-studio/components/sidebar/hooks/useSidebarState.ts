@@ -67,6 +67,7 @@ export function useSidebarState({ solutionId }: UseSidebarStateProps): UseSideba
 
   return {
     solutionName,
+    teamId: solution?.teamId,
     designWorks,
     references,
     crudOperations: {

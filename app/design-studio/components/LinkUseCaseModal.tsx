@@ -1,13 +1,14 @@
 /**
  * Link Use Case Modal
  * Modal for linking a folder (DesignWork) to a Use Case
+ * Shows all use cases from the team (not just the current solution)
  */
 
 import React from 'react';
 import { Modal } from '~/core/components/ui/Modal';
 import { Form, useForm } from '~/core/components/ui/Form';
 import { Select } from '~/core/components/ui/Select';
-import { useUseCasesQuery } from '~/product-management/queries';
+import { useUseCasesByTeamQuery } from '~/product-management/queries';
 
 export interface LinkUseCaseFormData {
   useCaseId: string;
@@ -18,6 +19,7 @@ export interface LinkUseCaseModalProps {
   designWorkId?: string;
   currentUseCaseId?: string;
   solutionId: string;
+  teamId: string | undefined;
   onClose: () => void;
   onLink: (designWorkId: string, useCaseId: string | undefined) => Promise<void>;
 }
@@ -27,10 +29,12 @@ export function LinkUseCaseModal({
   designWorkId,
   currentUseCaseId,
   solutionId,
+  teamId,
   onClose,
   onLink,
 }: LinkUseCaseModalProps) {
-  const { data: useCases = [], isLoading: loadingUseCases } = useUseCasesQuery(solutionId);
+  // Fetch all use cases from the team (not filtered by solution)
+  const { data: useCases = [], isLoading: loadingUseCases } = useUseCasesByTeamQuery(teamId);
 
   const form = useForm<LinkUseCaseFormData>({
     useCaseId: currentUseCaseId || '',
@@ -66,12 +70,19 @@ export function LinkUseCaseModal({
     onClose();
   };
 
-  // Build options: "None" + all use cases
+  // Build options: "None" + all use cases, grouped by solution assignment
+  const assignedUseCases = useCases.filter((uc) => uc.solutionId === solutionId);
+  const otherUseCases = useCases.filter((uc) => uc.solutionId !== solutionId);
+
   const useCaseOptions = [
     { value: '', label: 'None (Unlink)' },
-    ...useCases.map((uc) => ({
+    ...assignedUseCases.map((uc) => ({
       value: uc.id,
       label: uc.name,
+    })),
+    ...otherUseCases.map((uc) => ({
+      value: uc.id,
+      label: `${uc.name}${uc.solutionId ? '' : ' (Unassigned)'}`,
     })),
   ];
 
@@ -107,7 +118,7 @@ export function LinkUseCaseModal({
 
           {useCases.length === 0 && !loadingUseCases && (
             <p className="text-sm text-[var(--text-secondary)]">
-              No use cases found in this solution. Create use cases in the Product Management area first.
+              No use cases found in this team. Create use cases in the Product Management area first.
             </p>
           )}
         </div>

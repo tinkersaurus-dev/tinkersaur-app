@@ -13,10 +13,32 @@ export {
 export {
   FeedbackTypeSchema,
   ExtractedFeedbackSchema,
+  FeedbackSchema,
+  CreateFeedbackSchema,
+  UpdateFeedbackSchema,
   FEEDBACK_TYPE_CONFIG,
   type FeedbackType,
   type ExtractedFeedback,
+  type Feedback,
+  type CreateFeedbackDto,
+  type UpdateFeedbackDto,
 } from './Feedback';
+
+// FeedbackPersona exports
+export {
+  FeedbackPersonaSchema,
+  CreateFeedbackPersonaSchema,
+  type FeedbackPersona,
+  type CreateFeedbackPersonaDto,
+} from './FeedbackPersona';
+
+// FeedbackUseCase exports
+export {
+  FeedbackUseCaseSchema,
+  CreateFeedbackUseCaseSchema,
+  type FeedbackUseCase,
+  type CreateFeedbackUseCaseDto,
+} from './FeedbackUseCase';
 
 // Intake Result exports
 export {

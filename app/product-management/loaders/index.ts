@@ -44,8 +44,8 @@ export async function loadSolutionDetail(solutionId: string): Promise<SolutionDe
       staleTime: STALE_TIMES.solutions,
     }),
     queryClient.prefetchQuery({
-      queryKey: queryKeys.useCases.list(solutionId),
-      queryFn: () => useCaseApi.list(solutionId),
+      queryKey: queryKeys.useCases.listBySolution(solutionId),
+      queryFn: () => useCaseApi.listBySolution(solutionId),
       staleTime: STALE_TIMES.useCases,
     }),
   ]);

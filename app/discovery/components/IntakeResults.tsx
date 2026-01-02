@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiUsers, FiClipboard, FiMessageSquare, FiClock, FiRefreshCw } from 'react-icons/fi';
+import { FiUsers, FiClipboard, FiMessageSquare, FiClock, FiRefreshCw, FiHash } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
 import { Button } from '~/core/components/ui/Button';
 import { Tabs } from '~/core/components/ui/Tabs';
@@ -65,10 +65,18 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
           <h2 className="text-lg font-medium text-[var(--text)]">
             Parsing Results
           </h2>
-          <span className="flex items-center gap-1 text-sm text-[var(--text-muted)]">
-            <FiClock className="w-4 h-4" />
-            {formatProcessingTime(result.processingTime)}
-          </span>
+          <div className="flex items-center gap-4 text-sm text-[var(--text-muted)]">
+            {(result.inputTokens || result.outputTokens) && (
+              <span className="flex items-center gap-1">
+                <FiHash className="w-4 h-4" />
+                {((result.inputTokens ?? 0) + (result.outputTokens ?? 0)).toLocaleString()} tokens
+              </span>
+            )}
+            <span className="flex items-center gap-1">
+              <FiClock className="w-4 h-4" />
+              {formatProcessingTime(result.processingTime)}
+            </span>
+          </div>
         </div>
       </Card>
 

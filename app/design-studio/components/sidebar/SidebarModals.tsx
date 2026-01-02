@@ -9,6 +9,7 @@ import type { SidebarModalsProps } from './types';
 
 export function SidebarModals({
   solutionId,
+  teamId,
   modalState,
   onCloseDiagramModal,
   onCloseLinkUseCaseModal,
@@ -30,6 +31,7 @@ export function SidebarModals({
         designWorkId={modalState.linkUseCaseFolderId}
         currentUseCaseId={getCurrentUseCaseId(modalState.linkUseCaseFolderId)}
         solutionId={solutionId}
+        teamId={teamId}
         onClose={onCloseLinkUseCaseModal}
         onLink={onLinkUseCase}
       />

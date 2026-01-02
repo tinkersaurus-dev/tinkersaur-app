@@ -41,3 +41,33 @@ export const ExtractedFeedbackSchema = z.object({
 });
 
 export type ExtractedFeedback = z.infer<typeof ExtractedFeedbackSchema>;
+
+// Persisted Feedback schema (from API)
+export const FeedbackSchema = z.object({
+  id: z.string().uuid(),
+  teamId: z.string().uuid(),
+  solutionId: z.string().uuid().nullable(),
+  type: FeedbackTypeSchema,
+  content: z.string().max(2000),
+  context: z.string().max(2000).nullable(),
+  quotes: z.array(z.string()),
+  confidence: z.number().min(0).max(1),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type Feedback = z.infer<typeof FeedbackSchema>;
+
+// Schema for creating a new feedback (without generated fields)
+export const CreateFeedbackSchema = FeedbackSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CreateFeedbackDto = z.infer<typeof CreateFeedbackSchema>;
+
+// Schema for updating feedback (all fields optional except id)
+export const UpdateFeedbackSchema = FeedbackSchema.partial().required({ id: true });
+
+export type UpdateFeedbackDto = z.infer<typeof UpdateFeedbackSchema>;
