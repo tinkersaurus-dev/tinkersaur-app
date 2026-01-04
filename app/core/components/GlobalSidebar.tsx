@@ -71,7 +71,7 @@ function FlyoutMenu({
     >
       {/* Section header in flyout */}
       <div
-        className="px-4 py-2 text-sm font-medium text-[var(--text)] border-b border-[var(--border)] cursor-pointer hover:bg-[var(--bg-hover)]"
+        className="px-4 py-2 text-xs font-medium text-[var(--text)] border-b border-[var(--border)] cursor-pointer hover:bg-[var(--bg-hover)]"
         onClick={() => {
           navigate(getResolvedPath(section));
           setFlyoutSection(null);
@@ -87,7 +87,7 @@ function FlyoutMenu({
             <div
               key={child.key}
               className={`
-                flex items-center gap-2 px-4 py-2 cursor-pointer text-sm transition-colors
+                flex items-center gap-2 px-4 py-2 cursor-pointer text-xs transition-colors
                 ${
                   isExactActive(child.path)
                     ? 'text-[var(--primary)] bg-[var(--bg-hover)]'
@@ -175,7 +175,12 @@ export function GlobalSidebar() {
       clearTimeout(flyoutTimeoutRef.current);
       flyoutTimeoutRef.current = null;
     }
-  }, []);
+
+    // Close flyout after a short delay if mouse doesn't enter the flyout menu
+    flyoutTimeoutRef.current = setTimeout(() => {
+      setFlyoutSection(null);
+    }, 100);
+  }, [setFlyoutSection]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -250,11 +255,6 @@ export function GlobalSidebar() {
             {/* Subsection Items - only shown when NOT collapsed and route is active */}
             {!isCollapsed && isExpanded(section) && section.children && (
               <div className="ml-6 pl-2 border-l border-[var(--border)]">
-                <div className="px-2 py-1">
-                  <span className="text-[var(--text-muted)] text-xs uppercase tracking-wide">
-                    Solution Development
-                  </span>
-                </div>
                 {section.children.map((child) => (
                   <div
                     key={child.key}

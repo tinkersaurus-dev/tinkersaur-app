@@ -149,7 +149,7 @@ export function Select({
 
   const optionStyles = (optionDisabled?: boolean, isSelected?: boolean) => `
     px-3 py-2
-    text-base
+    text-xs
     cursor-pointer
     transition-colors duration-[var(--transition-fast)]
     ${optionDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--bg-dark)]'}

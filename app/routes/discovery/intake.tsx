@@ -4,19 +4,32 @@
  * Extracts personas, use cases, and feedback using LLM analysis.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router';
 import { FiAlertCircle } from 'react-icons/fi';
 import { MainLayout } from '~/core/components/MainLayout';
 import { PageHeader } from '~/core/components/PageHeader';
 import { PageContent } from '~/core/components/PageContent';
 import { Card } from '~/core/components/ui/Card';
 import type { SourceTypeKey, IntakeResult } from '~/core/entities/discovery';
+import { SourceTypeKeySchema } from '~/core/entities/discovery';
 import { IntakeForm, IntakeResults } from '~/discovery/components';
 import { useParseTranscript } from '~/discovery/hooks';
 
 export default function IntakePage() {
   const [result, setResult] = useState<IntakeResult | null>(null);
   const { parseTranscript, isLoading, error, clearError } = useParseTranscript();
+
+  const [searchParams] = useSearchParams();
+
+  // Read and validate sourceType from URL
+  const sourceTypeParam = searchParams.get('sourceType');
+  const sourceType: SourceTypeKey = useMemo(() => {
+    if (!sourceTypeParam) return 'meeting-transcript';
+
+    const parseResult = SourceTypeKeySchema.safeParse(sourceTypeParam);
+    return parseResult.success ? parseResult.data : 'meeting-transcript';
+  }, [sourceTypeParam]);
 
   const handleSubmit = async (
     sourceType: SourceTypeKey,
@@ -59,7 +72,12 @@ export default function IntakePage() {
           {result ? (
             <IntakeResults result={result} onNewAnalysis={handleNewAnalysis} />
           ) : (
-            <IntakeForm isLoading={isLoading} onSubmit={handleSubmit} />
+            <IntakeForm
+              key={sourceType}
+              isLoading={isLoading}
+              onSubmit={handleSubmit}
+              sourceType={sourceType}
+            />
           )}
         </div>
       </PageContent>

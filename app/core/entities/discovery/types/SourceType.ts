@@ -9,7 +9,9 @@ import { z } from 'zod';
 // Extensible source type keys
 export const SourceTypeKeySchema = z.enum([
   'meeting-transcript',
-  // Future: 'user-interview', 'support-ticket', 'survey-response', etc.
+  'user-interview',
+  'support-ticket',
+  'survey-response',
 ]);
 
 export type SourceTypeKey = z.infer<typeof SourceTypeKeySchema>;
@@ -53,6 +55,90 @@ export const SOURCE_TYPES: Record<SourceTypeKey, SourceTypeDefinition> = {
         label: 'Date/Time',
         type: 'datetime',
         required: false,
+      },
+    ],
+  },
+  'user-interview': {
+    key: 'user-interview',
+    label: 'User Interview',
+    description: 'Paste a transcript or notes from a user research interview',
+    icon: 'FiUsers',
+    metadataFields: [
+      {
+        name: 'intervieweeName',
+        label: 'Interviewee Name',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., John Smith',
+      },
+      {
+        name: 'interviewDate',
+        label: 'Interview Date',
+        type: 'datetime',
+        required: false,
+      },
+      {
+        name: 'interviewerName',
+        label: 'Interviewer',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., Sarah Johnson',
+      },
+    ],
+  },
+  'support-ticket': {
+    key: 'support-ticket',
+    label: 'Support Ticket',
+    description: 'Paste content from a customer support ticket or conversation',
+    icon: 'FiLifeBuoy',
+    metadataFields: [
+      {
+        name: 'ticketId',
+        label: 'Ticket ID',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., TICKET-12345',
+      },
+      {
+        name: 'ticketDate',
+        label: 'Ticket Date',
+        type: 'datetime',
+        required: false,
+      },
+      {
+        name: 'customerSegment',
+        label: 'Customer Segment',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., Enterprise, SMB, Free',
+      },
+    ],
+  },
+  'survey-response': {
+    key: 'survey-response',
+    label: 'Survey Response',
+    description: 'Paste open-ended responses from customer surveys',
+    icon: 'FiClipboard',
+    metadataFields: [
+      {
+        name: 'surveyName',
+        label: 'Survey Name',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., Q4 2024 Customer Satisfaction',
+      },
+      {
+        name: 'responseDate',
+        label: 'Response Date',
+        type: 'datetime',
+        required: false,
+      },
+      {
+        name: 'respondentId',
+        label: 'Respondent ID',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., RESP-789 (optional)',
       },
     ],
   },

@@ -16,6 +16,7 @@ interface IntakeFormProps {
     content: string,
     metadata: Record<string, string>
   ) => void;
+  sourceType: SourceTypeKey;
 }
 
 const MIN_CONTENT_LENGTH = 50;
@@ -26,10 +27,8 @@ const sourceTypeOptions = Object.values(SOURCE_TYPES).map((sourceType) => ({
   label: sourceType.label,
 }));
 
-export function IntakeForm({ isLoading, onSubmit }: IntakeFormProps) {
-  const [selectedSourceType, setSelectedSourceType] = useState<SourceTypeKey>(
-    'meeting-transcript'
-  );
+export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType }: IntakeFormProps) {
+  const [selectedSourceType, setSelectedSourceType] = useState<SourceTypeKey>(initialSourceType);
   const [content, setContent] = useState('');
   const [metadata, setMetadata] = useState<Record<string, string>>({});
 
@@ -37,7 +36,6 @@ export function IntakeForm({ isLoading, onSubmit }: IntakeFormProps) {
 
   const handleSourceTypeChange = (value: string) => {
     setSelectedSourceType(value as SourceTypeKey);
-    // Reset metadata when source type changes
     setMetadata({});
   };
 
@@ -117,43 +115,41 @@ export function IntakeForm({ isLoading, onSubmit }: IntakeFormProps) {
           </div>
         )}
 
-        {/* Content input - shown for meeting-transcript */}
-        {selectedSourceType === 'meeting-transcript' && (
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label
-                htmlFor="transcript-content"
-                className="block text-xs font-medium text-[var(--text)]"
-              >
-                Transcript Content
-                <span className="text-[var(--danger)] ml-1">*</span>
-              </label>
-              <span
-                className={`text-xs ${
-                  isContentValid ? 'text-[var(--text-muted)]' : 'text-[var(--danger)]'
-                }`}
-              >
-                {characterCount} characters
-                {!isContentValid && ` (min ${MIN_CONTENT_LENGTH})`}
-              </span>
-            </div>
-            <Input.TextArea
-              id="transcript-content"
-              rows={12}
-              placeholder="Paste your meeting transcript here..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              disabled={isLoading}
-              error={content.length > 0 && !isContentValid}
-              className='text-xs'
-            />
-            {content.length > 0 && !isContentValid && (
-              <p className="text-xs text-[var(--danger)] mt-1">
-                Transcript must be at least {MIN_CONTENT_LENGTH} characters
-              </p>
-            )}
+        {/* Content input - shown for all source types */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label
+              htmlFor="source-content"
+              className="block text-xs font-medium text-[var(--text)]"
+            >
+              Content
+              <span className="text-[var(--danger)] ml-1">*</span>
+            </label>
+            <span
+              className={`text-xs ${
+                isContentValid ? 'text-[var(--text-muted)]' : 'text-[var(--danger)]'
+              }`}
+            >
+              {characterCount} characters
+              {!isContentValid && ` (min ${MIN_CONTENT_LENGTH})`}
+            </span>
           </div>
-        )}
+          <Input.TextArea
+            id="source-content"
+            rows={12}
+            placeholder={`Paste your ${sourceTypeConfig.label.toLowerCase()} content here...`}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            disabled={isLoading}
+            error={content.length > 0 && !isContentValid}
+            className='text-xs'
+          />
+          {content.length > 0 && !isContentValid && (
+            <p className="text-xs text-[var(--danger)] mt-1">
+              Content must be at least {MIN_CONTENT_LENGTH} characters
+            </p>
+          )}
+        </div>
 
         {/* Submit button */}
         <div className="flex justify-end pt-2">

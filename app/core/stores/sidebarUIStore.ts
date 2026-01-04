@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface SidebarUIStore {
   // State
@@ -14,25 +15,30 @@ interface SidebarUIStore {
   setCollapsed: (collapsed: boolean) => void;
   toggleCollapsed: () => void;
   setFlyoutSection: (section: string | null) => void;
-  autoCollapseForDesignStudio: () => void;
   resetCollapseState: () => void;
 }
 
-export const useSidebarUIStore = create<SidebarUIStore>((set) => ({
-  isCollapsed: false,
-  flyoutSection: null,
-
-  setCollapsed: (collapsed) => set({ isCollapsed: collapsed, flyoutSection: null }),
-
-  toggleCollapsed: () =>
-    set((state) => ({
-      isCollapsed: !state.isCollapsed,
+export const useSidebarUIStore = create<SidebarUIStore>()(
+  persist(
+    (set) => ({
+      isCollapsed: true,
       flyoutSection: null,
-    })),
 
-  setFlyoutSection: (section) => set({ flyoutSection: section }),
+      setCollapsed: (collapsed) => set({ isCollapsed: collapsed, flyoutSection: null }),
 
-  autoCollapseForDesignStudio: () => set({ isCollapsed: true, flyoutSection: null }),
+      toggleCollapsed: () =>
+        set((state) => ({
+          isCollapsed: !state.isCollapsed,
+          flyoutSection: null,
+        })),
 
-  resetCollapseState: () => set({ isCollapsed: false, flyoutSection: null }),
-}));
+      setFlyoutSection: (section) => set({ flyoutSection: section }),
+
+      resetCollapseState: () => set({ isCollapsed: true, flyoutSection: null }),
+    }),
+    {
+      name: 'sidebar-ui-state',
+      partialize: (state) => ({ isCollapsed: state.isCollapsed }),
+    }
+  )
+);
