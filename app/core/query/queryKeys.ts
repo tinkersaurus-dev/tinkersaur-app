@@ -16,6 +16,8 @@ export const queryKeys = {
   personas: {
     all: ['personas'] as const,
     list: (teamId: string) => [...queryKeys.personas.all, 'list', teamId] as const,
+    listPaginated: <T extends object>(params: T) =>
+      [...queryKeys.personas.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.personas.all, 'detail', id] as const,
   },
   useCases: {
@@ -24,6 +26,8 @@ export const queryKeys = {
       [...queryKeys.useCases.all, 'list', 'team', teamId, unassignedOnly] as const,
     listBySolution: (solutionId: string) =>
       [...queryKeys.useCases.all, 'list', 'solution', solutionId] as const,
+    listPaginated: <T extends object>(params: T) =>
+      [...queryKeys.useCases.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.useCases.all, 'detail', id] as const,
   },
   requirements: {
@@ -56,6 +60,8 @@ export const queryKeys = {
   feedbacks: {
     all: ['feedbacks'] as const,
     list: (teamId: string) => [...queryKeys.feedbacks.all, 'list', teamId] as const,
+    listPaginated: <T extends object>(params: T) =>
+      [...queryKeys.feedbacks.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.feedbacks.all, 'detail', id] as const,
   },
   feedbackPersonas: {

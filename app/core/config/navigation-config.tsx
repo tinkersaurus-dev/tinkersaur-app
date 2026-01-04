@@ -14,6 +14,8 @@ import {
   FiList,
   FiPackage,
   FiTool,
+  FiTarget,
+  FiMessageSquare,
 } from 'react-icons/fi';
 
 export type ModuleType = 'discovery' | 'strategy' | 'design' | 'delivery';
@@ -69,6 +71,8 @@ export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
       path: '/discovery/organize',
       children: [
         { key: 'personas', label: 'Personas', path: '/discovery/organize/personas', icon: <FiUsers /> },
+        { key: 'use-cases', label: 'Use Cases', path: '/discovery/organize/use-cases', icon: <FiTarget /> },
+        { key: 'feedback', label: 'Feedback', path: '/discovery/organize/feedback', icon: <FiMessageSquare /> },
       ],
     },
   ],

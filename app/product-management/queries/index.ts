@@ -17,6 +17,8 @@ export {
   prefetchPersona,
 } from './usePersonasQuery';
 
+export { usePersonasPaginatedQuery } from './usePersonasPaginatedQuery';
+
 export {
   useUseCasesByTeamQuery,
   useUseCasesBySolutionQuery,
@@ -27,6 +29,8 @@ export {
   prefetchUseCases,
   prefetchUseCase,
 } from './useUseCasesQuery';
+
+export { useUseCasesPaginatedQuery } from './useUseCasesPaginatedQuery';
 
 export {
   useRequirementsQuery,

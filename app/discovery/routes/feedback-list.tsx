@@ -1,29 +1,43 @@
 /**
- * Personas List Page
- * Displays all personas in a paginated table with filtering and multi-select
+ * Feedback List Page
+ * Displays all feedback in a paginated table with filtering and multi-select
  */
 
 import { useMemo, useRef, useEffect } from 'react';
-import { Link } from 'react-router';
 import { FiPlus } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { ListControlPanel } from '~/core/components/ListControlPanel';
-import { Button, Table, Empty } from '~/core/components/ui';
-import type { TableColumn } from '~/core/components/ui';
-import type { Persona } from '~/core/entities/product-management';
-import { usePersonasPaginatedQuery, useSolutionsQuery } from '../queries';
+import { Button, Table, Empty, Tag } from '~/core/components/ui';
+import type { TableColumn, TagColor } from '~/core/components/ui';
+import type { Feedback } from '~/core/entities/discovery';
+import { FEEDBACK_TYPE_CONFIG } from '~/core/entities/discovery/types/Feedback';
+import { useFeedbacksPaginatedQuery } from '../queries';
+import { useSolutionsQuery, usePersonasQuery, useUseCasesByTeamQuery } from '~/product-management/queries';
 import { useListSelection, useListUrlState } from '~/core/hooks';
 import { useAuthStore } from '~/core/auth';
 
-export default function PersonasListPage() {
+export default function FeedbackListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
 
   // URL state for pagination and filters
   const urlState = useListUrlState({
-    filterKeys: ['solutionId'],
+    filterKeys: ['solutionId', 'personaIds', 'useCaseIds'],
   });
+
+  // Parse multi-select IDs from URL (comma-separated)
+  const personaIds = useMemo(() => {
+    const ids = urlState.filters.personaIds;
+    if (!ids) return undefined;
+    return ids.split(',').filter(Boolean);
+  }, [urlState.filters.personaIds]);
+
+  const useCaseIds = useMemo(() => {
+    const ids = urlState.filters.useCaseIds;
+    if (!ids) return undefined;
+    return ids.split(',').filter(Boolean);
+  }, [urlState.filters.useCaseIds]);
 
   // Build query params from URL state
   const queryParams = useMemo(() => {
@@ -34,12 +48,16 @@ export default function PersonasListPage() {
       pageSize: urlState.pageSize,
       search: urlState.search || undefined,
       solutionId: urlState.filters.solutionId || undefined,
+      personaIds,
+      useCaseIds,
     };
-  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId]);
+  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds, useCaseIds]);
 
   // Data fetching
-  const { data, isLoading } = usePersonasPaginatedQuery(queryParams);
+  const { data, isLoading } = useFeedbacksPaginatedQuery(queryParams);
   const { data: solutions = [] } = useSolutionsQuery(teamId);
+  const { data: personas = [] } = usePersonasQuery(teamId);
+  const { data: useCases = [] } = useUseCasesByTeamQuery(teamId);
 
   // Multi-select for future bulk actions
   const selection = useListSelection({
@@ -47,8 +65,14 @@ export default function PersonasListPage() {
     getItemId: (item) => item.id,
   });
 
+  // Map feedback type to tag color
+  const getTypeColor = (type: string): TagColor => {
+    const config = FEEDBACK_TYPE_CONFIG[type as keyof typeof FEEDBACK_TYPE_CONFIG];
+    return (config?.color || 'default') as TagColor;
+  };
+
   // Table columns with checkbox
-  const columns: TableColumn<Persona>[] = useMemo(() => [
+  const columns: TableColumn<Feedback>[] = useMemo(() => [
     {
       key: 'selection',
       title: '',
@@ -64,33 +88,53 @@ export default function PersonasListPage() {
       ),
     },
     {
-      key: 'name',
-      title: 'Name',
-      dataIndex: 'name',
-      render: (_, record) => (
-        <Link
-          to={`/discovery/organize/personas/${record.id}`}
-          className="text-[var(--primary)] hover:underline font-medium"
-        >
-          {record.name}
-        </Link>
+      key: 'type',
+      title: 'Type',
+      dataIndex: 'type',
+      width: 100,
+      render: (value) => {
+        const type = value as string;
+        const config = FEEDBACK_TYPE_CONFIG[type as keyof typeof FEEDBACK_TYPE_CONFIG];
+        return (
+          <Tag color={getTypeColor(type)}>
+            {config?.label || type}
+          </Tag>
+        );
+      },
+    },
+    {
+      key: 'content',
+      title: 'Content',
+      dataIndex: 'content',
+      render: (value) => (
+        <span className="line-clamp-2 text-sm">
+          {value as string}
+        </span>
       ),
     },
     {
-      key: 'role',
-      title: 'Role',
-      dataIndex: 'role',
-      render: (value) => (
-        <span className="text-[var(--text-muted)]">{value as string || '—'}</span>
-      ),
+      key: 'solution',
+      title: 'Solution',
+      dataIndex: 'solutionId',
+      width: 150,
+      render: (value) => {
+        if (!value) return <span className="text-[var(--text-muted)]">—</span>;
+        const solution = solutions.find(s => s.id === value);
+        return (
+          <span className="text-sm">
+            {solution?.name || 'Unknown'}
+          </span>
+        );
+      },
     },
     {
-      key: 'description',
-      title: 'Description',
-      dataIndex: 'description',
+      key: 'confidence',
+      title: 'Confidence',
+      dataIndex: 'confidence',
+      width: 100,
       render: (value) => (
-        <span className="line-clamp-2 text-sm text-[var(--text-muted)]">
-          {value as string || '—'}
+        <span className="text-sm text-[var(--text-muted)]">
+          {Math.round((value as number) * 100)}%
         </span>
       ),
     },
@@ -105,7 +149,7 @@ export default function PersonasListPage() {
         </span>
       ),
     },
-  ], [selection]);
+  ], [selection, solutions]);
 
   // Select all checkbox in header
   const selectAllRef = useRef<HTMLInputElement>(null);
@@ -142,25 +186,55 @@ export default function PersonasListPage() {
       options: solutions.map((s) => ({ value: s.id, label: s.name })),
       showSearch: true,
     },
-  ], [solutions]);
+    {
+      key: 'personaIds',
+      label: 'Personas',
+      type: 'multiselect' as const,
+      options: personas.map((p) => ({ value: p.id, label: p.name })),
+      showSearch: true,
+    },
+    {
+      key: 'useCaseIds',
+      label: 'Use Cases',
+      type: 'multiselect' as const,
+      options: useCases.map((uc) => ({ value: uc.id, label: uc.name })),
+      showSearch: true,
+    },
+  ], [solutions, personas, useCases]);
+
+  // Handle filter change (special handling for multi-select)
+  const handleFilterChange = (key: string, value: string | string[]) => {
+    if (Array.isArray(value)) {
+      urlState.setFilter(key, value.join(','));
+    } else {
+      urlState.setFilter(key, value);
+    }
+  };
+
+  // Get filter values with arrays for multi-select
+  const filterValues = useMemo(() => ({
+    ...urlState.filters,
+    personaIds: personaIds || [],
+    useCaseIds: useCaseIds || [],
+  }), [urlState.filters, personaIds, useCaseIds]);
 
   // Handle page change
   const handlePageChange = (page: number, pageSize: number) => {
     urlState.setPageChange(page, pageSize);
-    selection.clear(); // Clear selection on page change
+    selection.clear();
   };
 
   return (
     <MainLayout>
       <PageHeader
-        title="Personas"
+        title="Feedback"
         actions={
           <Button
             variant="primary"
             icon={<FiPlus />}
             onClick={() => {/* TODO: Add modal */}}
           >
-            Add Persona
+            Add Feedback
           </Button>
         }
       />
@@ -173,10 +247,10 @@ export default function PersonasListPage() {
             <ListControlPanel
               searchValue={urlState.search}
               onSearchChange={urlState.setSearch}
-              searchPlaceholder="Search personas..."
+              searchPlaceholder="Search feedback..."
               filters={filters}
-              filterValues={urlState.filters}
-              onFilterChange={urlState.setFilter}
+              filterValues={filterValues}
+              onFilterChange={handleFilterChange}
               selectedCount={selection.selectedIds.size}
             />
 
@@ -191,7 +265,7 @@ export default function PersonasListPage() {
                 total: data?.totalCount,
                 onChange: handlePageChange,
               }}
-              empty={<Empty description="No personas found. Adjust your filters or create a new persona." />}
+              empty={<Empty description="No feedback found. Adjust your filters or add new feedback." />}
             />
           </>
         )}

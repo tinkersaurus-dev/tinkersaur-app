@@ -1,6 +1,6 @@
 /**
- * Personas List Page
- * Displays all personas in a paginated table with filtering and multi-select
+ * Use Cases List Page
+ * Displays all use cases in a paginated table with filtering and multi-select
  */
 
 import { useMemo, useRef, useEffect } from 'react';
@@ -11,19 +11,26 @@ import { MainLayout } from '~/core/components/MainLayout';
 import { ListControlPanel } from '~/core/components/ListControlPanel';
 import { Button, Table, Empty } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
-import type { Persona } from '~/core/entities/product-management';
-import { usePersonasPaginatedQuery, useSolutionsQuery } from '../queries';
+import type { UseCase } from '~/core/entities/product-management';
+import { useUseCasesPaginatedQuery, useSolutionsQuery, usePersonasQuery } from '../queries';
 import { useListSelection, useListUrlState } from '~/core/hooks';
 import { useAuthStore } from '~/core/auth';
 
-export default function PersonasListPage() {
+export default function UseCasesListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
 
   // URL state for pagination and filters
   const urlState = useListUrlState({
-    filterKeys: ['solutionId'],
+    filterKeys: ['solutionId', 'personaIds'],
   });
+
+  // Parse personaIds from URL (comma-separated)
+  const personaIds = useMemo(() => {
+    const ids = urlState.filters.personaIds;
+    if (!ids) return undefined;
+    return ids.split(',').filter(Boolean);
+  }, [urlState.filters.personaIds]);
 
   // Build query params from URL state
   const queryParams = useMemo(() => {
@@ -34,12 +41,14 @@ export default function PersonasListPage() {
       pageSize: urlState.pageSize,
       search: urlState.search || undefined,
       solutionId: urlState.filters.solutionId || undefined,
+      personaIds,
     };
-  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId]);
+  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds]);
 
   // Data fetching
-  const { data, isLoading } = usePersonasPaginatedQuery(queryParams);
+  const { data, isLoading } = useUseCasesPaginatedQuery(queryParams);
   const { data: solutions = [] } = useSolutionsQuery(teamId);
+  const { data: personas = [] } = usePersonasQuery(teamId);
 
   // Multi-select for future bulk actions
   const selection = useListSelection({
@@ -48,7 +57,7 @@ export default function PersonasListPage() {
   });
 
   // Table columns with checkbox
-  const columns: TableColumn<Persona>[] = useMemo(() => [
+  const columns: TableColumn<UseCase>[] = useMemo(() => [
     {
       key: 'selection',
       title: '',
@@ -69,19 +78,11 @@ export default function PersonasListPage() {
       dataIndex: 'name',
       render: (_, record) => (
         <Link
-          to={`/discovery/organize/personas/${record.id}`}
+          to={`/discovery/organize/use-cases/${record.id}`}
           className="text-[var(--primary)] hover:underline font-medium"
         >
           {record.name}
         </Link>
-      ),
-    },
-    {
-      key: 'role',
-      title: 'Role',
-      dataIndex: 'role',
-      render: (value) => (
-        <span className="text-[var(--text-muted)]">{value as string || '—'}</span>
       ),
     },
     {
@@ -95,6 +96,21 @@ export default function PersonasListPage() {
       ),
     },
     {
+      key: 'solution',
+      title: 'Solution',
+      dataIndex: 'solutionId',
+      width: 150,
+      render: (value) => {
+        if (!value) return <span className="text-[var(--text-muted)]">Unassigned</span>;
+        const solution = solutions.find(s => s.id === value);
+        return (
+          <span className="text-sm">
+            {solution?.name || 'Unknown'}
+          </span>
+        );
+      },
+    },
+    {
       key: 'createdAt',
       title: 'Created',
       dataIndex: 'createdAt',
@@ -105,7 +121,7 @@ export default function PersonasListPage() {
         </span>
       ),
     },
-  ], [selection]);
+  ], [selection, solutions]);
 
   // Select all checkbox in header
   const selectAllRef = useRef<HTMLInputElement>(null);
@@ -142,25 +158,48 @@ export default function PersonasListPage() {
       options: solutions.map((s) => ({ value: s.id, label: s.name })),
       showSearch: true,
     },
-  ], [solutions]);
+    {
+      key: 'personaIds',
+      label: 'Personas',
+      type: 'multiselect' as const,
+      options: personas.map((p) => ({ value: p.id, label: p.name })),
+      showSearch: true,
+    },
+  ], [solutions, personas]);
+
+  // Handle filter change (special handling for multi-select)
+  const handleFilterChange = (key: string, value: string | string[]) => {
+    if (Array.isArray(value)) {
+      // Convert array to comma-separated string for URL
+      urlState.setFilter(key, value.join(','));
+    } else {
+      urlState.setFilter(key, value);
+    }
+  };
+
+  // Get filter values with personaIds as array
+  const filterValues = useMemo(() => ({
+    ...urlState.filters,
+    personaIds: personaIds || [],
+  }), [urlState.filters, personaIds]);
 
   // Handle page change
   const handlePageChange = (page: number, pageSize: number) => {
     urlState.setPageChange(page, pageSize);
-    selection.clear(); // Clear selection on page change
+    selection.clear();
   };
 
   return (
     <MainLayout>
       <PageHeader
-        title="Personas"
+        title="Use Cases"
         actions={
           <Button
             variant="primary"
             icon={<FiPlus />}
             onClick={() => {/* TODO: Add modal */}}
           >
-            Add Persona
+            Add Use Case
           </Button>
         }
       />
@@ -173,10 +212,10 @@ export default function PersonasListPage() {
             <ListControlPanel
               searchValue={urlState.search}
               onSearchChange={urlState.setSearch}
-              searchPlaceholder="Search personas..."
+              searchPlaceholder="Search use cases..."
               filters={filters}
-              filterValues={urlState.filters}
-              onFilterChange={urlState.setFilter}
+              filterValues={filterValues}
+              onFilterChange={handleFilterChange}
               selectedCount={selection.selectedIds.size}
             />
 
@@ -191,7 +230,7 @@ export default function PersonasListPage() {
                 total: data?.totalCount,
                 onChange: handlePageChange,
               }}
-              empty={<Empty description="No personas found. Adjust your filters or create a new persona." />}
+              empty={<Empty description="No use cases found. Adjust your filters or create a new use case." />}
             />
           </>
         )}

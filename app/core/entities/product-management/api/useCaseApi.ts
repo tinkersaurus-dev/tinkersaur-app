@@ -1,4 +1,5 @@
 import type { UseCase, CreateUseCaseDto } from '../types';
+import type { PaginatedResponse, UseCaseListParams } from '~/core/api/types';
 import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
 export const useCaseApi = {
@@ -6,6 +7,26 @@ export const useCaseApi = {
     const url = `/api/use-cases?teamId=${teamId}${unassignedOnly ? '&unassignedOnly=true' : ''}`;
     const data = await httpClient.get<UseCase[]>(url);
     return deserializeDatesArray(data);
+  },
+
+  async listPaginated(params: UseCaseListParams): Promise<PaginatedResponse<UseCase>> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('teamId', params.teamId);
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.pageSize) searchParams.set('pageSize', params.pageSize.toString());
+    if (params.search) searchParams.set('search', params.search);
+    if (params.solutionId) searchParams.set('solutionId', params.solutionId);
+    if (params.personaIds?.length) {
+      params.personaIds.forEach(id => searchParams.append('personaIds', id));
+    }
+
+    const data = await httpClient.get<PaginatedResponse<UseCase>>(
+      `/api/use-cases?${searchParams.toString()}`
+    );
+    return {
+      ...data,
+      items: deserializeDatesArray(data.items),
+    };
   },
 
   async listBySolution(solutionId: string): Promise<UseCase[]> {

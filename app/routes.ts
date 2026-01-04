@@ -26,6 +26,9 @@ export default [
   route("discovery/organize", "routes/discovery/organize.tsx"),
   route("discovery/organize/personas", "product-management/routes/personas-list.tsx"),
   route("discovery/organize/personas/:personaId", "product-management/routes/persona-detail.tsx"),
+  route("discovery/organize/use-cases", "product-management/routes/use-cases-list.tsx"),
+  route("discovery/organize/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx", { id: "discovery-use-case-detail" }),
+  route("discovery/organize/feedback", "discovery/routes/feedback-list.tsx"),
 
   // Strategy routes
   route("strategy/scope", "routes/scope.tsx"),

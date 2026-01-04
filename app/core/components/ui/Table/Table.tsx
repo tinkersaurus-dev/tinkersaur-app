@@ -33,9 +33,10 @@ export function Table<T = Record<string, unknown>>({
   // Memoize to prevent table reinitialization on every render
   const tanstackColumns: ColumnDef<T>[] = useMemo(() => columns.map((col) => {
     // Base column configuration
+    // Use a header function to support ReactNode titles
     const baseConfig = {
       id: col.key,
-      header: col.title,
+      header: () => col.title,
       size: typeof col.width === 'number' ? col.width : undefined,
       enableSorting: !!col.sorter,
     };
@@ -44,14 +45,26 @@ export function Table<T = Record<string, unknown>>({
     let column: ColumnDef<T>;
 
     if (col.render) {
-      // Custom render column
-      column = {
-        ...baseConfig,
-        cell: ({ row, getValue }) => {
-          const value = col.dataIndex ? row.original[col.dataIndex as keyof T] : getValue();
-          return col.render!(value, row.original, row.index);
-        },
-      };
+      // Custom render column - use accessorFn if we have dataIndex
+      if (col.dataIndex) {
+        column = {
+          ...baseConfig,
+          accessorFn: (row) => row[col.dataIndex as keyof T],
+          cell: ({ row, getValue }) => {
+            const value = getValue();
+            return col.render!(value, row.original, row.index);
+          },
+        };
+      } else {
+        // Display column with custom render but no data accessor
+        column = {
+          ...baseConfig,
+          accessorFn: () => null,
+          cell: ({ row }) => {
+            return col.render!(null, row.original, row.index);
+          },
+        };
+      }
     } else if (col.dataIndex) {
       // Accessor column
       column = {
@@ -59,8 +72,11 @@ export function Table<T = Record<string, unknown>>({
         accessorKey: col.dataIndex as string,
       };
     } else {
-      // Display column (no data access)
-      column = baseConfig;
+      // Display column (no data access, no render)
+      column = {
+        ...baseConfig,
+        accessorFn: () => null,
+      };
     }
 
     // Handle sorting

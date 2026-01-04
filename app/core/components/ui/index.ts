@@ -46,6 +46,9 @@ export type { FormProps, FormItemProps } from './Form';
 export { Select } from './Select';
 export type { SelectProps, SelectOption } from './Select';
 
+export { MultiSelect } from './MultiSelect';
+export type { MultiSelectProps, MultiSelectOption } from './MultiSelect';
+
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 
