@@ -71,3 +71,17 @@ export type CreateFeedbackDto = z.infer<typeof CreateFeedbackSchema>;
 export const UpdateFeedbackSchema = FeedbackSchema.partial().required({ id: true });
 
 export type UpdateFeedbackDto = z.infer<typeof UpdateFeedbackSchema>;
+
+// Similarity matching types
+export interface FindSimilarFeedbackRequest {
+  teamId: string;
+  content: string;
+  threshold?: number;
+  limit?: number;
+}
+
+export interface SimilarFeedbackResult {
+  feedback: Feedback;
+  similarity: number;
+  matchType: 'content';
+}

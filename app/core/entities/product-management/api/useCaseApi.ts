@@ -1,4 +1,4 @@
-import type { UseCase, CreateUseCaseDto } from '../types';
+import type { UseCase, CreateUseCaseDto, FindSimilarUseCasesRequest, SimilarUseCaseResult } from '../types';
 import type { PaginatedResponse, UseCaseListParams } from '~/core/api/types';
 import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
@@ -65,5 +65,14 @@ export const useCaseApi = {
     } catch {
       return false;
     }
+  },
+
+  async findSimilar(request: FindSimilarUseCasesRequest): Promise<SimilarUseCaseResult[]> {
+    const data = await httpClient.post<SimilarUseCaseResult[]>('/api/use-cases/similar', request);
+    // Deserialize dates in nested useCase objects
+    return data.map(result => ({
+      ...result,
+      useCase: deserializeDates(result.useCase),
+    }));
   },
 };

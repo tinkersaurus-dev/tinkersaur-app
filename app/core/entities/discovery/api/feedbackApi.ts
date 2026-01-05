@@ -1,4 +1,4 @@
-import type { Feedback, CreateFeedbackDto } from '../types';
+import type { Feedback, CreateFeedbackDto, FindSimilarFeedbackRequest, SimilarFeedbackResult } from '../types';
 import type { PaginatedResponse, FeedbackListParams } from '~/core/api/types';
 import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
@@ -66,5 +66,14 @@ export const feedbackApi = {
     } catch {
       return false;
     }
+  },
+
+  async findSimilar(request: FindSimilarFeedbackRequest): Promise<SimilarFeedbackResult[]> {
+    const data = await httpClient.post<SimilarFeedbackResult[]>('/api/feedbacks/similar', request);
+    // Deserialize dates in nested feedback objects
+    return data.map(result => ({
+      ...result,
+      feedback: deserializeDates(result.feedback),
+    }));
   },
 };

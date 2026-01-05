@@ -1,4 +1,4 @@
-import type { Persona, CreatePersonaDto } from '../types';
+import type { Persona, CreatePersonaDto, FindSimilarPersonasRequest, SimilarPersonaResult } from '../types';
 import type { PaginatedResponse, PersonaListParams } from '~/core/api/types';
 import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
@@ -56,5 +56,14 @@ export const personaApi = {
     } catch {
       return false;
     }
+  },
+
+  async findSimilar(request: FindSimilarPersonasRequest): Promise<SimilarPersonaResult[]> {
+    const data = await httpClient.post<SimilarPersonaResult[]>('/api/personas/similar', request);
+    // Deserialize dates in nested persona objects
+    return data.map(result => ({
+      ...result,
+      persona: deserializeDates(result.persona),
+    }));
   },
 };

@@ -8,7 +8,7 @@ import { Tabs } from '~/core/components/ui/Tabs';
 import { Empty } from '~/core/components/ui/Empty';
 import { useAuthStore } from '~/core/auth';
 import type { IntakeResult } from '~/core/entities/discovery';
-import { useSaveIntakeResult } from '~/discovery/hooks';
+import { useSaveIntakeResult, useSimilarityCheck, useSimilarityCheckForUseCases, useSimilarityCheckForFeedback } from '~/discovery/hooks';
 import { PersonaResultCard } from './PersonaResultCard';
 import { UseCaseResultCard } from './UseCaseResultCard';
 import { FeedbackResultCard } from './FeedbackResultCard';
@@ -85,6 +85,24 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
     });
     return map;
   }, [result.useCases, deletedUseCaseIndexes]);
+
+  // Check for similar personas
+  const { similarPersonas, isChecking } = useSimilarityCheck(
+    filteredPersonas,
+    selectedTeam?.teamId
+  );
+
+  // Check for similar use cases
+  const { similarUseCases, isChecking: isCheckingUseCases } = useSimilarityCheckForUseCases(
+    filteredUseCases,
+    selectedTeam?.teamId
+  );
+
+  // Check for similar feedback
+  const { similarFeedback, isChecking: isCheckingFeedback } = useSimilarityCheckForFeedback(
+    filteredFeedback,
+    selectedTeam?.teamId
+  );
 
   // Save handler
   const handleSave = async () => {
@@ -195,6 +213,8 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
                         persona={persona}
                         index={index}
                         onDelete={handleDeletePersona}
+                        similarPersonas={similarPersonas.find(s => s.personaIndex === index)?.similarResults}
+                        isCheckingSimilarity={isChecking}
                       />
                     );
                   })}
@@ -228,6 +248,8 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
                         personas={result.personas}
                         onDelete={handleDeleteUseCase}
                         deletedPersonaIndexes={deletedPersonaIndexes}
+                        similarUseCases={similarUseCases.find(s => s.useCaseIndex === index)?.similarResults}
+                        isCheckingSimilarity={isCheckingUseCases}
                       />
                     );
                   })}
@@ -263,6 +285,8 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
                         onDelete={handleDeleteFeedback}
                         deletedPersonaIndexes={deletedPersonaIndexes}
                         deletedUseCaseIndexes={deletedUseCaseIndexes}
+                        similarFeedback={similarFeedback.find(s => s.feedbackIndex === index)?.similarResults}
+                        isCheckingSimilarity={isCheckingFeedback}
                       />
                     );
                   })}

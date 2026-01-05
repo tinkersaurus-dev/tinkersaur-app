@@ -22,6 +22,8 @@ export {
   type Feedback,
   type CreateFeedbackDto,
   type UpdateFeedbackDto,
+  type FindSimilarFeedbackRequest,
+  type SimilarFeedbackResult,
 } from './Feedback';
 
 // FeedbackPersona exports

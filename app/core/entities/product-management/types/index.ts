@@ -20,7 +20,7 @@ export type { Solution, SolutionType, CreateSolutionDto, UpdateSolutionDto } fro
 export { SolutionSchema, SolutionTypeSchema, CreateSolutionSchema, UpdateSolutionSchema } from './Solution';
 
 // UseCase
-export type { UseCase, CreateUseCaseDto, UpdateUseCaseDto } from './UseCase';
+export type { UseCase, CreateUseCaseDto, UpdateUseCaseDto, FindSimilarUseCasesRequest, SimilarUseCaseResult } from './UseCase';
 export { UseCaseSchema, CreateUseCaseSchema, UpdateUseCaseSchema } from './UseCase';
 
 // Requirement
@@ -33,12 +33,21 @@ export {
 } from './Requirement';
 
 // Persona
-export type { Persona, Demographics, CreatePersonaDto, UpdatePersonaDto } from './Persona';
+export type {
+  Persona,
+  Demographics,
+  CreatePersonaDto,
+  UpdatePersonaDto,
+  FindSimilarPersonasRequest,
+  SimilarPersonaResult,
+} from './Persona';
 export {
   PersonaSchema,
   DemographicsSchema,
   CreatePersonaSchema,
   UpdatePersonaSchema,
+  FindSimilarPersonasRequestSchema,
+  SimilarPersonaResultSchema,
 } from './Persona';
 
 // PersonaUseCase (junction)

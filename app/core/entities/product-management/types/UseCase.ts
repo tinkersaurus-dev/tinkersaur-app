@@ -38,3 +38,18 @@ export const UpdateUseCaseSchema = z.object({
 });
 
 export type UpdateUseCaseDto = z.infer<typeof UpdateUseCaseSchema>;
+
+// Similarity matching types
+export interface FindSimilarUseCasesRequest {
+  teamId: string;
+  name: string;
+  description?: string;
+  threshold?: number;
+  limit?: number;
+}
+
+export interface SimilarUseCaseResult {
+  useCase: UseCase;
+  similarity: number;
+  matchType: 'name' | 'name+description';
+}

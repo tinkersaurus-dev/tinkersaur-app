@@ -11,6 +11,7 @@ import {
   FiChevronUp,
   FiTrash2,
 } from 'react-icons/fi';
+import { LuX } from 'react-icons/lu';
 import { Card } from '~/core/components/ui/Card';
 import { Tag } from '~/core/components/ui/Tag';
 import {
@@ -19,9 +20,11 @@ import {
   type ExtractedPersona,
   type ExtractedUseCase,
   type FeedbackType,
+  type SimilarFeedbackResult,
 } from '~/core/entities/discovery';
 import { ConfidenceBadge } from './ConfidenceBadge';
 import { QuotesList } from './QuoteHighlight';
+import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
 
 interface FeedbackResultCardProps {
   feedback: ExtractedFeedback;
@@ -31,6 +34,8 @@ interface FeedbackResultCardProps {
   onDelete?: (index: number) => void;
   deletedPersonaIndexes?: Set<number>;
   deletedUseCaseIndexes?: Set<number>;
+  similarFeedback?: SimilarFeedbackResult[];
+  isCheckingSimilarity?: boolean;
 }
 
 // Icon mapping for feedback types
@@ -67,8 +72,11 @@ export function FeedbackResultCard({
   onDelete,
   deletedPersonaIndexes,
   deletedUseCaseIndexes,
+  similarFeedback,
+  isCheckingSimilarity,
 }: FeedbackResultCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [selectedMatch, setSelectedMatch] = useState<SimilarFeedbackResult | null>(null);
 
   const config = FEEDBACK_TYPE_CONFIG[feedback.type];
   const icon = FEEDBACK_ICONS[feedback.type];
@@ -90,8 +98,36 @@ export function FeedbackResultCard({
   const hasDetails = hasLinks || feedback.context || feedback.quotes.length > 0;
 
   return (
-    <Card className="h-full flex flex-col">
-      {/* Header */}
+    <>
+      <Card className="h-full flex flex-col">
+        {/* Checking state */}
+        {isCheckingSimilarity && (
+          <div className="mb-3 px-4 py-2.5 bg-[var(--bg-secondary)] rounded-lg text-xs text-[var(--text-muted)]">
+            Checking for similar feedback...
+          </div>
+        )}
+
+        {/* Similarity Banner */}
+        {similarFeedback && similarFeedback.length > 0 && (
+          <button
+            onClick={() => setSelectedMatch(similarFeedback[0])}
+            className="mb-3 w-full px-4 py-2.5 bg-[var(--warning)]/10 border-2 border-[var(--warning)] rounded-lg text-left hover:bg-[var(--warning)]/20 transition-colors shadow-sm"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <FiAlertCircle className="w-4 h-4 text-[var(--warning)] flex-shrink-0" />
+                <span className="text-sm font-semibold text-[var(--text)]">
+                  {similarFeedback.length} similar feedback {similarFeedback.length === 1 ? 'item' : 'items'} found
+                </span>
+              </div>
+              <span className="text-xs font-medium text-[var(--warning)]">
+                Click to compare →
+              </span>
+            </div>
+          </button>
+        )}
+
+        {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className={`p-2 rounded-lg ${iconColor}`}>{icon}</div>
@@ -199,12 +235,211 @@ export function FeedbackResultCard({
         </>
       )}
 
-      {/* Index badge */}
-      <div className="mt-4 pt-3 border-t border-[var(--border)]">
-        <span className="text-xs text-[var(--text-muted)]">
-          Feedback #{index + 1}
-        </span>
-      </div>
-    </Card>
+        {/* Index badge */}
+        <div className="mt-4 pt-3 border-t border-[var(--border)]">
+          <span className="text-xs text-[var(--text-muted)]">
+            Feedback #{index + 1}
+          </span>
+        </div>
+      </Card>
+
+      {/* Similarity Details Bottom Drawer */}
+      {selectedMatch !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-end"
+          onClick={() => setSelectedMatch(null)}
+        >
+          <div
+            className="w-full max-h-[80vh] bg-[var(--bg)] border-t border-[var(--border)] shadow-xl flex flex-col animate-slide-in-bottom overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="border-b border-[var(--border)]">
+              <div className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <FiAlertCircle className="w-5 h-5 text-[var(--warning)]" />
+                    <h3 className="text-lg font-semibold text-[var(--text)]">Similar Feedback Found</h3>
+                  </div>
+                  <Tag
+                    color={
+                      selectedMatch.similarity > 0.8
+                        ? 'red'
+                        : selectedMatch.similarity > 0.5
+                        ? 'orange'
+                        : 'blue'
+                    }
+                  >
+                    {Math.round(selectedMatch.similarity * 100)}% match
+                  </Tag>
+                  <Tag color="default">{selectedMatch.matchType} match</Tag>
+                </div>
+                <button
+                  onClick={() => setSelectedMatch(null)}
+                  className="p-2 rounded hover:bg-[var(--bg-secondary)] transition-colors"
+                >
+                  <LuX className="w-5 h-5 text-[var(--text-muted)]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content - Three Column Layout */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="max-w-[1400px] mx-auto grid gap-6" style={{ gridTemplateColumns: '1fr 1fr 300px' }}>
+                {/* New Feedback from Intake - Left Column */}
+                <div>
+                  <h3 className="text-sm font-medium text-[var(--text-muted)] mb-3">New Feedback (from intake)</h3>
+                  <Card>
+                    <div className="space-y-4">
+                      <div>
+                        <span className="text-xs text-[var(--text-muted)]">Content:</span>
+                        <p className="text-sm font-medium text-[var(--text)] mt-1">{feedback.content}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-[var(--text-muted)]">Type:</span>
+                        <div className="mt-1">
+                          <Tag color={tagColor}>{config.label}</Tag>
+                        </div>
+                      </div>
+                      {feedback.context && (
+                        <div>
+                          <span className="text-xs text-[var(--text-muted)]">Context:</span>
+                          <p className="text-sm text-[var(--text)] mt-1">{feedback.context}</p>
+                        </div>
+                      )}
+                      {feedback.quotes && feedback.quotes.length > 0 && (
+                        <div>
+                          <span className="text-xs text-[var(--text-muted)]">Quotes:</span>
+                          <div className="mt-1 space-y-2">
+                            {feedback.quotes.map((quote, idx) => (
+                              <div key={idx} className="pl-3 border-l-2 border-[var(--border)]">
+                                <p className="text-xs italic text-[var(--text-muted)]">"{quote}"</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-xs text-[var(--text-muted)]">Confidence:</span>
+                        <p className="text-sm text-[var(--text)] mt-1">{Math.round(feedback.confidence * 100)}%</p>
+                      </div>
+                      {linkedPersonas.length > 0 && (
+                        <div>
+                          <span className="text-xs text-[var(--text-muted)]">Linked Personas:</span>
+                          <div className="mt-1 flex flex-wrap gap-2">
+                            {linkedPersonas.map((persona, i) => (
+                              <Tag key={i}>{persona.name}</Tag>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {linkedUseCases.length > 0 && (
+                        <div>
+                          <span className="text-xs text-[var(--text-muted)]">Linked Use Cases:</span>
+                          <div className="mt-1 flex flex-wrap gap-2">
+                            {linkedUseCases.map((uc, i) => (
+                              <Tag key={i} color="blue">{uc.name}</Tag>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Existing Feedback - Middle Column */}
+                <div>
+                  <h3 className="text-sm font-medium text-[var(--text-muted)] mb-3">Existing Feedback</h3>
+                  <Card className="border-2 border-[var(--primary)]">
+                    <div className="space-y-4">
+                      <div>
+                        <span className="text-xs text-[var(--text-muted)]">Content:</span>
+                        <p className="text-sm font-medium text-[var(--text)] mt-1">{selectedMatch.feedback.content}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-[var(--text-muted)]">Type:</span>
+                        <div className="mt-1">
+                          <Tag color={TAG_COLORS[selectedMatch.feedback.type]}>
+                            {FEEDBACK_TYPE_CONFIG[selectedMatch.feedback.type].label}
+                          </Tag>
+                        </div>
+                      </div>
+                      {selectedMatch.feedback.context && (
+                        <div>
+                          <span className="text-xs text-[var(--text-muted)]">Context:</span>
+                          <p className="text-sm text-[var(--text)] mt-1">{selectedMatch.feedback.context}</p>
+                        </div>
+                      )}
+                      {selectedMatch.feedback.solutionId && (
+                        <div>
+                          <span className="text-xs text-[var(--text-muted)]">Solution:</span>
+                          <p className="text-sm text-[var(--text)] mt-1">Linked to solution</p>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-xs text-[var(--text-muted)]">Last updated:</span>
+                        <p className="text-sm text-[var(--text)] mt-1">
+                          {formatRelativeTime(selectedMatch.feedback.updatedAt)}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <div className="mt-4 p-3 bg-[var(--bg-secondary)] rounded border border-[var(--border)]">
+                    <p className="text-xs text-[var(--text-muted)]">
+                      If this is a duplicate, you can delete this feedback from the intake results before saving.
+                    </p>
+                  </div>
+                </div>
+
+                {/* All Matches List - Right Column (300px fixed) */}
+                <div>
+                  <h3 className="text-sm font-medium text-[var(--text-muted)] mb-3">
+                    All Matches ({similarFeedback?.length || 0})
+                  </h3>
+                  <div className="space-y-2">
+                    {similarFeedback?.map((match, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedMatch(match)}
+                        className={`w-full p-3 rounded border text-left transition-colors ${
+                          selectedMatch.feedback.id === match.feedback.id
+                            ? 'border-[var(--primary)] bg-[var(--primary)]/5'
+                            : 'border-[var(--border)] hover:border-[var(--primary)]/50 hover:bg-[var(--bg-secondary)]'
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-medium text-[var(--text)] line-clamp-2">
+                              {match.feedback.content}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Tag
+                              color={
+                                match.similarity > 0.8
+                                  ? 'red'
+                                  : match.similarity > 0.5
+                                  ? 'orange'
+                                  : 'blue'
+                              }
+                            >
+                              {Math.round(match.similarity * 100)}%
+                            </Tag>
+                            <span className="text-xs text-[var(--text-muted)]">
+                              {match.matchType}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

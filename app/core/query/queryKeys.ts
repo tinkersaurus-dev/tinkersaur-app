@@ -19,6 +19,8 @@ export const queryKeys = {
     listPaginated: <T extends object>(params: T) =>
       [...queryKeys.personas.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.personas.all, 'detail', id] as const,
+    similar: <T extends object | null>(request: T) =>
+      [...queryKeys.personas.all, 'similar', request] as const,
   },
   useCases: {
     all: ['useCases'] as const,

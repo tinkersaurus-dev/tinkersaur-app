@@ -44,3 +44,24 @@ export type CreatePersonaDto = z.infer<typeof CreatePersonaSchema>;
 export const UpdatePersonaSchema = PersonaSchema.partial().required({ id: true });
 
 export type UpdatePersonaDto = z.infer<typeof UpdatePersonaSchema>;
+
+// Schema for finding similar personas
+export const FindSimilarPersonasRequestSchema = z.object({
+  teamId: z.string().uuid(),
+  name: z.string().min(1),
+  description: z.string().optional(),
+  role: z.string().optional(),
+  threshold: z.number().min(0).max(1).default(0.3),
+  limit: z.number().min(1).max(50).default(10),
+});
+
+export type FindSimilarPersonasRequest = z.infer<typeof FindSimilarPersonasRequestSchema>;
+
+// Schema for similar persona results
+export const SimilarPersonaResultSchema = z.object({
+  persona: PersonaSchema,
+  similarity: z.number(),
+  matchType: z.string(),
+});
+
+export type SimilarPersonaResult = z.infer<typeof SimilarPersonaResultSchema>;

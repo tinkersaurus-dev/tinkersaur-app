@@ -19,6 +19,8 @@ export {
 
 export { usePersonasPaginatedQuery } from './usePersonasPaginatedQuery';
 
+export { useSimilarPersonasQuery } from './useSimilarPersonasQuery';
+
 export {
   useUseCasesByTeamQuery,
   useUseCasesBySolutionQuery,
