@@ -18,9 +18,12 @@ interface SaveIntakeResultParams {
   feedback: ExtractedFeedback[];
   personaIndexMap: Map<number, number>;
   useCaseIndexMap: Map<number, number>;
+  feedbackIndexMap: Map<number, number>;
   teamId: string;
   sourceType: SourceTypeKey;
   metadata: Record<string, string>;
+  useCaseSolutionIds: Map<number, string | null>;
+  feedbackSolutionIds: Map<number, string | null>;
 }
 
 interface UseSaveIntakeResultReturn {
@@ -40,9 +43,12 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
       feedback,
       personaIndexMap,
       useCaseIndexMap,
+      feedbackIndexMap,
       teamId,
       sourceType,
       metadata,
+      useCaseSolutionIds,
+      feedbackSolutionIds,
     }: SaveIntakeResultParams): Promise<boolean> => {
       setIsSaving(true);
       setError(null);
@@ -76,13 +82,25 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
         });
 
         // Step 2: Create all use cases and build ID map
+        // Build reverse map: filtered index -> original index
+        const useCaseFilteredToOriginal = new Map<number, number>();
+        for (const [original, filtered] of useCaseIndexMap.entries()) {
+          useCaseFilteredToOriginal.set(filtered, original);
+        }
+
         const createdUseCases = await Promise.all(
-          useCases.map((useCase) => {
+          useCases.map((useCase, filteredIndex) => {
+            const originalIndex = useCaseFilteredToOriginal.get(filteredIndex);
+            const solutionId = originalIndex !== undefined
+              ? useCaseSolutionIds.get(originalIndex) ?? null
+              : null;
+
             const dto: CreateUseCaseDto = {
               teamId,
               intakeSourceId: intakeSource.id,
               name: useCase.name,
               description: useCase.description,
+              solutionId: solutionId ?? undefined,
             };
             return useCaseApi.create(dto);
           })
@@ -116,11 +134,22 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
         await Promise.all(personaUseCasePromises);
 
         // Step 4: Create all feedbacks and build ID map
+        // Build reverse map: filtered index -> original index
+        const feedbackFilteredToOriginal = new Map<number, number>();
+        for (const [original, filtered] of feedbackIndexMap.entries()) {
+          feedbackFilteredToOriginal.set(filtered, original);
+        }
+
         const createdFeedbacks = await Promise.all(
-          feedback.map((fb) => {
+          feedback.map((fb, filteredIndex) => {
+            const originalIndex = feedbackFilteredToOriginal.get(filteredIndex);
+            const solutionId = originalIndex !== undefined
+              ? feedbackSolutionIds.get(originalIndex) ?? null
+              : null;
+
             const dto: CreateFeedbackDto = {
               teamId,
-              solutionId: null,
+              solutionId,
               intakeSourceId: intakeSource.id,
               type: fb.type,
               content: fb.content,

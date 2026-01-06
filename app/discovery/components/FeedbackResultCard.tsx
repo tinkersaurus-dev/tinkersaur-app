@@ -2,6 +2,7 @@ import { useState, memo, useMemo } from 'react';
 import { FiAlertCircle, FiTrash2 } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
 import { Tag } from '~/core/components/ui/Tag';
+import { Select } from '~/core/components/ui/Select';
 import {
   FEEDBACK_TYPE_CONFIG,
   type ExtractedFeedback,
@@ -9,6 +10,7 @@ import {
   type ExtractedUseCase,
   type SimilarFeedbackResult,
 } from '~/core/entities/discovery';
+import type { Solution } from '~/core/entities/product-management/types';
 import { FEEDBACK_ICONS, FEEDBACK_ICON_COLORS, FEEDBACK_TAG_COLORS } from '~/discovery/constants';
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
@@ -24,6 +26,9 @@ interface FeedbackResultCardProps {
   deletedUseCaseIndexes?: Set<number>;
   similarFeedback?: SimilarFeedbackResult[];
   isCheckingSimilarity?: boolean;
+  solutions: Solution[];
+  selectedSolutionId: string | null;
+  onSolutionChange: (index: number, solutionId: string | null) => void;
 }
 
 export const FeedbackResultCard = memo(function FeedbackResultCard({
@@ -36,8 +41,16 @@ export const FeedbackResultCard = memo(function FeedbackResultCard({
   deletedUseCaseIndexes,
   similarFeedback,
   isCheckingSimilarity,
+  solutions,
+  selectedSolutionId,
+  onSolutionChange,
 }: FeedbackResultCardProps) {
   const [selectedMatch, setSelectedMatch] = useState<SimilarFeedbackResult | null>(null);
+
+  const solutionOptions = useMemo(() => [
+    { value: '', label: 'No solution' },
+    ...solutions.map((s) => ({ value: s.id, label: s.name })),
+  ], [solutions]);
 
   const config = FEEDBACK_TYPE_CONFIG[feedback.type];
   const icon = FEEDBACK_ICONS[feedback.type];
@@ -103,24 +116,35 @@ export const FeedbackResultCard = memo(function FeedbackResultCard({
             >
               <FiAlertCircle className="w-3.5 h-3.5 text-[var(--warning)]" />
               <span className="text-xs font-medium text-[var(--text)]">
-                {similarFeedback.length} similar {similarFeedback.length === 1 ? 'match' : 'matches'}
+                {similarFeedback.length} similar {similarFeedback.length === 1 ? 'piece of feedback' : 'pieces of feedback'}
               </span>
             </button>
           ) : (
             <div />
           )}
 
-          {/* Delete button */}
-          {onDelete && (
-            <button
-              type="button"
-              onClick={() => onDelete(index)}
-              className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
-              title="Remove feedback"
-            >
-              <FiTrash2 className="w-4 h-4" />
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Solution selector */}
+            <Select
+              value={selectedSolutionId ?? ''}
+              onChange={(value) => onSolutionChange(index, value || null)}
+              options={solutionOptions}
+              className="w-36 text-xs"
+              size='small'
+            />
+
+            {/* Delete button */}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(index)}
+                className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
+                title="Remove feedback"
+              >
+                <FiTrash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
       </Card>
 

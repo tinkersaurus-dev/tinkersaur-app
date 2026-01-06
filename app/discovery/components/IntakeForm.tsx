@@ -8,13 +8,16 @@ import {
   SOURCE_TYPES,
   type SourceTypeKey,
 } from '~/core/entities/discovery';
+import { useAuthStore } from '~/core/auth';
+import { useSolutionsQuery } from '~/product-management/queries';
 
 interface IntakeFormProps {
   isLoading: boolean;
   onSubmit: (
     sourceType: SourceTypeKey,
     content: string,
-    metadata: Record<string, string>
+    metadata: Record<string, string>,
+    solutionId: string | null
   ) => void;
   sourceType: SourceTypeKey;
 }
@@ -28,11 +31,20 @@ const sourceTypeOptions = Object.values(SOURCE_TYPES).map((sourceType) => ({
 }));
 
 export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType }: IntakeFormProps) {
+  const selectedTeam = useAuthStore((state) => state.selectedTeam);
+  const { data: solutions = [], isLoading: isSolutionsLoading } = useSolutionsQuery(selectedTeam?.teamId);
+
   const [selectedSourceType, setSelectedSourceType] = useState<SourceTypeKey>(initialSourceType);
+  const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null);
   const [content, setContent] = useState('');
   const [metadata, setMetadata] = useState<Record<string, string>>({});
 
   const sourceTypeConfig = SOURCE_TYPES[selectedSourceType];
+
+  const solutionOptions = [
+    { value: '', label: 'No solution' },
+    ...solutions.map((s) => ({ value: s.id, label: s.name })),
+  ];
 
   const handleSourceTypeChange = (value: string) => {
     setSelectedSourceType(value as SourceTypeKey);
@@ -46,7 +58,7 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (content.trim().length >= MIN_CONTENT_LENGTH && !isLoading) {
-      onSubmit(selectedSourceType, content.trim(), metadata);
+      onSubmit(selectedSourceType, content.trim(), metadata, selectedSolutionId);
     }
   };
 
@@ -73,6 +85,26 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
           />
           <p className="text-xs text-[var(--text-muted)] mt-1">
             {sourceTypeConfig.description}
+          </p>
+        </div>
+
+        {/* Solution Selector (Optional) */}
+        <div>
+          <label
+            htmlFor="solution"
+            className="block text-xs font-medium text-[var(--text)] mb-1"
+          >
+            Solution <span className="text-[var(--text-muted)] font-normal">(optional)</span>
+          </label>
+          <Select
+            value={selectedSolutionId ?? ''}
+            onChange={(value) => setSelectedSolutionId(value || null)}
+            options={solutionOptions}
+            disabled={isLoading || isSolutionsLoading}
+            className='text-xs'
+          />
+          <p className="text-xs text-[var(--text-muted)] mt-1">
+            Associate extracted items with a solution. You can change this per-item after parsing.
           </p>
         </div>
 

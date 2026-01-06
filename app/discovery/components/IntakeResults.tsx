@@ -11,6 +11,7 @@ import type { IntakeResult, SourceTypeKey } from '~/core/entities/discovery';
 import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo } from '~/discovery/types';
 import { useSaveIntakeResult } from '~/discovery/hooks';
 import { useSimilarPersonasQuery, useSimilarUseCasesQuery, useSimilarFeedbackQuery } from '~/discovery/queries';
+import { useSolutionsQuery } from '~/product-management/queries';
 import { PersonaResultCard } from './PersonaResultCard';
 import { UseCaseResultCard } from './UseCaseResultCard';
 import { FeedbackResultCard } from './FeedbackResultCard';
@@ -31,14 +32,16 @@ function generateItemKey(
 interface IntakeResultsProps {
   result: IntakeResult;
   onNewAnalysis: () => void;
+  defaultSolutionId: string | null;
 }
 
 type TabKey = 'personas' | 'useCases' | 'feedback';
 
-export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
+export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: IntakeResultsProps) {
   const navigate = useNavigate();
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const { saveIntakeResult, isSaving } = useSaveIntakeResult();
+  const { data: solutions = [] } = useSolutionsQuery(selectedTeam?.teamId);
 
   const [activeTab, setActiveTab] = useState<TabKey>('personas');
 
@@ -46,6 +49,18 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
   const [deletedPersonaIndexes, setDeletedPersonaIndexes] = useState<Set<number>>(new Set());
   const [deletedUseCaseIndexes, setDeletedUseCaseIndexes] = useState<Set<number>>(new Set());
   const [deletedFeedbackIndexes, setDeletedFeedbackIndexes] = useState<Set<number>>(new Set());
+
+  // Per-item solution selections (keyed by original index, initialized with defaultSolutionId)
+  const [useCaseSolutionIds, setUseCaseSolutionIds] = useState<Map<number, string | null>>(() => {
+    const map = new Map<number, string | null>();
+    result.useCases.forEach((_, idx) => map.set(idx, defaultSolutionId));
+    return map;
+  });
+  const [feedbackSolutionIds, setFeedbackSolutionIds] = useState<Map<number, string | null>>(() => {
+    const map = new Map<number, string | null>();
+    result.feedback.forEach((_, idx) => map.set(idx, defaultSolutionId));
+    return map;
+  });
 
   // Delete handlers
   const handleDeletePersona = useCallback((index: number) => {
@@ -58,6 +73,15 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
 
   const handleDeleteFeedback = useCallback((index: number) => {
     setDeletedFeedbackIndexes(prev => new Set([...prev, index]));
+  }, []);
+
+  // Solution change handlers
+  const handleUseCaseSolutionChange = useCallback((index: number, solutionId: string | null) => {
+    setUseCaseSolutionIds(prev => new Map(prev).set(index, solutionId));
+  }, []);
+
+  const handleFeedbackSolutionChange = useCallback((index: number, solutionId: string | null) => {
+    setFeedbackSolutionIds(prev => new Map(prev).set(index, solutionId));
   }, []);
 
   // Compute filtered arrays (items that haven't been deleted)
@@ -101,6 +125,18 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
     return map;
   }, [result.useCases, deletedUseCaseIndexes]);
 
+  const feedbackIndexMap = useMemo(() => {
+    const map = new Map<number, number>();
+    let newIndex = 0;
+    result.feedback.forEach((_, originalIndex) => {
+      if (!deletedFeedbackIndexes.has(originalIndex)) {
+        map.set(originalIndex, newIndex);
+        newIndex++;
+      }
+    });
+    return map;
+  }, [result.feedback, deletedFeedbackIndexes]);
+
   // Check for similar items using TanStack Query
   const { data: similarPersonas = [], isLoading: isChecking } = useSimilarPersonasQuery(
     filteredPersonas,
@@ -130,9 +166,12 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
       feedback: filteredFeedback,
       personaIndexMap,
       useCaseIndexMap,
+      feedbackIndexMap,
       teamId: selectedTeam.teamId,
       sourceType: result.sourceType as SourceTypeKey,
       metadata: result.metadata as Record<string, string>,
+      useCaseSolutionIds,
+      feedbackSolutionIds,
     });
 
     if (success) {
@@ -258,6 +297,9 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
                         onDelete={handleDeleteUseCase}
                         similarUseCases={similarUseCases.find((s: SimilarUseCaseInfo) => s.useCaseIndex === index)?.similarResults}
                         isCheckingSimilarity={isCheckingUseCases}
+                        solutions={solutions}
+                        selectedSolutionId={useCaseSolutionIds.get(index) ?? null}
+                        onSolutionChange={handleUseCaseSolutionChange}
                       />
                     );
                   })}
@@ -295,6 +337,9 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
                         deletedUseCaseIndexes={deletedUseCaseIndexes}
                         similarFeedback={similarFeedback.find((s: SimilarFeedbackInfo) => s.feedbackIndex === index)?.similarResults}
                         isCheckingSimilarity={isCheckingFeedback}
+                        solutions={solutions}
+                        selectedSolutionId={feedbackSolutionIds.get(index) ?? null}
+                        onSolutionChange={handleFeedbackSolutionChange}
                       />
                     );
                   })}

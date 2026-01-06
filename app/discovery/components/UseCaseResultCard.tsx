@@ -1,8 +1,9 @@
-import { useState, memo } from 'react';
+import { useState, memo, useMemo } from 'react';
 import { FiClipboard, FiTrash2, FiAlertCircle } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
+import { Select } from '~/core/components/ui/Select';
 import type { ExtractedUseCase } from '~/core/entities/discovery';
-import type { SimilarUseCaseResult } from '~/core/entities/product-management/types';
+import type { SimilarUseCaseResult, Solution } from '~/core/entities/product-management/types';
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
 import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
@@ -13,6 +14,9 @@ interface UseCaseResultCardProps {
   onDelete?: (index: number) => void;
   similarUseCases?: SimilarUseCaseResult[];
   isCheckingSimilarity?: boolean;
+  solutions: Solution[];
+  selectedSolutionId: string | null;
+  onSolutionChange: (index: number, solutionId: string | null) => void;
 }
 
 export const UseCaseResultCard = memo(function UseCaseResultCard({
@@ -21,8 +25,16 @@ export const UseCaseResultCard = memo(function UseCaseResultCard({
   onDelete,
   similarUseCases,
   isCheckingSimilarity,
+  solutions,
+  selectedSolutionId,
+  onSolutionChange,
 }: UseCaseResultCardProps) {
   const [selectedMatch, setSelectedMatch] = useState<SimilarUseCaseResult | null>(null);
+
+  const solutionOptions = useMemo(() => [
+    { value: '', label: 'No solution' },
+    ...solutions.map((s) => ({ value: s.id, label: s.name })),
+  ], [solutions]);
 
   return (
     <>
@@ -62,24 +74,35 @@ export const UseCaseResultCard = memo(function UseCaseResultCard({
             >
               <FiAlertCircle className="w-3.5 h-3.5 text-[var(--warning)]" />
               <span className="text-xs font-medium text-[var(--text)]">
-                {similarUseCases.length} similar {similarUseCases.length === 1 ? 'match' : 'matches'}
+                {similarUseCases.length} similar {similarUseCases.length === 1 ? 'use case' : 'use cases'}
               </span>
             </button>
           ) : (
             <div />
           )}
 
-          {/* Delete button */}
-          {onDelete && (
-            <button
-              type="button"
-              onClick={() => onDelete(index)}
-              className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
-              title="Remove use case"
-            >
-              <FiTrash2 className="w-4 h-4" />
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Solution selector */}
+            <Select
+              value={selectedSolutionId ?? ''}
+              onChange={(value) => onSolutionChange(index, value || null)}
+              options={solutionOptions}
+              className="w-36 text-xs"
+              size='small'
+            />
+
+            {/* Delete button */}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(index)}
+                className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
+                title="Remove use case"
+              >
+                <FiTrash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
       </Card>
 

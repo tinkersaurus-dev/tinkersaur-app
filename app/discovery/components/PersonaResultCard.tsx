@@ -107,7 +107,7 @@ export const PersonaResultCard = memo(function PersonaResultCard({ persona, inde
             >
               <FiAlertCircle className="w-3.5 h-3.5 text-[var(--warning)]" />
               <span className="text-xs font-medium text-[var(--text)]">
-                {similarPersonas.length} similar {similarPersonas.length === 1 ? 'match' : 'matches'}
+                {similarPersonas.length} similar {similarPersonas.length === 1 ? 'persona' : 'personas'}
               </span>
             </button>
           ) : (

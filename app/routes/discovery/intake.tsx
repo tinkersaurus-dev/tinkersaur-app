@@ -18,6 +18,7 @@ import { useParseTranscript } from '~/discovery/hooks';
 
 export default function IntakePage() {
   const [result, setResult] = useState<IntakeResult | null>(null);
+  const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null);
   const { parseTranscript, isLoading, error, clearError } = useParseTranscript();
 
   const [searchParams] = useSearchParams();
@@ -34,9 +35,11 @@ export default function IntakePage() {
   const handleSubmit = async (
     sourceType: SourceTypeKey,
     content: string,
-    metadata: Record<string, string>
+    metadata: Record<string, string>,
+    solutionId: string | null
   ) => {
     clearError();
+    setSelectedSolutionId(solutionId);
     const analysisResult = await parseTranscript(sourceType, content, metadata);
     if (analysisResult) {
       setResult(analysisResult);
@@ -45,6 +48,7 @@ export default function IntakePage() {
 
   const handleNewAnalysis = () => {
     setResult(null);
+    setSelectedSolutionId(null);
     clearError();
   };
 
@@ -70,7 +74,11 @@ export default function IntakePage() {
 
           {/* Show form or results */}
           {result ? (
-            <IntakeResults result={result} onNewAnalysis={handleNewAnalysis} />
+            <IntakeResults
+              result={result}
+              onNewAnalysis={handleNewAnalysis}
+              defaultSolutionId={selectedSolutionId}
+            />
           ) : (
             <IntakeForm
               key={sourceType}
