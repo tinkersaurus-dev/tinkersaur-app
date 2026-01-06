@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { FiUser, FiTarget, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
 import type { ExtractedPersona } from '~/core/entities/discovery';
@@ -15,7 +15,7 @@ interface PersonaResultCardProps {
   isCheckingSimilarity?: boolean;
 }
 
-export function PersonaResultCard({ persona, index, onDelete, similarPersonas, isCheckingSimilarity }: PersonaResultCardProps) {
+export const PersonaResultCard = memo(function PersonaResultCard({ persona, index, onDelete, similarPersonas, isCheckingSimilarity }: PersonaResultCardProps) {
   const [selectedMatch, setSelectedMatch] = useState<SimilarPersonaResult | null>(null);
 
   const hasGoals = persona.goals.length > 0;
@@ -274,4 +274,4 @@ export function PersonaResultCard({ persona, index, onDelete, similarPersonas, i
       />
     </>
   );
-}
+});

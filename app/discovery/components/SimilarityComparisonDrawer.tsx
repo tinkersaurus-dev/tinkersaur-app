@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FiAlertCircle } from 'react-icons/fi';
 import { LuX } from 'react-icons/lu';
 import { Card } from '~/core/components/ui/Card';
@@ -38,7 +39,7 @@ function getSimilarityColor(similarity: number): 'red' | 'orange' | 'blue' {
   return 'blue';
 }
 
-export function SimilarityComparisonDrawer<TMatch>({
+function SimilarityComparisonDrawerInner<TMatch>({
   isOpen,
   onClose,
   title,
@@ -162,3 +163,6 @@ export function SimilarityComparisonDrawer<TMatch>({
     </div>
   );
 }
+
+// Memoized wrapper - memo works with generics through this pattern
+export const SimilarityComparisonDrawer = memo(SimilarityComparisonDrawerInner) as typeof SimilarityComparisonDrawerInner;

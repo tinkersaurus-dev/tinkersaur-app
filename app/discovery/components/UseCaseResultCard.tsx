@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { FiClipboard, FiTrash2, FiAlertCircle } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
-import type { ExtractedUseCase, ExtractedPersona } from '~/core/entities/discovery';
+import type { ExtractedUseCase } from '~/core/entities/discovery';
 import type { SimilarUseCaseResult } from '~/core/entities/product-management/types';
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
@@ -10,14 +10,12 @@ import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
 interface UseCaseResultCardProps {
   useCase: ExtractedUseCase;
   index: number;
-  personas: ExtractedPersona[];
   onDelete?: (index: number) => void;
-  deletedPersonaIndexes?: Set<number>;
   similarUseCases?: SimilarUseCaseResult[];
   isCheckingSimilarity?: boolean;
 }
 
-export function UseCaseResultCard({
+export const UseCaseResultCard = memo(function UseCaseResultCard({
   useCase,
   index,
   onDelete,
@@ -157,4 +155,4 @@ export function UseCaseResultCard({
       />
     </>
   );
-}
+});

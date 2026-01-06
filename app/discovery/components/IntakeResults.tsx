@@ -8,10 +8,25 @@ import { Tabs } from '~/core/components/ui/Tabs';
 import { Empty } from '~/core/components/ui/Empty';
 import { useAuthStore } from '~/core/auth';
 import type { IntakeResult, SourceTypeKey } from '~/core/entities/discovery';
-import { useSaveIntakeResult, useSimilarityCheck, useSimilarityCheckForUseCases, useSimilarityCheckForFeedback } from '~/discovery/hooks';
+import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo } from '~/discovery/types';
+import { useSaveIntakeResult } from '~/discovery/hooks';
+import { useSimilarPersonasQuery, useSimilarUseCasesQuery, useSimilarFeedbackQuery } from '~/discovery/queries';
 import { PersonaResultCard } from './PersonaResultCard';
 import { UseCaseResultCard } from './UseCaseResultCard';
 import { FeedbackResultCard } from './FeedbackResultCard';
+
+function formatProcessingTime(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+function generateItemKey(
+  item: { name?: string; content?: string; description?: string },
+  index: number
+): string {
+  const content = item.name || item.content || item.description || '';
+  return `${content.slice(0, 50).replace(/\s+/g, '-')}-${index}`;
+}
 
 interface IntakeResultsProps {
   result: IntakeResult;
@@ -86,20 +101,18 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
     return map;
   }, [result.useCases, deletedUseCaseIndexes]);
 
-  // Check for similar personas
-  const { similarPersonas, isChecking } = useSimilarityCheck(
+  // Check for similar items using TanStack Query
+  const { data: similarPersonas = [], isLoading: isChecking } = useSimilarPersonasQuery(
     filteredPersonas,
     selectedTeam?.teamId
   );
 
-  // Check for similar use cases
-  const { similarUseCases, isChecking: isCheckingUseCases } = useSimilarityCheckForUseCases(
+  const { data: similarUseCases = [], isLoading: isCheckingUseCases } = useSimilarUseCasesQuery(
     filteredUseCases,
     selectedTeam?.teamId
   );
 
-  // Check for similar feedback
-  const { similarFeedback, isChecking: isCheckingFeedback } = useSimilarityCheckForFeedback(
+  const { data: similarFeedback = [], isLoading: isCheckingFeedback } = useSimilarFeedbackQuery(
     filteredFeedback,
     selectedTeam?.teamId
   );
@@ -132,12 +145,7 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
 
   const hasItemsToSave = filteredPersonas.length > 0 || filteredUseCases.length > 0 || filteredFeedback.length > 0;
 
-  const formatProcessingTime = (ms: number) => {
-    if (ms < 1000) return `${ms}ms`;
-    return `${(ms / 1000).toFixed(1)}s`;
-  };
-
-  const tabs = [
+  const tabs = useMemo(() => [
     {
       key: 'personas' as TabKey,
       label: (
@@ -168,7 +176,7 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
       ),
       children: null,
     },
-  ];
+  ], [filteredPersonas.length, filteredUseCases.length, filteredFeedback.length]);
 
   return (
     <div className="space-y-6">
@@ -211,11 +219,11 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
                     if (deletedPersonaIndexes.has(index)) return null;
                     return (
                       <PersonaResultCard
-                        key={index}
+                        key={generateItemKey(persona, index)}
                         persona={persona}
                         index={index}
                         onDelete={handleDeletePersona}
-                        similarPersonas={similarPersonas.find(s => s.personaIndex === index)?.similarResults}
+                        similarPersonas={similarPersonas.find((s: SimilarPersonaInfo) => s.personaIndex === index)?.similarResults}
                         isCheckingSimilarity={isChecking}
                       />
                     );
@@ -244,13 +252,11 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
                     if (deletedUseCaseIndexes.has(index)) return null;
                     return (
                       <UseCaseResultCard
-                        key={index}
+                        key={generateItemKey(useCase, index)}
                         useCase={useCase}
                         index={index}
-                        personas={result.personas}
                         onDelete={handleDeleteUseCase}
-                        deletedPersonaIndexes={deletedPersonaIndexes}
-                        similarUseCases={similarUseCases.find(s => s.useCaseIndex === index)?.similarResults}
+                        similarUseCases={similarUseCases.find((s: SimilarUseCaseInfo) => s.useCaseIndex === index)?.similarResults}
                         isCheckingSimilarity={isCheckingUseCases}
                       />
                     );
@@ -279,7 +285,7 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
                     if (deletedFeedbackIndexes.has(index)) return null;
                     return (
                       <FeedbackResultCard
-                        key={index}
+                        key={generateItemKey(feedback, index)}
                         feedback={feedback}
                         index={index}
                         personas={result.personas}
@@ -287,7 +293,7 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
                         onDelete={handleDeleteFeedback}
                         deletedPersonaIndexes={deletedPersonaIndexes}
                         deletedUseCaseIndexes={deletedUseCaseIndexes}
-                        similarFeedback={similarFeedback.find(s => s.feedbackIndex === index)?.similarResults}
+                        similarFeedback={similarFeedback.find((s: SimilarFeedbackInfo) => s.feedbackIndex === index)?.similarResults}
                         isCheckingSimilarity={isCheckingFeedback}
                       />
                     );

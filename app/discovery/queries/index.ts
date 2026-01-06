@@ -4,3 +4,8 @@
  */
 
 export { useFeedbacksPaginatedQuery } from './useFeedbacksPaginatedQuery';
+export {
+  useSimilarPersonasQuery,
+  useSimilarUseCasesQuery,
+  useSimilarFeedbackQuery,
+} from './useSimilarityQueries';

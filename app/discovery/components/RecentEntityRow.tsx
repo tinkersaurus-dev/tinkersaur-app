@@ -1,10 +1,11 @@
 import { FiUser, FiClipboard, FiMessageSquare } from 'react-icons/fi';
 import type { Persona } from '~/core/entities/product-management';
 import type { UseCase } from '~/core/entities/product-management';
-import type { Feedback, FeedbackType } from '~/core/entities/discovery';
+import type { Feedback } from '~/core/entities/discovery';
 import { FEEDBACK_TYPE_CONFIG } from '~/core/entities/discovery';
 import { Tag } from '~/core/components/ui/Tag';
 import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import { FEEDBACK_TAG_COLORS } from '~/discovery/constants';
 
 // Export icons for use in section headers
 export const PersonaIcon = () => (
@@ -59,18 +60,6 @@ export function UseCaseRow({ useCase }: UseCaseRowProps) {
     </div>
   );
 }
-
-// Badge color mapping for feedback types
-const FEEDBACK_TAG_COLORS: Record<
-  FeedbackType,
-  'blue' | 'red' | 'orange' | 'green' | 'purple'
-> = {
-  suggestion: 'blue',
-  problem: 'red',
-  concern: 'orange',
-  praise: 'green',
-  question: 'purple',
-};
 
 interface FeedbackRowProps {
   feedback: Feedback;
