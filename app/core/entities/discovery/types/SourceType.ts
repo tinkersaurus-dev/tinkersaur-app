@@ -10,6 +10,7 @@ import { z } from 'zod';
 export const SourceTypeKeySchema = z.enum([
   'meeting-transcript',
   'user-interview',
+  'stakeholder-interview',
   'support-ticket',
   'survey-response',
 ]);
@@ -51,9 +52,9 @@ export const SOURCE_TYPES: Record<SourceTypeKey, SourceTypeDefinition> = {
         placeholder: 'e.g., Customer Discovery Call #5',
       },
       {
-        name: 'meetingDate',
-        label: 'Date/Time',
-        type: 'datetime',
+        name: 'date',
+        label: 'Date',
+        type: 'date',
         required: false,
       },
     ],
@@ -65,24 +66,39 @@ export const SOURCE_TYPES: Record<SourceTypeKey, SourceTypeDefinition> = {
     icon: 'FiUsers',
     metadataFields: [
       {
-        name: 'intervieweeName',
-        label: 'Interviewee Name',
+        name: 'meetingName',
+        label: 'Meeting Name',
         type: 'text',
         required: false,
-        placeholder: 'e.g., John Smith',
+        placeholder: 'e.g., User Interview - John Smith',
       },
       {
-        name: 'interviewDate',
-        label: 'Interview Date',
-        type: 'datetime',
+        name: 'date',
+        label: 'Date',
+        type: 'date',
         required: false,
       },
+    ],
+  },
+  'stakeholder-interview': {
+    key: 'stakeholder-interview',
+    label: 'Stakeholder Interview',
+    description:
+      'Paste a transcript from a business stakeholder interview (sponsors, executives)',
+    icon: 'FiBriefcase',
+    metadataFields: [
       {
-        name: 'interviewerName',
-        label: 'Interviewer',
+        name: 'meetingName',
+        label: 'Meeting Name',
         type: 'text',
         required: false,
-        placeholder: 'e.g., Sarah Johnson',
+        placeholder: 'e.g., Stakeholder Interview - Jane Doe',
+      },
+      {
+        name: 'date',
+        label: 'Date',
+        type: 'date',
+        required: false,
       },
     ],
   },
@@ -102,15 +118,8 @@ export const SOURCE_TYPES: Record<SourceTypeKey, SourceTypeDefinition> = {
       {
         name: 'ticketDate',
         label: 'Ticket Date',
-        type: 'datetime',
+        type: 'date',
         required: false,
-      },
-      {
-        name: 'customerSegment',
-        label: 'Customer Segment',
-        type: 'text',
-        required: false,
-        placeholder: 'e.g., Enterprise, SMB, Free',
       },
     ],
   },
@@ -130,15 +139,8 @@ export const SOURCE_TYPES: Record<SourceTypeKey, SourceTypeDefinition> = {
       {
         name: 'responseDate',
         label: 'Response Date',
-        type: 'datetime',
+        type: 'date',
         required: false,
-      },
-      {
-        name: 'respondentId',
-        label: 'Respondent ID',
-        type: 'text',
-        required: false,
-        placeholder: 'e.g., RESP-789 (optional)',
       },
     ],
   },

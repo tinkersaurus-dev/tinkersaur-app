@@ -10,6 +10,7 @@ export const UseCaseSchema = z.object({
   id: z.string().uuid(),
   teamId: z.string().uuid(),
   solutionId: z.string().uuid().nullable(),
+  intakeSourceId: z.string().uuid().nullable(),
   name: z.string().min(1, 'Use case name is required').max(200),
   description: z.string().max(2000),
   createdAt: z.date(),
@@ -23,6 +24,7 @@ export type UseCase = z.infer<typeof UseCaseSchema>;
 export const CreateUseCaseSchema = z.object({
   teamId: z.string().uuid(),
   solutionId: z.string().uuid().optional(),
+  intakeSourceId: z.string().uuid().optional(),
   name: z.string().min(1, 'Use case name is required').max(200),
   description: z.string().max(2000).optional().default(''),
 });

@@ -11,9 +11,13 @@ import {
 } from '@aws-sdk/client-bedrock-runtime';
 import { logger } from '~/core/utils/logger';
 import {
-  TRANSCRIPT_PARSING_SYSTEM_PROMPT,
-  buildTranscriptUserPrompt,
+  getSystemPromptForSourceType,
+  buildUserPrompt,
 } from '~/discovery/lib/prompts';
+import {
+  SourceTypeKeySchema,
+  type SourceTypeKey,
+} from '~/core/entities/discovery';
 import type {
   IntakeResult,
   ParseTranscriptResponse,
@@ -94,6 +98,21 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
+    // Validate sourceType is a known type
+    const parsedSourceType = SourceTypeKeySchema.safeParse(sourceType);
+    if (!parsedSourceType.success) {
+      logger.warn('Validation error: invalid sourceType', { sourceType });
+      return Response.json(
+        {
+          success: false,
+          error: `Invalid sourceType: ${sourceType}. Must be one of: ${SourceTypeKeySchema.options.join(', ')}`,
+        } satisfies ParseTranscriptResponse,
+        { status: 400 }
+      );
+    }
+
+    const validSourceType: SourceTypeKey = parsedSourceType.data;
+
     if (!content || typeof content !== 'string' || content.trim().length < 50) {
       logger.warn('Validation error: content too short or missing');
       return Response.json(
@@ -105,11 +124,12 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Build the user prompt with metadata
-    const userMessage = buildTranscriptUserPrompt(content, metadata);
+    // Get source-type-specific prompts
+    const systemPrompt = getSystemPromptForSourceType(validSourceType);
+    const userMessage = buildUserPrompt(validSourceType, content, metadata);
 
     const bedrockRequest = {
-      system: [{ text: TRANSCRIPT_PARSING_SYSTEM_PROMPT }],
+      system: [{ text: systemPrompt }],
       messages: [
         {
           role: 'user',

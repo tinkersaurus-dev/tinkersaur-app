@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react';
-import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback } from '~/core/entities/discovery';
+import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback, SourceTypeKey } from '~/core/entities/discovery';
+import { metadataToIntakeSource } from '~/core/entities/discovery';
 import type { CreatePersonaDto } from '~/core/entities/product-management/types/Persona';
 import type { CreateUseCaseDto } from '~/core/entities/product-management/types/UseCase';
 import type { CreateFeedbackDto } from '~/core/entities/discovery/types/Feedback';
 import { personaApi } from '~/core/entities/product-management/api/personaApi';
 import { useCaseApi } from '~/core/entities/product-management/api/useCaseApi';
 import { feedbackApi } from '~/core/entities/discovery/api/feedbackApi';
+import { intakeSourceApi } from '~/core/entities/discovery/api/intakeSourceApi';
 import { personaUseCaseApi } from '~/core/entities/product-management/api/personaUseCaseApi';
 import { feedbackPersonaApi } from '~/core/entities/discovery/api/feedbackPersonaApi';
 import { feedbackUseCaseApi } from '~/core/entities/discovery/api/feedbackUseCaseApi';
@@ -17,6 +19,8 @@ interface SaveIntakeResultParams {
   personaIndexMap: Map<number, number>;
   useCaseIndexMap: Map<number, number>;
   teamId: string;
+  sourceType: SourceTypeKey;
+  metadata: Record<string, string>;
 }
 
 interface UseSaveIntakeResultReturn {
@@ -37,16 +41,23 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
       personaIndexMap,
       useCaseIndexMap,
       teamId,
+      sourceType,
+      metadata,
     }: SaveIntakeResultParams): Promise<boolean> => {
       setIsSaving(true);
       setError(null);
 
       try {
+        // Step 0: Create IntakeSource first
+        const intakeSourceDto = metadataToIntakeSource(teamId, sourceType, metadata);
+        const intakeSource = await intakeSourceApi.create(intakeSourceDto);
+
         // Step 1: Create all personas and build ID map
         const createdPersonas = await Promise.all(
           personas.map((persona) => {
             const dto: CreatePersonaDto = {
               teamId,
+              intakeSourceId: intakeSource.id,
               name: persona.name,
               description: persona.description,
               role: persona.role,
@@ -69,6 +80,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           useCases.map((useCase) => {
             const dto: CreateUseCaseDto = {
               teamId,
+              intakeSourceId: intakeSource.id,
               name: useCase.name,
               description: useCase.description,
             };
@@ -109,6 +121,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
             const dto: CreateFeedbackDto = {
               teamId,
               solutionId: null,
+              intakeSourceId: intakeSource.id,
               type: fb.type,
               content: fb.content,
               context: fb.context ?? null,

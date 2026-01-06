@@ -47,6 +47,7 @@ export const FeedbackSchema = z.object({
   id: z.string().uuid(),
   teamId: z.string().uuid(),
   solutionId: z.string().uuid().nullable(),
+  intakeSourceId: z.string().uuid().nullable(),
   type: FeedbackTypeSchema,
   content: z.string().max(2000),
   context: z.string().max(2000).nullable(),

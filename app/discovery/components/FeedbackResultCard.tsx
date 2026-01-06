@@ -84,12 +84,12 @@ export function FeedbackResultCard({
   const tagColor = TAG_COLORS[feedback.type];
 
   // Get linked items (excluding deleted items)
-  const linkedPersonas = feedback.linkedPersonaIndexes
+  const linkedPersonas = (feedback.linkedPersonaIndexes ?? [])
     .filter((idx) => !deletedPersonaIndexes?.has(idx))
     .map((idx) => personas[idx])
     .filter(Boolean);
 
-  const linkedUseCases = feedback.linkedUseCaseIndexes
+  const linkedUseCases = (feedback.linkedUseCaseIndexes ?? [])
     .filter((idx) => !deletedUseCaseIndexes?.has(idx))
     .map((idx) => useCases[idx])
     .filter(Boolean);

@@ -99,6 +99,15 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
                     disabled={isLoading}
                     className='text-xs'
                   />
+                ) : field.type === 'date' ? (
+                  <Input
+                    id={field.name}
+                    type="date"
+                    value={metadata[field.name] || ''}
+                    onChange={(e) => handleMetadataChange(field.name, e.target.value)}
+                    disabled={isLoading}
+                    className='text-xs'
+                  />
                 ) : (
                   <Input
                     id={field.name}

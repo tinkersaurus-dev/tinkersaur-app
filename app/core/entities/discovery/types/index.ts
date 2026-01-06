@@ -54,3 +54,14 @@ export {
   type IntakeResult,
   type ParseTranscriptResponse,
 } from './IntakeResult';
+
+// IntakeSource exports
+export {
+  IntakeSourceSchema,
+  CreateIntakeSourceSchema,
+  UpdateIntakeSourceSchema,
+  metadataToIntakeSource,
+  type IntakeSource,
+  type CreateIntakeSourceDto,
+  type UpdateIntakeSourceDto,
+} from './IntakeSource';

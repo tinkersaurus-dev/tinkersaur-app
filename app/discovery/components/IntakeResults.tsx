@@ -7,7 +7,7 @@ import { Button } from '~/core/components/ui/Button';
 import { Tabs } from '~/core/components/ui/Tabs';
 import { Empty } from '~/core/components/ui/Empty';
 import { useAuthStore } from '~/core/auth';
-import type { IntakeResult } from '~/core/entities/discovery';
+import type { IntakeResult, SourceTypeKey } from '~/core/entities/discovery';
 import { useSaveIntakeResult, useSimilarityCheck, useSimilarityCheckForUseCases, useSimilarityCheckForFeedback } from '~/discovery/hooks';
 import { PersonaResultCard } from './PersonaResultCard';
 import { UseCaseResultCard } from './UseCaseResultCard';
@@ -118,6 +118,8 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
       personaIndexMap,
       useCaseIndexMap,
       teamId: selectedTeam.teamId,
+      sourceType: result.sourceType as SourceTypeKey,
+      metadata: result.metadata as Record<string, string>,
     });
 
     if (success) {

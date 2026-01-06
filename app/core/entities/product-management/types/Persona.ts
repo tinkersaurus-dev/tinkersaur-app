@@ -18,6 +18,7 @@ export type Demographics = z.infer<typeof DemographicsSchema>;
 export const PersonaSchema = z.object({
   id: z.string().uuid(),
   teamId: z.string().uuid(),
+  intakeSourceId: z.string().uuid().nullable(),
   name: z.string().min(1, 'Persona name is required').max(200),
   description: z.string().max(2000).default(''),
   role: z.string().max(200).default(''),
@@ -36,6 +37,8 @@ export const CreatePersonaSchema = PersonaSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  intakeSourceId: z.string().uuid().optional(),
 });
 
 export type CreatePersonaDto = z.infer<typeof CreatePersonaSchema>;

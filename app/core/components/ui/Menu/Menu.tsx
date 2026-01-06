@@ -64,8 +64,6 @@ export function Menu({
         const isDisabled = item.disabled;
 
         const itemClasses = [
-          'px-4',
-          'py-2',
           'transition-colors',
           'relative',
           'whitespace-nowrap',
@@ -98,7 +96,9 @@ export function Menu({
             aria-disabled={isDisabled}
             aria-current={isSelected ? 'page' : undefined}
           >
-            {item.label}
+            <span className="block px-4 py-2 [&>a]:block [&>a]:px-4 [&>a]:py-2 [&>a]:-mx-4 [&>a]:-my-2 [&>a]:text-inherit [&>a]:no-underline">
+              {item.label}
+            </span>
           </div>
         );
       })}
