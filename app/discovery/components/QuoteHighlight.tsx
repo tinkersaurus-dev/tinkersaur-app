@@ -11,7 +11,7 @@ export function QuoteHighlight({ quote, className = '' }: QuoteHighlightProps) {
       className={`relative pl-4 py-2 border-l-2 border-[var(--primary)] bg-[var(--bg-light)] rounded-r ${className}`}
     >
       <FiMessageCircle className="absolute -left-2.5 top-2 w-4 h-4 text-[var(--primary)] bg-[var(--bg)] rounded-full" />
-      <p className="text-sm text-[var(--text-muted)] italic">
+      <p className="text-xs text-[var(--text-muted)] italic">
         &ldquo;{quote}&rdquo;
       </p>
     </div>

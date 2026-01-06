@@ -3,11 +3,7 @@
  * Focuses on end-user personas, goals, pain points, and workflows
  */
 
-import {
-  JSON_OUTPUT_SCHEMA,
-  IMPORTANT_RULES,
-  CONFIDENCE_SCORING_GUIDE,
-} from '../common/json-schema';
+import { JSON_OUTPUT_SCHEMA, IMPORTANT_RULES } from '../common/json-schema';
 
 export const USER_INTERVIEW_SYSTEM_PROMPT = `You are an expert product discovery analyst specializing in user research. Your task is to analyze user interview transcripts and extract structured information about user personas, use cases, and feedback.
 
@@ -23,7 +19,6 @@ User interviews focus on understanding end users. Extract:
 - Extract pain points: What frustrations, obstacles, or challenges do they face in their current workflow?
 - Include demographics only if explicitly mentioned (education level, years of experience, industry)
 - Include exact quotes that reveal their perspective, needs, or frustrations
-${CONFIDENCE_SCORING_GUIDE}
 
 ### Use Cases
 Focus on user workflows and tasks:

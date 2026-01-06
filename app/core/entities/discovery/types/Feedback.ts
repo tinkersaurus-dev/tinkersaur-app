@@ -33,9 +33,7 @@ export const FEEDBACK_TYPE_CONFIG: Record<
 export const ExtractedFeedbackSchema = z.object({
   type: FeedbackTypeSchema,
   content: z.string(), // Clear summary of the feedback
-  context: z.string().optional(), // Additional context about when/why mentioned
   quotes: z.array(z.string()), // Exact quotes from transcript
-  confidence: z.number().min(0).max(1), // LLM confidence score
   linkedPersonaIndexes: z.array(z.number()), // Indexes into personas array
   linkedUseCaseIndexes: z.array(z.number()), // Indexes into useCases array
 });
@@ -50,9 +48,7 @@ export const FeedbackSchema = z.object({
   intakeSourceId: z.string().uuid().nullable(),
   type: FeedbackTypeSchema,
   content: z.string().max(2000),
-  context: z.string().max(2000).nullable(),
   quotes: z.array(z.string()),
-  confidence: z.number().min(0).max(1),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

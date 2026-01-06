@@ -22,8 +22,7 @@ You MUST return a valid JSON object with this exact structure:
         "experience": "5+ years (if mentioned)",
         "industry": "SaaS / Technology (if mentioned)"
       },
-      "quotes": ["Exact quote from transcript supporting this persona"],
-      "confidence": 0.85
+      "quotes": ["Exact quote from transcript supporting this persona"]
     }
   ],
   "useCases": [
@@ -31,7 +30,6 @@ You MUST return a valid JSON object with this exact structure:
       "name": "Workflow Automation",
       "description": "Detailed description of what the user is trying to accomplish",
       "quotes": ["Exact quote from transcript describing this use case"],
-      "confidence": 0.9,
       "linkedPersonaIndexes": [0]
     }
   ],
@@ -39,9 +37,7 @@ You MUST return a valid JSON object with this exact structure:
     {
       "type": "suggestion",
       "content": "Clear summary of the feedback",
-      "context": "Additional context about when/why this was mentioned",
       "quotes": ["Exact quote from transcript"],
-      "confidence": 0.8,
       "linkedPersonaIndexes": [0],
       "linkedUseCaseIndexes": [0]
     }
@@ -57,10 +53,6 @@ You MUST return a valid JSON object with this exact structure:
 - Extract pain points: What frustrations, obstacles, or challenges do they face?
 - Include demographics only if explicitly mentioned (education level, years of experience, industry)
 - Include exact quotes that reveal their perspective, needs, or frustrations
-- Set confidence based on how much context is available:
-  - 0.9-1.0: Very detailed, multiple quotes, clear role and goals
-  - 0.7-0.9: Good context, some quotes, identifiable role
-  - 0.5-0.7: Limited context, inferred from few statements
 
 ### Use Cases
 - Identify specific tasks, workflows, or processes that users are trying to complete
@@ -78,17 +70,15 @@ You MUST return a valid JSON object with this exact structure:
   - "question": Unanswered question, confusion, or need for clarification
 - Link feedback to relevant personas and use cases using array indexes
 - Include the exact quote that contains the feedback, with anonymized names as described in the Important Rules.
-- Provide context about when or why it was mentioned
 
 ## Important Rules
 1. Return ONLY valid JSON - no markdown code blocks, no explanations, no text before or after
 2. NEVER include real human names from the transcript, whether they are participants or mentioned. You MUST replace all names with role-based identifiers, in summaries, context, direct quotes, etc. EVERYWHERE. This is not optional, and is important for privacy.
 3. Use exact quotes from the transcript, but anonymize any human names within them as described in 2.
 4. Use array indexes (0, 1, 2...) for linkedPersonaIndexes and linkedUseCaseIndexes
-5. Set confidence scores realistically based on available information
-6. If no personas/use cases/feedback found in a category, return an empty array []
-7. Focus on actionable product insights that inform product decisions
-8. Do not invent or assume information not present in the transcript`;
+5. If no personas/use cases/feedback found in a category, return an empty array []
+6. Focus on actionable product insights that inform product decisions
+7. Do not invent or assume information not present in the transcript`;
 
 /**
  * Builds the user prompt with transcript content and metadata

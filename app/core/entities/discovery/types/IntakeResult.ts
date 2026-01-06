@@ -25,7 +25,6 @@ export const ExtractedPersonaSchema = z.object({
   painPoints: z.array(z.string()), // Frustrations or obstacles
   demographics: ExtractedDemographicsSchema,
   quotes: z.array(z.string()), // Supporting quotes from transcript
-  confidence: z.number().min(0).max(1), // LLM confidence score
 });
 
 export type ExtractedPersona = z.infer<typeof ExtractedPersonaSchema>;
@@ -35,7 +34,6 @@ export const ExtractedUseCaseSchema = z.object({
   name: z.string(), // Short name for the use case
   description: z.string(), // Detailed description of the workflow/task
   quotes: z.array(z.string()), // Supporting quotes from transcript
-  confidence: z.number().min(0).max(1), // LLM confidence score
   linkedPersonaIndexes: z.array(z.number()), // Indexes into personas array
 });
 

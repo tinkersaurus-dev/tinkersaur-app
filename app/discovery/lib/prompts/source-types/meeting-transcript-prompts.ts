@@ -3,11 +3,7 @@
  * Focuses on multi-party discussions with multiple perspectives
  */
 
-import {
-  JSON_OUTPUT_SCHEMA,
-  IMPORTANT_RULES,
-  CONFIDENCE_SCORING_GUIDE,
-} from '../common/json-schema';
+import { JSON_OUTPUT_SCHEMA, IMPORTANT_RULES } from '../common/json-schema';
 
 export const MEETING_TRANSCRIPT_SYSTEM_PROMPT = `You are an expert product discovery analyst. Your task is to analyze meeting transcripts involving multiple participants and extract structured information about personas, use cases, and feedback from the discussion.
 
@@ -24,7 +20,6 @@ Meetings often reveal multiple perspectives. Extract:
 - Extract pain points from complaints, blockers, or challenges discussed
 - Capture consensus views vs. individual perspectives where relevant
 - Include quotes that reveal each participant's perspective
-${CONFIDENCE_SCORING_GUIDE}
 
 ### Use Cases
 Multi-party discussions often surface workflows:

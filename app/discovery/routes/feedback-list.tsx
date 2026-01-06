@@ -128,17 +128,6 @@ export default function FeedbackListPage() {
       },
     },
     {
-      key: 'confidence',
-      title: 'Confidence',
-      dataIndex: 'confidence',
-      width: 100,
-      render: (value) => (
-        <span className="text-sm text-[var(--text-muted)]">
-          {Math.round((value as number) * 100)}%
-        </span>
-      ),
-    },
-    {
       key: 'createdAt',
       title: 'Created',
       dataIndex: 'createdAt',

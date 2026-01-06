@@ -3,11 +3,7 @@
  * Focuses on business priorities, strategic goals, budget constraints, and organizational needs
  */
 
-import {
-  JSON_OUTPUT_SCHEMA,
-  IMPORTANT_RULES,
-  CONFIDENCE_SCORING_GUIDE,
-} from '../common/json-schema';
+import { JSON_OUTPUT_SCHEMA, IMPORTANT_RULES } from '../common/json-schema';
 
 export const STAKEHOLDER_INTERVIEW_SYSTEM_PROMPT = `You are an expert product discovery analyst specializing in stakeholder analysis. Your task is to analyze business stakeholder interview transcripts (sponsors, executives, department heads) and extract structured information about business priorities, constraints, and strategic insights.
 
@@ -23,7 +19,6 @@ Stakeholder interviews focus on business decision-makers. Extract:
 - Business pain points: Budget constraints, timeline pressures, organizational challenges, risk concerns
 - Demographics should focus on business context (industry, company size, department)
 - Include quotes that reveal strategic priorities and business constraints
-${CONFIDENCE_SCORING_GUIDE}
 
 ### Use Cases (Business Perspective)
 Focus on business processes and organizational workflows:

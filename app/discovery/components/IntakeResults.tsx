@@ -206,7 +206,7 @@ export function IntakeResults({ result, onNewAnalysis }: IntakeResultsProps) {
           {activeTab === 'personas' && (
             <>
               {filteredPersonas.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   {result.personas.map((persona, index) => {
                     if (deletedPersonaIndexes.has(index)) return null;
                     return (

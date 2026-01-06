@@ -124,9 +124,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               intakeSourceId: intakeSource.id,
               type: fb.type,
               content: fb.content,
-              context: fb.context ?? null,
               quotes: fb.quotes,
-              confidence: fb.confidence,
             };
             return feedbackApi.create(dto);
           })

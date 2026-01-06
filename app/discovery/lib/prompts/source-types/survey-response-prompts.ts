@@ -18,9 +18,7 @@ You MUST return a valid JSON object with this exact structure (NOTE: No personas
     {
       "type": "suggestion",
       "content": "Clear summary of the feedback",
-      "context": "The survey question or context if available",
       "quotes": ["Exact quote from the response"],
-      "confidence": 0.8,
       "linkedPersonaIndexes": [],
       "linkedUseCaseIndexes": []
     }
@@ -48,10 +46,8 @@ Extract ALL meaningful feedback from survey responses:
 - "question": Confusion expressed, things they don't understand
 
 Survey-specific guidelines:
-- If the response references a survey question, include that question in the "context" field
 - Handle structured Q&A format (Question: ... Answer: ...)
 - Extract multiple pieces of feedback from a single response if present
 - Keep linkedPersonaIndexes and linkedUseCaseIndexes as empty arrays []
-- Set confidence based on clarity of the response (0.7-0.9 for clear statements)
 
 ${IMPORTANT_RULES}`;

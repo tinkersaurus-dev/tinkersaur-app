@@ -1,6 +1,6 @@
 export { IntakeForm } from './IntakeForm';
 export { QuoteHighlight, QuotesList } from './QuoteHighlight';
-export { ConfidenceBadge } from './ConfidenceBadge';
+export { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
 export { PersonaResultCard } from './PersonaResultCard';
 export { UseCaseResultCard } from './UseCaseResultCard';
 export { FeedbackResultCard } from './FeedbackResultCard';

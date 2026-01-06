@@ -18,7 +18,6 @@ Support tickets provide limited persona information. Extract minimally:
 - Goals should focus on what they were trying to accomplish when they hit the issue
 - Pain points should focus on the immediate problem they experienced
 - Demographics: Only include customer segment if available (Enterprise, SMB, etc.)
-- Confidence should generally be lower (0.5-0.7) due to limited context
 - Only create ONE persona per ticket unless clearly multiple users are mentioned
 
 ### Use Cases
@@ -26,7 +25,6 @@ Focus on the workflow that led to the support request:
 - Identify what task or workflow the user was trying to complete
 - Keep use case names focused on the action (e.g., "Exporting Report Data", "Setting Up Integration")
 - Only extract use cases that are clearly described
-- Confidence should reflect how clearly the workflow is described
 - Link to the persona who was performing the workflow
 
 ### Feedback (Primary Focus)
