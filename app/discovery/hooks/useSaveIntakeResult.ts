@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback, ExtractedOutcome, SourceTypeKey } from '~/core/entities/discovery';
 import { metadataToIntakeSource } from '~/core/entities/discovery';
-import type { CreatePersonaDto } from '~/core/entities/product-management/types/Persona';
+import type { CreatePersonaDto, MergedPersonaData } from '~/core/entities/product-management/types/Persona';
 import type { CreateUseCaseDto } from '~/core/entities/product-management/types/UseCase';
 import type { CreateFeedbackDto } from '~/core/entities/discovery/types/Feedback';
 import type { CreateOutcomeDto } from '~/core/entities/discovery/types/Outcome';
@@ -13,6 +13,12 @@ import { intakeSourceApi } from '~/core/entities/discovery/api/intakeSourceApi';
 import { personaUseCaseApi } from '~/core/entities/product-management/api/personaUseCaseApi';
 import { feedbackPersonaApi } from '~/core/entities/discovery/api/feedbackPersonaApi';
 import { feedbackUseCaseApi } from '~/core/entities/discovery/api/feedbackUseCaseApi';
+
+export interface PendingMerge {
+  intakePersonaIndex: number;
+  existingPersonaId: string;
+  mergedPersona: MergedPersonaData;
+}
 
 interface SaveIntakeResultParams {
   personas: ExtractedPersona[];
@@ -29,6 +35,7 @@ interface SaveIntakeResultParams {
   useCaseSolutionIds: Map<number, string | null>;
   feedbackSolutionIds: Map<number, string | null>;
   outcomeSolutionIds: Map<number, string | null>;
+  pendingMerges: PendingMerge[];
 }
 
 interface UseSaveIntakeResultReturn {
@@ -57,6 +64,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
       useCaseSolutionIds,
       feedbackSolutionIds,
       outcomeSolutionIds,
+      pendingMerges,
     }: SaveIntakeResultParams): Promise<boolean> => {
       setIsSaving(true);
       setError(null);
@@ -66,12 +74,23 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
         const intakeSourceDto = metadataToIntakeSource(teamId, sourceType, metadata);
         const intakeSource = await intakeSourceApi.create(intakeSourceDto);
 
+        // Step 0.5: Execute pending merges (merges from intake flow that were deferred until save)
+        // This merges existing personas with intake data, adding this intake source to the merged persona
+        for (const pendingMerge of pendingMerges) {
+          await personaApi.merge({
+            teamId,
+            personaIds: [pendingMerge.existingPersonaId],
+            mergedPersona: pendingMerge.mergedPersona,
+            additionalIntakeSourceIds: [intakeSource.id],
+          });
+        }
+
         // Step 1: Create all personas and build ID map
         const createdPersonas = await Promise.all(
           personas.map((persona) => {
             const dto: CreatePersonaDto = {
               teamId,
-              intakeSourceId: intakeSource.id,
+              intakeSourceIds: [intakeSource.id],
               name: persona.name,
               description: persona.description,
               role: persona.role,

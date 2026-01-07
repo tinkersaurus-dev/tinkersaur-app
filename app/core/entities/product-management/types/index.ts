@@ -40,6 +40,8 @@ export type {
   UpdatePersonaDto,
   FindSimilarPersonasRequest,
   SimilarPersonaResult,
+  MergedPersonaData,
+  MergePersonasRequest,
 } from './Persona';
 export {
   PersonaSchema,
@@ -48,6 +50,8 @@ export {
   UpdatePersonaSchema,
   FindSimilarPersonasRequestSchema,
   SimilarPersonaResultSchema,
+  MergedPersonaDataSchema,
+  MergePersonasRequestSchema,
 } from './Persona';
 
 // PersonaUseCase (junction)

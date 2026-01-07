@@ -18,6 +18,7 @@ export default [
   route("api/generate-tech-spec-structured", "routes/api.generate-tech-spec-structured.ts"),
   route("api/generate-tech-spec-regenerate", "routes/api.generate-tech-spec-regenerate.ts"),
   route("api/parse-transcript", "routes/api.parse-transcript.ts"),
+  route("api/merge-personas", "routes/api.merge-personas.ts"),
 
   // Discovery routes
   route("discovery", "routes/discovery.tsx"),

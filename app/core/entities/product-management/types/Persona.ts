@@ -18,7 +18,7 @@ export type Demographics = z.infer<typeof DemographicsSchema>;
 export const PersonaSchema = z.object({
   id: z.string().uuid(),
   teamId: z.string().uuid(),
-  intakeSourceId: z.string().uuid().nullable(),
+  intakeSourceIds: z.array(z.string().uuid()).default([]),
   name: z.string().min(1, 'Persona name is required').max(200),
   description: z.string().max(2000).default(''),
   role: z.string().max(200).default(''),
@@ -38,7 +38,7 @@ export const CreatePersonaSchema = PersonaSchema.omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
-  intakeSourceId: z.string().uuid().optional(),
+  intakeSourceIds: z.array(z.string().uuid()).optional(),
 });
 
 export type CreatePersonaDto = z.infer<typeof CreatePersonaSchema>;
@@ -68,3 +68,25 @@ export const SimilarPersonaResultSchema = z.object({
 });
 
 export type SimilarPersonaResult = z.infer<typeof SimilarPersonaResultSchema>;
+
+// Schema for merged persona data (output from LLM)
+export const MergedPersonaDataSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  role: z.string(),
+  goals: z.array(z.string()),
+  painPoints: z.array(z.string()),
+  demographics: DemographicsSchema.optional(),
+});
+
+export type MergedPersonaData = z.infer<typeof MergedPersonaDataSchema>;
+
+// Schema for merge personas request (to backend API)
+export const MergePersonasRequestSchema = z.object({
+  teamId: z.string().uuid(),
+  personaIds: z.array(z.string().uuid()).min(2),
+  mergedPersona: MergedPersonaDataSchema,
+  additionalIntakeSourceIds: z.array(z.string().uuid()).optional(),
+});
+
+export type MergePersonasRequest = z.infer<typeof MergePersonasRequestSchema>;

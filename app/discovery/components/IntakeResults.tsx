@@ -16,6 +16,7 @@ import { PersonaResultCard } from './PersonaResultCard';
 import { UseCaseResultCard } from './UseCaseResultCard';
 import { FeedbackResultCard } from './FeedbackResultCard';
 import { OutcomeResultCard } from './OutcomeResultCard';
+import { IntakePersonaMergeModal, type PendingMerge } from './IntakePersonaMergeModal';
 
 function formatProcessingTime(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -52,6 +53,15 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
   const [deletedFeedbackIndexes, setDeletedFeedbackIndexes] = useState<Set<number>>(new Set());
   const [deletedOutcomeIndexes, setDeletedOutcomeIndexes] = useState<Set<number>>(new Set());
 
+  // Merge modal state
+  const [mergeContext, setMergeContext] = useState<{
+    intakePersonaIndex: number;
+    existingPersonaId: string;
+  } | null>(null);
+
+  // Track pending merges (to be executed on save)
+  const [pendingMerges, setPendingMerges] = useState<PendingMerge[]>([]);
+
   // Per-item solution selections (keyed by original index, initialized with defaultSolutionId)
   const [useCaseSolutionIds, setUseCaseSolutionIds] = useState<Map<number, string | null>>(() => {
     const map = new Map<number, string | null>();
@@ -84,6 +94,19 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
 
   const handleDeleteOutcome = useCallback((index: number) => {
     setDeletedOutcomeIndexes(prev => new Set([...prev, index]));
+  }, []);
+
+  // Merge handler - opens merge modal for intake persona with existing persona
+  const handleMergePersona = useCallback((intakePersonaIndex: number, existingPersonaId: string) => {
+    setMergeContext({ intakePersonaIndex, existingPersonaId });
+  }, []);
+
+  // After merge is confirmed, track it for execution on save
+  const handleMergeConfirmed = useCallback((pendingMerge: PendingMerge) => {
+    setPendingMerges(prev => [...prev, pendingMerge]);
+    // Mark the intake persona as deleted (it will be merged instead of created)
+    setDeletedPersonaIndexes(prev => new Set([...prev, pendingMerge.intakePersonaIndex]));
+    setMergeContext(null);
   }, []);
 
   // Solution change handlers
@@ -212,6 +235,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
       useCaseSolutionIds,
       feedbackSolutionIds,
       outcomeSolutionIds,
+      pendingMerges,
     });
 
     if (success) {
@@ -314,6 +338,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
                         onDelete={handleDeletePersona}
                         similarPersonas={similarPersonas.find((s: SimilarPersonaInfo) => s.personaIndex === index)?.similarResults}
                         isCheckingSimilarity={isChecking}
+                        onMerge={handleMergePersona}
                       />
                     );
                   })}
@@ -466,6 +491,18 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
           Analyze Another Transcript
         </Button>
       </div>
+
+      {/* Intake Persona Merge Modal */}
+      {mergeContext && (
+        <IntakePersonaMergeModal
+          open={true}
+          onClose={() => setMergeContext(null)}
+          intakePersona={result.personas[mergeContext.intakePersonaIndex]}
+          intakePersonaIndex={mergeContext.intakePersonaIndex}
+          existingPersonaId={mergeContext.existingPersonaId}
+          onMergeConfirmed={handleMergeConfirmed}
+        />
+      )}
     </div>
   );
 }

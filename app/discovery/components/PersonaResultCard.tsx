@@ -1,6 +1,6 @@
 import { useState, memo } from 'react';
-import { FiUser, FiTarget, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
-import { Card } from '~/core/components/ui/Card';
+import { FiUser, FiTarget, FiAlertCircle, FiTrash2, FiGitMerge } from 'react-icons/fi';
+import { Card, Button } from '~/core/components/ui';
 import type { ExtractedPersona } from '~/core/entities/discovery';
 import type { SimilarPersonaResult } from '~/core/entities/product-management/types';
 import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
@@ -13,9 +13,10 @@ interface PersonaResultCardProps {
   onDelete?: (index: number) => void;
   similarPersonas?: SimilarPersonaResult[];
   isCheckingSimilarity?: boolean;
+  onMerge?: (intakePersonaIndex: number, existingPersonaId: string) => void;
 }
 
-export const PersonaResultCard = memo(function PersonaResultCard({ persona, index, onDelete, similarPersonas, isCheckingSimilarity }: PersonaResultCardProps) {
+export const PersonaResultCard = memo(function PersonaResultCard({ persona, index, onDelete, similarPersonas, isCheckingSimilarity, onMerge }: PersonaResultCardProps) {
   const [selectedMatch, setSelectedMatch] = useState<SimilarPersonaResult | null>(null);
 
   const hasGoals = persona.goals.length > 0;
@@ -140,7 +141,24 @@ export const PersonaResultCard = memo(function PersonaResultCard({ persona, inde
         getMatchId={(m) => m.persona.id}
         newItemLabel="New Persona (from intake)"
         existingItemLabel="Existing Persona"
-        actionHint="If this is a duplicate, you can delete this persona from the intake results before saving."
+        actionHint={
+          <div className="space-y-2">
+            <p>If this is a duplicate, you can delete this persona from the intake results before saving.</p>
+            {onMerge && selectedMatch && (
+              <Button
+                size="small"
+                variant="primary"
+                icon={<FiGitMerge />}
+                onClick={() => {
+                  onMerge(index, selectedMatch.persona.id);
+                  setSelectedMatch(null);
+                }}
+              >
+                Merge with Existing
+              </Button>
+            )}
+          </div>
+        }
         renderMatchListItem={(match) => (
           <>
             <div className="flex items-start justify-between gap-2 mb-1">

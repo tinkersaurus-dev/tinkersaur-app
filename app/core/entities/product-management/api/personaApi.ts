@@ -1,4 +1,4 @@
-import type { Persona, CreatePersonaDto, FindSimilarPersonasRequest, SimilarPersonaResult } from '../types';
+import type { Persona, CreatePersonaDto, FindSimilarPersonasRequest, SimilarPersonaResult, MergePersonasRequest } from '../types';
 import type { PaginatedResponse, PersonaListParams } from '~/core/api/types';
 import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
@@ -65,5 +65,10 @@ export const personaApi = {
       ...result,
       persona: deserializeDates(result.persona),
     }));
+  },
+
+  async merge(request: MergePersonasRequest): Promise<Persona> {
+    const result = await httpClient.post<Persona>('/api/personas/merge', request);
+    return deserializeDates(result);
   },
 };

@@ -13,6 +13,7 @@ export {
   useCreatePersona,
   useUpdatePersona,
   useDeletePersona,
+  useMergePersonas,
 } from './usePersonaMutations';
 
 export {

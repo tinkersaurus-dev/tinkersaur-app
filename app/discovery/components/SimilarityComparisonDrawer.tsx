@@ -30,7 +30,7 @@ interface SimilarityComparisonDrawerProps<TMatch> {
   existingItemLabel?: string;
 
   // Optional
-  actionHint?: string;
+  actionHint?: React.ReactNode;
 }
 
 function getSimilarityColor(similarity: number): 'red' | 'orange' | 'blue' {
@@ -113,10 +113,8 @@ function SimilarityComparisonDrawerInner<TMatch>({
                 {renderExistingItem(selectedMatch)}
               </Card>
 
-              <div className="mt-4 p-3 bg-[var(--bg-secondary)] rounded border border-[var(--border)]">
-                <p className="text-xs text-[var(--text-muted)]">
-                  {actionHint}
-                </p>
+              <div className="mt-4 p-3 bg-[var(--bg-secondary)] rounded border border-[var(--border)] text-xs text-[var(--text-muted)]">
+                {actionHint}
               </div>
             </div>
 

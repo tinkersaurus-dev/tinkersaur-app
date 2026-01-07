@@ -3,9 +3,9 @@
  * Displays all personas in a paginated table with filtering and multi-select
  */
 
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiGitMerge } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { ListControlPanel } from '~/core/components/ListControlPanel';
@@ -15,6 +15,7 @@ import type { Persona } from '~/core/entities/product-management';
 import { usePersonasPaginatedQuery, useSolutionsQuery } from '../queries';
 import { useListSelection, useListUrlState } from '~/core/hooks';
 import { useAuthStore } from '~/core/auth';
+import { PersonaMergeModal } from '../components';
 
 export default function PersonasListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
@@ -41,11 +42,14 @@ export default function PersonasListPage() {
   const { data, isLoading } = usePersonasPaginatedQuery(queryParams);
   const { data: solutions = [] } = useSolutionsQuery(teamId);
 
-  // Multi-select for future bulk actions
+  // Multi-select for bulk actions
   const selection = useListSelection({
     items: data?.items || [],
     getItemId: (item) => item.id,
   });
+
+  // Merge modal state
+  const [mergeModalOpen, setMergeModalOpen] = useState(false);
 
   // Table columns with checkbox
   const columns: TableColumn<Persona>[] = useMemo(() => [
@@ -178,6 +182,17 @@ export default function PersonasListPage() {
               filterValues={urlState.filters}
               onFilterChange={urlState.setFilter}
               selectedCount={selection.selectedIds.size}
+              actions={
+                selection.selectedIds.size >= 2 ? (
+                  <Button
+                    variant="default"
+                    icon={<FiGitMerge />}
+                    onClick={() => setMergeModalOpen(true)}
+                  >
+                    Merge ({selection.selectedIds.size})
+                  </Button>
+                ) : undefined
+              }
             />
 
             <Table
@@ -196,6 +211,19 @@ export default function PersonasListPage() {
           </>
         )}
       </PageContent>
+
+      {/* Merge Modal */}
+      {teamId && (
+        <PersonaMergeModal
+          open={mergeModalOpen}
+          onClose={() => {
+            setMergeModalOpen(false);
+            selection.clear();
+          }}
+          selectedPersonas={selection.selectedItems}
+          teamId={teamId}
+        />
+      )}
     </MainLayout>
   );
 }
