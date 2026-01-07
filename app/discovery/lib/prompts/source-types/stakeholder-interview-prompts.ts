@@ -44,4 +44,16 @@ Focus on capturing:
 - Integration requirements with existing systems
 - Organizational change considerations
 
+### Outcomes (Business Success Metrics)
+Stakeholder interviews often contain explicit business targets. Extract:
+- Specific KPIs and metrics stakeholders want to achieve
+- Each distinct metric target becomes its own Outcome entry
+- Focus on quantifiable business goals: revenue targets, efficiency gains, cost reductions
+- Include both the desired outcome and the specific target value
+- Examples:
+  - Description: "Reduce 90-day customer churn", Target: "Under 10% by end of year"
+  - Description: "Increase core setup completion within 14 days", Target: "From 35% to 70%"
+  - Description: "Reduce median time to complete core setup", Target: "Under 10 days (from 22 days)"
+- Include quotes where stakeholders state specific targets or success criteria
+
 ${IMPORTANT_RULES}`;

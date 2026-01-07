@@ -1,6 +1,6 @@
 /**
  * Organize Page
- * Dashboard view showing recently added personas, use cases, and feedback.
+ * Dashboard view showing recently added personas, use cases, feedback, and outcomes.
  */
 
 import { MainLayout } from '~/core/components/MainLayout';
@@ -9,15 +9,17 @@ import { PageContent } from '~/core/components/PageContent';
 import { useAuthStore } from '~/core/auth/useAuthStore';
 import { usePersonasQuery } from '~/product-management/queries';
 import { useUseCasesByTeamQuery } from '~/product-management/queries';
-import { useFeedbacksQuery } from '~/discovery/hooks';
+import { useFeedbacksQuery, useOutcomesQuery } from '~/discovery/hooks';
 import {
   DashboardListSection,
   PersonaRow,
   UseCaseRow,
   FeedbackRow,
+  OutcomeRow,
   PersonaIcon,
   UseCaseIcon,
   FeedbackIcon,
+  OutcomeIcon,
 } from '~/discovery/components';
 
 const MAX_ITEMS = 10;
@@ -32,10 +34,13 @@ export default function OrganizePage() {
     useUseCasesByTeamQuery(teamId);
   const { data: feedbacks = [], isLoading: feedbacksLoading } =
     useFeedbacksQuery(teamId);
+  const { data: outcomes = [], isLoading: outcomesLoading } =
+    useOutcomesQuery(teamId);
 
   const recentPersonas = personas.slice(0, MAX_ITEMS);
   const recentUseCases = useCases.slice(0, MAX_ITEMS);
   const recentFeedbacks = feedbacks.slice(0, MAX_ITEMS);
+  const recentOutcomes = outcomes.slice(0, MAX_ITEMS);
 
   return (
     <MainLayout>
@@ -43,20 +48,39 @@ export default function OrganizePage() {
         <PageHeader title="Organize" />
         <PageContent fillHeight>
           <div className="h-full flex gap-2">
-            {/* Left: Personas (1/3 width) */}
-            <div className="w-1/3 flex flex-col min-h-0">
-              <DashboardListSection
-                title="Recent Personas"
-                icon={<PersonaIcon />}
-                isEmpty={recentPersonas.length === 0}
-                isLoading={personasLoading}
-                emptyDescription="No personas added yet"
-                viewAllLink="/discovery/organize/personas"
-              >
-                {recentPersonas.map((persona) => (
-                  <PersonaRow key={persona.id} persona={persona} />
-                ))}
-              </DashboardListSection>
+            {/* Left: Personas + Outcomes (1/3 width) */}
+            <div className="w-1/3 flex flex-col gap-6 min-h-0">
+              {/* Personas (1/2 height) */}
+              <div className="h-1/2 min-h-0">
+                <DashboardListSection
+                  title="Recent Personas"
+                  icon={<PersonaIcon />}
+                  isEmpty={recentPersonas.length === 0}
+                  isLoading={personasLoading}
+                  emptyDescription="No personas added yet"
+                  viewAllLink="/discovery/organize/personas"
+                >
+                  {recentPersonas.map((persona) => (
+                    <PersonaRow key={persona.id} persona={persona} />
+                  ))}
+                </DashboardListSection>
+              </div>
+
+              {/* Outcomes (1/2 height) */}
+              <div className="h-1/2 min-h-0">
+                <DashboardListSection
+                  title="Recent Outcomes"
+                  icon={<OutcomeIcon />}
+                  isEmpty={recentOutcomes.length === 0}
+                  isLoading={outcomesLoading}
+                  emptyDescription="No outcomes added yet"
+                  viewAllLink="/discovery/organize/outcomes"
+                >
+                  {recentOutcomes.map((outcome) => (
+                    <OutcomeRow key={outcome.id} outcome={outcome} />
+                  ))}
+                </DashboardListSection>
+              </div>
             </div>
 
             {/* Right: Use Cases + Feedback (2/3 width) */}

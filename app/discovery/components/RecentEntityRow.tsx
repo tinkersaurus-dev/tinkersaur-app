@@ -1,7 +1,7 @@
-import { FiUser, FiClipboard, FiMessageSquare } from 'react-icons/fi';
+import { FiUser, FiClipboard, FiMessageSquare, FiTrendingUp } from 'react-icons/fi';
 import type { Persona } from '~/core/entities/product-management';
 import type { UseCase } from '~/core/entities/product-management';
-import type { Feedback } from '~/core/entities/discovery';
+import type { Feedback, Outcome } from '~/core/entities/discovery';
 import { FEEDBACK_TYPE_CONFIG } from '~/core/entities/discovery';
 import { Tag } from '~/core/components/ui/Tag';
 import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
@@ -16,6 +16,9 @@ export const UseCaseIcon = () => (
 );
 export const FeedbackIcon = () => (
   <FiMessageSquare className="w-4 h-4 text-purple-500" />
+);
+export const OutcomeIcon = () => (
+  <FiTrendingUp className="w-4 h-4 text-green-500" />
 );
 
 interface PersonaRowProps {
@@ -71,18 +74,42 @@ export function FeedbackRow({ feedback }: FeedbackRowProps) {
 
   return (
     <div className="flex items-center gap-3 py-2 px-2 border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--bg-secondary)] transition-colors">
-      
+
       <div className="flex-1 min-w-0">
         <div className="text-xs text-[var(--text)] truncate">
           {feedback.content}
         </div>
-        
+
       </div>
       <Tag color={tagColor} className="flex-shrink-0 text-xs">
         {config.label}
       </Tag>
       <div className="text-xs text-[var(--text-disabled)] flex-shrink-0 w-25">
         {formatRelativeTime(feedback.createdAt)}
+      </div>
+    </div>
+  );
+}
+
+interface OutcomeRowProps {
+  outcome: Outcome;
+}
+
+export function OutcomeRow({ outcome }: OutcomeRowProps) {
+  return (
+    <div className="flex items-center gap-3 py-2 px-2 border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--bg-secondary)] transition-colors">
+      <div className="flex-1 min-w-0">
+        <div className="text-xs font-medium text-[var(--text)] truncate">
+          {outcome.description}
+        </div>
+        {outcome.target && (
+          <div className="text-xs text-[var(--text-muted)] truncate">
+            {outcome.target}
+          </div>
+        )}
+      </div>
+      <div className="text-xs text-[var(--text-disabled)] flex-shrink-0 w-25">
+        {formatRelativeTime(outcome.createdAt)}
       </div>
     </div>
   );

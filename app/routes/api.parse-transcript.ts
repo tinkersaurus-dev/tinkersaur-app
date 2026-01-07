@@ -248,6 +248,7 @@ export async function action({ request }: ActionFunctionArgs) {
       personas?: unknown[];
       useCases?: unknown[];
       feedback?: unknown[];
+      outcomes?: unknown[];
     };
 
     // Extract token usage from response
@@ -266,6 +267,9 @@ export async function action({ request }: ActionFunctionArgs) {
       feedback: Array.isArray(llmResult.feedback)
         ? (llmResult.feedback as IntakeResult['feedback'])
         : [],
+      outcomes: Array.isArray(llmResult.outcomes)
+        ? (llmResult.outcomes as IntakeResult['outcomes'])
+        : [],
       processingTime,
       inputTokens,
       outputTokens,
@@ -275,6 +279,7 @@ export async function action({ request }: ActionFunctionArgs) {
       personaCount: result.personas.length,
       useCaseCount: result.useCases.length,
       feedbackCount: result.feedback.length,
+      outcomeCount: result.outcomes.length,
       processingTime,
       inputTokens,
       outputTokens,

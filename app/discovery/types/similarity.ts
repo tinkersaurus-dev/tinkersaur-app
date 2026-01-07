@@ -1,5 +1,5 @@
 import type { SimilarPersonaResult, SimilarUseCaseResult } from '~/core/entities/product-management/types';
-import type { SimilarFeedbackResult } from '~/core/entities/discovery/types';
+import type { SimilarFeedbackResult, SimilarOutcomeResult } from '~/core/entities/discovery/types';
 
 export interface SimilarPersonaInfo {
   personaIndex: number;
@@ -17,4 +17,10 @@ export interface SimilarFeedbackInfo {
   feedbackIndex: number;
   feedbackContent: string;
   similarResults: SimilarFeedbackResult[];
+}
+
+export interface SimilarOutcomeInfo {
+  outcomeIndex: number;
+  outcomeDescription: string;
+  similarResults: SimilarOutcomeResult[];
 }

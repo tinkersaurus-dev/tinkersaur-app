@@ -1,1 +1,1 @@
-export type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo } from './similarity';
+export type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo, SimilarOutcomeInfo } from './similarity';

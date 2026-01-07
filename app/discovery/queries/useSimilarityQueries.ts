@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { personaApi, useCaseApi } from '~/core/entities/product-management/api';
-import { feedbackApi } from '~/core/entities/discovery/api';
-import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback } from '~/core/entities/discovery';
-import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo } from '~/discovery/types';
+import { feedbackApi, outcomeApi } from '~/core/entities/discovery/api';
+import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback, ExtractedOutcome } from '~/core/entities/discovery';
+import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo, SimilarOutcomeInfo } from '~/discovery/types';
 
 const SIMILARITY_STALE_TIME = 60_000; // 1 minute
 
@@ -131,6 +131,49 @@ export function useSimilarFeedbackQuery(
       return results.filter((r): r is SimilarFeedbackInfo => r !== null);
     },
     enabled: !!feedbackItems && !!teamId && feedbackItems.length > 0,
+    staleTime: SIMILARITY_STALE_TIME,
+  });
+}
+
+/**
+ * Query hook for finding similar outcomes
+ */
+export function useSimilarOutcomesQuery(
+  outcomeItems: ExtractedOutcome[] | null,
+  teamId: string | undefined
+) {
+  return useQuery({
+    queryKey: [
+      'similarity',
+      'outcomes',
+      teamId,
+      outcomeItems?.map((o) => `${o.description?.slice(0, 100)}|${o.target?.slice(0, 50)}`),
+    ],
+    queryFn: async (): Promise<SimilarOutcomeInfo[]> => {
+      const results = await Promise.all(
+        outcomeItems!.map(async (outcome, index) => {
+          const similarResults = await outcomeApi.findSimilar({
+            teamId: teamId!,
+            description: outcome.description,
+            target: outcome.target,
+            threshold: 0.5,
+            limit: 5,
+          });
+
+          if (similarResults.length > 0) {
+            return {
+              outcomeIndex: index,
+              outcomeDescription: outcome.description,
+              similarResults,
+            };
+          }
+          return null;
+        })
+      );
+
+      return results.filter((r): r is SimilarOutcomeInfo => r !== null);
+    },
+    enabled: !!outcomeItems && !!teamId && outcomeItems.length > 0,
     staleTime: SIMILARITY_STALE_TIME,
   });
 }

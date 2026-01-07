@@ -1,20 +1,21 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { FiUsers, FiClipboard, FiMessageSquare, FiClock, FiRefreshCw, FiHash, FiSave } from 'react-icons/fi';
+import { FiUsers, FiClipboard, FiMessageSquare, FiClock, FiRefreshCw, FiHash, FiSave, FiTarget } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
 import { Button } from '~/core/components/ui/Button';
 import { Tabs } from '~/core/components/ui/Tabs';
 import { Empty } from '~/core/components/ui/Empty';
 import { useAuthStore } from '~/core/auth';
 import type { IntakeResult, SourceTypeKey } from '~/core/entities/discovery';
-import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo } from '~/discovery/types';
+import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo, SimilarOutcomeInfo } from '~/discovery/types';
 import { useSaveIntakeResult } from '~/discovery/hooks';
-import { useSimilarPersonasQuery, useSimilarUseCasesQuery, useSimilarFeedbackQuery } from '~/discovery/queries';
+import { useSimilarPersonasQuery, useSimilarUseCasesQuery, useSimilarFeedbackQuery, useSimilarOutcomesQuery } from '~/discovery/queries';
 import { useSolutionsQuery } from '~/product-management/queries';
 import { PersonaResultCard } from './PersonaResultCard';
 import { UseCaseResultCard } from './UseCaseResultCard';
 import { FeedbackResultCard } from './FeedbackResultCard';
+import { OutcomeResultCard } from './OutcomeResultCard';
 
 function formatProcessingTime(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -35,7 +36,7 @@ interface IntakeResultsProps {
   defaultSolutionId: string | null;
 }
 
-type TabKey = 'personas' | 'useCases' | 'feedback';
+type TabKey = 'personas' | 'useCases' | 'feedback' | 'outcomes';
 
 export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: IntakeResultsProps) {
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
   const [deletedPersonaIndexes, setDeletedPersonaIndexes] = useState<Set<number>>(new Set());
   const [deletedUseCaseIndexes, setDeletedUseCaseIndexes] = useState<Set<number>>(new Set());
   const [deletedFeedbackIndexes, setDeletedFeedbackIndexes] = useState<Set<number>>(new Set());
+  const [deletedOutcomeIndexes, setDeletedOutcomeIndexes] = useState<Set<number>>(new Set());
 
   // Per-item solution selections (keyed by original index, initialized with defaultSolutionId)
   const [useCaseSolutionIds, setUseCaseSolutionIds] = useState<Map<number, string | null>>(() => {
@@ -59,6 +61,11 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
   const [feedbackSolutionIds, setFeedbackSolutionIds] = useState<Map<number, string | null>>(() => {
     const map = new Map<number, string | null>();
     result.feedback.forEach((_, idx) => map.set(idx, defaultSolutionId));
+    return map;
+  });
+  const [outcomeSolutionIds, setOutcomeSolutionIds] = useState<Map<number, string | null>>(() => {
+    const map = new Map<number, string | null>();
+    result.outcomes.forEach((_, idx) => map.set(idx, defaultSolutionId));
     return map;
   });
 
@@ -75,6 +82,10 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
     setDeletedFeedbackIndexes(prev => new Set([...prev, index]));
   }, []);
 
+  const handleDeleteOutcome = useCallback((index: number) => {
+    setDeletedOutcomeIndexes(prev => new Set([...prev, index]));
+  }, []);
+
   // Solution change handlers
   const handleUseCaseSolutionChange = useCallback((index: number, solutionId: string | null) => {
     setUseCaseSolutionIds(prev => new Map(prev).set(index, solutionId));
@@ -82,6 +93,10 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
 
   const handleFeedbackSolutionChange = useCallback((index: number, solutionId: string | null) => {
     setFeedbackSolutionIds(prev => new Map(prev).set(index, solutionId));
+  }, []);
+
+  const handleOutcomeSolutionChange = useCallback((index: number, solutionId: string | null) => {
+    setOutcomeSolutionIds(prev => new Map(prev).set(index, solutionId));
   }, []);
 
   // Compute filtered arrays (items that haven't been deleted)
@@ -98,6 +113,11 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
   const filteredFeedback = useMemo(() =>
     result.feedback.filter((_, idx) => !deletedFeedbackIndexes.has(idx)),
     [result.feedback, deletedFeedbackIndexes]
+  );
+
+  const filteredOutcomes = useMemo(() =>
+    result.outcomes.filter((_, idx) => !deletedOutcomeIndexes.has(idx)),
+    [result.outcomes, deletedOutcomeIndexes]
   );
 
   // Build index maps: original index -> new filtered index
@@ -137,6 +157,18 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
     return map;
   }, [result.feedback, deletedFeedbackIndexes]);
 
+  const outcomeIndexMap = useMemo(() => {
+    const map = new Map<number, number>();
+    let newIndex = 0;
+    result.outcomes.forEach((_, originalIndex) => {
+      if (!deletedOutcomeIndexes.has(originalIndex)) {
+        map.set(originalIndex, newIndex);
+        newIndex++;
+      }
+    });
+    return map;
+  }, [result.outcomes, deletedOutcomeIndexes]);
+
   // Check for similar items using TanStack Query
   const { data: similarPersonas = [], isLoading: isChecking } = useSimilarPersonasQuery(
     filteredPersonas,
@@ -153,6 +185,11 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
     selectedTeam?.teamId
   );
 
+  const { data: similarOutcomes = [], isLoading: isCheckingOutcomes } = useSimilarOutcomesQuery(
+    filteredOutcomes,
+    selectedTeam?.teamId
+  );
+
   // Save handler
   const handleSave = async () => {
     if (!selectedTeam) {
@@ -164,14 +201,17 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
       personas: filteredPersonas,
       useCases: filteredUseCases,
       feedback: filteredFeedback,
+      outcomes: filteredOutcomes,
       personaIndexMap,
       useCaseIndexMap,
       feedbackIndexMap,
+      outcomeIndexMap,
       teamId: selectedTeam.teamId,
       sourceType: result.sourceType as SourceTypeKey,
       metadata: result.metadata as Record<string, string>,
       useCaseSolutionIds,
       feedbackSolutionIds,
+      outcomeSolutionIds,
     });
 
     if (success) {
@@ -182,7 +222,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
     }
   };
 
-  const hasItemsToSave = filteredPersonas.length > 0 || filteredUseCases.length > 0 || filteredFeedback.length > 0;
+  const hasItemsToSave = filteredPersonas.length > 0 || filteredUseCases.length > 0 || filteredFeedback.length > 0 || filteredOutcomes.length > 0;
 
   const tabs = useMemo(() => [
     {
@@ -215,7 +255,17 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
       ),
       children: null,
     },
-  ], [filteredPersonas.length, filteredUseCases.length, filteredFeedback.length]);
+    {
+      key: 'outcomes' as TabKey,
+      label: (
+        <span className="flex items-center gap-2">
+          <FiTarget className="w-4 h-4" />
+          Outcomes ({filteredOutcomes.length})
+        </span>
+      ),
+      children: null,
+    },
+  ], [filteredPersonas.length, filteredUseCases.length, filteredFeedback.length, filteredOutcomes.length]);
 
   return (
     <div className="space-y-6">
@@ -351,6 +401,42 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
                     <div className="text-center">
                       <div className="font-medium mb-1">No feedback found</div>
                       <div>No feedback, suggestions, or concerns were identified in the transcript.</div>
+                    </div>
+                  }
+                />
+              )}
+            </>
+          )}
+
+          {/* Outcomes Tab */}
+          {activeTab === 'outcomes' && (
+            <>
+              {filteredOutcomes.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {result.outcomes.map((outcome, index) => {
+                    if (deletedOutcomeIndexes.has(index)) return null;
+                    return (
+                      <OutcomeResultCard
+                        key={generateItemKey(outcome, index)}
+                        outcome={outcome}
+                        index={index}
+                        onDelete={handleDeleteOutcome}
+                        similarOutcomes={similarOutcomes.find((s: SimilarOutcomeInfo) => s.outcomeIndex === index)?.similarResults}
+                        isCheckingSimilarity={isCheckingOutcomes}
+                        solutions={solutions}
+                        selectedSolutionId={outcomeSolutionIds.get(index) ?? null}
+                        onSolutionChange={handleOutcomeSolutionChange}
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                <Empty
+                  image={<FiTarget className="w-12 h-12" />}
+                  description={
+                    <div className="text-center">
+                      <div className="font-medium mb-1">No outcomes found</div>
+                      <div>No measurable business outcomes or metric targets were identified in the transcript.</div>
                     </div>
                   }
                 />

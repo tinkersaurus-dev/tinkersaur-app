@@ -39,6 +39,13 @@ You MUST return a valid JSON object with this exact structure:
       "linkedPersonaIndexes": [0],
       "linkedUseCaseIndexes": [0]
     }
+  ],
+  "outcomes": [
+    {
+      "description": "Reduce 90-day customer churn",
+      "target": "Under 10% by end of year",
+      "quotes": ["Exact quote mentioning the outcome and target"]
+    }
   ]
 }`;
 
@@ -47,6 +54,6 @@ export const IMPORTANT_RULES = `## Important Rules
 2. NEVER include real human names from the transcript, whether they are participants or mentioned. You MUST replace all names with role-based identifiers, in summaries, context, direct quotes, etc. EVERYWHERE. This is not optional, and is important for privacy.
 3. Use exact quotes from the transcript, but anonymize any human names within them as described in 2.
 4. Use array indexes (0, 1, 2...) for linkedPersonaIndexes and linkedUseCaseIndexes
-5. If no personas/use cases/feedback found in a category, return an empty array []
+5. If no personas/use cases/feedback/outcomes found in a category, return an empty array []
 6. Focus on actionable product insights that inform product decisions
 7. Do not invent or assume information not present in the transcript`;

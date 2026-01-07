@@ -1,12 +1,14 @@
 import { useState, useCallback } from 'react';
-import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback, SourceTypeKey } from '~/core/entities/discovery';
+import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback, ExtractedOutcome, SourceTypeKey } from '~/core/entities/discovery';
 import { metadataToIntakeSource } from '~/core/entities/discovery';
 import type { CreatePersonaDto } from '~/core/entities/product-management/types/Persona';
 import type { CreateUseCaseDto } from '~/core/entities/product-management/types/UseCase';
 import type { CreateFeedbackDto } from '~/core/entities/discovery/types/Feedback';
+import type { CreateOutcomeDto } from '~/core/entities/discovery/types/Outcome';
 import { personaApi } from '~/core/entities/product-management/api/personaApi';
 import { useCaseApi } from '~/core/entities/product-management/api/useCaseApi';
 import { feedbackApi } from '~/core/entities/discovery/api/feedbackApi';
+import { outcomeApi } from '~/core/entities/discovery/api/outcomeApi';
 import { intakeSourceApi } from '~/core/entities/discovery/api/intakeSourceApi';
 import { personaUseCaseApi } from '~/core/entities/product-management/api/personaUseCaseApi';
 import { feedbackPersonaApi } from '~/core/entities/discovery/api/feedbackPersonaApi';
@@ -16,14 +18,17 @@ interface SaveIntakeResultParams {
   personas: ExtractedPersona[];
   useCases: ExtractedUseCase[];
   feedback: ExtractedFeedback[];
+  outcomes: ExtractedOutcome[];
   personaIndexMap: Map<number, number>;
   useCaseIndexMap: Map<number, number>;
   feedbackIndexMap: Map<number, number>;
+  outcomeIndexMap: Map<number, number>;
   teamId: string;
   sourceType: SourceTypeKey;
   metadata: Record<string, string>;
   useCaseSolutionIds: Map<number, string | null>;
   feedbackSolutionIds: Map<number, string | null>;
+  outcomeSolutionIds: Map<number, string | null>;
 }
 
 interface UseSaveIntakeResultReturn {
@@ -41,14 +46,17 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
       personas,
       useCases,
       feedback,
+      outcomes,
       personaIndexMap,
       useCaseIndexMap,
       feedbackIndexMap,
+      outcomeIndexMap,
       teamId,
       sourceType,
       metadata,
       useCaseSolutionIds,
       feedbackSolutionIds,
+      outcomeSolutionIds,
     }: SaveIntakeResultParams): Promise<boolean> => {
       setIsSaving(true);
       setError(null);
@@ -204,6 +212,31 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           });
         });
         await Promise.all(feedbackUseCasePromises);
+
+        // Step 7: Create all outcomes
+        // Build reverse map: filtered index -> original index
+        const outcomeFilteredToOriginal = new Map<number, number>();
+        for (const [original, filtered] of outcomeIndexMap.entries()) {
+          outcomeFilteredToOriginal.set(filtered, original);
+        }
+
+        await Promise.all(
+          outcomes.map((outcome, filteredIndex) => {
+            const originalIndex = outcomeFilteredToOriginal.get(filteredIndex);
+            const solutionId = originalIndex !== undefined
+              ? outcomeSolutionIds.get(originalIndex) ?? null
+              : null;
+
+            const dto: CreateOutcomeDto = {
+              teamId,
+              solutionId,
+              intakeSourceId: intakeSource.id,
+              description: outcome.description,
+              target: outcome.target,
+            };
+            return outcomeApi.create(dto);
+          })
+        );
 
         return true;
       } catch (err) {

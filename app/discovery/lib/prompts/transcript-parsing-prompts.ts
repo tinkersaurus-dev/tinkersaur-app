@@ -1,9 +1,9 @@
 /**
  * LLM Prompts for Transcript Parsing
- * Used by the parse-transcript API to extract personas, use cases, and feedback
+ * Used by the parse-transcript API to extract personas, use cases, feedback, and outcomes
  */
 
-export const TRANSCRIPT_PARSING_SYSTEM_PROMPT = `You are an expert product discovery analyst. Your task is to analyze meeting transcripts and extract structured information about personas, use cases, and user feedback.
+export const TRANSCRIPT_PARSING_SYSTEM_PROMPT = `You are an expert product discovery analyst. Your task is to analyze meeting transcripts and extract structured information about personas, use cases, user feedback, and measurable outcomes.
 
 ## Your Output Format
 
@@ -41,6 +41,13 @@ You MUST return a valid JSON object with this exact structure:
       "linkedPersonaIndexes": [0],
       "linkedUseCaseIndexes": [0]
     }
+  ],
+  "outcomes": [
+    {
+      "description": "Reduce 90-day customer churn",
+      "target": "Under 10% by end of year",
+      "quotes": ["Exact quote mentioning the outcome and target"]
+    }
   ]
 }
 
@@ -71,12 +78,23 @@ You MUST return a valid JSON object with this exact structure:
 - Link feedback to relevant personas and use cases using array indexes
 - Include the exact quote that contains the feedback, with anonymized names as described in the Important Rules.
 
+### Outcomes
+- Extract measurable business outcomes with specific targets
+- Each distinct metric target becomes its own Outcome entry
+- Focus on quantifiable targets: percentages, timeframes, numbers
+- Include the specific target value, not just the general goal
+- Examples:
+  - Description: "Reduce 90-day customer churn", Target: "Under 10% by end of year"
+  - Description: "Increase core setup completion within 14 days", Target: "From 35% to 70%"
+  - Description: "Reduce median time to complete core setup", Target: "Under 10 days (from 22 days)"
+- Include quotes that mention both the outcome and its specific target
+
 ## Important Rules
 1. Return ONLY valid JSON - no markdown code blocks, no explanations, no text before or after
 2. NEVER include real human names from the transcript, whether they are participants or mentioned. You MUST replace all names with role-based identifiers, in summaries, context, direct quotes, etc. EVERYWHERE. This is not optional, and is important for privacy.
 3. Use exact quotes from the transcript, but anonymize any human names within them as described in 2.
 4. Use array indexes (0, 1, 2...) for linkedPersonaIndexes and linkedUseCaseIndexes
-5. If no personas/use cases/feedback found in a category, return an empty array []
+5. If no personas/use cases/feedback/outcomes found in a category, return an empty array []
 6. Focus on actionable product insights that inform product decisions
 7. Do not invent or assume information not present in the transcript`;
 
@@ -87,7 +105,7 @@ export function buildTranscriptUserPrompt(
   content: string,
   metadata: Record<string, unknown>
 ): string {
-  let prompt = `Analyze the following meeting transcript and extract personas, use cases, and feedback.\n\n`;
+  let prompt = `Analyze the following meeting transcript and extract personas, use cases, feedback, and outcomes.\n\n`;
 
   if (metadata.meetingName) {
     prompt += `Meeting: ${metadata.meetingName}\n`;
@@ -97,7 +115,7 @@ export function buildTranscriptUserPrompt(
   }
 
   prompt += `\n---TRANSCRIPT START---\n${content}\n---TRANSCRIPT END---\n\n`;
-  prompt += `Extract all personas, use cases, and feedback from this transcript. Return ONLY valid JSON matching the specified schema.`;
+  prompt += `Extract all personas, use cases, feedback, and outcomes from this transcript. Return ONLY valid JSON matching the specified schema.`;
 
   return prompt;
 }

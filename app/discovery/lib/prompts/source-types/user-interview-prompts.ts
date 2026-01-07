@@ -39,4 +39,15 @@ Categorize feedback from the user's perspective:
 - Link feedback to relevant personas and use cases using array indexes
 - Include the exact quote that contains the feedback
 
+### Outcomes (User Success Metrics)
+Extract measurable outcomes that users want to achieve:
+- Listen for specific targets or metrics users mention
+- Each distinct metric target becomes its own Outcome entry
+- Focus on user-centric metrics: time saved, tasks completed, efficiency gains
+- Include both the desired outcome and the specific target
+- Examples:
+  - Description: "Complete daily reporting", Target: "In under 30 minutes (currently 2 hours)"
+  - Description: "Reduce errors in data entry", Target: "Below 1% error rate"
+- Only extract outcomes with explicit, measurable targets mentioned in the transcript
+
 ${IMPORTANT_RULES}`;

@@ -65,3 +65,17 @@ export {
   type CreateIntakeSourceDto,
   type UpdateIntakeSourceDto,
 } from './IntakeSource';
+
+// Outcome exports
+export {
+  ExtractedOutcomeSchema,
+  OutcomeSchema,
+  CreateOutcomeSchema,
+  UpdateOutcomeSchema,
+  type ExtractedOutcome,
+  type Outcome,
+  type CreateOutcomeDto,
+  type UpdateOutcomeDto,
+  type FindSimilarOutcomesRequest,
+  type SimilarOutcomeResult,
+} from './Outcome';

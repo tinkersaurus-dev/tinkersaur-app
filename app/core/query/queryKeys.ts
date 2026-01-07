@@ -66,6 +66,13 @@ export const queryKeys = {
       [...queryKeys.feedbacks.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.feedbacks.all, 'detail', id] as const,
   },
+  outcomes: {
+    all: ['outcomes'] as const,
+    list: (teamId: string) => [...queryKeys.outcomes.all, 'list', teamId] as const,
+    listPaginated: <T extends object>(params: T) =>
+      [...queryKeys.outcomes.all, 'list', 'paginated', params] as const,
+    detail: (id: string) => [...queryKeys.outcomes.all, 'detail', id] as const,
+  },
   feedbackPersonas: {
     all: ['feedbackPersonas'] as const,
     byFeedback: (feedbackId: string) => [...queryKeys.feedbackPersonas.all, 'byFeedback', feedbackId] as const,

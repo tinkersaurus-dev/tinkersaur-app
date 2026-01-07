@@ -40,4 +40,15 @@ Capture feedback from all participants:
 - Attribute feedback to the appropriate persona when clear
 - Include the exact quote containing the feedback
 
+### Outcomes (Success Metrics)
+Capture measurable outcomes discussed in meetings:
+- Extract metrics and KPIs that the group is targeting
+- Each distinct metric target becomes its own Outcome entry
+- Note consensus targets vs. aspirational goals
+- Include specific numeric targets when mentioned
+- Examples:
+  - Description: "Improve customer satisfaction score", Target: "NPS of 50+ (from current 32)"
+  - Description: "Increase deployment frequency", Target: "Weekly releases (from monthly)"
+- Include quotes from participants who stated the outcome and target
+
 ${IMPORTANT_RULES}`;

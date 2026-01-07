@@ -10,7 +10,9 @@ export {
   PersonaRow,
   UseCaseRow,
   FeedbackRow,
+  OutcomeRow,
   PersonaIcon,
   UseCaseIcon,
   FeedbackIcon,
+  OutcomeIcon,
 } from './RecentEntityRow';

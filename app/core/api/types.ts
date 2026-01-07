@@ -38,3 +38,11 @@ export interface FeedbackListParams {
   personaIds?: string[];
   useCaseIds?: string[];
 }
+
+export interface OutcomeListParams {
+  teamId: string;
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  solutionId?: string;
+}

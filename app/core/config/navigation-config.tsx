@@ -18,6 +18,7 @@ import {
   FiMessageSquare,
   FiLifeBuoy,
   FiClipboard,
+  FiTrendingUp,
 } from 'react-icons/fi';
 import { SOURCE_TYPES } from '~/core/entities/discovery';
 
@@ -88,6 +89,7 @@ export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
         { key: 'personas', label: 'Personas', path: '/discovery/organize/personas', icon: <FiUsers /> },
         { key: 'use-cases', label: 'Use Cases', path: '/discovery/organize/use-cases', icon: <FiTarget /> },
         { key: 'feedback', label: 'Feedback', path: '/discovery/organize/feedback', icon: <FiMessageSquare /> },
+        { key: 'outcomes', label: 'Outcomes', path: '/discovery/organize/outcomes', icon: <FiTrendingUp /> },
       ],
     },
     {
