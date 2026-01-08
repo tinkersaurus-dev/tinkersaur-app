@@ -3,9 +3,9 @@
  * Displays all use cases in a paginated table with filtering and multi-select
  */
 
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiGitMerge } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { ListControlPanel } from '~/core/components/ListControlPanel';
@@ -15,6 +15,7 @@ import type { UseCase } from '~/core/entities/product-management';
 import { useUseCasesPaginatedQuery, useSolutionsQuery, usePersonasQuery } from '../queries';
 import { useListSelection, useListUrlState } from '~/core/hooks';
 import { useAuthStore } from '~/core/auth';
+import { UseCaseMergeModal } from '../components/UseCaseMergeModal';
 
 export default function UseCasesListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
@@ -50,11 +51,21 @@ export default function UseCasesListPage() {
   const { data: solutions = [] } = useSolutionsQuery(teamId);
   const { data: personas = [] } = usePersonasQuery(teamId);
 
-  // Multi-select for future bulk actions
+  // Multi-select for bulk actions
   const selection = useListSelection({
     items: data?.items || [],
     getItemId: (item) => item.id,
   });
+
+  // Merge modal state
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+
+  // Get selected use case objects for merge modal
+  const items = data?.items;
+  const selectedUseCases = useMemo(() => {
+    if (!items) return [];
+    return items.filter((uc) => selection.isSelected(uc.id));
+  }, [items, selection]);
 
   // Table columns with checkbox
   const columns: TableColumn<UseCase>[] = useMemo(() => [
@@ -189,6 +200,12 @@ export default function UseCasesListPage() {
     selection.clear();
   };
 
+  // Handle merge modal close
+  const handleMergeModalClose = () => {
+    setIsMergeModalOpen(false);
+    selection.clear();
+  };
+
   return (
     <MainLayout>
       <PageHeader
@@ -217,6 +234,18 @@ export default function UseCasesListPage() {
               filterValues={filterValues}
               onFilterChange={handleFilterChange}
               selectedCount={selection.selectedIds.size}
+              actions={
+                selection.selectedIds.size >= 2 && (
+                  <Button
+                    variant="default"
+                    size="small"
+                    icon={<FiGitMerge />}
+                    onClick={() => setIsMergeModalOpen(true)}
+                  >
+                    Merge Selected
+                  </Button>
+                )
+              }
             />
 
             <Table
@@ -235,6 +264,17 @@ export default function UseCasesListPage() {
           </>
         )}
       </PageContent>
+
+      {/* Merge Modal */}
+      {teamId && (
+        <UseCaseMergeModal
+          open={isMergeModalOpen}
+          onClose={handleMergeModalClose}
+          selectedUseCases={selectedUseCases}
+          teamId={teamId}
+          solutions={solutions}
+        />
+      )}
     </MainLayout>
   );
 }

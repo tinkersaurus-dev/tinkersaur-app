@@ -55,3 +55,21 @@ export interface SimilarUseCaseResult {
   similarity: number;
   matchType: 'name' | 'name+description';
 }
+
+// Schema for merged use case data (output from LLM)
+export const MergedUseCaseDataSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+});
+
+export type MergedUseCaseData = z.infer<typeof MergedUseCaseDataSchema>;
+
+// Schema for merge use cases request (to backend API)
+export const MergeUseCasesRequestSchema = z.object({
+  teamId: z.string().uuid(),
+  useCaseIds: z.array(z.string().uuid()).min(2),
+  mergedUseCase: MergedUseCaseDataSchema,
+  additionalIntakeSourceIds: z.array(z.string().uuid()).optional(),
+});
+
+export type MergeUseCasesRequest = z.infer<typeof MergeUseCasesRequestSchema>;

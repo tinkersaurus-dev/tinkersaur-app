@@ -6,6 +6,8 @@ export { UseCaseResultCard } from './UseCaseResultCard';
 export { FeedbackResultCard } from './FeedbackResultCard';
 export { IntakeResults } from './IntakeResults';
 export { IntakePersonaMergeModal } from './IntakePersonaMergeModal';
+export { IntakeUseCaseMergeModal } from './IntakeUseCaseMergeModal';
+export type { PendingUseCaseMerge } from './IntakeUseCaseMergeModal';
 export { DashboardListSection } from './DashboardListSection';
 export {
   PersonaRow,

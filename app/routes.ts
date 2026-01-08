@@ -19,6 +19,7 @@ export default [
   route("api/generate-tech-spec-regenerate", "routes/api.generate-tech-spec-regenerate.ts"),
   route("api/parse-transcript", "routes/api.parse-transcript.ts"),
   route("api/merge-personas", "routes/api.merge-personas.ts"),
+  route("api/merge-use-cases", "routes/api.merge-use-cases.ts"),
 
   // Discovery routes
   route("discovery", "routes/discovery.tsx"),

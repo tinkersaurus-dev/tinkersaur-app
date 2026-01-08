@@ -1,6 +1,6 @@
 import { useState, memo, useMemo } from 'react';
-import { FiClipboard, FiTrash2, FiAlertCircle } from 'react-icons/fi';
-import { Card } from '~/core/components/ui/Card';
+import { FiClipboard, FiTrash2, FiAlertCircle, FiGitMerge } from 'react-icons/fi';
+import { Card, Button } from '~/core/components/ui';
 import { Select } from '~/core/components/ui/Select';
 import type { ExtractedUseCase } from '~/core/entities/discovery';
 import type { SimilarUseCaseResult, Solution } from '~/core/entities/product-management/types';
@@ -17,6 +17,7 @@ interface UseCaseResultCardProps {
   solutions: Solution[];
   selectedSolutionId: string | null;
   onSolutionChange: (index: number, solutionId: string | null) => void;
+  onMerge?: (intakeUseCaseIndex: number, existingUseCaseIds: string[]) => void;
 }
 
 export const UseCaseResultCard = memo(function UseCaseResultCard({
@@ -28,6 +29,7 @@ export const UseCaseResultCard = memo(function UseCaseResultCard({
   solutions,
   selectedSolutionId,
   onSolutionChange,
+  onMerge,
 }: UseCaseResultCardProps) {
   const [selectedMatch, setSelectedMatch] = useState<SimilarUseCaseResult | null>(null);
 
@@ -119,7 +121,24 @@ export const UseCaseResultCard = memo(function UseCaseResultCard({
         getMatchId={(m) => m.useCase.id}
         newItemLabel="New Use Case (from intake)"
         existingItemLabel="Existing Use Case"
-        actionHint="If this is a duplicate, you can delete this use case from the intake results before saving."
+        actionHint={
+          <div className="space-y-2">
+            <p>If this is a duplicate, you can delete this use case from the intake results before saving.</p>
+            {onMerge && selectedMatch && (
+              <Button
+                size="small"
+                variant="primary"
+                icon={<FiGitMerge />}
+                onClick={() => {
+                  onMerge(index, [selectedMatch.useCase.id]);
+                  setSelectedMatch(null);
+                }}
+              >
+                Merge with Existing
+              </Button>
+            )}
+          </div>
+        }
         renderMatchListItem={(match) => (
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm font-medium text-[var(--text)] line-clamp-2">

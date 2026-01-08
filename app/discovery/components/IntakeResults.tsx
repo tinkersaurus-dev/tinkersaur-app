@@ -17,6 +17,7 @@ import { UseCaseResultCard } from './UseCaseResultCard';
 import { FeedbackResultCard } from './FeedbackResultCard';
 import { OutcomeResultCard } from './OutcomeResultCard';
 import { IntakePersonaMergeModal, type PendingMerge } from './IntakePersonaMergeModal';
+import { IntakeUseCaseMergeModal, type PendingUseCaseMerge } from './IntakeUseCaseMergeModal';
 
 function formatProcessingTime(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -53,14 +54,23 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
   const [deletedFeedbackIndexes, setDeletedFeedbackIndexes] = useState<Set<number>>(new Set());
   const [deletedOutcomeIndexes, setDeletedOutcomeIndexes] = useState<Set<number>>(new Set());
 
-  // Merge modal state
+  // Persona merge modal state
   const [mergeContext, setMergeContext] = useState<{
     intakePersonaIndex: number;
     existingPersonaId: string;
   } | null>(null);
 
-  // Track pending merges (to be executed on save)
+  // Track pending persona merges (to be executed on save)
   const [pendingMerges, setPendingMerges] = useState<PendingMerge[]>([]);
+
+  // Use case merge modal state
+  const [useCaseMergeContext, setUseCaseMergeContext] = useState<{
+    intakeUseCaseIndex: number;
+    existingUseCaseIds: string[];
+  } | null>(null);
+
+  // Track pending use case merges (to be executed on save)
+  const [pendingUseCaseMerges, setPendingUseCaseMerges] = useState<PendingUseCaseMerge[]>([]);
 
   // Per-item solution selections (keyed by original index, initialized with defaultSolutionId)
   const [useCaseSolutionIds, setUseCaseSolutionIds] = useState<Map<number, string | null>>(() => {
@@ -107,6 +117,19 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
     // Mark the intake persona as deleted (it will be merged instead of created)
     setDeletedPersonaIndexes(prev => new Set([...prev, pendingMerge.intakePersonaIndex]));
     setMergeContext(null);
+  }, []);
+
+  // Use case merge handler - opens merge modal for intake use case with existing use cases
+  const handleMergeUseCase = useCallback((intakeUseCaseIndex: number, existingUseCaseIds: string[]) => {
+    setUseCaseMergeContext({ intakeUseCaseIndex, existingUseCaseIds });
+  }, []);
+
+  // After use case merge is confirmed, track it for execution on save
+  const handleUseCaseMergeConfirmed = useCallback((pendingMerge: PendingUseCaseMerge) => {
+    setPendingUseCaseMerges(prev => [...prev, pendingMerge]);
+    // Mark the intake use case as deleted (it will be merged instead of created)
+    setDeletedUseCaseIndexes(prev => new Set([...prev, pendingMerge.intakeUseCaseIndex]));
+    setUseCaseMergeContext(null);
   }, []);
 
   // Solution change handlers
@@ -236,6 +259,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
       feedbackSolutionIds,
       outcomeSolutionIds,
       pendingMerges,
+      pendingUseCaseMerges,
     });
 
     if (success) {
@@ -375,6 +399,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
                         solutions={solutions}
                         selectedSolutionId={useCaseSolutionIds.get(index) ?? null}
                         onSolutionChange={handleUseCaseSolutionChange}
+                        onMerge={handleMergeUseCase}
                       />
                     );
                   })}
@@ -501,6 +526,20 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
           intakePersonaIndex={mergeContext.intakePersonaIndex}
           existingPersonaId={mergeContext.existingPersonaId}
           onMergeConfirmed={handleMergeConfirmed}
+        />
+      )}
+
+      {/* Intake Use Case Merge Modal */}
+      {useCaseMergeContext && (
+        <IntakeUseCaseMergeModal
+          open={true}
+          onClose={() => setUseCaseMergeContext(null)}
+          intakeUseCase={result.useCases[useCaseMergeContext.intakeUseCaseIndex]}
+          intakeUseCaseIndex={useCaseMergeContext.intakeUseCaseIndex}
+          existingUseCaseIds={useCaseMergeContext.existingUseCaseIds}
+          onMergeConfirmed={handleUseCaseMergeConfirmed}
+          intakeSolutionId={useCaseSolutionIds.get(useCaseMergeContext.intakeUseCaseIndex)}
+          solutions={solutions}
         />
       )}
     </div>

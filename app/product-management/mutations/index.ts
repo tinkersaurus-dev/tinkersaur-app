@@ -20,6 +20,7 @@ export {
   useCreateUseCase,
   useUpdateUseCase,
   useDeleteUseCase,
+  useMergeUseCases,
 } from './useUseCaseMutations';
 
 export {

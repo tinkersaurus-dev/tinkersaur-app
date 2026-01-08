@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback, ExtractedOutcome, SourceTypeKey } from '~/core/entities/discovery';
 import { metadataToIntakeSource } from '~/core/entities/discovery';
 import type { CreatePersonaDto, MergedPersonaData } from '~/core/entities/product-management/types/Persona';
-import type { CreateUseCaseDto } from '~/core/entities/product-management/types/UseCase';
+import type { CreateUseCaseDto, MergedUseCaseData } from '~/core/entities/product-management/types/UseCase';
 import type { CreateFeedbackDto } from '~/core/entities/discovery/types/Feedback';
 import type { CreateOutcomeDto } from '~/core/entities/discovery/types/Outcome';
 import { personaApi } from '~/core/entities/product-management/api/personaApi';
@@ -18,6 +18,12 @@ export interface PendingMerge {
   intakePersonaIndex: number;
   existingPersonaId: string;
   mergedPersona: MergedPersonaData;
+}
+
+export interface PendingUseCaseMerge {
+  intakeUseCaseIndex: number;
+  existingUseCaseIds: string[];
+  mergedUseCase: MergedUseCaseData;
 }
 
 interface SaveIntakeResultParams {
@@ -36,6 +42,7 @@ interface SaveIntakeResultParams {
   feedbackSolutionIds: Map<number, string | null>;
   outcomeSolutionIds: Map<number, string | null>;
   pendingMerges: PendingMerge[];
+  pendingUseCaseMerges: PendingUseCaseMerge[];
 }
 
 interface UseSaveIntakeResultReturn {
@@ -65,6 +72,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
       feedbackSolutionIds,
       outcomeSolutionIds,
       pendingMerges,
+      pendingUseCaseMerges,
     }: SaveIntakeResultParams): Promise<boolean> => {
       setIsSaving(true);
       setError(null);
@@ -74,13 +82,24 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
         const intakeSourceDto = metadataToIntakeSource(teamId, sourceType, metadata);
         const intakeSource = await intakeSourceApi.create(intakeSourceDto);
 
-        // Step 0.5: Execute pending merges (merges from intake flow that were deferred until save)
+        // Step 0.5: Execute pending persona merges (merges from intake flow that were deferred until save)
         // This merges existing personas with intake data, adding this intake source to the merged persona
         for (const pendingMerge of pendingMerges) {
           await personaApi.merge({
             teamId,
             personaIds: [pendingMerge.existingPersonaId],
             mergedPersona: pendingMerge.mergedPersona,
+            additionalIntakeSourceIds: [intakeSource.id],
+          });
+        }
+
+        // Step 0.75: Execute pending use case merges (merges from intake flow that were deferred until save)
+        // This merges existing use cases with intake data, adding this intake source to the merged use case
+        for (const pendingMerge of pendingUseCaseMerges) {
+          await useCaseApi.merge({
+            teamId,
+            useCaseIds: pendingMerge.existingUseCaseIds,
+            mergedUseCase: pendingMerge.mergedUseCase,
             additionalIntakeSourceIds: [intakeSource.id],
           });
         }

@@ -28,7 +28,7 @@ const colorSchemeStyles = {
   },
   brand: {
     text: 'text-[var(--text-brand)]',
-    textHover: 'hover:text-[var(--text-brand)]',
+    textHover: 'hover:text-[var(--text-brand-hover)]',
     textSelected: 'text-[var(--text-brand-selected)]',
     indicatorHorizontal: 'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[var(--text-brand-selected)]',
     indicatorVertical: 'border-l-2 border-[var(--text-brand)]',

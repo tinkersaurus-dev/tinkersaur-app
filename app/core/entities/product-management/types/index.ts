@@ -20,8 +20,22 @@ export type { Solution, SolutionType, CreateSolutionDto, UpdateSolutionDto } fro
 export { SolutionSchema, SolutionTypeSchema, CreateSolutionSchema, UpdateSolutionSchema } from './Solution';
 
 // UseCase
-export type { UseCase, CreateUseCaseDto, UpdateUseCaseDto, FindSimilarUseCasesRequest, SimilarUseCaseResult } from './UseCase';
-export { UseCaseSchema, CreateUseCaseSchema, UpdateUseCaseSchema } from './UseCase';
+export type {
+  UseCase,
+  CreateUseCaseDto,
+  UpdateUseCaseDto,
+  FindSimilarUseCasesRequest,
+  SimilarUseCaseResult,
+  MergedUseCaseData,
+  MergeUseCasesRequest,
+} from './UseCase';
+export {
+  UseCaseSchema,
+  CreateUseCaseSchema,
+  UpdateUseCaseSchema,
+  MergedUseCaseDataSchema,
+  MergeUseCasesRequestSchema,
+} from './UseCase';
 
 // Requirement
 export type { Requirement, RequirementType, CreateRequirementDto, UpdateRequirementDto } from './Requirement';

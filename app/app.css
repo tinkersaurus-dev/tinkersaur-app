@@ -100,12 +100,12 @@
 
 /* Theme Variables - Light Mode (Default) */
 :root {
-  --bg-brand: oklch(.22 0.05 262);
-  --bg-brand-hover: oklch(38.024% 0.15934 261.641);
-  --text-brand: oklch(0.9952 0.0235 106.82);
+  --bg-brand: oklch(0.5151 0.0294 117.1);
+  --bg-brand-hover: oklch(0.7446 0.0665 100.97);
+  --text-brand: oklch(95.989% 0.01329 116.035);
   --text-brand-muted: oklch(0.4 0.01 213);
-  --text-brand-selected: oklch(72.948% 0.10378 214.881);
-  --text-brand-hover: oklch(0.4 0.01 213);
+  --text-brand-selected: oklch(0.9338 0.0396 80.89);
+  --text-brand-hover: oklch(100% 0.00011 271.152);
 
   --bg-dark: oklch(95.213% 0.00011 271.152);
   --bg: oklch(97.015% 0.00011 271.152);

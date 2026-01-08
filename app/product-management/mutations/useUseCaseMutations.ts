@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from '~/core/query/queryKeys';
 import { useCaseApi } from '~/core/entities/product-management/api';
-import type { CreateUseCaseDto } from '~/core/entities/product-management/types';
+import type { CreateUseCaseDto, MergeUseCasesRequest } from '~/core/entities/product-management/types';
 
 /**
  * Mutation hook for creating a use case
@@ -87,6 +87,31 @@ export function useAssignUseCaseToSolution() {
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to update use case assignment');
+    },
+  });
+}
+
+/**
+ * Mutation hook for merging use cases
+ */
+export function useMergeUseCases() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: MergeUseCasesRequest) => useCaseApi.merge(request),
+    onSuccess: () => {
+      // Invalidate all use case queries since source use cases are now merged
+      queryClient.invalidateQueries({ queryKey: queryKeys.useCases.all });
+      // Invalidate persona-use case associations
+      queryClient.invalidateQueries({ queryKey: queryKeys.personaUseCases.all });
+      // Invalidate feedback-use case associations
+      queryClient.invalidateQueries({ queryKey: queryKeys.feedbackUseCases.all });
+      // Invalidate requirements (they've been transferred)
+      queryClient.invalidateQueries({ queryKey: queryKeys.requirements.all });
+      toast.success('Use cases merged successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to merge use cases');
     },
   });
 }
