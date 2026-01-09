@@ -8,16 +8,17 @@
  * when the intake results are saved (to ensure data integrity if abandoned).
  */
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { FiClipboard, FiAlertTriangle, FiZap } from 'react-icons/fi';
-import { Modal, Button, Card } from '~/core/components/ui';
+import { FiClipboard, FiAlertTriangle } from 'react-icons/fi';
+import { Card } from '~/core/components/ui';
 import type { ExtractedUseCase } from '~/core/entities/discovery';
 import type { UseCase, MergedUseCaseData, Solution } from '~/core/entities/product-management/types';
 import { useCaseApi } from '~/core/entities/product-management/api';
 import { queryKeys } from '~/core/query/queryKeys';
 import { STALE_TIMES } from '~/core/query/queryClient';
-import { useMergeUseCasesLLM } from '~/product-management/hooks/useMergeUseCasesLLM';
+import { useMergeUseCasesLLM } from '~/discovery/hooks';
+import { TwoStepMergeModal, MergeInstructionsField, DeferredExecutionWarning } from './TwoStepMergeModal';
 
 export interface PendingUseCaseMerge {
   intakeUseCaseIndex: number;
@@ -46,8 +47,6 @@ export function IntakeUseCaseMergeModal({
   intakeSolutionId,
   solutions = [],
 }: IntakeUseCaseMergeModalProps) {
-  const [instructions, setInstructions] = useState('');
-
   // Fetch the existing use cases details using useQueries (proper hook usage)
   const existingUseCaseQueries = useQueries({
     queries: existingUseCaseIds.map(id => ({
@@ -63,9 +62,6 @@ export function IntakeUseCaseMergeModal({
   const existingLoading = existingUseCaseQueries.some(q => q.isLoading);
 
   const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError, reset } = useMergeUseCasesLLM();
-
-  // Derive step from whether we have a result
-  const step = llmResult ? 'preview' : 'confirm';
 
   // Check solution compatibility
   const { hasConflictingSolutions, commonSolution } = useMemo(() => {
@@ -103,7 +99,7 @@ export function IntakeUseCaseMergeModal({
       })),
     ];
 
-    llmMerge(allUseCases, instructions || undefined);
+    llmMerge(allUseCases);
   };
 
   const handleConfirmMerge = () => {
@@ -115,67 +111,24 @@ export function IntakeUseCaseMergeModal({
       existingUseCaseIds,
       mergedUseCase: llmResult,
     });
-    setInstructions('');
-    reset();
     onClose();
   };
-
-  const handleClose = () => {
-    setInstructions('');
-    reset();
-    onClose();
-  };
-
-  // Custom footer for each step
-  const confirmFooter = (
-    <div className="flex justify-end gap-3">
-      <Button variant="default" onClick={handleClose}>
-        Cancel
-      </Button>
-      <Button
-        variant="primary"
-        onClick={handleGeneratePreview}
-        disabled={llmLoading || existingLoading || existingUseCases.length === 0 || hasConflictingSolutions}
-      >
-        {llmLoading ? (
-          <>
-            <FiZap className="animate-pulse mr-2" />
-            Generating...
-          </>
-        ) : (
-          <>
-            <FiZap className="mr-2" />
-            Generate Merged Use Case
-          </>
-        )}
-      </Button>
-    </div>
-  );
-
-  const previewFooter = (
-    <div className="flex justify-end gap-3">
-      <Button variant="default" onClick={handleClose}>
-        Cancel
-      </Button>
-      <Button
-        variant="primary"
-        onClick={handleConfirmMerge}
-      >
-        Confirm Merge
-      </Button>
-    </div>
-  );
 
   return (
-    <Modal
+    <TwoStepMergeModal
       open={open}
-      onCancel={handleClose}
+      onClose={onClose}
       title="Merge with Existing Use Cases"
-      width={800}
-      footer={step === 'confirm' ? confirmFooter : previewFooter}
-    >
-      {step === 'confirm' && (
-        <div className="space-y-4">
+      isGenerating={llmLoading}
+      generationError={llmError}
+      result={llmResult}
+      onReset={reset}
+      onGenerate={handleGeneratePreview}
+      onConfirm={handleConfirmMerge}
+      generateButtonLabel="Generate Merged Use Case"
+      canGenerate={!existingLoading && existingUseCases.length > 0 && !hasConflictingSolutions}
+      renderConfirmStep={() => (
+        <>
           {/* Solution conflict warning */}
           {hasConflictingSolutions && (
             <div className="p-3 bg-[var(--danger)]/10 border border-[var(--danger)] rounded text-sm text-[var(--danger)] flex items-start gap-2">
@@ -243,59 +196,37 @@ export function IntakeUseCaseMergeModal({
               The merged use case will be assigned to: <strong>{commonSolution.name}</strong>
             </div>
           )}
-
-          {/* Optional instructions */}
-          <div>
-            <label className="block text-sm font-medium text-[var(--text)] mb-2">
-              Additional Instructions (optional)
-            </label>
-            <textarea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="E.g., Prioritize the intake use case's workflow..."
-              className="w-full h-24 px-3 py-2 text-sm border border-[var(--border)] rounded bg-[var(--bg)] text-[var(--text)] placeholder:text-[var(--text-muted)] resize-none focus:outline-none focus:border-[var(--primary)]"
-            />
+        </>
+      )}
+      renderInstructions={(value, onChange) => (
+        <MergeInstructionsField
+          value={value}
+          onChange={onChange}
+          placeholder="E.g., Prioritize the intake use case's workflow..."
+        />
+      )}
+      renderPreviewStep={(result) => (
+        <Card className="p-4">
+          <div className="flex items-center gap-3 mb-4">
+            <FiClipboard className="w-6 h-6 text-blue-500" />
+            <div className="text-lg font-medium text-[var(--text)]">
+              {result.name}
+            </div>
           </div>
 
-          {/* LLM Error */}
-          {llmError && (
-            <div className="p-3 bg-[var(--danger)]/10 border border-[var(--danger)] rounded text-sm text-[var(--danger)]">
-              {llmError}
+          <p className="text-sm text-[var(--text)]">{result.description}</p>
+
+          {commonSolution && (
+            <div className="mt-4 pt-4 border-t border-[var(--border)]">
+              <span className="text-sm text-[var(--text-muted)]">Solution: </span>
+              <span className="text-sm font-medium text-[var(--text)]">{commonSolution.name}</span>
             </div>
           )}
-        </div>
+        </Card>
       )}
-
-      {step === 'preview' && llmResult && (
-        <div className="space-y-4">
-          {/* Preview merged use case */}
-          <Card className="p-4">
-            <div className="flex items-center gap-3 mb-4">
-              <FiClipboard className="w-6 h-6 text-blue-500" />
-              <div className="text-lg font-medium text-[var(--text)]">
-                {llmResult.name}
-              </div>
-            </div>
-
-            <p className="text-sm text-[var(--text)]">{llmResult.description}</p>
-
-            {commonSolution && (
-              <div className="mt-4 pt-4 border-t border-[var(--border)]">
-                <span className="text-sm text-[var(--text-muted)]">Solution: </span>
-                <span className="text-sm font-medium text-[var(--text)]">{commonSolution.name}</span>
-              </div>
-            )}
-          </Card>
-
-          <div className="p-3 bg-[var(--warning)]/10 border border-[var(--warning)] rounded">
-            <p className="text-sm text-[var(--text)]">
-              <strong>Note:</strong> The merge will be executed when you save the intake results.
-              The existing use cases will be marked as merged and hidden, with all their requirements,
-              design work, persona associations, and feedback associations transferred to the new merged use case.
-            </p>
-          </div>
-        </div>
-      )}
-    </Modal>
+      previewWarning={
+        <DeferredExecutionWarning message="The merge will be executed when you save the intake results. The existing use cases will be marked as merged and hidden, with all their requirements, design work, persona associations, and feedback associations transferred to the new merged use case." />
+      }
+    />
   );
 }

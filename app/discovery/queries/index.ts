@@ -3,6 +3,7 @@
  * TanStack Query hooks for fetching discovery data
  */
 
+export { createBatchSimilarityQueryHook } from './createBatchSimilarityQueryHook';
 export { useFeedbacksPaginatedQuery } from './useFeedbacksPaginatedQuery';
 export { useFeedbackQuery } from './useFeedbackQuery';
 export { useFeedbackWithChildrenQuery } from './useFeedbackWithChildrenQuery';

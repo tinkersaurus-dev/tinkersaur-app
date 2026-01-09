@@ -8,12 +8,12 @@
  * when the intake results are saved (to ensure data integrity if abandoned).
  */
 
-import { useState } from 'react';
-import { FiUser, FiTarget, FiAlertCircle, FiZap } from 'react-icons/fi';
-import { Modal, Button, Card } from '~/core/components/ui';
+import { FiUser, FiTarget, FiAlertCircle } from 'react-icons/fi';
+import { Card } from '~/core/components/ui';
 import type { ExtractedPersona } from '~/core/entities/discovery';
-import { useMergePersonasLLM } from '~/product-management/hooks/useMergePersonasLLM';
+import { useMergePersonasLLM } from '~/discovery/hooks';
 import { usePersonaQuery } from '~/product-management/queries';
+import { TwoStepMergeModal, MergeInstructionsField, DeferredExecutionWarning } from './TwoStepMergeModal';
 import type { PendingMerge } from '~/discovery/hooks/useSaveIntakeResult';
 
 export type { PendingMerge };
@@ -35,15 +35,10 @@ export function IntakePersonaMergeModal({
   existingPersonaId,
   onMergeConfirmed,
 }: IntakePersonaMergeModalProps) {
-  const [instructions, setInstructions] = useState('');
-
   // Fetch the existing persona details
   const { data: existingPersona, isLoading: existingLoading } = usePersonaQuery(existingPersonaId);
 
   const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError, reset } = useMergePersonasLLM();
-
-  // Derive step from whether we have a result
-  const step = llmResult ? 'preview' : 'confirm';
 
   const handleGeneratePreview = () => {
     if (!existingPersona) return;
@@ -58,7 +53,7 @@ export function IntakePersonaMergeModal({
       demographics: intakePersona.demographics,
     };
 
-    llmMerge([intakePersonaForLLM, existingPersona], instructions || undefined);
+    llmMerge([intakePersonaForLLM, existingPersona]);
   };
 
   const handleConfirmMerge = () => {
@@ -70,67 +65,24 @@ export function IntakePersonaMergeModal({
       existingPersonaId,
       mergedPersona: llmResult,
     });
-    setInstructions('');
-    reset();
     onClose();
   };
-
-  const handleClose = () => {
-    setInstructions('');
-    reset();
-    onClose();
-  };
-
-  // Custom footer for each step
-  const confirmFooter = (
-    <div className="flex justify-end gap-3">
-      <Button variant="default" onClick={handleClose}>
-        Cancel
-      </Button>
-      <Button
-        variant="primary"
-        onClick={handleGeneratePreview}
-        disabled={llmLoading || existingLoading || !existingPersona}
-      >
-        {llmLoading ? (
-          <>
-            <FiZap className="animate-pulse mr-2" />
-            Generating...
-          </>
-        ) : (
-          <>
-            <FiZap className="mr-2" />
-            Generate Merged Persona
-          </>
-        )}
-      </Button>
-    </div>
-  );
-
-  const previewFooter = (
-    <div className="flex justify-end gap-3">
-      <Button variant="default" onClick={handleClose}>
-        Cancel
-      </Button>
-      <Button
-        variant="primary"
-        onClick={handleConfirmMerge}
-      >
-        Confirm Merge
-      </Button>
-    </div>
-  );
 
   return (
-    <Modal
+    <TwoStepMergeModal
       open={open}
-      onCancel={handleClose}
+      onClose={onClose}
       title="Merge with Existing Persona"
-      width={800}
-      footer={step === 'confirm' ? confirmFooter : previewFooter}
-    >
-      {step === 'confirm' && (
-        <div className="space-y-4">
+      isGenerating={llmLoading}
+      generationError={llmError}
+      result={llmResult}
+      onReset={reset}
+      onGenerate={handleGeneratePreview}
+      onConfirm={handleConfirmMerge}
+      generateButtonLabel="Generate Merged Persona"
+      canGenerate={!existingLoading && !!existingPersona}
+      renderConfirmStep={() => (
+        <>
           <div className="text-sm text-[var(--text-muted)]">
             Merge the new intake persona with an existing persona:
           </div>
@@ -178,102 +130,81 @@ export function IntakePersonaMergeModal({
               )}
             </Card>
           </div>
-
-          {/* Optional instructions */}
-          <div>
-            <label className="block text-sm font-medium text-[var(--text)] mb-2">
-              Additional Instructions (optional)
-            </label>
-            <textarea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="E.g., Prioritize the intake persona's goals..."
-              className="w-full h-24 px-3 py-2 text-sm border border-[var(--border)] rounded bg-[var(--bg)] text-[var(--text)] placeholder:text-[var(--text-muted)] resize-none focus:outline-none focus:border-[var(--primary)]"
-            />
+        </>
+      )}
+      renderInstructions={(value, onChange) => (
+        <MergeInstructionsField
+          value={value}
+          onChange={onChange}
+          placeholder="E.g., Prioritize the intake persona's goals..."
+        />
+      )}
+      renderPreviewStep={(result) => (
+        <Card className="p-4">
+          <div className="flex items-center gap-3 mb-4">
+            <FiUser className="w-6 h-6 text-[var(--primary)]" />
+            <div>
+              <div className="text-lg font-medium text-[var(--text)]">
+                {result.name}
+              </div>
+              <div className="text-sm text-[var(--text-muted)]">
+                {result.role || 'No role'}
+              </div>
+            </div>
           </div>
 
-          {/* LLM Error */}
-          {llmError && (
-            <div className="p-3 bg-[var(--danger)]/10 border border-[var(--danger)] rounded text-sm text-[var(--danger)]">
-              {llmError}
-            </div>
-          )}
-        </div>
-      )}
+          <p className="text-sm text-[var(--text)] mb-4">{result.description}</p>
 
-      {step === 'preview' && llmResult && (
-        <div className="space-y-4">
-          {/* Preview merged persona */}
-          <Card className="p-4">
-            <div className="flex items-center gap-3 mb-4">
-              <FiUser className="w-6 h-6 text-[var(--primary)]" />
-              <div>
-                <div className="text-lg font-medium text-[var(--text)]">
-                  {llmResult.name}
-                </div>
-                <div className="text-sm text-[var(--text-muted)]">
-                  {llmResult.role || 'No role'}
-                </div>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Goals */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <FiTarget className="w-4 h-4 text-green-500" />
+                <span className="text-sm font-medium text-[var(--text)]">
+                  Goals ({result.goals.length})
+                </span>
               </div>
+              <ul className="text-sm text-[var(--text-muted)] space-y-1 max-h-32 overflow-y-auto">
+                {result.goals.slice(0, 5).map((goal, i) => (
+                  <li key={i} className="truncate">
+                    {goal}
+                  </li>
+                ))}
+                {result.goals.length > 5 && (
+                  <li className="text-[var(--text-disabled)]">
+                    +{result.goals.length - 5} more
+                  </li>
+                )}
+              </ul>
             </div>
 
-            <p className="text-sm text-[var(--text)] mb-4">{llmResult.description}</p>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Goals */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <FiTarget className="w-4 h-4 text-green-500" />
-                  <span className="text-sm font-medium text-[var(--text)]">
-                    Goals ({llmResult.goals.length})
-                  </span>
-                </div>
-                <ul className="text-sm text-[var(--text-muted)] space-y-1 max-h-32 overflow-y-auto">
-                  {llmResult.goals.slice(0, 5).map((goal, i) => (
-                    <li key={i} className="truncate">
-                      {goal}
-                    </li>
-                  ))}
-                  {llmResult.goals.length > 5 && (
-                    <li className="text-[var(--text-disabled)]">
-                      +{llmResult.goals.length - 5} more
-                    </li>
-                  )}
-                </ul>
+            {/* Pain Points */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <FiAlertCircle className="w-4 h-4 text-red-500" />
+                <span className="text-sm font-medium text-[var(--text)]">
+                  Pain Points ({result.painPoints.length})
+                </span>
               </div>
-
-              {/* Pain Points */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <FiAlertCircle className="w-4 h-4 text-red-500" />
-                  <span className="text-sm font-medium text-[var(--text)]">
-                    Pain Points ({llmResult.painPoints.length})
-                  </span>
-                </div>
-                <ul className="text-sm text-[var(--text-muted)] space-y-1 max-h-32 overflow-y-auto">
-                  {llmResult.painPoints.slice(0, 5).map((point, i) => (
-                    <li key={i} className="truncate">
-                      {point}
-                    </li>
-                  ))}
-                  {llmResult.painPoints.length > 5 && (
-                    <li className="text-[var(--text-disabled)]">
-                      +{llmResult.painPoints.length - 5} more
-                    </li>
-                  )}
-                </ul>
-              </div>
+              <ul className="text-sm text-[var(--text-muted)] space-y-1 max-h-32 overflow-y-auto">
+                {result.painPoints.slice(0, 5).map((point, i) => (
+                  <li key={i} className="truncate">
+                    {point}
+                  </li>
+                ))}
+                {result.painPoints.length > 5 && (
+                  <li className="text-[var(--text-disabled)]">
+                    +{result.painPoints.length - 5} more
+                  </li>
+                )}
+              </ul>
             </div>
-          </Card>
-
-          <div className="p-3 bg-[var(--warning)]/10 border border-[var(--warning)] rounded">
-            <p className="text-sm text-[var(--text)]">
-              <strong>Note:</strong> The merge will be executed when you save the intake results.
-              The existing persona will be marked as merged and hidden, with all its associations transferred to the new merged persona.
-            </p>
           </div>
-        </div>
+        </Card>
       )}
-    </Modal>
+      previewWarning={
+        <DeferredExecutionWarning message="The merge will be executed when you save the intake results. The existing persona will be marked as merged and hidden, with all its associations transferred to the new merged persona." />
+      }
+    />
   );
 }
