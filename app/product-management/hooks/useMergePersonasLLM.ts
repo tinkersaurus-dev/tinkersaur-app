@@ -4,7 +4,7 @@
  */
 
 import { useFetcher } from 'react-router';
-import { useCallback, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import type { MergedPersonaData, Persona } from '~/core/entities/product-management/types';
 
 interface PersonaInput {
@@ -28,7 +28,7 @@ interface MergePersonasLLMResponse {
 
 export function useMergePersonasLLM() {
   const fetcher = useFetcher<MergePersonasLLMResponse>();
-  const lastSubmitKey = useRef<string | null>(null);
+  const [lastSubmitKey, setLastSubmitKey] = useState<string | null>(null);
 
   const isLoading = fetcher.state === 'submitting' || fetcher.state === 'loading';
 
@@ -45,7 +45,7 @@ export function useMergePersonasLLM() {
       }));
 
       // Track the submission to help with reset logic
-      lastSubmitKey.current = Date.now().toString();
+      setLastSubmitKey(Date.now().toString());
 
       fetcher.submit(
         JSON.stringify({
@@ -63,11 +63,12 @@ export function useMergePersonasLLM() {
   );
 
   const reset = useCallback(() => {
-    lastSubmitKey.current = null;
+    setLastSubmitKey(null);
   }, []);
 
   // Derive result and error directly from fetcher data
-  const result = fetcher.data?.success ? fetcher.data.mergedPersona : null;
+  // Gate with lastSubmitKey so reset() can clear stale results
+  const result = fetcher.data?.success && lastSubmitKey ? fetcher.data.mergedPersona : null;
   const error = fetcher.data?.success === false ? fetcher.data.error : null;
 
   return {

@@ -49,15 +49,26 @@ export const FeedbackSchema = z.object({
   type: FeedbackTypeSchema,
   content: z.string().max(2000),
   quotes: z.array(z.string()),
+  parentFeedbackId: z.string().uuid().nullable(),
+  weight: z.number().default(0),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
 
 export type Feedback = z.infer<typeof FeedbackSchema>;
 
-// Schema for creating a new feedback (without generated fields)
+// Feedback with children for detail view
+export const FeedbackWithChildrenSchema = FeedbackSchema.extend({
+  children: z.array(FeedbackSchema),
+});
+
+export type FeedbackWithChildren = z.infer<typeof FeedbackWithChildrenSchema>;
+
+// Schema for creating a new feedback (without generated/computed fields)
 export const CreateFeedbackSchema = FeedbackSchema.omit({
   id: true,
+  parentFeedbackId: true,
+  weight: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -81,4 +92,16 @@ export interface SimilarFeedbackResult {
   feedback: Feedback;
   similarity: number;
   matchType: 'content';
+}
+
+// Merge request/response types
+export interface MergeFeedbackRequest {
+  teamId: string;
+  parentFeedbackId: string;
+  childFeedbackIds: string[];
+}
+
+export interface MergeFeedbackResponse {
+  parent: Feedback;
+  mergedCount: number;
 }

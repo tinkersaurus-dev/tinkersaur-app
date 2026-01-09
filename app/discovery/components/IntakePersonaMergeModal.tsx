@@ -40,7 +40,7 @@ export function IntakePersonaMergeModal({
   // Fetch the existing persona details
   const { data: existingPersona, isLoading: existingLoading } = usePersonaQuery(existingPersonaId);
 
-  const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError } = useMergePersonasLLM();
+  const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError, reset } = useMergePersonasLLM();
 
   // Derive step from whether we have a result
   const step = llmResult ? 'preview' : 'confirm';
@@ -70,11 +70,14 @@ export function IntakePersonaMergeModal({
       existingPersonaId,
       mergedPersona: llmResult,
     });
+    setInstructions('');
+    reset();
     onClose();
   };
 
   const handleClose = () => {
     setInstructions('');
+    reset();
     onClose();
   };
 

@@ -14,6 +14,8 @@ export const APP_CONFIG = {
   pagination: {
     /** Default number of items per page */
     defaultPageSize: 10,
+    /** Available page size options for the page size selector */
+    pageSizeOptions: [10, 20, 50],
     /** Number of pages before showing ellipsis in pagination controls */
     ellipsisThreshold: 7,
     /** Maximum number of page buttons to show in middle section */

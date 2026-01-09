@@ -1,29 +1,36 @@
 /**
- * Persona Detail Page
- * Displays full persona information with linked use cases
+ * Discovery Use Case Detail Page
+ * Displays use case details with linked personas and feedback
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary, useQueries } from '@tanstack/react-query';
-import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle, FiArchive, FiAlertTriangle } from 'react-icons/fi';
+import { FiArrowLeft, FiTrash2, FiUser, FiArchive, FiAlertTriangle, FiMessageCircle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Card, Modal, Tabs, Empty, Table } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { PersonaUseCase } from '~/core/entities/product-management/types';
 import type { Feedback } from '~/core/entities/discovery/types';
-import { usePersonaQuery, usePersonaUseCasesQuery } from '../queries';
-import { useDeletePersona, useCreatePersonaUseCase, useDeletePersonaUseCase } from '../mutations';
-import { loadPersonaDetail } from '../loaders';
-import type { PersonaDetailLoaderData } from '../loaders';
-import type { Route } from './+types/persona-detail';
-import { useFeedbacksPaginatedQuery } from '~/discovery/queries';
-import { intakeSourceApi } from '~/core/entities/discovery/api';
-import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
+import { useUseCaseQuery, useUseCasePersonasQuery, usePersonasQuery } from '../queries';
+import { useDeleteUseCase, useCreatePersonaUseCase, useDeletePersonaUseCase } from '../mutations';
+import { loadDiscoveryUseCaseDetail } from '../loaders';
+import type { DiscoveryUseCaseDetailLoaderData } from '../loaders';
+import type { Route } from './+types/discovery-use-case-detail';
+import { useFeedbacksPaginatedQuery, useIntakeSourceQuery } from '~/discovery/queries';
 import { queryKeys } from '~/core/query/queryKeys';
 import { STALE_TIMES } from '~/core/query/queryClient';
-import { useCaseApi } from '~/core/entities/product-management/api';
+import { personaApi } from '~/core/entities/product-management/api';
+import { intakeSourceApi } from '~/core/entities/discovery/api';
+import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
+
+// Quote row type for the quotes table
+interface QuoteRow {
+  id: string;
+  quote: string;
+  source: string;
+}
 
 // Feedback row type for table display
 interface FeedbackRow {
@@ -35,32 +42,36 @@ interface FeedbackRow {
 
 // Loader function for SSR data fetching
 export async function loader({ params }: Route.LoaderArgs) {
-  const { personaId } = params;
-  if (!personaId) {
-    throw new Response('Persona ID required', { status: 400 });
+  const { useCaseId } = params;
+  if (!useCaseId) {
+    throw new Response('Use Case ID required', { status: 400 });
   }
-  return loadPersonaDetail(personaId);
+  return loadDiscoveryUseCaseDetail(useCaseId);
 }
 
-function PersonaDetailContent() {
-  const { personaId } = useParams<{ personaId: string }>();
+function DiscoveryUseCaseDetailContent() {
+  const { useCaseId } = useParams<{ useCaseId: string }>();
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('goals-painpoints');
+  const [activeTab, setActiveTab] = useState('quotes');
 
   // TanStack Query hooks
-  const { data: persona } = usePersonaQuery(personaId);
-  const { data: personaUseCases = [] } = usePersonaUseCasesQuery(personaId);
-  const deletePersona = useDeletePersona();
+  const { data: useCase } = useUseCaseQuery(useCaseId);
+  const { data: useCasePersonas = [] } = useUseCasePersonasQuery(useCaseId);
+  const { data: allPersonas = [] } = usePersonasQuery(useCase?.teamId);
+  const deleteUseCase = useDeleteUseCase();
   const createPersonaUseCase = useCreatePersonaUseCase();
   const deletePersonaUseCase = useDeletePersonaUseCase();
 
-  // Fetch feedback for this persona
+  // Fetch intake source for quote source display
+  const { data: intakeSource } = useIntakeSourceQuery(useCase?.intakeSourceId);
+
+  // Fetch feedback for this use case
   const { data: feedbackData } = useFeedbacksPaginatedQuery(
-    persona?.teamId && personaId ? {
-      teamId: persona.teamId,
-      personaIds: [personaId],
+    useCase?.teamId && useCaseId ? {
+      teamId: useCase.teamId,
+      useCaseIds: [useCaseId],
       pageSize: 100,
     } : null
   );
@@ -75,34 +86,34 @@ function PersonaDetailContent() {
     [feedbackData]
   );
 
-  // Fetch use case details for displaying names
-  const useCaseIds = useMemo(() =>
-    personaUseCases.map((puc: PersonaUseCase) => puc.useCaseId),
-    [personaUseCases]
+  // Fetch persona details for displaying names
+  const personaIds = useMemo(() =>
+    useCasePersonas.map((puc: PersonaUseCase) => puc.personaId),
+    [useCasePersonas]
   );
 
-  const useCaseQueries = useQueries({
-    queries: useCaseIds.map((id: string) => ({
-      queryKey: queryKeys.useCases.detail(id),
-      queryFn: () => useCaseApi.get(id),
-      staleTime: STALE_TIMES.useCases,
+  const personaQueries = useQueries({
+    queries: personaIds.map((id: string) => ({
+      queryKey: queryKeys.personas.detail(id),
+      queryFn: () => personaApi.get(id),
+      staleTime: STALE_TIMES.personas,
       enabled: !!id,
     })),
   });
 
-  // Create a map of useCaseId -> useCaseName
-  const useCaseNameMap = useMemo(() => {
+  // Create a map of personaId -> personaName
+  const personaNameMap = useMemo(() => {
     const map: Record<string, string> = {};
-    useCaseQueries.forEach((query, index) => {
+    personaQueries.forEach((query, index) => {
       if (query.data) {
-        map[useCaseIds[index]] = query.data.name;
+        map[personaIds[index]] = query.data.name;
       }
     });
     return map;
-  }, [useCaseQueries, useCaseIds]);
+  }, [personaQueries, personaIds]);
 
   // Get unique intake source IDs from feedback
-  const intakeSourceIds = useMemo(() => {
+  const feedbackIntakeSourceIds = useMemo(() => {
     const ids = new Set<string>();
     feedbackData?.items.forEach((f: Feedback) => {
       if (f.intakeSourceId) {
@@ -113,8 +124,8 @@ function PersonaDetailContent() {
   }, [feedbackData]);
 
   // Fetch intake sources for feedback
-  const intakeSourceQueries = useQueries({
-    queries: intakeSourceIds.map((id: string) => ({
+  const feedbackIntakeSourceQueries = useQueries({
+    queries: feedbackIntakeSourceIds.map((id: string) => ({
       queryKey: queryKeys.intakeSources.detail(id),
       queryFn: () => intakeSourceApi.get(id),
       staleTime: 5 * 60 * 1000, // 5 minutes
@@ -122,26 +133,26 @@ function PersonaDetailContent() {
     })),
   });
 
-  // Create a map of intakeSourceId -> display name
-  const intakeSourceNameMap = useMemo(() => {
+  // Create a map of intakeSourceId -> display name for feedback
+  const feedbackIntakeSourceNameMap = useMemo(() => {
     const map: Record<string, string> = {};
-    intakeSourceQueries.forEach((query, index) => {
+    feedbackIntakeSourceQueries.forEach((query, index) => {
       if (query.data) {
         const source = query.data;
         if (source.meetingName) {
-          map[intakeSourceIds[index]] = source.meetingName;
+          map[feedbackIntakeSourceIds[index]] = source.meetingName;
         } else if (source.surveyName) {
-          map[intakeSourceIds[index]] = source.surveyName;
+          map[feedbackIntakeSourceIds[index]] = source.surveyName;
         } else if (source.ticketId) {
-          map[intakeSourceIds[index]] = `Ticket ${source.ticketId}`;
+          map[feedbackIntakeSourceIds[index]] = `Ticket ${source.ticketId}`;
         } else {
           const sourceType = source.sourceType as SourceTypeKey;
-          map[intakeSourceIds[index]] = SOURCE_TYPES[sourceType]?.label || sourceType;
+          map[feedbackIntakeSourceIds[index]] = SOURCE_TYPES[sourceType]?.label || sourceType;
         }
       }
     });
     return map;
-  }, [intakeSourceQueries, intakeSourceIds]);
+  }, [feedbackIntakeSourceQueries, feedbackIntakeSourceIds]);
 
   // Prepare feedback rows for table display
   const suggestionRows = useMemo((): FeedbackRow[] => {
@@ -149,18 +160,18 @@ function PersonaDetailContent() {
       id: f.id,
       content: f.content,
       quotes: f.quotes,
-      sourceName: f.intakeSourceId ? intakeSourceNameMap[f.intakeSourceId] || '—' : '—',
+      sourceName: f.intakeSourceId ? feedbackIntakeSourceNameMap[f.intakeSourceId] || '—' : '—',
     }));
-  }, [suggestions, intakeSourceNameMap]);
+  }, [suggestions, feedbackIntakeSourceNameMap]);
 
   const problemRows = useMemo((): FeedbackRow[] => {
     return problems.map((f: Feedback) => ({
       id: f.id,
       content: f.content,
       quotes: f.quotes,
-      sourceName: f.intakeSourceId ? intakeSourceNameMap[f.intakeSourceId] || '—' : '—',
+      sourceName: f.intakeSourceId ? feedbackIntakeSourceNameMap[f.intakeSourceId] || '—' : '—',
     }));
-  }, [problems, intakeSourceNameMap]);
+  }, [problems, feedbackIntakeSourceNameMap]);
 
   // Table columns for feedback
   const feedbackColumns: TableColumn<FeedbackRow>[] = [
@@ -204,25 +215,68 @@ function PersonaDetailContent() {
     },
   ];
 
-  // Available use cases for linking (requires fetching use cases from team's solutions)
-  // TODO: To implement, fetch solutions by persona.teamId, then fetch use cases for each solution,
-  // then filter out IDs already in personaUseCases
-  const availableUseCases: Array<{ id: string; name: string; description?: string }> = [];
+  // Helper to get source display name
+  const getSourceDisplayName = useCallback((): string => {
+    if (!intakeSource) return '—';
+    if (intakeSource.meetingName) return intakeSource.meetingName;
+    if (intakeSource.surveyName) return intakeSource.surveyName;
+    if (intakeSource.ticketId) return `Ticket ${intakeSource.ticketId}`;
+    const sourceType = intakeSource.sourceType as SourceTypeKey;
+    return SOURCE_TYPES[sourceType]?.label || sourceType;
+  }, [intakeSource]);
+
+  // Prepare quotes data for table
+  const quoteRows = useMemo((): QuoteRow[] => {
+    if (!useCase?.quotes) return [];
+    const sourceName = getSourceDisplayName();
+    return useCase.quotes.map((quote, index) => ({
+      id: `quote-${index}`,
+      quote,
+      source: sourceName,
+    }));
+  }, [useCase?.quotes, getSourceDisplayName]);
+
+  // Table columns for quotes
+  const quoteColumns: TableColumn<QuoteRow>[] = [
+    {
+      key: 'quote',
+      title: 'Quote',
+      dataIndex: 'quote',
+      render: (value) => (
+        <span className="italic text-[var(--text)]">"{value as string}"</span>
+      ),
+    },
+    {
+      key: 'source',
+      title: 'Source',
+      dataIndex: 'source',
+      width: 250,
+      render: (value) => (
+        <span className="text-[var(--text-muted)]">{value as string}</span>
+      ),
+    },
+  ];
+
+  // Available personas for linking (filter out already linked ones)
+  const availablePersonas = useMemo(() => {
+    const linkedPersonaIds = new Set(personaIds);
+    return allPersonas.filter(p => !linkedPersonaIds.has(p.id));
+  }, [allPersonas, personaIds]);
 
   const handleBack = () => {
-    navigate('/discovery/organize/personas');
+    navigate('/discovery/organize/use-cases');
   };
 
   const handleDeleteConfirm = async () => {
-    if (personaId) {
-      await deletePersona.mutateAsync(personaId);
-      navigate('/discovery/organize/personas');
+    if (useCaseId) {
+      await deleteUseCase.mutateAsync(useCaseId);
+      navigate('/discovery/organize/use-cases');
     }
     setIsDeleteModalOpen(false);
   };
 
-  const handleLinkUseCase = async (useCaseId: string) => {
-    if (personaId) {
+  const handleLinkPersona = async (personaId: string) => {
+    if (useCaseId) {
       await createPersonaUseCase.mutateAsync({
         personaId,
         useCaseId,
@@ -230,18 +284,18 @@ function PersonaDetailContent() {
     }
   };
 
-  const handleUnlinkUseCase = async (useCaseId: string) => {
+  const handleUnlinkPersona = async (personaId: string) => {
     // Find the persona-use case association to delete
-    const association = personaUseCases.find(
-      (puc: PersonaUseCase) => puc.personaId === personaId && puc.useCaseId === useCaseId
+    const association = useCasePersonas.find(
+      (puc: PersonaUseCase) => puc.useCaseId === useCaseId && puc.personaId === personaId
     );
     if (association) {
       await deletePersonaUseCase.mutateAsync(association.id);
     }
   };
 
-  // Handle case where persona is not yet loaded
-  if (!persona) {
+  // Handle case where use case is not yet loaded
+  if (!useCase) {
     return (
       <MainLayout>
         <PageContent>
@@ -254,7 +308,7 @@ function PersonaDetailContent() {
   return (
     <MainLayout>
       <PageHeader
-        title={`Persona - ${persona.name}`}
+        title={`Use Case - ${useCase.name}`}
         extra={
           <div className="flex gap-2">
             <Button variant="default" icon={<FiArrowLeft />} onClick={handleBack}>
@@ -279,24 +333,19 @@ function PersonaDetailContent() {
             <Card>
               <h3 className="text-md font-semibold text-[var(--text)] mb-4">Basic Information</h3>
 
-              {persona.role && (
-                <div className="mb-4">
-                  <label className="text-sm font-medium text-[var(--text-muted)]">Role</label>
-                  <p className="text-xs text-[var(--text)]">{persona.role}</p>
-                </div>
-              )}
-
-              {persona.description && (
+              {useCase.description && (
                 <div className="mb-4">
                   <label className="text-sm font-medium text-[var(--text-muted)]">Description</label>
-                  <p className="text-xs text-[var(--text)] whitespace-pre-wrap">{persona.description}</p>
+                  <p className="text-xs text-[var(--text)] whitespace-pre-wrap">{useCase.description}</p>
                 </div>
               )}
 
-              
+              {!useCase.description && (
+                <p className="text-[var(--text-muted)] text-sm">No description provided.</p>
+              )}
             </Card>
 
-            {/* Tabbed Section: Goals/Pain Points, Suggestions, Problems */}
+            {/* Tabbed Section: Quotes, Suggestions, Problems */}
             <Card>
               <Tabs
                 type="line"
@@ -304,48 +353,25 @@ function PersonaDetailContent() {
                 onChange={setActiveTab}
                 items={[
                   {
-                    key: 'goals-painpoints',
-                    label: 'Goals & Pain Points',
+                    key: 'quotes',
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <FiMessageCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
+                        Supporting Quotes ({quoteRows.length})
+                      </span>
+                    ),
                     children: (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                        {/* Goals column */}
-                        <div>
-                          <div className="flex items-center gap-2 mb-3">
-                            <FiTarget className="text-green-500" />
-                            <h4 className="text-base font-semibold text-[var(--text)]">Goals</h4>
-                          </div>
-                          {persona.goals.length === 0 ? (
-                            <p className="text-[var(--text-muted)] text-xs">No goals defined.</p>
-                          ) : (
-                            <ul className="space-y-2">
-                              {persona.goals.map((goal) => (
-                                <li key={goal} className="flex gap-2 text-sm text-[var(--text)]">
-                                  <span className="text-xs text-green-500 shrink-0">•</span>
-                                  <span className="text-xs">{goal}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                        {/* Pain Points column */}
-                        <div>
-                          <div className="flex items-center gap-2 mb-3">
-                            <FiAlertCircle className="text-orange-500" />
-                            <h4 className="text-base font-semibold text-[var(--text)]">Pain Points</h4>
-                          </div>
-                          {persona.painPoints.length === 0 ? (
-                            <p className="text-[var(--text-muted)] text-xs">No pain points defined.</p>
-                          ) : (
-                            <ul className="space-y-2">
-                              {persona.painPoints.map((painPoint) => (
-                                <li key={painPoint} className="flex gap-2 text-sm text-[var(--text)]">
-                                  <span className="text-xs text-orange-500 shrink-0">•</span>
-                                  <span className="text-xs">{painPoint}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
+                      <div className="pt-4">
+                        {quoteRows.length === 0 ? (
+                          <Empty image="simple" description="No supporting quotes" />
+                        ) : (
+                          <Table
+                            columns={quoteColumns}
+                            dataSource={quoteRows}
+                            rowKey="id"
+                            pagination={false}
+                          />
+                        )}
                       </div>
                     ),
                   },
@@ -362,7 +388,7 @@ function PersonaDetailContent() {
                         {suggestionRows.length === 0 ? (
                           <Empty
                             image="simple"
-                            description="No suggestions for this persona"
+                            description="No suggestions for this use case"
                           />
                         ) : (
                           <Table
@@ -388,7 +414,7 @@ function PersonaDetailContent() {
                         {problemRows.length === 0 ? (
                           <Empty
                             image="simple"
-                            description="No problems for this persona"
+                            description="No problems for this use case"
                           />
                         ) : (
                           <Table
@@ -406,13 +432,13 @@ function PersonaDetailContent() {
             </Card>
           </div>
 
-          {/* Sidebar - Use Cases */}
+          {/* Sidebar - Personas */}
           <div className="space-y-6">
             <Card>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <FiLink className="text-[var(--primary)]" />
-                  <h3 className="text-md font-semibold text-[var(--text)]">Use Cases</h3>
+                  <FiUser className="text-[var(--primary)]" />
+                  <h3 className="text-md font-semibold text-[var(--text)]">Personas</h3>
                 </div>
                 <Button
                   variant="default"
@@ -423,24 +449,24 @@ function PersonaDetailContent() {
                 </Button>
               </div>
 
-              {personaUseCases.length === 0 ? (
+              {useCasePersonas.length === 0 ? (
                 <p className="text-[var(--text-muted)] text-sm">
-                  No use cases linked to this persona.
+                  No personas linked to this use case.
                 </p>
               ) : (
                 <ul className="space-y-2">
-                  {personaUseCases.map((puc: PersonaUseCase) => (
+                  {useCasePersonas.map((puc: PersonaUseCase) => (
                     <li
                       key={puc.id}
                       className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
                     >
                       <span className="text-sm text-[var(--text)] truncate">
-                        {useCaseNameMap[puc.useCaseId] || 'Loading...'}
+                        {personaNameMap[puc.personaId] || 'Loading...'}
                       </span>
                       <Button
                         variant="text"
                         size="small"
-                        onClick={() => handleUnlinkUseCase(puc.useCaseId)}
+                        onClick={() => handleUnlinkPersona(puc.personaId)}
                       >
                         Unlink
                       </Button>
@@ -455,43 +481,43 @@ function PersonaDetailContent() {
 
       {/* Delete Confirmation Modal */}
       <Modal
-        title="Delete Persona"
+        title="Delete Use Case"
         open={isDeleteModalOpen}
         onOk={handleDeleteConfirm}
         onCancel={() => setIsDeleteModalOpen(false)}
         okText="Delete"
       >
         <p className="text-[var(--text)]">
-          Are you sure you want to delete <strong>{persona.name}</strong>?
+          Are you sure you want to delete <strong>{useCase.name}</strong>?
         </p>
         <p className="text-[var(--text-muted)] text-sm mt-2">
-          This will also remove all links to use cases. This action cannot be undone.
+          This will also remove all links to personas and requirements. This action cannot be undone.
         </p>
       </Modal>
 
-      {/* Link Use Case Modal */}
+      {/* Link Persona Modal */}
       <Modal
-        title="Link Use Case"
+        title="Link Persona"
         open={isLinkModalOpen}
         onCancel={() => setIsLinkModalOpen(false)}
         footer={null}
       >
-        {availableUseCases.length === 0 ? (
+        {availablePersonas.length === 0 ? (
           <p className="text-[var(--text-muted)]">
-            No available use cases to link. All use cases are already linked.
+            No available personas to link. All personas are already linked.
           </p>
         ) : (
           <ul className="space-y-2 max-h-64 overflow-y-auto">
-            {availableUseCases.map((useCase) => (
+            {availablePersonas.map((persona) => (
               <li
-                key={useCase.id}
+                key={persona.id}
                 className="flex items-center justify-between p-3 rounded border border-[var(--border)] hover:bg-[var(--bg-secondary)]"
               >
                 <div>
-                  <p className="text-sm font-medium text-[var(--text)]">{useCase.name}</p>
-                  {useCase.description && (
+                  <p className="text-sm font-medium text-[var(--text)]">{persona.name}</p>
+                  {persona.role && (
                     <p className="text-xs text-[var(--text-muted)] truncate max-w-xs">
-                      {useCase.description}
+                      {persona.role}
                     </p>
                   )}
                 </div>
@@ -499,7 +525,7 @@ function PersonaDetailContent() {
                   variant="primary"
                   size="small"
                   onClick={() => {
-                    handleLinkUseCase(useCase.id);
+                    handleLinkPersona(persona.id);
                   }}
                 >
                   Link
@@ -513,12 +539,12 @@ function PersonaDetailContent() {
   );
 }
 
-export default function PersonaDetailPage() {
-  const { dehydratedState } = useLoaderData<PersonaDetailLoaderData>();
+export default function DiscoveryUseCaseDetailPage() {
+  const { dehydratedState } = useLoaderData<DiscoveryUseCaseDetailLoaderData>();
 
   return (
     <HydrationBoundary state={dehydratedState}>
-      <PersonaDetailContent />
+      <DiscoveryUseCaseDetailContent />
     </HydrationBoundary>
   );
 }

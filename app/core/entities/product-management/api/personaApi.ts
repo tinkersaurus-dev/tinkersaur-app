@@ -16,6 +16,8 @@ export const personaApi = {
     if (params.pageSize) searchParams.set('pageSize', params.pageSize.toString());
     if (params.search) searchParams.set('search', params.search);
     if (params.solutionId) searchParams.set('solutionId', params.solutionId);
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
     const data = await httpClient.get<PaginatedResponse<Persona>>(
       `/api/personas?${searchParams.toString()}`

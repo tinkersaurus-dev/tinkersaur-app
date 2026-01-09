@@ -1,8 +1,9 @@
 import { useState, memo, useMemo } from 'react';
-import { FiAlertCircle, FiTrash2 } from 'react-icons/fi';
+import { FiAlertCircle, FiTrash2, FiGitMerge } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
 import { Tag } from '~/core/components/ui/Tag';
 import { Select } from '~/core/components/ui/Select';
+import { Button } from '~/core/components/ui/Button';
 import {
   FEEDBACK_TYPE_CONFIG,
   type ExtractedFeedback,
@@ -29,6 +30,7 @@ interface FeedbackResultCardProps {
   solutions: Solution[];
   selectedSolutionId: string | null;
   onSolutionChange: (index: number, solutionId: string | null) => void;
+  onMerge?: (intakeFeedbackIndex: number, existingFeedbackId: string) => void;
 }
 
 export const FeedbackResultCard = memo(function FeedbackResultCard({
@@ -44,6 +46,7 @@ export const FeedbackResultCard = memo(function FeedbackResultCard({
   solutions,
   selectedSolutionId,
   onSolutionChange,
+  onMerge,
 }: FeedbackResultCardProps) {
   const [selectedMatch, setSelectedMatch] = useState<SimilarFeedbackResult | null>(null);
 
@@ -161,7 +164,24 @@ export const FeedbackResultCard = memo(function FeedbackResultCard({
         getMatchId={(m) => m.feedback.id}
         newItemLabel="New Feedback (from intake)"
         existingItemLabel="Existing Feedback"
-        actionHint="If this is a duplicate, you can delete this feedback from the intake results before saving."
+        actionHint={
+          <div className="space-y-3">
+            <p>If this is a duplicate, you can delete this feedback from the intake results before saving.</p>
+            {onMerge && selectedMatch && (
+              <Button
+                variant="default"
+                size="small"
+                icon={<FiGitMerge className="w-3.5 h-3.5" />}
+                onClick={() => {
+                  onMerge(index, selectedMatch.feedback.id);
+                  setSelectedMatch(null);
+                }}
+              >
+                Merge as Child
+              </Button>
+            )}
+          </div>
+        }
         renderMatchListItem={(match) => (
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm font-medium text-[var(--text)] line-clamp-2">

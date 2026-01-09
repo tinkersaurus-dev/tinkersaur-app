@@ -18,6 +18,7 @@ import { FeedbackResultCard } from './FeedbackResultCard';
 import { OutcomeResultCard } from './OutcomeResultCard';
 import { IntakePersonaMergeModal, type PendingMerge } from './IntakePersonaMergeModal';
 import { IntakeUseCaseMergeModal, type PendingUseCaseMerge } from './IntakeUseCaseMergeModal';
+import { IntakeFeedbackMergeModal, type PendingFeedbackMerge } from './IntakeFeedbackMergeModal';
 
 function formatProcessingTime(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -71,6 +72,15 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
 
   // Track pending use case merges (to be executed on save)
   const [pendingUseCaseMerges, setPendingUseCaseMerges] = useState<PendingUseCaseMerge[]>([]);
+
+  // Feedback merge modal state
+  const [feedbackMergeContext, setFeedbackMergeContext] = useState<{
+    intakeFeedbackIndex: number;
+    existingFeedbackId: string;
+  } | null>(null);
+
+  // Track pending feedback merges (to be executed on save)
+  const [pendingFeedbackMerges, setPendingFeedbackMerges] = useState<PendingFeedbackMerge[]>([]);
 
   // Per-item solution selections (keyed by original index, initialized with defaultSolutionId)
   const [useCaseSolutionIds, setUseCaseSolutionIds] = useState<Map<number, string | null>>(() => {
@@ -130,6 +140,19 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
     // Mark the intake use case as deleted (it will be merged instead of created)
     setDeletedUseCaseIndexes(prev => new Set([...prev, pendingMerge.intakeUseCaseIndex]));
     setUseCaseMergeContext(null);
+  }, []);
+
+  // Feedback merge handler - opens merge modal for intake feedback with existing feedback
+  const handleMergeFeedback = useCallback((intakeFeedbackIndex: number, existingFeedbackId: string) => {
+    setFeedbackMergeContext({ intakeFeedbackIndex, existingFeedbackId });
+  }, []);
+
+  // After feedback merge is confirmed, track it for execution on save
+  const handleFeedbackMergeConfirmed = useCallback((pendingMerge: PendingFeedbackMerge) => {
+    setPendingFeedbackMerges(prev => [...prev, pendingMerge]);
+    // Mark the intake feedback as deleted (it will be merged instead of created standalone)
+    setDeletedFeedbackIndexes(prev => new Set([...prev, pendingMerge.intakeFeedbackIndex]));
+    setFeedbackMergeContext(null);
   }, []);
 
   // Solution change handlers
@@ -260,6 +283,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
       outcomeSolutionIds,
       pendingMerges,
       pendingUseCaseMerges,
+      pendingFeedbackMerges,
     });
 
     if (success) {
@@ -440,6 +464,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
                         solutions={solutions}
                         selectedSolutionId={feedbackSolutionIds.get(index) ?? null}
                         onSolutionChange={handleFeedbackSolutionChange}
+                        onMerge={handleMergeFeedback}
                       />
                     );
                   })}
@@ -540,6 +565,18 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
           onMergeConfirmed={handleUseCaseMergeConfirmed}
           intakeSolutionId={useCaseSolutionIds.get(useCaseMergeContext.intakeUseCaseIndex)}
           solutions={solutions}
+        />
+      )}
+
+      {/* Intake Feedback Merge Modal */}
+      {feedbackMergeContext && (
+        <IntakeFeedbackMergeModal
+          open={true}
+          onClose={() => setFeedbackMergeContext(null)}
+          intakeFeedback={result.feedback[feedbackMergeContext.intakeFeedbackIndex]}
+          intakeFeedbackIndex={feedbackMergeContext.intakeFeedbackIndex}
+          existingFeedbackId={feedbackMergeContext.existingFeedbackId}
+          onMergeConfirmed={handleFeedbackMergeConfirmed}
         />
       )}
     </div>

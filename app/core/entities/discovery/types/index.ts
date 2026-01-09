@@ -14,16 +14,20 @@ export {
   FeedbackTypeSchema,
   ExtractedFeedbackSchema,
   FeedbackSchema,
+  FeedbackWithChildrenSchema,
   CreateFeedbackSchema,
   UpdateFeedbackSchema,
   FEEDBACK_TYPE_CONFIG,
   type FeedbackType,
   type ExtractedFeedback,
   type Feedback,
+  type FeedbackWithChildren,
   type CreateFeedbackDto,
   type UpdateFeedbackDto,
   type FindSimilarFeedbackRequest,
   type SimilarFeedbackResult,
+  type MergeFeedbackRequest,
+  type MergeFeedbackResponse,
 } from './Feedback';
 
 // FeedbackPersona exports

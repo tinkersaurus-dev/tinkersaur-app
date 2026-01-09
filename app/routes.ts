@@ -29,8 +29,9 @@ export default [
   route("discovery/organize/personas", "product-management/routes/personas-list.tsx"),
   route("discovery/organize/personas/:personaId", "product-management/routes/persona-detail.tsx"),
   route("discovery/organize/use-cases", "product-management/routes/use-cases-list.tsx"),
-  route("discovery/organize/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx", { id: "discovery-use-case-detail" }),
+  route("discovery/organize/use-cases/:useCaseId", "product-management/routes/discovery-use-case-detail.tsx", { id: "discovery-use-case-detail" }),
   route("discovery/organize/feedback", "discovery/routes/feedback-list.tsx"),
+  route("discovery/organize/feedback/:feedbackId", "discovery/routes/feedback-detail.tsx"),
   route("discovery/organize/outcomes", "discovery/routes/outcomes-list.tsx"),
 
   // Strategy routes

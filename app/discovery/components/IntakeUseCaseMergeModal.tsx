@@ -62,7 +62,7 @@ export function IntakeUseCaseMergeModal({
     .filter((uc): uc is UseCase => uc != null);
   const existingLoading = existingUseCaseQueries.some(q => q.isLoading);
 
-  const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError } = useMergeUseCasesLLM();
+  const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError, reset } = useMergeUseCasesLLM();
 
   // Derive step from whether we have a result
   const step = llmResult ? 'preview' : 'confirm';
@@ -115,11 +115,14 @@ export function IntakeUseCaseMergeModal({
       existingUseCaseIds,
       mergedUseCase: llmResult,
     });
+    setInstructions('');
+    reset();
     onClose();
   };
 
   const handleClose = () => {
     setInstructions('');
+    reset();
     onClose();
   };
 

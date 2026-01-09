@@ -26,6 +26,12 @@ export interface PendingUseCaseMerge {
   mergedUseCase: MergedUseCaseData;
 }
 
+export interface PendingFeedbackMerge {
+  intakeFeedbackIndex: number;
+  parentFeedbackId: string;
+  intakeFeedback: ExtractedFeedback;
+}
+
 interface SaveIntakeResultParams {
   personas: ExtractedPersona[];
   useCases: ExtractedUseCase[];
@@ -43,6 +49,7 @@ interface SaveIntakeResultParams {
   outcomeSolutionIds: Map<number, string | null>;
   pendingMerges: PendingMerge[];
   pendingUseCaseMerges: PendingUseCaseMerge[];
+  pendingFeedbackMerges: PendingFeedbackMerge[];
 }
 
 interface UseSaveIntakeResultReturn {
@@ -73,6 +80,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
       outcomeSolutionIds,
       pendingMerges,
       pendingUseCaseMerges,
+      pendingFeedbackMerges,
     }: SaveIntakeResultParams): Promise<boolean> => {
       setIsSaving(true);
       setError(null);
@@ -147,6 +155,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               name: useCase.name,
               description: useCase.description,
               solutionId: solutionId ?? undefined,
+              quotes: useCase.quotes,
             };
             return useCaseApi.create(dto);
           })
@@ -250,6 +259,49 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           });
         });
         await Promise.all(feedbackUseCasePromises);
+
+        // Step 6.5: Execute pending feedback merges (create feedback, link to personas/use-cases, then merge as child)
+        for (const pendingMerge of pendingFeedbackMerges) {
+          const fb = pendingMerge.intakeFeedback;
+          const solutionId = feedbackSolutionIds.get(pendingMerge.intakeFeedbackIndex) ?? null;
+
+          // Create the feedback
+          const createdFeedback = await feedbackApi.create({
+            teamId,
+            solutionId,
+            intakeSourceId: intakeSource.id,
+            type: fb.type,
+            content: fb.content,
+            quotes: fb.quotes,
+          });
+
+          // Link to personas
+          const personaLinkPromises = fb.linkedPersonaIndexes.map((originalPersonaIndex) => {
+            const filteredPersonaIndex = personaIndexMap.get(originalPersonaIndex);
+            if (filteredPersonaIndex === undefined) return null;
+            const personaId = personaIdMap.get(filteredPersonaIndex);
+            if (!personaId) return null;
+            return feedbackPersonaApi.create({ feedbackId: createdFeedback.id, personaId });
+          }).filter(Boolean);
+          await Promise.all(personaLinkPromises);
+
+          // Link to use cases
+          const useCaseLinkPromises = fb.linkedUseCaseIndexes.map((originalUseCaseIndex) => {
+            const filteredUseCaseIndex = useCaseIndexMap.get(originalUseCaseIndex);
+            if (filteredUseCaseIndex === undefined) return null;
+            const useCaseId = useCaseIdMap.get(filteredUseCaseIndex);
+            if (!useCaseId) return null;
+            return feedbackUseCaseApi.create({ feedbackId: createdFeedback.id, useCaseId });
+          }).filter(Boolean);
+          await Promise.all(useCaseLinkPromises);
+
+          // Merge as child of existing feedback
+          await feedbackApi.merge({
+            teamId,
+            parentFeedbackId: pendingMerge.parentFeedbackId,
+            childFeedbackIds: [createdFeedback.id],
+          });
+        }
 
         // Step 7: Create all outcomes
         // Build reverse map: filtered index -> original index

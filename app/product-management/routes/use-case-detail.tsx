@@ -3,16 +3,18 @@
  * Displays use case details and its requirements in a table
  */
 
-import { useState, useCallback } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiHome } from 'react-icons/fi';
+import { useState, useCallback, useMemo } from 'react';
+import { FiPlus, FiEdit2, FiTrash2, FiHome, FiMessageCircle } from 'react-icons/fi';
 import { useParams, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select } from '~/core/components/ui';
+import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select, Card, Tabs, Empty } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
 import { useSolutionQuery, useUseCaseQuery, useRequirementsQuery } from '../queries';
+import { useIntakeSourceQuery } from '~/discovery/queries';
+import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
 import { useCreateRequirement, useUpdateRequirement, useDeleteRequirement } from '../mutations';
 import { loadUseCaseDetail } from '../loaders';
 import type { UseCaseDetailLoaderData } from '../loaders';
@@ -33,10 +35,18 @@ const TYPE_COLORS: Record<RequirementType, string> = {
   constraint: 'default',
 };
 
+// Quote row type for the quotes table
+interface QuoteRow {
+  id: string;
+  quote: string;
+  source: string;
+}
+
 function UseCaseDetailContent() {
   const { solutionId, useCaseId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
+  const [activeTab, setActiveTab] = useState('quotes');
 
   // TanStack Query hooks
   const { data: solution } = useSolutionQuery(solutionId);
@@ -45,6 +55,51 @@ function UseCaseDetailContent() {
   const createRequirement = useCreateRequirement();
   const updateRequirement = useUpdateRequirement();
   const deleteRequirement = useDeleteRequirement();
+
+  // Fetch intake source for quote source display
+  const { data: intakeSource } = useIntakeSourceQuery(useCase?.intakeSourceId);
+
+  // Helper to get source display name
+  const getSourceDisplayName = useCallback((): string => {
+    if (!intakeSource) return '—';
+    if (intakeSource.meetingName) return intakeSource.meetingName;
+    if (intakeSource.surveyName) return intakeSource.surveyName;
+    if (intakeSource.ticketId) return `Ticket ${intakeSource.ticketId}`;
+    const sourceType = intakeSource.sourceType as SourceTypeKey;
+    return SOURCE_TYPES[sourceType]?.label || sourceType;
+  }, [intakeSource]);
+
+  // Prepare quotes data for table
+  const quoteRows = useMemo((): QuoteRow[] => {
+    if (!useCase?.quotes) return [];
+    const sourceName = getSourceDisplayName();
+    return useCase.quotes.map((quote, index) => ({
+      id: `quote-${index}`,
+      quote,
+      source: sourceName,
+    }));
+  }, [useCase?.quotes, getSourceDisplayName]);
+
+  // Table columns for quotes
+  const quoteColumns: TableColumn<QuoteRow>[] = [
+    {
+      key: 'quote',
+      title: 'Quote',
+      dataIndex: 'quote',
+      render: (value) => (
+        <span className="text-xs italic text-[var(--text)]">"{value as string}"</span>
+      ),
+    },
+    {
+      key: 'source',
+      title: 'Source',
+      dataIndex: 'source',
+      width: 180,
+      render: (value) => (
+        <span className="text-xs text-[var(--text-muted)]">{value as string}</span>
+      ),
+    },
+  ];
 
   const form = useForm<{
     text: string;
@@ -210,20 +265,64 @@ function UseCaseDetailContent() {
           <p style={{ color: '#666' }}>{useCase.description}</p>
         </div>
 
-        <Table
-          header={{
-            title: 'Requirements',
-            actions: (
-              <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
-              </Button>
-            ),
-          }}
-          columns={columns}
-          dataSource={requirements}
-          rowKey="id"
-          pagination={{ pageSize: 10 }}
-          loading={isLoading}
-        />
+        <Card>
+          <Tabs
+            type="line"
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={[
+              {
+                key: 'quotes',
+                label: (
+                  <span className="flex items-center gap-1.5">
+                    <FiMessageCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
+                    Supporting Quotes ({quoteRows.length})
+                  </span>
+                ),
+                children: (
+                  <div className="pt-4">
+                    {quoteRows.length === 0 ? (
+                      <Empty image="simple" description="No supporting quotes" />
+                    ) : (
+                      <Table
+                        columns={quoteColumns}
+                        dataSource={quoteRows}
+                        rowKey="id"
+                        pagination={false}
+                      />
+                    )}
+                  </div>
+                ),
+              },
+              {
+                key: 'requirements',
+                label: (
+                  <span className="flex items-center gap-1.5">
+                    Requirements ({requirements.length})
+                  </span>
+                ),
+                children: (
+                  <div className="pt-4">
+                    <Table
+                      header={{
+                        title: 'Requirements',
+                        actions: (
+                          <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
+                          </Button>
+                        ),
+                      }}
+                      columns={columns}
+                      dataSource={requirements}
+                      rowKey="id"
+                      pagination={{ pageSize: 10 }}
+                      loading={isLoading}
+                    />
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </Card>
       </PageContent>
 
       <Modal

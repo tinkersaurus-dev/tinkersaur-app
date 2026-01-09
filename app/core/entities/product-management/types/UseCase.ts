@@ -13,6 +13,7 @@ export const UseCaseSchema = z.object({
   intakeSourceId: z.string().uuid().nullable(),
   name: z.string().min(1, 'Use case name is required').max(200),
   description: z.string().max(2000),
+  quotes: z.array(z.string()),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -27,6 +28,7 @@ export const CreateUseCaseSchema = z.object({
   intakeSourceId: z.string().uuid().optional(),
   name: z.string().min(1, 'Use case name is required').max(200),
   description: z.string().max(2000).optional().default(''),
+  quotes: z.array(z.string()).optional(),
 });
 
 export type CreateUseCaseDto = z.infer<typeof CreateUseCaseSchema>;
@@ -37,6 +39,7 @@ export const UpdateUseCaseSchema = z.object({
   solutionId: z.string().uuid().nullable().optional(),
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).optional(),
+  quotes: z.array(z.string()).optional(),
 });
 
 export type UpdateUseCaseDto = z.infer<typeof UpdateUseCaseSchema>;

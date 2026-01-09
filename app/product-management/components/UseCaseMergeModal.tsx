@@ -29,7 +29,7 @@ export function UseCaseMergeModal({
 }: UseCaseMergeModalProps) {
   const [instructions, setInstructions] = useState('');
 
-  const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError } = useMergeUseCasesLLM();
+  const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError, reset } = useMergeUseCasesLLM();
   const mergeMutation = useMergeUseCases();
 
   // Derive step from whether we have a result
@@ -70,6 +70,8 @@ export function UseCaseMergeModal({
           ...llmResult,
         },
       });
+      setInstructions('');
+      reset();
       onClose();
     } catch {
       // Error is handled by mutation hook
@@ -78,6 +80,7 @@ export function UseCaseMergeModal({
 
   const handleClose = () => {
     setInstructions('');
+    reset();
     onClose();
   };
 

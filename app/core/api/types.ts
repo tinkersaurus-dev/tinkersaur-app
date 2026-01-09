@@ -2,6 +2,8 @@
  * Common API types for pagination and filtering
  */
 
+export type SortOrder = 'asc' | 'desc';
+
 export interface PaginatedResponse<T> {
   items: T[];
   totalCount: number;
@@ -18,6 +20,8 @@ export interface PersonaListParams {
   pageSize?: number;
   search?: string;
   solutionId?: string;
+  sortBy?: string;
+  sortOrder?: SortOrder;
 }
 
 export interface UseCaseListParams {
@@ -27,6 +31,8 @@ export interface UseCaseListParams {
   search?: string;
   solutionId?: string;
   personaIds?: string[];
+  sortBy?: string;
+  sortOrder?: SortOrder;
 }
 
 export interface FeedbackListParams {
@@ -37,6 +43,8 @@ export interface FeedbackListParams {
   solutionId?: string;
   personaIds?: string[];
   useCaseIds?: string[];
+  sortBy?: string;
+  sortOrder?: SortOrder;
 }
 
 export interface OutcomeListParams {
@@ -45,4 +53,6 @@ export interface OutcomeListParams {
   pageSize?: number;
   search?: string;
   solutionId?: string;
+  sortBy?: string;
+  sortOrder?: SortOrder;
 }

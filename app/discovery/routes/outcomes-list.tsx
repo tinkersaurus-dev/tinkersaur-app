@@ -20,9 +20,11 @@ export default function OutcomesListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
 
-  // URL state for pagination and filters
+  // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
     filterKeys: ['solutionId'],
+    defaultSortBy: 'createdAt',
+    defaultSortOrder: 'desc',
   });
 
   // Build query params from URL state
@@ -34,8 +36,10 @@ export default function OutcomesListPage() {
       pageSize: urlState.pageSize,
       search: urlState.search || undefined,
       solutionId: urlState.filters.solutionId || undefined,
+      sortBy: urlState.sortBy || undefined,
+      sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId]);
+  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching
   const { data, isLoading } = useOutcomesPaginatedQuery(queryParams);
@@ -67,6 +71,8 @@ export default function OutcomesListPage() {
       key: 'description',
       title: 'Description',
       dataIndex: 'description',
+      sorter: true,
+      sortField: 'description',
       render: (value) => (
         <span className="line-clamp-2 text-sm">
           {value as string}
@@ -78,8 +84,10 @@ export default function OutcomesListPage() {
       title: 'Target',
       dataIndex: 'target',
       width: 200,
+      sorter: true,
+      sortField: 'target',
       render: (value) => (
-        <span className="line-clamp-2 text-sm text-[var(--text-muted)]">
+        <span className="line-clamp-2text-[var(--text-muted)]">
           {value as string || '—'}
         </span>
       ),
@@ -89,11 +97,13 @@ export default function OutcomesListPage() {
       title: 'Solution',
       dataIndex: 'solutionId',
       width: 150,
+      sorter: true,
+      sortField: 'solutionId',
       render: (value) => {
         if (!value) return <span className="text-[var(--text-muted)]">—</span>;
         const solution = solutions.find(s => s.id === value);
         return (
-          <span className="text-sm">
+          <span>
             {solution?.name || 'Unknown'}
           </span>
         );
@@ -104,8 +114,10 @@ export default function OutcomesListPage() {
       title: 'Created',
       dataIndex: 'createdAt',
       width: 120,
+      sorter: true,
+      sortField: 'createdAt',
       render: (value) => (
-        <span className="text-sm text-[var(--text-muted)]">
+        <span className="text-[var(--text-muted)]">
           {new Date(value as Date).toLocaleDateString()}
         </span>
       ),
@@ -196,6 +208,11 @@ export default function OutcomesListPage() {
                 total: data?.totalCount,
                 onChange: handlePageChange,
               }}
+              serverSort={{
+                sortBy: urlState.sortBy,
+                sortOrder: urlState.sortOrder,
+              }}
+              onServerSortChange={urlState.setSort}
               empty={<Empty description="No outcomes found. Adjust your filters or add new outcomes." />}
             />
           </>

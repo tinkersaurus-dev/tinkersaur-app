@@ -27,7 +27,7 @@ export function PersonaMergeModal({
 }: PersonaMergeModalProps) {
   const [instructions, setInstructions] = useState('');
 
-  const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError } = useMergePersonasLLM();
+  const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError, reset } = useMergePersonasLLM();
   const mergeMutation = useMergePersonas();
 
   // Derive step from whether we have a result
@@ -46,6 +46,8 @@ export function PersonaMergeModal({
         personaIds: selectedPersonas.map((p) => p.id),
         mergedPersona: llmResult,
       });
+      setInstructions('');
+      reset();
       onClose();
     } catch {
       // Error is handled by mutation hook
@@ -54,6 +56,7 @@ export function PersonaMergeModal({
 
   const handleClose = () => {
     setInstructions('');
+    reset();
     onClose();
   };
 

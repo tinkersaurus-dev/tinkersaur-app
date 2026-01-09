@@ -21,9 +21,11 @@ export default function PersonasListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
 
-  // URL state for pagination and filters
+  // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
     filterKeys: ['solutionId'],
+    defaultSortBy: 'createdAt',
+    defaultSortOrder: 'desc',
   });
 
   // Build query params from URL state
@@ -35,8 +37,10 @@ export default function PersonasListPage() {
       pageSize: urlState.pageSize,
       search: urlState.search || undefined,
       solutionId: urlState.filters.solutionId || undefined,
+      sortBy: urlState.sortBy || undefined,
+      sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId]);
+  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching
   const { data, isLoading } = usePersonasPaginatedQuery(queryParams);
@@ -70,11 +74,14 @@ export default function PersonasListPage() {
     {
       key: 'name',
       title: 'Name',
+      width: 200,
       dataIndex: 'name',
+      sorter: true,
+      sortField: 'name',
       render: (_, record) => (
         <Link
           to={`/discovery/organize/personas/${record.id}`}
-          className="text-[var(--primary)] hover:underline font-medium"
+          className="text-[var(--primary)] text-sm hover:underline font-medium"
         >
           {record.name}
         </Link>
@@ -84,6 +91,8 @@ export default function PersonasListPage() {
       key: 'role',
       title: 'Role',
       dataIndex: 'role',
+      sorter: true,
+      sortField: 'role',
       render: (value) => (
         <span className="text-[var(--text-muted)]">{value as string || '—'}</span>
       ),
@@ -92,8 +101,10 @@ export default function PersonasListPage() {
       key: 'description',
       title: 'Description',
       dataIndex: 'description',
+      sorter: true,
+      sortField: 'description',
       render: (value) => (
-        <span className="line-clamp-2 text-sm text-[var(--text-muted)]">
+        <span className="line-clamp-2 text-[var(--text-muted)]">
           {value as string || '—'}
         </span>
       ),
@@ -103,8 +114,10 @@ export default function PersonasListPage() {
       title: 'Created',
       dataIndex: 'createdAt',
       width: 120,
+      sorter: true,
+      sortField: 'createdAt',
       render: (value) => (
-        <span className="text-sm text-[var(--text-muted)]">
+        <span className="text-[var(--text-muted)]">
           {new Date(value as Date).toLocaleDateString()}
         </span>
       ),
@@ -206,6 +219,11 @@ export default function PersonasListPage() {
                 total: data?.totalCount,
                 onChange: handlePageChange,
               }}
+              serverSort={{
+                sortBy: urlState.sortBy,
+                sortOrder: urlState.sortOrder,
+              }}
+              onServerSortChange={urlState.setSort}
               empty={<Empty description="No personas found. Adjust your filters or create a new persona." />}
             />
           </>

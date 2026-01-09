@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
-  getPaginationRowModel,
   type ColumnDef,
   type SortingState,
 } from '@tanstack/react-table';
@@ -23,11 +22,53 @@ export function Table<T = Record<string, unknown>>({
   className = '',
   onRow,
   header,
+  serverSort,
+  onServerSortChange,
 }: TableProps<T>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [currentPage, setCurrentPage] = useState(
-    pagination !== false ? pagination.current || 1 : 1
-  );
+  // Determine if using server-side sorting
+  const isServerSorting = !!onServerSortChange;
+
+  // Local state only used for client-side sorting
+  const [clientSorting, setClientSorting] = useState<SortingState>([]);
+
+  // Use the page from props (controlled by parent via URL state)
+  const currentPage = pagination !== false ? pagination.current || 1 : 1;
+
+  // Convert serverSort to TanStack format for display
+  const sortingState: SortingState = useMemo(() => {
+    if (isServerSorting && serverSort?.sortBy) {
+      // Find the column that matches this sortBy field
+      const sortColumn = columns.find(
+        col => (col.sortField || col.key) === serverSort.sortBy
+      );
+      if (sortColumn) {
+        return [{
+          id: sortColumn.key,
+          desc: serverSort.sortOrder === 'desc'
+        }];
+      }
+    }
+    return clientSorting;
+  }, [isServerSorting, serverSort, clientSorting, columns]);
+
+  // Handle sorting change
+  const handleSortingChange = useCallback((updater: SortingState | ((old: SortingState) => SortingState)) => {
+    const newSorting = typeof updater === 'function' ? updater(sortingState) : updater;
+
+    if (isServerSorting && onServerSortChange) {
+      if (newSorting.length === 0) {
+        onServerSortChange(null, null);
+      } else {
+        const { id, desc } = newSorting[0];
+        // Find the column to get the sortField
+        const column = columns.find(col => col.key === id);
+        const sortField = column?.sortField || id;
+        onServerSortChange(sortField, desc ? 'desc' : 'asc');
+      }
+    } else {
+      setClientSorting(newSorting);
+    }
+  }, [isServerSorting, onServerSortChange, sortingState, columns]);
 
   // Convert our column format to TanStack's format
   // Memoize to prevent table reinitialization on every render
@@ -101,21 +142,19 @@ export function Table<T = Record<string, unknown>>({
     data: dataSource,
     columns: tanstackColumns,
     state: {
-      sorting,
-      pagination: pagination !== false ? {
-        pageIndex: currentPage - 1,
-        pageSize: pagination.pageSize || 10,
-      } : undefined,
+      sorting: sortingState,
     },
-    onSortingChange: setSorting,
+    onSortingChange: handleSortingChange,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: pagination !== false ? getPaginationRowModel() : undefined,
-    manualPagination: false,
+    // Only use client-side sorting model when not server sorting
+    getSortedRowModel: isServerSorting ? undefined : getSortedRowModel(),
+    // Server handles pagination - we just display what we receive
+    manualPagination: true,
+    // Enable manual sorting mode for server-side sorting
+    manualSorting: isServerSorting,
   });
 
   const handlePageChange = (page: number, pageSize: number) => {
-    setCurrentPage(page);
     if (pagination !== false && pagination.onChange) {
       pagination.onChange(page, pageSize);
     }
@@ -195,7 +234,7 @@ export function Table<T = Record<string, unknown>>({
             current: currentPage,
             onChange: handlePageChange,
           }}
-          total={dataSource.length}
+          total={pagination.total ?? dataSource.length}
         />
       )}
     </div>

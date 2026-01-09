@@ -65,6 +65,7 @@ export const queryKeys = {
     listPaginated: <T extends object>(params: T) =>
       [...queryKeys.feedbacks.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.feedbacks.all, 'detail', id] as const,
+    withChildren: (id: string) => [...queryKeys.feedbacks.all, 'withChildren', id] as const,
   },
   outcomes: {
     all: ['outcomes'] as const,
@@ -82,6 +83,11 @@ export const queryKeys = {
     all: ['feedbackUseCases'] as const,
     byFeedback: (feedbackId: string) => [...queryKeys.feedbackUseCases.all, 'byFeedback', feedbackId] as const,
     byUseCase: (useCaseId: string) => [...queryKeys.feedbackUseCases.all, 'byUseCase', useCaseId] as const,
+  },
+  intakeSources: {
+    all: ['intakeSources'] as const,
+    list: (teamId: string) => [...queryKeys.intakeSources.all, 'list', teamId] as const,
+    detail: (id: string) => [...queryKeys.intakeSources.all, 'detail', id] as const,
   },
 
   // Design Studio

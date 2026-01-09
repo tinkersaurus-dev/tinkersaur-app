@@ -1,16 +1,21 @@
 import { useSearchParams } from 'react-router';
 import { useCallback, useMemo } from 'react';
+import type { SortOrder } from '../api/types';
 
 interface ListUrlState {
   page: number;
   pageSize: number;
   search: string;
   filters: Record<string, string>;
+  sortBy: string | null;
+  sortOrder: SortOrder | null;
 }
 
 interface UseListUrlStateOptions {
   defaultPageSize?: number;
   filterKeys: string[];
+  defaultSortBy?: string;
+  defaultSortOrder?: SortOrder;
 }
 
 /**
@@ -20,6 +25,8 @@ interface UseListUrlStateOptions {
 export function useListUrlState({
   defaultPageSize = 10,
   filterKeys,
+  defaultSortBy,
+  defaultSortOrder,
 }: UseListUrlStateOptions) {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -32,7 +39,9 @@ export function useListUrlState({
       if (value) acc[key] = value;
       return acc;
     }, {} as Record<string, string>),
-  }), [searchParams, defaultPageSize, filterKeys]);
+    sortBy: searchParams.get('sortBy') || defaultSortBy || null,
+    sortOrder: (searchParams.get('sortOrder') as SortOrder) || defaultSortOrder || null,
+  }), [searchParams, defaultPageSize, filterKeys, defaultSortBy, defaultSortOrder]);
 
   const setPage = useCallback((page: number) => {
     setSearchParams((prev) => {
@@ -92,6 +101,23 @@ export function useListUrlState({
     }, { replace: true });
   }, [setSearchParams, filterKeys]);
 
+  const setSort = useCallback((sortBy: string | null, sortOrder: SortOrder | null) => {
+    setSearchParams((prev) => {
+      if (sortBy) {
+        prev.set('sortBy', sortBy);
+      } else {
+        prev.delete('sortBy');
+      }
+      if (sortOrder) {
+        prev.set('sortOrder', sortOrder);
+      } else {
+        prev.delete('sortOrder');
+      }
+      prev.set('page', '1'); // Reset to first page on sort change
+      return prev;
+    }, { replace: true });
+  }, [setSearchParams]);
+
   return {
     ...state,
     setPage,
@@ -100,5 +126,6 @@ export function useListUrlState({
     setFilter,
     setPageChange,
     clearFilters,
+    setSort,
   };
 }

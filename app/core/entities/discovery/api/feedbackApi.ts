@@ -1,4 +1,12 @@
-import type { Feedback, CreateFeedbackDto, FindSimilarFeedbackRequest, SimilarFeedbackResult } from '../types';
+import type {
+  Feedback,
+  FeedbackWithChildren,
+  CreateFeedbackDto,
+  FindSimilarFeedbackRequest,
+  SimilarFeedbackResult,
+  MergeFeedbackRequest,
+  MergeFeedbackResponse,
+} from '../types';
 import type { PaginatedResponse, FeedbackListParams } from '~/core/api/types';
 import { httpClient, deserializeDates, deserializeDatesArray } from '~/core/api/httpClient';
 
@@ -26,6 +34,8 @@ export const feedbackApi = {
     if (params.useCaseIds?.length) {
       params.useCaseIds.forEach(id => searchParams.append('useCaseIds', id));
     }
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
     const data = await httpClient.get<PaginatedResponse<Feedback>>(
       `/api/feedbacks?${searchParams.toString()}`
@@ -75,5 +85,30 @@ export const feedbackApi = {
       ...result,
       feedback: deserializeDates(result.feedback),
     }));
+  },
+
+  async merge(request: MergeFeedbackRequest): Promise<MergeFeedbackResponse> {
+    const result = await httpClient.post<MergeFeedbackResponse>('/api/feedbacks/merge', request);
+    return {
+      ...result,
+      parent: deserializeDates(result.parent),
+    };
+  },
+
+  async unmerge(feedbackId: string): Promise<Feedback> {
+    const result = await httpClient.post<Feedback>(`/api/feedbacks/${feedbackId}/unmerge`, {});
+    return deserializeDates(result);
+  },
+
+  async getWithChildren(id: string): Promise<FeedbackWithChildren | null> {
+    try {
+      const data = await httpClient.get<FeedbackWithChildren>(`/api/feedbacks/${id}/with-children`);
+      return {
+        ...deserializeDates(data),
+        children: deserializeDatesArray(data.children),
+      };
+    } catch {
+      return null;
+    }
   },
 };

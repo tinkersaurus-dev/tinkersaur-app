@@ -21,9 +21,11 @@ export default function UseCasesListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
 
-  // URL state for pagination and filters
+  // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
     filterKeys: ['solutionId', 'personaIds'],
+    defaultSortBy: 'createdAt',
+    defaultSortOrder: 'desc',
   });
 
   // Parse personaIds from URL (comma-separated)
@@ -43,8 +45,10 @@ export default function UseCasesListPage() {
       search: urlState.search || undefined,
       solutionId: urlState.filters.solutionId || undefined,
       personaIds,
+      sortBy: urlState.sortBy || undefined,
+      sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds]);
+  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching
   const { data, isLoading } = useUseCasesPaginatedQuery(queryParams);
@@ -87,10 +91,12 @@ export default function UseCasesListPage() {
       key: 'name',
       title: 'Name',
       dataIndex: 'name',
+      sorter: true,
+      sortField: 'name',
       render: (_, record) => (
         <Link
           to={`/discovery/organize/use-cases/${record.id}`}
-          className="text-[var(--primary)] hover:underline font-medium"
+          className="text-[var(--primary)] text-sm hover:underline font-medium"
         >
           {record.name}
         </Link>
@@ -100,8 +106,10 @@ export default function UseCasesListPage() {
       key: 'description',
       title: 'Description',
       dataIndex: 'description',
+      sorter: true,
+      sortField: 'description',
       render: (value) => (
-        <span className="line-clamp-2 text-sm text-[var(--text-muted)]">
+        <span className="line-clamp-2 text-[var(--text-muted)]">
           {value as string || '—'}
         </span>
       ),
@@ -111,11 +119,13 @@ export default function UseCasesListPage() {
       title: 'Solution',
       dataIndex: 'solutionId',
       width: 150,
+      sorter: true,
+      sortField: 'solutionId',
       render: (value) => {
         if (!value) return <span className="text-[var(--text-muted)]">Unassigned</span>;
         const solution = solutions.find(s => s.id === value);
         return (
-          <span className="text-sm">
+          <span>
             {solution?.name || 'Unknown'}
           </span>
         );
@@ -126,8 +136,10 @@ export default function UseCasesListPage() {
       title: 'Created',
       dataIndex: 'createdAt',
       width: 120,
+      sorter: true,
+      sortField: 'createdAt',
       render: (value) => (
-        <span className="text-sm text-[var(--text-muted)]">
+        <span className="text-[var(--text-muted)]">
           {new Date(value as Date).toLocaleDateString()}
         </span>
       ),
@@ -259,6 +271,11 @@ export default function UseCasesListPage() {
                 total: data?.totalCount,
                 onChange: handlePageChange,
               }}
+              serverSort={{
+                sortBy: urlState.sortBy,
+                sortOrder: urlState.sortOrder,
+              }}
+              onServerSortChange={urlState.setSort}
               empty={<Empty description="No use cases found. Adjust your filters or create a new use case." />}
             />
           </>

@@ -4,7 +4,7 @@
  */
 
 import { useFetcher } from 'react-router';
-import { useCallback, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import type { MergedUseCaseData, UseCase } from '~/core/entities/product-management/types';
 
 interface UseCaseInput {
@@ -20,7 +20,7 @@ interface MergeUseCasesLLMResponse {
 
 export function useMergeUseCasesLLM() {
   const fetcher = useFetcher<MergeUseCasesLLMResponse>();
-  const lastSubmitKey = useRef<string | null>(null);
+  const [lastSubmitKey, setLastSubmitKey] = useState<string | null>(null);
 
   const isLoading = fetcher.state === 'submitting' || fetcher.state === 'loading';
 
@@ -33,7 +33,7 @@ export function useMergeUseCasesLLM() {
       }));
 
       // Track the submission to help with reset logic
-      lastSubmitKey.current = Date.now().toString();
+      setLastSubmitKey(Date.now().toString());
 
       fetcher.submit(
         JSON.stringify({
@@ -51,11 +51,12 @@ export function useMergeUseCasesLLM() {
   );
 
   const reset = useCallback(() => {
-    lastSubmitKey.current = null;
+    setLastSubmitKey(null);
   }, []);
 
   // Derive result and error directly from fetcher data
-  const result = fetcher.data?.success ? fetcher.data.mergedUseCase : null;
+  // Gate with lastSubmitKey so reset() can clear stale results
+  const result = fetcher.data?.success && lastSubmitKey ? fetcher.data.mergedUseCase : null;
   const error = fetcher.data?.success === false ? fetcher.data.error : null;
 
   return {

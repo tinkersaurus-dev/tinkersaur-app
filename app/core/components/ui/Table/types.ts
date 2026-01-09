@@ -1,6 +1,12 @@
 import type { ReactNode } from 'react';
+import type { SortOrder } from '../../../api/types';
 
 export type SortDirection = 'ascend' | 'descend' | null;
+
+export interface ServerSortState {
+  sortBy: string | null;
+  sortOrder: SortOrder | null;
+}
 
 export interface TableColumn<T> {
   key: string;
@@ -10,6 +16,7 @@ export interface TableColumn<T> {
   render?: (value: unknown, record: T, index: number) => ReactNode;
   sorter?: boolean | ((a: T, b: T) => number);
   sortDirections?: SortDirection[];
+  sortField?: string;
 }
 
 export interface TablePaginationConfig {
@@ -42,4 +49,6 @@ export interface TableProps<T> {
   className?: string;
   onRow?: (record: T) => TableRowConfig<T>;
   header?: TableHeaderConfig;
+  serverSort?: ServerSortState;
+  onServerSortChange?: (sortBy: string | null, sortOrder: SortOrder | null) => void;
 }

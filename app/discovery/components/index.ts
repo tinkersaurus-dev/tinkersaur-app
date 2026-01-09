@@ -8,6 +8,10 @@ export { IntakeResults } from './IntakeResults';
 export { IntakePersonaMergeModal } from './IntakePersonaMergeModal';
 export { IntakeUseCaseMergeModal } from './IntakeUseCaseMergeModal';
 export type { PendingUseCaseMerge } from './IntakeUseCaseMergeModal';
+export { IntakeFeedbackMergeModal } from './IntakeFeedbackMergeModal';
+export type { PendingFeedbackMerge } from './IntakeFeedbackMergeModal';
+export { FeedbackMergeModal } from './FeedbackMergeModal';
+export { FeedbackChildrenExpander } from './FeedbackChildrenExpander';
 export { DashboardListSection } from './DashboardListSection';
 export {
   PersonaRow,

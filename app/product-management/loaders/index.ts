@@ -7,6 +7,7 @@ import { dehydrate } from '@tanstack/react-query';
 import { getQueryClient } from '~/core/query/queryClient';
 import { queryKeys } from '~/core/query/queryKeys';
 import { solutionApi, useCaseApi, requirementApi, personaApi } from '~/core/entities/product-management/api';
+import { feedbackApi } from '~/core/entities/discovery/api';
 import { STALE_TIMES } from '~/core/query/queryClient';
 
 // ============== TYPES ==============
@@ -25,6 +26,16 @@ export interface UseCaseDetailLoaderData {
 export interface PersonaDetailLoaderData {
   dehydratedState: ReturnType<typeof dehydrate>;
   personaId: string;
+}
+
+export interface DiscoveryUseCaseDetailLoaderData {
+  dehydratedState: ReturnType<typeof dehydrate>;
+  useCaseId: string;
+}
+
+export interface FeedbackDetailLoaderData {
+  dehydratedState: ReturnType<typeof dehydrate>;
+  feedbackId: string;
 }
 
 // ============== LOADERS ==============
@@ -125,5 +136,54 @@ export async function loadPersonaDetail(personaId: string): Promise<PersonaDetai
   return {
     dehydratedState: dehydrate(queryClient),
     personaId,
+  };
+}
+
+/**
+ * Load use case for discovery-use-case-detail page
+ * Does not require solutionId - standalone use case view
+ */
+export async function loadDiscoveryUseCaseDetail(useCaseId: string): Promise<DiscoveryUseCaseDetailLoaderData> {
+  const queryClient = getQueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.useCases.detail(useCaseId),
+    queryFn: () => useCaseApi.get(useCaseId),
+    staleTime: STALE_TIMES.useCases,
+  });
+
+  // Check if use case was found
+  const useCase = queryClient.getQueryData(queryKeys.useCases.detail(useCaseId));
+  if (!useCase) {
+    throw new Response('Use case not found', { status: 404 });
+  }
+
+  return {
+    dehydratedState: dehydrate(queryClient),
+    useCaseId,
+  };
+}
+
+/**
+ * Load feedback with children for feedback-detail page
+ */
+export async function loadFeedbackDetail(feedbackId: string): Promise<FeedbackDetailLoaderData> {
+  const queryClient = getQueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.feedbacks.withChildren(feedbackId),
+    queryFn: () => feedbackApi.getWithChildren(feedbackId),
+    staleTime: STALE_TIMES.feedbacks,
+  });
+
+  // Check if feedback was found
+  const feedback = queryClient.getQueryData(queryKeys.feedbacks.withChildren(feedbackId));
+  if (!feedback) {
+    throw new Response('Feedback not found', { status: 404 });
+  }
+
+  return {
+    dehydratedState: dehydrate(queryClient),
+    feedbackId,
   };
 }

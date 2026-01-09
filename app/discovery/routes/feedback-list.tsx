@@ -3,8 +3,9 @@
  * Displays all feedback in a paginated table with filtering and multi-select
  */
 
-import { useMemo, useRef, useEffect } from 'react';
-import { FiPlus } from 'react-icons/fi';
+import { useMemo, useRef, useEffect, useState } from 'react';
+import { Link } from 'react-router';
+import { FiPlus, FiGitMerge } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { ListControlPanel } from '~/core/components/ListControlPanel';
@@ -16,14 +17,17 @@ import { useFeedbacksPaginatedQuery } from '../queries';
 import { useSolutionsQuery, usePersonasQuery, useUseCasesByTeamQuery } from '~/product-management/queries';
 import { useListSelection, useListUrlState } from '~/core/hooks';
 import { useAuthStore } from '~/core/auth';
+import { FeedbackMergeModal } from '../components';
 
 export default function FeedbackListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
 
-  // URL state for pagination and filters
+  // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
     filterKeys: ['solutionId', 'personaIds', 'useCaseIds'],
+    defaultSortBy: 'createdAt',
+    defaultSortOrder: 'desc',
   });
 
   // Parse multi-select IDs from URL (comma-separated)
@@ -50,8 +54,10 @@ export default function FeedbackListPage() {
       solutionId: urlState.filters.solutionId || undefined,
       personaIds,
       useCaseIds,
+      sortBy: urlState.sortBy || undefined,
+      sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds, useCaseIds]);
+  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds, useCaseIds, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching
   const { data, isLoading } = useFeedbacksPaginatedQuery(queryParams);
@@ -59,11 +65,14 @@ export default function FeedbackListPage() {
   const { data: personas = [] } = usePersonasQuery(teamId);
   const { data: useCases = [] } = useUseCasesByTeamQuery(teamId);
 
-  // Multi-select for future bulk actions
+  // Multi-select for bulk actions (like merge)
   const selection = useListSelection({
     items: data?.items || [],
     getItemId: (item) => item.id,
   });
+
+  // Merge modal state
+  const [mergeModalOpen, setMergeModalOpen] = useState(false);
 
   // Map feedback type to tag color
   const getTypeColor = (type: string): TagColor => {
@@ -92,6 +101,8 @@ export default function FeedbackListPage() {
       title: 'Type',
       dataIndex: 'type',
       width: 100,
+      sorter: true,
+      sortField: 'type',
       render: (value) => {
         const type = value as string;
         const config = FEEDBACK_TYPE_CONFIG[type as keyof typeof FEEDBACK_TYPE_CONFIG];
@@ -106,22 +117,46 @@ export default function FeedbackListPage() {
       key: 'content',
       title: 'Content',
       dataIndex: 'content',
-      render: (value) => (
-        <span className="line-clamp-2 text-sm">
-          {value as string}
-        </span>
+      sorter: true,
+      sortField: 'content',
+      render: (_, record) => (
+        <Link
+          to={`/discovery/organize/feedback/${record.id}`}
+          className="text-[var(--primary)] hover:underline line-clamp-2 text-sm"
+        >
+          {record.content}
+        </Link>
       ),
+    },
+    {
+      key: 'weight',
+      title: 'Weight',
+      dataIndex: 'weight',
+      width: 80,
+      sorter: true,
+      sortField: 'weight',
+      render: (value) => {
+        const weight = value as number;
+        if (!weight || weight === 0) return null;
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--primary)]/10 text-[var(--primary)]">
+            +{weight}
+          </span>
+        );
+      },
     },
     {
       key: 'solution',
       title: 'Solution',
       dataIndex: 'solutionId',
       width: 150,
+      sorter: true,
+      sortField: 'solutionId',
       render: (value) => {
         if (!value) return <span className="text-[var(--text-muted)]">—</span>;
         const solution = solutions.find(s => s.id === value);
         return (
-          <span className="text-sm">
+          <span>
             {solution?.name || 'Unknown'}
           </span>
         );
@@ -132,8 +167,10 @@ export default function FeedbackListPage() {
       title: 'Created',
       dataIndex: 'createdAt',
       width: 120,
+      sorter: true,
+      sortField: 'createdAt',
       render: (value) => (
-        <span className="text-sm text-[var(--text-muted)]">
+        <span className="text-[var(--text-muted)]">
           {new Date(value as Date).toLocaleDateString()}
         </span>
       ),
@@ -241,6 +278,17 @@ export default function FeedbackListPage() {
               filterValues={filterValues}
               onFilterChange={handleFilterChange}
               selectedCount={selection.selectedIds.size}
+              actions={
+                selection.selectedIds.size >= 2 ? (
+                  <Button
+                    variant="default"
+                    icon={<FiGitMerge />}
+                    onClick={() => setMergeModalOpen(true)}
+                  >
+                    Merge ({selection.selectedIds.size})
+                  </Button>
+                ) : undefined
+              }
             />
 
             <Table
@@ -254,8 +302,26 @@ export default function FeedbackListPage() {
                 total: data?.totalCount,
                 onChange: handlePageChange,
               }}
+              serverSort={{
+                sortBy: urlState.sortBy,
+                sortOrder: urlState.sortOrder,
+              }}
+              onServerSortChange={urlState.setSort}
               empty={<Empty description="No feedback found. Adjust your filters or add new feedback." />}
             />
+
+            {/* Merge Modal */}
+            {teamId && (
+              <FeedbackMergeModal
+                open={mergeModalOpen}
+                onClose={() => {
+                  setMergeModalOpen(false);
+                  selection.clear();
+                }}
+                selectedFeedbacks={selection.selectedItems}
+                teamId={teamId}
+              />
+            )}
           </>
         )}
       </PageContent>

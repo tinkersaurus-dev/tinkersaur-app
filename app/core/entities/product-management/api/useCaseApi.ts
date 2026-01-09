@@ -19,6 +19,8 @@ export const useCaseApi = {
     if (params.personaIds?.length) {
       params.personaIds.forEach(id => searchParams.append('personaIds', id));
     }
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
     const data = await httpClient.get<PaginatedResponse<UseCase>>(
       `/api/use-cases?${searchParams.toString()}`
