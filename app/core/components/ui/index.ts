@@ -59,3 +59,6 @@ export { Descriptions } from './Descriptions';
 export type { DescriptionsProps, DescriptionsItemProps, DescriptionsItemType } from './Descriptions';
 
 export { MarkdownContent } from './MarkdownContent';
+
+export { EditableSection, EditableField } from './EditableSection';
+export type { EditableSectionProps, EditableFieldProps } from './EditableSection';

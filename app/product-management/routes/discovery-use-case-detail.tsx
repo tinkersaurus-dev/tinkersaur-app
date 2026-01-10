@@ -9,12 +9,12 @@ import { HydrationBoundary, useQueries } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiUser, FiArchive, FiAlertTriangle, FiMessageCircle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Button, Card, Modal, Tabs, Empty, Table } from '~/core/components/ui';
+import { Button, Card, Modal, Tabs, Empty, Table, EditableSection, EditableField } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { PersonaUseCase } from '~/core/entities/product-management/types';
 import type { Feedback } from '~/core/entities/discovery/types';
 import { useUseCaseQuery, useUseCasePersonasQuery, usePersonasQuery } from '../queries';
-import { useDeleteUseCase, useCreatePersonaUseCase, useDeletePersonaUseCase } from '../mutations';
+import { useDeleteUseCase, useCreatePersonaUseCase, useDeletePersonaUseCase, useUpdateUseCase } from '../mutations';
 import { loadDiscoveryUseCaseDetail } from '../loaders';
 import type { DiscoveryUseCaseDetailLoaderData } from '../loaders';
 import type { Route } from './+types/discovery-use-case-detail';
@@ -63,6 +63,12 @@ function DiscoveryUseCaseDetailContent() {
   const deleteUseCase = useDeleteUseCase();
   const createPersonaUseCase = useCreatePersonaUseCase();
   const deletePersonaUseCase = useDeletePersonaUseCase();
+  const updateUseCase = useUpdateUseCase();
+
+  // Basic info edit state
+  const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
+  const [basicInfoForm, setBasicInfoForm] = useState({ name: '', description: '' });
+  const [basicInfoErrors, setBasicInfoErrors] = useState<Record<string, string>>({});
 
   // Fetch intake source for quote source display
   const { data: intakeSource } = useIntakeSourceQuery(useCase?.intakeSourceId);
@@ -263,6 +269,68 @@ function DiscoveryUseCaseDetailContent() {
     return allPersonas.filter(p => !linkedPersonaIds.has(p.id));
   }, [allPersonas, personaIds]);
 
+  // Basic info edit handlers
+  const handleBasicInfoEditToggle = () => {
+    if (!isBasicInfoEditing && useCase) {
+      setBasicInfoForm({
+        name: useCase.name,
+        description: useCase.description || '',
+      });
+      setBasicInfoErrors({});
+    }
+    setIsBasicInfoEditing(!isBasicInfoEditing);
+  };
+
+  const handleBasicInfoSave = async (): Promise<boolean> => {
+    // Validate
+    const errors: Record<string, string> = {};
+    if (!basicInfoForm.name.trim()) {
+      errors.name = 'Name is required';
+    } else if (basicInfoForm.name.length > 200) {
+      errors.name = 'Name must be 200 characters or less';
+    }
+    if (basicInfoForm.description && basicInfoForm.description.length > 2000) {
+      errors.description = 'Description must be 2000 characters or less';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setBasicInfoErrors(errors);
+      return false;
+    }
+
+    // Save
+    try {
+      await updateUseCase.mutateAsync({
+        id: useCaseId!,
+        updates: {
+          name: basicInfoForm.name,
+          description: basicInfoForm.description || undefined,
+        },
+      });
+      setIsBasicInfoEditing(false);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleBasicInfoCancel = () => {
+    setIsBasicInfoEditing(false);
+    setBasicInfoErrors({});
+  };
+
+  const updateBasicInfoField = (field: string) => (value: string) => {
+    setBasicInfoForm(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (basicInfoErrors[field]) {
+      setBasicInfoErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
   const handleBack = () => {
     navigate('/discovery/organize/use-cases');
   };
@@ -330,20 +398,37 @@ function DiscoveryUseCaseDetailContent() {
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Info Card */}
-            <Card>
-              <h3 className="text-md font-semibold text-[var(--text)] mb-4">Basic Information</h3>
-
-              {useCase.description && (
-                <div className="mb-4">
-                  <label className="text-sm font-medium text-[var(--text-muted)]">Description</label>
-                  <p className="text-xs text-[var(--text)] whitespace-pre-wrap">{useCase.description}</p>
-                </div>
-              )}
-
-              {!useCase.description && (
-                <p className="text-[var(--text-muted)] text-sm">No description provided.</p>
-              )}
-            </Card>
+            <EditableSection
+              title="Basic Information"
+              isEditing={isBasicInfoEditing}
+              onEditToggle={handleBasicInfoEditToggle}
+              onSave={handleBasicInfoSave}
+              onCancel={handleBasicInfoCancel}
+              isSaving={updateUseCase.isPending}
+              hasErrors={Object.keys(basicInfoErrors).length > 0}
+            >
+              <EditableField
+                label="Name"
+                value={isBasicInfoEditing ? basicInfoForm.name : useCase.name}
+                isEditing={isBasicInfoEditing}
+                onChange={updateBasicInfoField('name')}
+                required
+                error={basicInfoErrors.name}
+                placeholder="Enter use case name"
+                maxLength={200}
+              />
+              <EditableField
+                label="Description"
+                value={isBasicInfoEditing ? basicInfoForm.description : useCase.description}
+                isEditing={isBasicInfoEditing}
+                onChange={updateBasicInfoField('description')}
+                type="textarea"
+                rows={4}
+                error={basicInfoErrors.description}
+                placeholder="Describe this use case..."
+                maxLength={2000}
+              />
+            </EditableSection>
 
             {/* Tabbed Section: Quotes, Suggestions, Problems */}
             <Card>

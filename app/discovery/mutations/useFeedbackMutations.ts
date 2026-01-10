@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from '~/core/query/queryKeys';
 import { feedbackApi } from '~/core/entities/discovery/api';
-import type { MergeFeedbackRequest } from '~/core/entities/discovery/types';
+import type { MergeFeedbackRequest, CreateFeedbackDto } from '~/core/entities/discovery/types';
 
 /**
  * Mutation hook for merging feedbacks (parent-child relationship)
@@ -55,6 +55,28 @@ export function useDeleteFeedback() {
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete feedback');
+    },
+  });
+}
+
+/**
+ * Mutation hook for updating a feedback
+ */
+export function useUpdateFeedback() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<CreateFeedbackDto> }) =>
+      feedbackApi.update(id, updates),
+    onSuccess: (updatedFeedback, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.all });
+      if (updatedFeedback) {
+        queryClient.setQueryData(queryKeys.feedbacks.detail(variables.id), updatedFeedback);
+      }
+      toast.success('Feedback updated successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update feedback');
     },
   });
 }

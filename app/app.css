@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
-/* Nunito Sans font-face declarations */
+/* Inter font-face declarations */
 @font-face {
-  font-family: 'Nunito Sans';
-  src: url('/fonts/Nunito_Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf') format('truetype');
+  font-family: 'Inter';
+  src: url('/fonts/Inter/InterVariable.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Nunito Sans';
-  src: url('/fonts/Nunito_Sans/NunitoSans-Italic-VariableFont_YTLC,opsz,wdth,wght.ttf') format('truetype');
+  font-family: 'Inter';
+  src: url('/fonts/Inter/InterVariable-Italic.ttf') format('truetype');
   font-weight: 100 900;
   font-style: italic;
 }
 
 @theme {
-  --font-sans: "Nunito Sans", ui-sans-serif, system-ui, sans-serif,
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
   --bg-brand: var(--bg-brand);

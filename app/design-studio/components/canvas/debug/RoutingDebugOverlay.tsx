@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDebugState } from './routingDebugState';
+import { getDebugState, clearDebugState } from './routingDebugState';
 
 /**
  * Debug overlay to visualize the routing graph
@@ -14,7 +14,10 @@ export function RoutingDebugOverlay() {
   useEffect(() => {
     const handler = () => forceUpdate(prev => prev + 1);
     window.addEventListener('routing-debug-update', handler);
-    return () => window.removeEventListener('routing-debug-update', handler);
+    return () => {
+      window.removeEventListener('routing-debug-update', handler);
+      clearDebugState();
+    };
   }, []);
 
   // Toggle with 'D' key

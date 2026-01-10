@@ -38,3 +38,11 @@ export function getDebugState() {
     debugVisitedNodes
   };
 }
+
+export function clearDebugState() {
+  debugGraph = null;
+  debugStart = null;
+  debugEnd = null;
+  debugPath = null;
+  debugVisitedNodes = [];
+}

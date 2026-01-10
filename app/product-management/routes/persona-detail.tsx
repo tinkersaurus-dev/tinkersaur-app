@@ -9,12 +9,12 @@ import { HydrationBoundary, useQueries } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle, FiArchive, FiAlertTriangle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Button, Card, Modal, Tabs, Empty, Table } from '~/core/components/ui';
+import { Button, Card, Modal, Tabs, Empty, Table, EditableSection, EditableField } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { PersonaUseCase } from '~/core/entities/product-management/types';
 import type { Feedback } from '~/core/entities/discovery/types';
 import { usePersonaQuery, usePersonaUseCasesQuery } from '../queries';
-import { useDeletePersona, useCreatePersonaUseCase, useDeletePersonaUseCase } from '../mutations';
+import { useDeletePersona, useCreatePersonaUseCase, useDeletePersonaUseCase, useUpdatePersona } from '../mutations';
 import { loadPersonaDetail } from '../loaders';
 import type { PersonaDetailLoaderData } from '../loaders';
 import type { Route } from './+types/persona-detail';
@@ -55,6 +55,12 @@ function PersonaDetailContent() {
   const deletePersona = useDeletePersona();
   const createPersonaUseCase = useCreatePersonaUseCase();
   const deletePersonaUseCase = useDeletePersonaUseCase();
+  const updatePersona = useUpdatePersona();
+
+  // Basic info edit state
+  const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
+  const [basicInfoForm, setBasicInfoForm] = useState({ name: '', role: '', description: '' });
+  const [basicInfoErrors, setBasicInfoErrors] = useState<Record<string, string>>({});
 
   // Fetch feedback for this persona
   const { data: feedbackData } = useFeedbacksPaginatedQuery(
@@ -209,6 +215,73 @@ function PersonaDetailContent() {
   // then filter out IDs already in personaUseCases
   const availableUseCases: Array<{ id: string; name: string; description?: string }> = [];
 
+  // Basic info edit handlers
+  const handleBasicInfoEditToggle = () => {
+    if (!isBasicInfoEditing && persona) {
+      setBasicInfoForm({
+        name: persona.name,
+        role: persona.role || '',
+        description: persona.description || '',
+      });
+      setBasicInfoErrors({});
+    }
+    setIsBasicInfoEditing(!isBasicInfoEditing);
+  };
+
+  const handleBasicInfoSave = async (): Promise<boolean> => {
+    // Validate
+    const errors: Record<string, string> = {};
+    if (!basicInfoForm.name.trim()) {
+      errors.name = 'Name is required';
+    } else if (basicInfoForm.name.length > 200) {
+      errors.name = 'Name must be 200 characters or less';
+    }
+    if (basicInfoForm.role && basicInfoForm.role.length > 200) {
+      errors.role = 'Role must be 200 characters or less';
+    }
+    if (basicInfoForm.description && basicInfoForm.description.length > 2000) {
+      errors.description = 'Description must be 2000 characters or less';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setBasicInfoErrors(errors);
+      return false;
+    }
+
+    // Save
+    try {
+      await updatePersona.mutateAsync({
+        id: personaId!,
+        updates: {
+          name: basicInfoForm.name,
+          role: basicInfoForm.role || undefined,
+          description: basicInfoForm.description || undefined,
+        },
+      });
+      setIsBasicInfoEditing(false);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleBasicInfoCancel = () => {
+    setIsBasicInfoEditing(false);
+    setBasicInfoErrors({});
+  };
+
+  const updateBasicInfoField = (field: string) => (value: string) => {
+    setBasicInfoForm(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (basicInfoErrors[field]) {
+      setBasicInfoErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
   const handleBack = () => {
     navigate('/discovery/organize/personas');
   };
@@ -276,25 +349,46 @@ function PersonaDetailContent() {
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Info Card */}
-            <Card>
-              <h3 className="text-md font-semibold text-[var(--text)] mb-4">Basic Information</h3>
-
-              {persona.role && (
-                <div className="mb-4">
-                  <label className="text-sm font-medium text-[var(--text-muted)]">Role</label>
-                  <p className="text-xs text-[var(--text)]">{persona.role}</p>
-                </div>
-              )}
-
-              {persona.description && (
-                <div className="mb-4">
-                  <label className="text-sm font-medium text-[var(--text-muted)]">Description</label>
-                  <p className="text-xs text-[var(--text)] whitespace-pre-wrap">{persona.description}</p>
-                </div>
-              )}
-
-              
-            </Card>
+            <EditableSection
+              title="Basic Information"
+              isEditing={isBasicInfoEditing}
+              onEditToggle={handleBasicInfoEditToggle}
+              onSave={handleBasicInfoSave}
+              onCancel={handleBasicInfoCancel}
+              isSaving={updatePersona.isPending}
+              hasErrors={Object.keys(basicInfoErrors).length > 0}
+            >
+              <EditableField
+                label="Name"
+                value={isBasicInfoEditing ? basicInfoForm.name : persona.name}
+                isEditing={isBasicInfoEditing}
+                onChange={updateBasicInfoField('name')}
+                required
+                error={basicInfoErrors.name}
+                placeholder="Enter persona name"
+                maxLength={200}
+              />
+              <EditableField
+                label="Role"
+                value={isBasicInfoEditing ? basicInfoForm.role : persona.role}
+                isEditing={isBasicInfoEditing}
+                onChange={updateBasicInfoField('role')}
+                error={basicInfoErrors.role}
+                placeholder="e.g., Product Manager, Developer"
+                maxLength={200}
+              />
+              <EditableField
+                label="Description"
+                value={isBasicInfoEditing ? basicInfoForm.description : persona.description}
+                isEditing={isBasicInfoEditing}
+                onChange={updateBasicInfoField('description')}
+                type="textarea"
+                rows={4}
+                error={basicInfoErrors.description}
+                placeholder="Describe this persona..."
+                maxLength={2000}
+              />
+            </EditableSection>
 
             {/* Tabbed Section: Goals/Pain Points, Suggestions, Problems */}
             <Card>

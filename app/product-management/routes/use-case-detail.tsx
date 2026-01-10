@@ -9,13 +9,13 @@ import { useParams, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select, Card, Tabs, Empty } from '~/core/components/ui';
+import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select, Card, Tabs, Empty, EditableSection, EditableField } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
 import { useSolutionQuery, useUseCaseQuery, useRequirementsQuery } from '../queries';
 import { useIntakeSourceQuery } from '~/discovery/queries';
 import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
-import { useCreateRequirement, useUpdateRequirement, useDeleteRequirement } from '../mutations';
+import { useCreateRequirement, useUpdateRequirement, useDeleteRequirement, useUpdateUseCase } from '../mutations';
 import { loadUseCaseDetail } from '../loaders';
 import type { UseCaseDetailLoaderData } from '../loaders';
 import type { Route } from './+types/use-case-detail';
@@ -55,6 +55,12 @@ function UseCaseDetailContent() {
   const createRequirement = useCreateRequirement();
   const updateRequirement = useUpdateRequirement();
   const deleteRequirement = useDeleteRequirement();
+  const updateUseCase = useUpdateUseCase();
+
+  // Basic info edit state
+  const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
+  const [basicInfoForm, setBasicInfoForm] = useState({ name: '', description: '' });
+  const [basicInfoErrors, setBasicInfoErrors] = useState<Record<string, string>>({});
 
   // Fetch intake source for quote source display
   const { data: intakeSource } = useIntakeSourceQuery(useCase?.intakeSourceId);
@@ -110,6 +116,68 @@ function UseCaseDetailContent() {
     type: 'functional',
     priority: 1,
   });
+
+  // Basic info edit handlers
+  const handleBasicInfoEditToggle = () => {
+    if (!isBasicInfoEditing && useCase) {
+      setBasicInfoForm({
+        name: useCase.name,
+        description: useCase.description || '',
+      });
+      setBasicInfoErrors({});
+    }
+    setIsBasicInfoEditing(!isBasicInfoEditing);
+  };
+
+  const handleBasicInfoSave = async (): Promise<boolean> => {
+    // Validate
+    const errors: Record<string, string> = {};
+    if (!basicInfoForm.name.trim()) {
+      errors.name = 'Name is required';
+    } else if (basicInfoForm.name.length > 200) {
+      errors.name = 'Name must be 200 characters or less';
+    }
+    if (basicInfoForm.description && basicInfoForm.description.length > 2000) {
+      errors.description = 'Description must be 2000 characters or less';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setBasicInfoErrors(errors);
+      return false;
+    }
+
+    // Save
+    try {
+      await updateUseCase.mutateAsync({
+        id: useCaseId!,
+        updates: {
+          name: basicInfoForm.name,
+          description: basicInfoForm.description || undefined,
+        },
+      });
+      setIsBasicInfoEditing(false);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleBasicInfoCancel = () => {
+    setIsBasicInfoEditing(false);
+    setBasicInfoErrors({});
+  };
+
+  const updateBasicInfoField = (field: string) => (value: string) => {
+    setBasicInfoForm(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (basicInfoErrors[field]) {
+      setBasicInfoErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
 
   const handleAdd = () => {
     setEditingRequirement(null);
@@ -261,68 +329,102 @@ function UseCaseDetailContent() {
       />
 
       <PageContent>
-        <div style={{ marginBottom: '16px' }}>
-          <p style={{ color: '#666' }}>{useCase.description}</p>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Info Card */}
+            <EditableSection
+              title="Basic Information"
+              isEditing={isBasicInfoEditing}
+              onEditToggle={handleBasicInfoEditToggle}
+              onSave={handleBasicInfoSave}
+              onCancel={handleBasicInfoCancel}
+              isSaving={updateUseCase.isPending}
+              hasErrors={Object.keys(basicInfoErrors).length > 0}
+            >
+              <EditableField
+                label="Name"
+                value={isBasicInfoEditing ? basicInfoForm.name : useCase.name}
+                isEditing={isBasicInfoEditing}
+                onChange={updateBasicInfoField('name')}
+                required
+                error={basicInfoErrors.name}
+                placeholder="Enter use case name"
+                maxLength={200}
+              />
+              <EditableField
+                label="Description"
+                value={isBasicInfoEditing ? basicInfoForm.description : useCase.description}
+                isEditing={isBasicInfoEditing}
+                onChange={updateBasicInfoField('description')}
+                type="textarea"
+                rows={4}
+                error={basicInfoErrors.description}
+                placeholder="Describe this use case..."
+                maxLength={2000}
+              />
+            </EditableSection>
 
-        <Card>
-          <Tabs
-            type="line"
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            items={[
-              {
-                key: 'quotes',
-                label: (
-                  <span className="flex items-center gap-1.5">
-                    <FiMessageCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
-                    Supporting Quotes ({quoteRows.length})
-                  </span>
-                ),
-                children: (
-                  <div className="pt-4">
-                    {quoteRows.length === 0 ? (
-                      <Empty image="simple" description="No supporting quotes" />
-                    ) : (
-                      <Table
-                        columns={quoteColumns}
-                        dataSource={quoteRows}
-                        rowKey="id"
-                        pagination={false}
-                      />
-                    )}
-                  </div>
-                ),
-              },
-              {
-                key: 'requirements',
-                label: (
-                  <span className="flex items-center gap-1.5">
-                    Requirements ({requirements.length})
-                  </span>
-                ),
-                children: (
-                  <div className="pt-4">
-                    <Table
-                      header={{
-                        title: 'Requirements',
-                        actions: (
-                          <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
-                          </Button>
-                        ),
-                      }}
-                      columns={columns}
-                      dataSource={requirements}
-                      rowKey="id"
-                      pagination={{ pageSize: 10 }}
-                      loading={isLoading}
-                    />
-                  </div>
-                ),
-              },
-            ]}
-          />
-        </Card>
+            <Card>
+              <Tabs
+                type="line"
+                activeKey={activeTab}
+                onChange={setActiveTab}
+                items={[
+                  {
+                    key: 'quotes',
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <FiMessageCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
+                        Supporting Quotes ({quoteRows.length})
+                      </span>
+                    ),
+                    children: (
+                      <div className="pt-4">
+                        {quoteRows.length === 0 ? (
+                          <Empty image="simple" description="No supporting quotes" />
+                        ) : (
+                          <Table
+                            columns={quoteColumns}
+                            dataSource={quoteRows}
+                            rowKey="id"
+                            pagination={false}
+                          />
+                        )}
+                      </div>
+                    ),
+                  },
+                  {
+                    key: 'requirements',
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        Requirements ({requirements.length})
+                      </span>
+                    ),
+                    children: (
+                      <div className="pt-4">
+                        <Table
+                          header={{
+                            title: 'Requirements',
+                            actions: (
+                              <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
+                              </Button>
+                            ),
+                          }}
+                          columns={columns}
+                          dataSource={requirements}
+                          rowKey="id"
+                          pagination={{ pageSize: 10 }}
+                          loading={isLoading}
+                        />
+                      </div>
+                    ),
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        </div>
       </PageContent>
 
       <Modal

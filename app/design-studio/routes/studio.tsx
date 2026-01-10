@@ -10,6 +10,7 @@ import { useParams, useNavigate } from 'react-router';
 import { MainLayout } from '~/core/components/MainLayout';
 import { Layout, Tabs } from '~/core/components/ui';
 import { useDesignStudioUIStore } from '../store';
+import { canvasInstanceRegistry } from '../store/content/canvasInstanceRegistry';
 import { useDesignWorks } from '../hooks';
 import { useSolutionQuery } from '~/product-management/queries';
 import { useSolutionStore } from '~/core/solution';
@@ -36,9 +37,11 @@ export default function StudioPage() {
   // Individual content items are lazy loaded when opened
   const { loading: loadingDesignWorks } = useDesignWorks(solutionId || '');
 
-  // Initialize tabs when component mounts
+  // Initialize tabs when component mounts or solution changes
+  // Clean up canvas stores from previous solution to prevent memory leaks
   useEffect(() => {
     if (solutionId) {
+      canvasInstanceRegistry.clearAll();
       initializeTabs(solutionId);
     }
   }, [solutionId, initializeTabs]);

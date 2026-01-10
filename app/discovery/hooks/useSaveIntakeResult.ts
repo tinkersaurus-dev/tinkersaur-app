@@ -92,24 +92,30 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
 
         // Step 0.5: Execute pending persona merges (merges from intake flow that were deferred until save)
         // This merges existing personas with intake data, adding this intake source to the merged persona
+        // Build map from original intake persona index → merged persona ID for linking use cases/feedback
+        const mergedPersonaIdMap = new Map<number, string>();
         for (const pendingMerge of pendingMerges) {
-          await personaApi.merge({
+          const mergedPersona = await personaApi.merge({
             teamId,
             personaIds: [pendingMerge.existingPersonaId],
             mergedPersona: pendingMerge.mergedPersona,
             additionalIntakeSourceIds: [intakeSource.id],
           });
+          mergedPersonaIdMap.set(pendingMerge.intakePersonaIndex, mergedPersona.id);
         }
 
         // Step 0.75: Execute pending use case merges (merges from intake flow that were deferred until save)
         // This merges existing use cases with intake data, adding this intake source to the merged use case
+        // Build map from original intake use case index → merged use case ID for linking feedback
+        const mergedUseCaseIdMap = new Map<number, string>();
         for (const pendingMerge of pendingUseCaseMerges) {
-          await useCaseApi.merge({
+          const mergedUseCase = await useCaseApi.merge({
             teamId,
             useCaseIds: pendingMerge.existingUseCaseIds,
             mergedUseCase: pendingMerge.mergedUseCase,
             additionalIntakeSourceIds: [intakeSource.id],
           });
+          mergedUseCaseIdMap.set(pendingMerge.intakeUseCaseIndex, mergedUseCase.id);
         }
 
         // Step 1: Create all personas and build ID map
@@ -174,7 +180,16 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           if (!useCaseId) return;
 
           useCase.linkedPersonaIndexes.forEach((originalPersonaIndex) => {
-            // Get the new filtered index for this original persona index
+            // First check if this persona was merged
+            const mergedPersonaId = mergedPersonaIdMap.get(originalPersonaIndex);
+            if (mergedPersonaId) {
+              personaUseCasePromises.push(
+                personaUseCaseApi.create({ personaId: mergedPersonaId, useCaseId })
+              );
+              return;
+            }
+
+            // Otherwise, check created personas
             const filteredPersonaIndex = personaIndexMap.get(originalPersonaIndex);
             if (filteredPersonaIndex === undefined) return; // Persona was deleted
 
@@ -227,6 +242,16 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           if (!feedbackId) return;
 
           fb.linkedPersonaIndexes.forEach((originalPersonaIndex) => {
+            // First check if this persona was merged
+            const mergedPersonaId = mergedPersonaIdMap.get(originalPersonaIndex);
+            if (mergedPersonaId) {
+              feedbackPersonaPromises.push(
+                feedbackPersonaApi.create({ feedbackId, personaId: mergedPersonaId })
+              );
+              return;
+            }
+
+            // Otherwise, check created personas
             const filteredPersonaIndex = personaIndexMap.get(originalPersonaIndex);
             if (filteredPersonaIndex === undefined) return; // Persona was deleted
 
@@ -247,6 +272,16 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           if (!feedbackId) return;
 
           fb.linkedUseCaseIndexes.forEach((originalUseCaseIndex) => {
+            // First check if this use case was merged
+            const mergedUseCaseId = mergedUseCaseIdMap.get(originalUseCaseIndex);
+            if (mergedUseCaseId) {
+              feedbackUseCasePromises.push(
+                feedbackUseCaseApi.create({ feedbackId, useCaseId: mergedUseCaseId })
+              );
+              return;
+            }
+
+            // Otherwise, check created use cases
             const filteredUseCaseIndex = useCaseIndexMap.get(originalUseCaseIndex);
             if (filteredUseCaseIndex === undefined) return; // Use case was deleted
 
@@ -277,6 +312,12 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
 
           // Link to personas
           const personaLinkPromises = fb.linkedPersonaIndexes.map((originalPersonaIndex) => {
+            // First check if this persona was merged
+            const mergedPersonaId = mergedPersonaIdMap.get(originalPersonaIndex);
+            if (mergedPersonaId) {
+              return feedbackPersonaApi.create({ feedbackId: createdFeedback.id, personaId: mergedPersonaId });
+            }
+            // Otherwise, check created personas
             const filteredPersonaIndex = personaIndexMap.get(originalPersonaIndex);
             if (filteredPersonaIndex === undefined) return null;
             const personaId = personaIdMap.get(filteredPersonaIndex);
@@ -287,6 +328,12 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
 
           // Link to use cases
           const useCaseLinkPromises = fb.linkedUseCaseIndexes.map((originalUseCaseIndex) => {
+            // First check if this use case was merged
+            const mergedUseCaseId = mergedUseCaseIdMap.get(originalUseCaseIndex);
+            if (mergedUseCaseId) {
+              return feedbackUseCaseApi.create({ feedbackId: createdFeedback.id, useCaseId: mergedUseCaseId });
+            }
+            // Otherwise, check created use cases
             const filteredUseCaseIndex = useCaseIndexMap.get(originalUseCaseIndex);
             if (filteredUseCaseIndex === undefined) return null;
             const useCaseId = useCaseIdMap.get(filteredUseCaseIndex);

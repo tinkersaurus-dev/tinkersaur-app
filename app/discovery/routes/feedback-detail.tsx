@@ -9,7 +9,7 @@ import { HydrationBoundary, useQueries } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiUser, FiLink, FiMessageCircle, FiCopy } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Button, Card, Modal, Tag, Empty, Tabs, Table } from '~/core/components/ui';
+import { Button, Card, Modal, Tag, Empty, Tabs, Table, EditableSection, EditableField } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { FeedbackPersona, FeedbackUseCase } from '~/core/entities/discovery/types';
 import type { IntakeSource } from '~/core/entities/discovery/types/IntakeSource';
@@ -20,7 +20,7 @@ import {
   useFeedbackPersonasQuery,
   useFeedbackUseCasesQuery,
 } from '../queries';
-import { useDeleteFeedback } from '../mutations';
+import { useDeleteFeedback, useUpdateFeedback } from '../mutations';
 import { loadFeedbackDetail } from '~/product-management/loaders';
 import type { FeedbackDetailLoaderData } from '~/product-management/loaders';
 import type { Route } from './+types/feedback-detail';
@@ -65,6 +65,12 @@ function FeedbackDetailContent() {
   const { data: feedbackPersonas = [] } = useFeedbackPersonasQuery(feedbackId);
   const { data: feedbackUseCases = [] } = useFeedbackUseCasesQuery(feedbackId);
   const deleteFeedback = useDeleteFeedback();
+  const updateFeedback = useUpdateFeedback();
+
+  // Basic info edit state
+  const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
+  const [basicInfoForm, setBasicInfoForm] = useState({ content: '' });
+  const [basicInfoErrors, setBasicInfoErrors] = useState<Record<string, string>>({});
 
   // Get IDs for batch loading names
   const personaIds = useMemo(
@@ -287,6 +293,63 @@ function FeedbackDetailContent() {
     },
   ];
 
+  // Basic info edit handlers
+  const handleBasicInfoEditToggle = () => {
+    if (!isBasicInfoEditing && feedback) {
+      setBasicInfoForm({
+        content: feedback.content,
+      });
+      setBasicInfoErrors({});
+    }
+    setIsBasicInfoEditing(!isBasicInfoEditing);
+  };
+
+  const handleBasicInfoSave = async (): Promise<boolean> => {
+    // Validate
+    const errors: Record<string, string> = {};
+    if (!basicInfoForm.content.trim()) {
+      errors.content = 'Content is required';
+    } else if (basicInfoForm.content.length > 2000) {
+      errors.content = 'Content must be 2000 characters or less';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setBasicInfoErrors(errors);
+      return false;
+    }
+
+    // Save
+    try {
+      await updateFeedback.mutateAsync({
+        id: feedbackId!,
+        updates: {
+          content: basicInfoForm.content,
+        },
+      });
+      setIsBasicInfoEditing(false);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleBasicInfoCancel = () => {
+    setIsBasicInfoEditing(false);
+    setBasicInfoErrors({});
+  };
+
+  const updateBasicInfoField = (field: string) => (value: string) => {
+    setBasicInfoForm(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (basicInfoErrors[field]) {
+      setBasicInfoErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
   const handleBack = () => {
     navigate('/discovery/organize/feedback');
   };
@@ -337,10 +400,28 @@ function FeedbackDetailContent() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Feedback Content Card */}
-            <Card>
-              <h3 className="text-md font-semibold text-[var(--text)] mb-4">Description</h3>
-              <p className="text-[var(--text)] whitespace-pre-wrap">{feedback.content}</p>
-            </Card>
+            <EditableSection
+              title="Basic Information"
+              isEditing={isBasicInfoEditing}
+              onEditToggle={handleBasicInfoEditToggle}
+              onSave={handleBasicInfoSave}
+              onCancel={handleBasicInfoCancel}
+              isSaving={updateFeedback.isPending}
+              hasErrors={Object.keys(basicInfoErrors).length > 0}
+            >
+              <EditableField
+                label="Content"
+                value={isBasicInfoEditing ? basicInfoForm.content : feedback.content}
+                isEditing={isBasicInfoEditing}
+                onChange={updateBasicInfoField('content')}
+                required
+                error={basicInfoErrors.content}
+                type="textarea"
+                rows={4}
+                placeholder="Describe the feedback..."
+                maxLength={2000}
+              />
+            </EditableSection>
 
             {/* Tabbed Section: Supporting Quotes, Duplicate Feedback */}
             <Card>
