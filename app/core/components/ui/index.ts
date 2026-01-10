@@ -62,3 +62,6 @@ export { MarkdownContent } from './MarkdownContent';
 
 export { EditableSection, EditableField } from './EditableSection';
 export type { EditableSectionProps, EditableFieldProps } from './EditableSection';
+
+export { EditableMarkdownSection } from './EditableMarkdownSection';
+export type { EditableMarkdownSectionProps } from './EditableMarkdownSection';

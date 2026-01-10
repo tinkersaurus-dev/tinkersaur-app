@@ -4,7 +4,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { LuPencil, LuCheck, LuX } from 'react-icons/lu';
+import { LuPencil, LuCheck, LuX, LuSparkles } from 'react-icons/lu';
 import { Card } from '../Card';
 
 export interface EditableSectionProps {
@@ -26,6 +26,10 @@ export interface EditableSectionProps {
   children: ReactNode;
   /** Additional className */
   className?: string;
+  /** Handler for generate button click */
+  onGenerateClick?: () => void;
+  /** Whether generation is in progress (disables button) */
+  isGenerating?: boolean;
 }
 
 export function EditableSection({
@@ -38,6 +42,8 @@ export function EditableSection({
   hasErrors = false,
   children,
   className = '',
+  onGenerateClick,
+  isGenerating = false,
 }: EditableSectionProps) {
   // Base icon button styles
   const iconButtonBase = `
@@ -82,7 +88,7 @@ export function EditableSection({
     <Card className={className}>
       {/* Header with title and action buttons */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-md font-semibold text-[var(--text)]">{title}</h3>
+        <h3 className="text-sm font-semibold text-[var(--text)]">{title}</h3>
 
         <div className="flex items-center gap-1">
           {isEditing ? (
@@ -111,14 +117,27 @@ export function EditableSection({
               </button>
             </>
           ) : (
-            <button
-              type="button"
-              className={editButtonClasses}
-              onClick={onEditToggle}
-              title="Edit"
-            >
-              <LuPencil className="w-4 h-4" />
-            </button>
+            <>
+              {onGenerateClick && (
+                <button
+                  type="button"
+                  className={editButtonClasses}
+                  onClick={onGenerateClick}
+                  disabled={isGenerating}
+                  title="Generate with AI"
+                >
+                  <LuSparkles className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                className={editButtonClasses}
+                onClick={onEditToggle}
+                title="Edit"
+              >
+                <LuPencil className="w-4 h-4" />
+              </button>
+            </>
           )}
         </div>
       </div>

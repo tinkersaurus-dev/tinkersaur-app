@@ -52,8 +52,8 @@ export function AppHeader() {
       label: <Link to="/discovery/intake">Discovery</Link>,
     },
     {
-      key: 'strategy',
-      label: <Link to="/strategy/scope">Strategy</Link>,
+      key: 'solutions',
+      label: <Link to="/solutions/strategy/overview">Solutions</Link>,
     },
     {
       key: 'design',

@@ -51,3 +51,5 @@ export {
   useCreatePersonaUseCase,
   useDeletePersonaUseCase,
 } from './usePersonaUseCaseMutations';
+
+export { useUpdateSolutionOverview } from './useSolutionOverviewMutations';

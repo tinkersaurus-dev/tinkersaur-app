@@ -11,6 +11,7 @@ export const STALE_TIMES = {
   interfaces: 2 * 60 * 1000,    // 2 min - actively edited
   references: 2 * 60 * 1000,    // 2 min - actively edited
   solutions: 5 * 60 * 1000,     // 5 min
+  solutionOverviews: 5 * 60 * 1000, // 5 min - strategy data
   useCases: 5 * 60 * 1000,      // 5 min
   requirements: 5 * 60 * 1000,  // 5 min
   personas: 10 * 60 * 1000,     // 10 min - reference data

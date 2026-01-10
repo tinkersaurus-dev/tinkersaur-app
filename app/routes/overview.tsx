@@ -1,5 +1,5 @@
 /**
- * Scope Index Route
+ * Overview Index Route
  * Redirects to selected solution or shows empty state
  */
 
@@ -19,13 +19,13 @@ export function clientLoader() {
   const solutionId = getSelectedSolutionId();
 
   if (solutionId) {
-    return redirect(`/solutions/scope/${solutionId}`);
+    return redirect(`/solutions/strategy/overview/${solutionId}`);
   }
 
   return null;
 }
 
-export default function ScopeIndex() {
+export default function OverviewIndex() {
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const selectedSolution = useSolutionStore((state) => state.selectedSolution);
@@ -33,18 +33,18 @@ export default function ScopeIndex() {
   // Redirect to selected solution via effect (not during render)
   useEffect(() => {
     if (selectedSolution?.solutionId) {
-      navigate(`/solutions/scope/${selectedSolution.solutionId}`, { replace: true });
+      navigate(`/solutions/strategy/overview/${selectedSolution.solutionId}`, { replace: true });
     }
   }, [selectedSolution?.solutionId, navigate]);
 
   const handleCreateSuccess = (solution: { id: string }) => {
     setIsCreateModalOpen(false);
-    navigate(`/solutions/scope/${solution.id}`);
+    navigate(`/solutions/strategy/overview/${solution.id}`);
   };
 
   return (
     <MainLayout>
-      <PageHeader title="Scope" />
+      <PageHeader title="Overview" />
       <PageContent>
         <div className="flex flex-col items-center justify-center py-16">
           <Empty description="No solution selected" />

@@ -69,7 +69,7 @@ function SolutionDetailContent() {
   // Redirect to empty state when solution is cleared (e.g., team change)
   useEffect(() => {
     if (solutionId && !selectedSolution) {
-      navigate('/strategy/scope', { replace: true });
+      navigate('/solutions/scope', { replace: true });
     }
   }, [selectedSolution, solutionId, navigate]);
 
@@ -124,7 +124,7 @@ function SolutionDetailContent() {
 
     // Clear solution selection and navigate to empty state
     clearSolution();
-    navigate('/strategy/scope');
+    navigate('/solutions/scope');
     deleteSolution.mutate(solutionId!);
   };
 
@@ -188,7 +188,7 @@ function SolutionDetailContent() {
       dataIndex: 'name',
       key: 'name',
       render: (value, record) => (
-        <Link to={`/strategy/scope/${solutionId}/use-cases/${record.id}`} className="text-[var(--primary)] hover:underline">
+        <Link to={`/solutions/scope/${solutionId}/use-cases/${record.id}`} className="text-[var(--primary)] hover:underline">
           {value as string}
         </Link>
       ),
@@ -264,7 +264,7 @@ function SolutionDetailContent() {
             items={[
               {
                 title: <><FiHome /> Solutions</>,
-                href: '/strategy/scope',
+                href: '/solutions/scope',
               },
               {
                 title: solution.name,

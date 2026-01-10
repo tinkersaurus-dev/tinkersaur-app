@@ -13,6 +13,11 @@ export const queryKeys = {
     list: (teamId: string) => [...queryKeys.solutions.all, 'list', teamId] as const,
     detail: (id: string) => [...queryKeys.solutions.all, 'detail', id] as const,
   },
+  solutionOverviews: {
+    all: ['solutionOverviews'] as const,
+    bySolution: (solutionId: string) =>
+      [...queryKeys.solutionOverviews.all, 'bySolution', solutionId] as const,
+  },
   personas: {
     all: ['personas'] as const,
     list: (teamId: string) => [...queryKeys.personas.all, 'list', teamId] as const,

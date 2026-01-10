@@ -13,9 +13,9 @@ import { InlineSolutionSelector } from './InlineSolutionSelector';
 export function ContextualSubHeader() {
   const location = useLocation();
 
-  // Show solution selector for Strategy and Design modules
+  // Show solution selector for Solutions and Design modules
   const showSolutionSelector =
-    location.pathname.startsWith('/strategy') ||
+    location.pathname.startsWith('/solutions') ||
     location.pathname.startsWith('/design');
 
   return (

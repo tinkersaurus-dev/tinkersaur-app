@@ -20,9 +20,11 @@ export function InlineSolutionSelector() {
 
   const handleSelect = (solution: Solution) => {
     selectSolution(solution);
-    // Navigate to the solution detail page if we're in the scope area
-    if (location.pathname.startsWith('/strategy/scope')) {
-      navigate(`/strategy/scope/${solution.id}`);
+    // Navigate to the solution detail page based on current area
+    if (location.pathname.startsWith('/solutions/scope')) {
+      navigate(`/solutions/scope/${solution.id}`);
+    } else if (location.pathname.startsWith('/solutions/strategy')) {
+      navigate(`/solutions/strategy/overview/${solution.id}`);
     }
   };
 

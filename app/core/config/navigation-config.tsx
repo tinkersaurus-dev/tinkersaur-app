@@ -19,6 +19,7 @@ import {
   FiLifeBuoy,
   FiClipboard,
   FiTrendingUp,
+  FiEye,
 } from 'react-icons/fi';
 import { SOURCE_TYPES } from '~/core/entities/discovery';
 
@@ -34,7 +35,7 @@ function getIconElement(iconName: string): React.ReactNode {
   return ICON_MAP[iconName] || <FiInbox />;
 }
 
-export type ModuleType = 'discovery' | 'strategy' | 'design' | 'delivery';
+export type ModuleType = 'discovery' | 'solutions' | 'design' | 'delivery';
 
 export interface NavSection {
   key: string;
@@ -45,18 +46,27 @@ export interface NavSection {
 }
 
 export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
-  strategy: [
+  solutions: [
+    {
+      key: 'strategy',
+      label: 'Strategy',
+      icon: <FiEye />,
+      path: '/solutions/strategy/overview',
+      children: [
+        { key: 'overview', label: 'Overview', path: '/solutions/strategy/overview', icon: <FiTrendingUp /> },
+      ],
+    },
     {
       key: 'scope',
       label: 'Scope',
       icon: <FiCompass />,
-      path: '/strategy/scope',
+      path: '/solutions/scope',
     },
     {
       key: 'plan',
       label: 'Plan',
       icon: <FiCalendar />,
-      path: '/strategy/plan',
+      path: '/solutions/plan',
     },
   ],
   design: [

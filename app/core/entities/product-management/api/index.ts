@@ -12,3 +12,4 @@ export { useCaseApi } from './useCaseApi';
 export { requirementApi } from './requirementApi';
 export { personaApi } from './personaApi';
 export { personaUseCaseApi } from './personaUseCaseApi';
+export { solutionOverviewApi } from './solutionOverviewApi';

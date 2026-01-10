@@ -71,3 +71,7 @@ export {
 // PersonaUseCase (junction)
 export type { PersonaUseCase, CreatePersonaUseCaseDto } from './PersonaUseCase';
 export { PersonaUseCaseSchema, CreatePersonaUseCaseSchema } from './PersonaUseCase';
+
+// SolutionOverview
+export type { SolutionOverview, UpdateSolutionOverviewDto } from './SolutionOverview';
+export { SolutionOverviewSchema, UpdateSolutionOverviewSchema } from './SolutionOverview';

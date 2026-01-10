@@ -20,6 +20,7 @@ export default [
   route("api/parse-transcript", "routes/api.parse-transcript.ts"),
   route("api/merge-personas", "routes/api.merge-personas.ts"),
   route("api/merge-use-cases", "routes/api.merge-use-cases.ts"),
+  route("api/generate-overview-section", "routes/api.generate-overview-section.ts"),
 
   // Discovery routes
   route("discovery", "routes/discovery.tsx"),
@@ -34,11 +35,13 @@ export default [
   route("discovery/organize/feedback/:feedbackId", "discovery/routes/feedback-detail.tsx"),
   route("discovery/organize/outcomes", "discovery/routes/outcomes-list.tsx"),
 
-  // Strategy routes
-  route("strategy/scope", "routes/scope.tsx"),
-  route("strategy/scope/:solutionId", "product-management/routes/solution-detail.tsx"),
-  route("strategy/scope/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
-  route("strategy/plan", "routes/plan.tsx"),
+  // Solutions routes
+  route("solutions/strategy/overview", "routes/overview.tsx"),
+  route("solutions/strategy/overview/:solutionId", "product-management/routes/overview-detail.tsx"),
+  route("solutions/scope", "routes/scope.tsx"),
+  route("solutions/scope/:solutionId", "product-management/routes/solution-detail.tsx"),
+  route("solutions/scope/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),
+  route("solutions/plan", "routes/plan.tsx"),
 
   // Design routes
   route("design/spec", "routes/spec.tsx"),

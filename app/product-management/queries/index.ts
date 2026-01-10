@@ -67,3 +67,8 @@ export {
   useUseCasePersonasQuery,
   prefetchPersonaUseCases,
 } from './usePersonaUseCasesQuery';
+
+export {
+  useSolutionOverviewQuery,
+  prefetchSolutionOverview,
+} from './useSolutionOverviewQuery';
