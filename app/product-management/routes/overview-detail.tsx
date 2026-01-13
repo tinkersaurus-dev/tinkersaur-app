@@ -1,33 +1,41 @@
 /**
  * Solution Overview Detail Page
- * Displays the five editable markdown sections for solution overview
+ * Displays and manages solution factors organized by type
  */
 
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { FiHome } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Breadcrumb } from '~/core/components/ui';
-import { EditableMarkdownSection } from '~/core/components/ui/EditableMarkdownSection';
-import { useSolutionQuery } from '../queries';
-import { useSolutionOverviewQuery } from '../queries/useSolutionOverviewQuery';
-import { useUpdateSolutionOverview } from '../mutations/useSolutionOverviewMutations';
+import { useSolutionQuery, useSolutionFactorsQuery } from '../queries';
+import {
+  useCreateSolutionFactor,
+  useUpdateSolutionFactor,
+  useDeleteSolutionFactor,
+  useCreateSolutionFactorsBulk,
+} from '../mutations';
 import { useSolutionStore } from '~/core/solution';
-import { useGenerateOverviewSection } from '../hooks';
-import { OverviewGenerateModal } from '../components/OverviewGenerateModal';
-import type { OverviewSectionType } from '~/design-studio/lib/llm/prompts/overview-prompts';
+import { useGenerateFactors, useRefineFactor } from '../hooks';
+import { FactorsList, FactorGenerateModal } from '../components';
+import {
+  groupFactorsByType,
+  type SolutionFactorType,
+  type UpdateSolutionFactorDto,
+} from '~/core/entities/product-management/types';
+import type { GeneratedFactorItem } from '~/design-studio/lib/llm/overview-generator-api';
 
-// Section configuration for DRY rendering
-const OVERVIEW_SECTIONS = [
-  { key: 'vision', title: 'Vision', placeholder: 'Describe the long-term vision for this solution...' },
-  { key: 'principles', title: 'Principles', placeholder: 'Define the guiding principles...' },
-  { key: 'targetMarket', title: 'Target Market', placeholder: 'Describe the target market and customer segments...' },
-  { key: 'successMetrics', title: 'Success Metrics', placeholder: 'Define how success will be measured...' },
-  { key: 'constraintsAndRisks', title: 'Constraints & Risks', placeholder: 'Document constraints and potential risks...' },
-] as const;
-
-type SectionKey = (typeof OVERVIEW_SECTIONS)[number]['key'];
+// Factor type sections in display order
+const FACTOR_SECTIONS: {
+  type: SolutionFactorType;
+  showTargetDate: boolean;
+}[] = [
+  { type: 'vision', showTargetDate: false },
+  { type: 'principle', showTargetDate: false },
+  { type: 'target-market', showTargetDate: false },
+  { type: 'success-metric', showTargetDate: false },
+  { type: 'constraint', showTargetDate: true },
+  { type: 'risk', showTargetDate: true },
+];
 
 export default function OverviewDetailPage() {
   const { solutionId } = useParams();
@@ -39,25 +47,33 @@ export default function OverviewDetailPage() {
 
   // Queries
   const { data: solution, isLoading: solutionLoading, isError } = useSolutionQuery(solutionId);
-  const { data: overview, isLoading: overviewLoading } = useSolutionOverviewQuery(solutionId);
+  const { data: factors = [], isLoading: factorsLoading } = useSolutionFactorsQuery(solutionId);
 
-  // Mutation
-  const updateOverview = useUpdateSolutionOverview();
+  // Mutations
+  const createFactor = useCreateSolutionFactor();
+  const updateFactor = useUpdateSolutionFactor();
+  const deleteFactor = useDeleteSolutionFactor();
+  const createFactorsBulk = useCreateSolutionFactorsBulk();
 
   // Generate modal state
   const [generateModal, setGenerateModal] = useState<{
-    sectionType: OverviewSectionType;
-    existingContent: string;
+    factorType: SolutionFactorType;
   } | null>(null);
 
-  // LLM generation hook - handles undefined solution gracefully
+  // LLM generation hook
   const {
     generate,
     isGenerating,
-    generatedContent,
+    generatedFactors,
     error: generateError,
     reset: resetGeneration,
-  } = useGenerateOverviewSection({
+  } = useGenerateFactors({
+    solution: solution ?? undefined,
+    teamId: solution?.teamId ?? '',
+  });
+
+  // LLM refinement hook
+  const { refine, isRefining } = useRefineFactor({
     solution: solution ?? undefined,
     teamId: solution?.teamId ?? '',
   });
@@ -76,46 +92,61 @@ export default function OverviewDetailPage() {
     }
   }, [selectedSolution, solutionId, navigate]);
 
-  // Generic save handler for any section
-  const handleSaveSection = useCallback(
-    async (sectionKey: SectionKey, content: string): Promise<boolean> => {
-      if (!overview?.id) return false;
+  // Group factors by type
+  const groupedFactors = groupFactorsByType(factors);
 
-      try {
-        const result = await updateOverview.mutateAsync({
-          id: overview.id,
-          updates: { [sectionKey]: content },
-        });
-        return result !== null;
-      } catch {
-        return false;
-      }
+  // Handler for adding a new factor
+  const handleAddFactor = useCallback(
+    async (type: SolutionFactorType, content: string, notes?: string) => {
+      if (!solutionId) return;
+      await createFactor.mutateAsync({
+        solutionId,
+        type,
+        content,
+        notes: notes ?? '',
+        active: true,
+      });
     },
-    [overview, updateOverview]
+    [solutionId, createFactor]
+  );
+
+  // Handler for updating a factor
+  const handleUpdateFactor = useCallback(
+    async (id: string, updates: UpdateSolutionFactorDto) => {
+      await updateFactor.mutateAsync({ id, updates });
+    },
+    [updateFactor]
+  );
+
+  // Handler for deleting a factor
+  const handleDeleteFactor = useCallback(
+    (id: string) => {
+      if (!solutionId) return;
+      deleteFactor.mutate({ id, solutionId });
+    },
+    [solutionId, deleteFactor]
   );
 
   // Handler for opening the generate modal
-  const handleGenerateClick = useCallback(
-    (sectionKey: SectionKey, currentContent: string) => {
-      setGenerateModal({
-        sectionType: sectionKey as OverviewSectionType,
-        existingContent: currentContent,
-      });
-    },
-    []
-  );
+  const handleGenerateClick = useCallback((type: SolutionFactorType) => {
+    setGenerateModal({ factorType: type });
+  }, []);
 
-  // Handler for applying generated content
+  // Handler for applying generated factors
   const handleApplyGenerated = useCallback(
-    async (content: string) => {
-      if (!generateModal || !overview?.id) return;
+    async (generatedItems: GeneratedFactorItem[]) => {
+      if (!generateModal || !solutionId) return;
 
-      await updateOverview.mutateAsync({
-        id: overview.id,
-        updates: { [generateModal.sectionType]: content },
+      await createFactorsBulk.mutateAsync({
+        solutionId,
+        type: generateModal.factorType,
+        factors: generatedItems.map((item) => ({
+          content: item.content,
+          notes: item.notes,
+        })),
       });
     },
-    [generateModal, overview, updateOverview]
+    [generateModal, solutionId, createFactorsBulk]
   );
 
   // Handler for closing the generate modal
@@ -123,8 +154,16 @@ export default function OverviewDetailPage() {
     setGenerateModal(null);
   }, []);
 
+  // Handler for refining a factor
+  const handleRefine = useCallback(
+    async (factorType: SolutionFactorType, content: string, instructions: string) => {
+      return refine({ factorType, currentContent: content, refinementInstructions: instructions });
+    },
+    [refine]
+  );
+
   // Loading state
-  if (solutionLoading || overviewLoading) {
+  if (solutionLoading || factorsLoading) {
     return (
       <MainLayout>
         <PageContent>
@@ -145,46 +184,35 @@ export default function OverviewDetailPage() {
     );
   }
 
+  const isMutating =
+    createFactor.isPending ||
+    updateFactor.isPending ||
+    deleteFactor.isPending ||
+    createFactorsBulk.isPending;
+
   return (
     <MainLayout>
       <PageHeader
         titlePrefix={solution.type.charAt(0).toUpperCase() + solution.type.slice(1) + ': '}
         title={solution.name}
-        extra={
-          <Breadcrumb
-            items={[
-              {
-                title: (
-                  <>
-                    <FiHome /> Solutions
-                  </>
-                ),
-                href: '/solutions/scope',
-              },
-              {
-                title: solution.name,
-                href: `/solutions/scope/${solutionId}`,
-              },
-              {
-                title: 'Overview',
-              },
-            ]}
-          />
-        }
       />
 
       <PageContent>
-        <div className="space-y-6">
-          {OVERVIEW_SECTIONS.map((section) => (
-            <EditableMarkdownSection
-              key={section.key}
-              title={section.title}
-              content={overview?.[section.key] ?? ''}
-              onSave={(content) => handleSaveSection(section.key, content)}
-              isSaving={updateOverview.isPending}
-              placeholder={section.placeholder}
-              onGenerateClick={(currentContent) => handleGenerateClick(section.key, currentContent)}
-              isGenerating={isGenerating && generateModal?.sectionType === section.key}
+        <div className="space-y-8">
+          {FACTOR_SECTIONS.map((section) => (
+            <FactorsList
+              key={section.type}
+              type={section.type}
+              factors={groupedFactors[section.type]}
+              onAdd={(content, notes) => handleAddFactor(section.type, content, notes)}
+              onUpdate={handleUpdateFactor}
+              onDelete={handleDeleteFactor}
+              onGenerateClick={() => handleGenerateClick(section.type)}
+              onRefine={handleRefine}
+              isUpdating={isMutating}
+              isGenerating={isGenerating && generateModal?.factorType === section.type}
+              isRefining={isRefining}
+              showTargetDate={section.showTargetDate}
             />
           ))}
         </div>
@@ -192,15 +220,14 @@ export default function OverviewDetailPage() {
 
       {/* Generate Modal */}
       {generateModal && (
-        <OverviewGenerateModal
+        <FactorGenerateModal
           open={!!generateModal}
           onClose={handleCloseGenerateModal}
           onApply={handleApplyGenerated}
-          sectionType={generateModal.sectionType}
-          existingContent={generateModal.existingContent}
+          factorType={generateModal.factorType}
           onGenerate={generate}
           isGenerating={isGenerating}
-          generatedContent={generatedContent}
+          generatedFactors={generatedFactors}
           error={generateError}
           onReset={resetGeneration}
         />

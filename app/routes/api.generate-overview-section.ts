@@ -1,13 +1,14 @@
 /**
- * React Router API Route for generating overview sections using Amazon Bedrock
- * Returns markdown content for a specific overview section
+ * React Router API Route for generating solution factors using Amazon Bedrock
+ * Returns an array of factor items (content + notes) for a specific factor type
  */
 
 import type { ActionFunctionArgs } from 'react-router';
 import {
-  getOverviewSectionPrompt,
-  type OverviewSectionType,
+  getFactorSectionPrompt,
+  getFactorRefinementPrompt,
 } from '~/design-studio/lib/llm/prompts/overview-prompts';
+import type { SolutionFactorType } from '~/core/entities/product-management/types';
 import {
   BedrockRuntimeClient,
   InvokeModelCommand,
@@ -68,14 +69,21 @@ interface OutcomeContext {
   target: string;
 }
 
-interface GenerateOverviewRequest {
-  sectionType: OverviewSectionType;
+interface GenerateFactorRequest {
+  sectionType: SolutionFactorType;
   solutionContext: SolutionContext;
   personas: PersonaContext[];
   useCases: UseCaseContext[];
   feedback: FeedbackContext[];
   outcomes: OutcomeContext[];
   existingContent?: string;
+  /** Mode: 'generate' for bulk generation, 'refine' for single-factor refinement */
+  mode?: 'generate' | 'refine';
+}
+
+interface GeneratedFactorItem {
+  content: string;
+  notes: string;
 }
 
 // Bedrock configuration
@@ -100,11 +108,21 @@ const client = new BedrockRuntimeClient({
   credentials,
 });
 
-function compileUserMessage(params: GenerateOverviewRequest): string {
+function compileUserMessage(params: GenerateFactorRequest, isRefinementMode: boolean): string {
   const { sectionType, solutionContext, personas, useCases, feedback, outcomes, existingContent } =
     params;
 
-  let message = `Generate the ${sectionType} section for this solution:\n\n`;
+  let message = '';
+
+  // Different intro for refinement vs generation mode
+  if (isRefinementMode && existingContent?.trim()) {
+    message += `# REFINEMENT REQUEST\n\n`;
+    message += `${existingContent}\n\n`;
+    message += `---\n\n`;
+    message += `Use the following context to inform your refinement:\n\n`;
+  } else {
+    message += `Generate the ${sectionType} section for this solution:\n\n`;
+  }
 
   message += `## Solution\n`;
   message += `Name: ${solutionContext.name}\n`;
@@ -151,7 +169,8 @@ function compileUserMessage(params: GenerateOverviewRequest): string {
     message += '\n';
   }
 
-  if (existingContent?.trim()) {
+  // For non-refinement mode, still include existing content if provided
+  if (!isRefinementMode && existingContent?.trim()) {
     message += `## Existing Content / Instructions\n`;
     message += `The user has provided the following content. Treat this as either a rough draft to refine, instructions to follow, or both:\n\n`;
     message += `${existingContent}\n\n`;
@@ -164,13 +183,17 @@ export async function action({ request }: ActionFunctionArgs) {
   logger.apiRequest(request.method, '/api/generate-overview-section');
 
   try {
-    const body: GenerateOverviewRequest = await request.json();
+    const body: GenerateFactorRequest = await request.json();
     const { sectionType, solutionContext } = body;
+
+    const isRefinementMode = body.mode === 'refine';
 
     logger.debug('Request received', {
       sectionType,
       solutionName: solutionContext?.name,
       hasExistingContent: !!body.existingContent,
+      mode: body.mode || 'generate',
+      isRefinementMode,
       personaCount: body.personas?.length || 0,
       useCaseCount: body.useCases?.length || 0,
       feedbackCount: body.feedback?.length || 0,
@@ -189,11 +212,13 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Get the appropriate system prompt
-    const systemPrompt = getOverviewSectionPrompt(sectionType);
+    // Get the appropriate system prompt (use refinement prompt if in refine mode)
+    const systemPrompt = isRefinementMode
+      ? getFactorRefinementPrompt(sectionType)
+      : getFactorSectionPrompt(sectionType);
 
     // Compile the user message with full context
-    const userMessage = compileUserMessage(body);
+    const userMessage = compileUserMessage(body, isRefinementMode);
 
     // Prepare the request for the model
     const bedrockRequest = {
@@ -279,8 +304,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Clean up the generated content (remove any markdown code blocks if present)
     let cleanedContent = generatedContent.trim();
-    if (cleanedContent.startsWith('```markdown')) {
-      cleanedContent = cleanedContent.slice(11);
+    if (cleanedContent.startsWith('```json')) {
+      cleanedContent = cleanedContent.slice(7);
     } else if (cleanedContent.startsWith('```')) {
       cleanedContent = cleanedContent.slice(3);
     }
@@ -289,14 +314,41 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     cleanedContent = cleanedContent.trim();
 
-    logger.info('Successfully generated overview section', {
+    // Parse JSON response - expecting array of strings
+    let factors: GeneratedFactorItem[];
+    try {
+      const parsed = JSON.parse(cleanedContent);
+
+      // Validate the structure
+      if (!Array.isArray(parsed)) {
+        throw new Error('Response is not an array');
+      }
+
+      // Convert array of strings to factor items (notes always empty - for human use only)
+      factors = parsed.map((item) => ({
+        content: typeof item === 'string' ? item : (item.content || String(item)),
+        notes: '',
+      }));
+    } catch (parseError) {
+      logger.error('Failed to parse JSON response', parseError instanceof Error ? parseError : undefined, {
+        rawContent: cleanedContent.substring(0, 500),
+      });
+
+      // Fallback: treat the content as a single factor
+      factors = [{
+        content: cleanedContent,
+        notes: '',
+      }];
+    }
+
+    logger.info('Successfully generated solution factors', {
       sectionType,
-      contentLength: cleanedContent.length,
+      factorCount: factors.length,
     });
 
     return Response.json({
       success: true,
-      content: cleanedContent,
+      factors,
     });
   } catch (error) {
     logger.apiError(request.method, '/api/generate-overview-section', error);
@@ -306,7 +358,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json(
       {
         success: false,
-        error: `Failed to generate overview section: ${errorMessage}`,
+        error: `Failed to generate factors: ${errorMessage}`,
       },
       { status: 500 }
     );

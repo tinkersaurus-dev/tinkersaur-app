@@ -69,6 +69,7 @@ export {
 } from './usePersonaUseCasesQuery';
 
 export {
-  useSolutionOverviewQuery,
-  prefetchSolutionOverview,
-} from './useSolutionOverviewQuery';
+  useSolutionFactorsQuery,
+  useSolutionFactorsByTypeQuery,
+  prefetchSolutionFactors,
+} from './useSolutionFactorsQuery';

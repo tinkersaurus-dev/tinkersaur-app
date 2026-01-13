@@ -4,13 +4,13 @@
  */
 
 import { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiHome, FiSettings } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSettings } from 'react-icons/fi';
 import { MdDesignServices } from 'react-icons/md';
 import { useParams, Link, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Button, Input, HStack, Breadcrumb, Table, Form, useForm, Modal, Select, Tabs } from '~/core/components/ui';
+import { Button, Input, HStack, Table, Form, useForm, Modal, Select, Tabs } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { UseCase, SolutionType } from '~/core/entities/product-management';
 import { useSolutionQuery, useUseCasesBySolutionQuery } from '../queries';
@@ -259,19 +259,6 @@ function SolutionDetailContent() {
       <PageHeader
         titlePrefix={solution.type.charAt(0).toUpperCase() + solution.type.slice(1) + ': '}
         title={solution.name}
-        extra={
-          <Breadcrumb
-            items={[
-              {
-                title: <><FiHome /> Solutions</>,
-                href: '/solutions/scope',
-              },
-              {
-                title: solution.name,
-              },
-            ]}
-          />
-        }
         actions={
           <HStack gap="sm">
             <Button variant="text" icon={<FiSettings />} onClick={handleOpenSettings}>

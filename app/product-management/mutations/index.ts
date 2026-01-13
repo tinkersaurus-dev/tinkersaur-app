@@ -52,4 +52,11 @@ export {
   useDeletePersonaUseCase,
 } from './usePersonaUseCaseMutations';
 
-export { useUpdateSolutionOverview } from './useSolutionOverviewMutations';
+export {
+  useCreateSolutionFactor,
+  useUpdateSolutionFactor,
+  useDeleteSolutionFactor,
+  useCreateSolutionFactorsBulk,
+  useReorderSolutionFactors,
+  useDeleteSolutionFactorsByType,
+} from './useSolutionFactorMutations';

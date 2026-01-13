@@ -54,6 +54,7 @@ export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
       path: '/solutions/strategy/overview',
       children: [
         { key: 'overview', label: 'Overview', path: '/solutions/strategy/overview', icon: <FiTrendingUp /> },
+        { key: 'market-research', label: 'Market Research', path: '/solutions/strategy/market-research', icon: <FiBarChart2 /> },
       ],
     },
     {

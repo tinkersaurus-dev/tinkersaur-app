@@ -16,6 +16,7 @@ import { useUseCasesPaginatedQuery, useSolutionsQuery, usePersonasQuery } from '
 import { useListSelection, useListUrlState } from '~/core/hooks';
 import { useAuthStore } from '~/core/auth';
 import { UseCaseMergeModal } from '../components/UseCaseMergeModal';
+import { CreateUseCaseModal } from '../components/CreateUseCaseModal';
 
 export default function UseCasesListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
@@ -61,8 +62,9 @@ export default function UseCasesListPage() {
     getItemId: (item) => item.id,
   });
 
-  // Merge modal state
+  // Modal state
   const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Get selected use case objects for merge modal
   const items = data?.items;
@@ -226,7 +228,7 @@ export default function UseCasesListPage() {
           <Button
             variant="primary"
             icon={<FiPlus />}
-            onClick={() => {/* TODO: Add modal */}}
+            onClick={() => setIsCreateModalOpen(true)}
           >
             Add Use Case
           </Button>
@@ -288,6 +290,16 @@ export default function UseCasesListPage() {
           open={isMergeModalOpen}
           onClose={handleMergeModalClose}
           selectedUseCases={selectedUseCases}
+          teamId={teamId}
+          solutions={solutions}
+        />
+      )}
+
+      {/* Create Modal */}
+      {teamId && (
+        <CreateUseCaseModal
+          open={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
           teamId={teamId}
           solutions={solutions}
         />

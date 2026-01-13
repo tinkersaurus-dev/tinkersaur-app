@@ -72,6 +72,22 @@ export {
 export type { PersonaUseCase, CreatePersonaUseCaseDto } from './PersonaUseCase';
 export { PersonaUseCaseSchema, CreatePersonaUseCaseSchema } from './PersonaUseCase';
 
-// SolutionOverview
-export type { SolutionOverview, UpdateSolutionOverviewDto } from './SolutionOverview';
-export { SolutionOverviewSchema, UpdateSolutionOverviewSchema } from './SolutionOverview';
+// SolutionFactor
+export type {
+  SolutionFactor,
+  SolutionFactorType,
+  CreateSolutionFactorDto,
+  UpdateSolutionFactorDto,
+  CreateSolutionFactorsBulkDto,
+  ReorderSolutionFactorsDto,
+} from './SolutionFactor';
+export {
+  SolutionFactorSchema,
+  SolutionFactorTypeSchema,
+  CreateSolutionFactorSchema,
+  UpdateSolutionFactorSchema,
+  CreateSolutionFactorsBulkSchema,
+  ReorderSolutionFactorsSchema,
+  FACTOR_TYPE_LABELS,
+  groupFactorsByType,
+} from './SolutionFactor';

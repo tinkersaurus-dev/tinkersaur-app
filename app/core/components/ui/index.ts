@@ -25,9 +25,6 @@ export type { HStackProps, VStackProps } from './Stack';
 export { Avatar } from './Avatar';
 export type { AvatarProps } from './Avatar';
 
-export { Breadcrumb } from './Breadcrumb';
-export type { BreadcrumbProps, BreadcrumbItemType } from './Breadcrumb';
-
 export { Menu } from './Menu';
 export type { MenuProps, MenuItemType } from './Menu';
 

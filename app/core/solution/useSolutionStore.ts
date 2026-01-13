@@ -16,9 +16,29 @@ interface SolutionState {
   initialize: () => void;
 }
 
+// Initialize from localStorage synchronously to prevent flicker on page refresh
+function getInitialState(): { selectedSolution: SelectedSolution | null; initialized: boolean } {
+  if (typeof localStorage === 'undefined') {
+    return { selectedSolution: null, initialized: false };
+  }
+
+  const stored = localStorage.getItem(SELECTED_SOLUTION_KEY);
+  if (stored) {
+    try {
+      const selectedSolution = JSON.parse(stored) as SelectedSolution;
+      return { selectedSolution, initialized: true };
+    } catch {
+      localStorage.removeItem(SELECTED_SOLUTION_KEY);
+    }
+  }
+  return { selectedSolution: null, initialized: true };
+}
+
+const initialState = getInitialState();
+
 export const useSolutionStore = create<SolutionState>((set) => ({
-  selectedSolution: null,
-  initialized: false,
+  selectedSolution: initialState.selectedSolution,
+  initialized: initialState.initialized,
 
   selectSolution: (solution) => {
     const selectedSolution: SelectedSolution = {

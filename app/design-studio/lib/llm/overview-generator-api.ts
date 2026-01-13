@@ -1,9 +1,9 @@
 /**
- * Client-side API wrapper for overview section generation
+ * Client-side API wrapper for solution factor generation
  */
 
 import { logger } from '~/core/utils/logger';
-import type { OverviewSectionType } from './prompts/overview-prompts';
+import type { SolutionFactorType } from '~/core/entities/product-management/types';
 
 export interface SolutionContext {
   name: string;
@@ -36,37 +36,44 @@ export interface OutcomeContext {
   target: string;
 }
 
-export interface GenerateOverviewSectionRequest {
-  sectionType: OverviewSectionType;
+export interface GeneratedFactorItem {
+  content: string;
+  notes: string;
+}
+
+export interface GenerateFactorsRequest {
+  sectionType: SolutionFactorType;
   solutionContext: SolutionContext;
   personas: PersonaContext[];
   useCases: UseCaseContext[];
   feedback: FeedbackContext[];
   outcomes: OutcomeContext[];
   existingContent?: string;
+  /** Mode: 'generate' for bulk generation, 'refine' for single-factor refinement */
+  mode?: 'generate' | 'refine';
 }
 
-export interface GenerateOverviewSectionResponse {
+export interface GenerateFactorsResponse {
   success: boolean;
-  content?: string;
+  factors?: GeneratedFactorItem[];
   error?: string;
 }
 
-export class OverviewGeneratorAPIError extends Error {
+export class FactorGeneratorAPIError extends Error {
   constructor(
     message: string,
     public readonly statusCode?: number
   ) {
     super(message);
-    this.name = 'OverviewGeneratorAPIError';
+    this.name = 'FactorGeneratorAPIError';
   }
 }
 
-export async function generateOverviewSection(
-  request: GenerateOverviewSectionRequest,
+export async function generateFactors(
+  request: GenerateFactorsRequest,
   signal?: AbortSignal
-): Promise<string> {
-  logger.debug('generateOverviewSection called', {
+): Promise<GeneratedFactorItem[]> {
+  logger.debug('generateFactors called', {
     sectionType: request.sectionType,
     hasExistingContent: !!request.existingContent,
   });
@@ -84,28 +91,43 @@ export async function generateOverviewSection(
       signal: signal || controller.signal,
     }).finally(() => clearTimeout(timeoutId));
 
-    const data: GenerateOverviewSectionResponse = await response.json();
+    const data: GenerateFactorsResponse = await response.json();
 
     if (!response.ok || !data.success) {
-      throw new OverviewGeneratorAPIError(
-        data.error || `Failed to generate section (HTTP ${response.status})`,
+      throw new FactorGeneratorAPIError(
+        data.error || `Failed to generate factors (HTTP ${response.status})`,
         response.status
       );
     }
 
-    if (!data.content) {
-      throw new OverviewGeneratorAPIError('No content returned from API', 500);
+    if (!data.factors || data.factors.length === 0) {
+      throw new FactorGeneratorAPIError('No factors returned from API', 500);
     }
 
-    return data.content;
+    return data.factors;
   } catch (error) {
-    if (error instanceof OverviewGeneratorAPIError) throw error;
+    if (error instanceof FactorGeneratorAPIError) throw error;
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new OverviewGeneratorAPIError('Request was cancelled', 0);
+      throw new FactorGeneratorAPIError('Request was cancelled', 0);
     }
-    throw new OverviewGeneratorAPIError(
+    throw new FactorGeneratorAPIError(
       error instanceof Error ? error.message : 'Network error occurred',
       0
     );
   }
+}
+
+// Backwards compatibility aliases
+export type OverviewSectionType = SolutionFactorType;
+export type GenerateOverviewSectionRequest = GenerateFactorsRequest;
+export type GenerateOverviewSectionResponse = GenerateFactorsResponse;
+export const OverviewGeneratorAPIError = FactorGeneratorAPIError;
+
+// Legacy function that returns a single string (first factor's content)
+export async function generateOverviewSection(
+  request: GenerateFactorsRequest,
+  signal?: AbortSignal
+): Promise<string> {
+  const factors = await generateFactors(request, signal);
+  return factors.map((f) => f.content).join('\n\n');
 }

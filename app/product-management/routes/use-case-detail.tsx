@@ -3,22 +3,28 @@
  * Displays use case details and its requirements in a table
  */
 
-import { useState, useCallback, useMemo } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiHome, FiMessageCircle } from 'react-icons/fi';
+import { useState, useCallback, useEffect } from 'react';
+import { FiPlus, FiEdit2, FiTrash2, FiMessageCircle, FiArchive, FiAlertTriangle } from 'react-icons/fi';
 import { useParams, useLoaderData } from 'react-router';
+import { useSolutionStore } from '~/core/solution';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Button, Input, Tag, HStack, Breadcrumb, Table, Form, useForm, Modal, Select, Card, Tabs, Empty, EditableSection, EditableField } from '~/core/components/ui';
+import { Button, Tag, HStack, Table, Form, useForm, Modal, Select, Input, Card, Tabs } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
 import { useSolutionQuery, useUseCaseQuery, useRequirementsQuery } from '../queries';
-import { useIntakeSourceQuery } from '~/discovery/queries';
-import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
 import { useCreateRequirement, useUpdateRequirement, useDeleteRequirement, useUpdateUseCase } from '../mutations';
 import { loadUseCaseDetail } from '../loaders';
 import type { UseCaseDetailLoaderData } from '../loaders';
 import type { Route } from './+types/use-case-detail';
+import {
+  UseCaseBasicInfo,
+  UseCaseSupportingQuotes,
+  UseCaseFeedbackTab,
+  UseCasePersonasSidebar,
+  useUseCaseFeedback,
+} from '../components/use-case-detail';
 
 // Loader function for SSR data fetching
 export async function loader({ params }: Route.LoaderArgs) {
@@ -35,18 +41,14 @@ const TYPE_COLORS: Record<RequirementType, string> = {
   constraint: 'default',
 };
 
-// Quote row type for the quotes table
-interface QuoteRow {
-  id: string;
-  quote: string;
-  source: string;
-}
-
 function UseCaseDetailContent() {
   const { solutionId, useCaseId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
-  const [activeTab, setActiveTab] = useState('quotes');
+  const [activeTab, setActiveTab] = useState('requirements');
+
+  // Solution store for auto-select
+  const selectSolution = useSolutionStore((state) => state.selectSolution);
 
   // TanStack Query hooks
   const { data: solution } = useSolutionQuery(solutionId);
@@ -57,55 +59,18 @@ function UseCaseDetailContent() {
   const deleteRequirement = useDeleteRequirement();
   const updateUseCase = useUpdateUseCase();
 
-  // Basic info edit state
-  const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
-  const [basicInfoForm, setBasicInfoForm] = useState({ name: '', description: '' });
-  const [basicInfoErrors, setBasicInfoErrors] = useState<Record<string, string>>({});
+  // Auto-select solution when viewing this page
+  useEffect(() => {
+    if (solution) {
+      selectSolution(solution);
+    }
+  }, [solution, selectSolution]);
 
-  // Fetch intake source for quote source display
-  const { data: intakeSource } = useIntakeSourceQuery(useCase?.intakeSourceId);
-
-  // Helper to get source display name
-  const getSourceDisplayName = useCallback((): string => {
-    if (!intakeSource) return '—';
-    if (intakeSource.meetingName) return intakeSource.meetingName;
-    if (intakeSource.surveyName) return intakeSource.surveyName;
-    if (intakeSource.ticketId) return `Ticket ${intakeSource.ticketId}`;
-    const sourceType = intakeSource.sourceType as SourceTypeKey;
-    return SOURCE_TYPES[sourceType]?.label || sourceType;
-  }, [intakeSource]);
-
-  // Prepare quotes data for table
-  const quoteRows = useMemo((): QuoteRow[] => {
-    if (!useCase?.quotes) return [];
-    const sourceName = getSourceDisplayName();
-    return useCase.quotes.map((quote, index) => ({
-      id: `quote-${index}`,
-      quote,
-      source: sourceName,
-    }));
-  }, [useCase?.quotes, getSourceDisplayName]);
-
-  // Table columns for quotes
-  const quoteColumns: TableColumn<QuoteRow>[] = [
-    {
-      key: 'quote',
-      title: 'Quote',
-      dataIndex: 'quote',
-      render: (value) => (
-        <span className="text-xs italic text-[var(--text)]">"{value as string}"</span>
-      ),
-    },
-    {
-      key: 'source',
-      title: 'Source',
-      dataIndex: 'source',
-      width: 180,
-      render: (value) => (
-        <span className="text-xs text-[var(--text-muted)]">{value as string}</span>
-      ),
-    },
-  ];
+  // Feedback data for tabs
+  const { suggestions, problems, suggestionsCount, problemsCount } = useUseCaseFeedback(
+    useCase?.teamId,
+    useCaseId
+  );
 
   const form = useForm<{
     text: string;
@@ -117,66 +82,12 @@ function UseCaseDetailContent() {
     priority: 1,
   });
 
-  // Basic info edit handlers
-  const handleBasicInfoEditToggle = () => {
-    if (!isBasicInfoEditing && useCase) {
-      setBasicInfoForm({
-        name: useCase.name,
-        description: useCase.description || '',
-      });
-      setBasicInfoErrors({});
-    }
-    setIsBasicInfoEditing(!isBasicInfoEditing);
-  };
-
-  const handleBasicInfoSave = async (): Promise<boolean> => {
-    // Validate
-    const errors: Record<string, string> = {};
-    if (!basicInfoForm.name.trim()) {
-      errors.name = 'Name is required';
-    } else if (basicInfoForm.name.length > 200) {
-      errors.name = 'Name must be 200 characters or less';
-    }
-    if (basicInfoForm.description && basicInfoForm.description.length > 2000) {
-      errors.description = 'Description must be 2000 characters or less';
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setBasicInfoErrors(errors);
-      return false;
-    }
-
-    // Save
-    try {
-      await updateUseCase.mutateAsync({
-        id: useCaseId!,
-        updates: {
-          name: basicInfoForm.name,
-          description: basicInfoForm.description || undefined,
-        },
-      });
-      setIsBasicInfoEditing(false);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const handleBasicInfoCancel = () => {
-    setIsBasicInfoEditing(false);
-    setBasicInfoErrors({});
-  };
-
-  const updateBasicInfoField = (field: string) => (value: string) => {
-    setBasicInfoForm(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (basicInfoErrors[field]) {
-      setBasicInfoErrors(prev => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
+  const handleSaveBasicInfo = async (updates: { name: string; description?: string }) => {
+    if (!useCaseId) return;
+    await updateUseCase.mutateAsync({
+      id: useCaseId,
+      updates,
+    });
   };
 
   const handleAdd = () => {
@@ -309,61 +220,17 @@ function UseCaseDetailContent() {
       <PageHeader
         titlePrefix='Use Case: '
         title={useCase.name}
-        extra={
-          <Breadcrumb
-            items={[
-              {
-                title: <><FiHome /> Solutions</>,
-                href: '/solutions/scope',
-              },
-              {
-                title: solution.name,
-                href: `/solutions/scope/${solutionId}`,
-              },
-              {
-                title: useCase.name,
-              },
-            ]}
-          />
-        }
       />
 
       <PageContent>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Basic Info Card */}
-            <EditableSection
-              title="Basic Information"
-              isEditing={isBasicInfoEditing}
-              onEditToggle={handleBasicInfoEditToggle}
-              onSave={handleBasicInfoSave}
-              onCancel={handleBasicInfoCancel}
+            <UseCaseBasicInfo
+              useCase={useCase}
+              onSave={handleSaveBasicInfo}
               isSaving={updateUseCase.isPending}
-              hasErrors={Object.keys(basicInfoErrors).length > 0}
-            >
-              <EditableField
-                label="Name"
-                value={isBasicInfoEditing ? basicInfoForm.name : useCase.name}
-                isEditing={isBasicInfoEditing}
-                onChange={updateBasicInfoField('name')}
-                required
-                error={basicInfoErrors.name}
-                placeholder="Enter use case name"
-                maxLength={200}
-              />
-              <EditableField
-                label="Description"
-                value={isBasicInfoEditing ? basicInfoForm.description : useCase.description}
-                isEditing={isBasicInfoEditing}
-                onChange={updateBasicInfoField('description')}
-                type="textarea"
-                rows={4}
-                error={basicInfoErrors.description}
-                placeholder="Describe this use case..."
-                maxLength={2000}
-              />
-            </EditableSection>
+            />
 
             <Card>
               <Tabs
@@ -371,29 +238,6 @@ function UseCaseDetailContent() {
                 activeKey={activeTab}
                 onChange={setActiveTab}
                 items={[
-                  {
-                    key: 'quotes',
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <FiMessageCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
-                        Supporting Quotes ({quoteRows.length})
-                      </span>
-                    ),
-                    children: (
-                      <div className="pt-4">
-                        {quoteRows.length === 0 ? (
-                          <Empty image="simple" description="No supporting quotes" />
-                        ) : (
-                          <Table
-                            columns={quoteColumns}
-                            dataSource={quoteRows}
-                            rowKey="id"
-                            pagination={false}
-                          />
-                        )}
-                      </div>
-                    ),
-                  },
                   {
                     key: 'requirements',
                     label: (
@@ -420,9 +264,68 @@ function UseCaseDetailContent() {
                       </div>
                     ),
                   },
+                  {
+                    key: 'quotes',
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <FiMessageCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
+                        Supporting Quotes ({useCase.quotes?.length || 0})
+                      </span>
+                    ),
+                    children: (
+                      <div className="pt-4">
+                        <UseCaseSupportingQuotes
+                          quotes={useCase.quotes || []}
+                          intakeSourceId={useCase.intakeSourceId}
+                        />
+                      </div>
+                    ),
+                  },
+                  {
+                    key: 'suggestions',
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <FiArchive className="w-3.5 h-3.5 text-blue-500" />
+                        Suggestions ({suggestionsCount})
+                      </span>
+                    ),
+                    children: (
+                      <div className="pt-4">
+                        <UseCaseFeedbackTab
+                          feedbackRows={suggestions}
+                          emptyDescription="No suggestions for this use case"
+                        />
+                      </div>
+                    ),
+                  },
+                  {
+                    key: 'problems',
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <FiAlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                        Problems ({problemsCount})
+                      </span>
+                    ),
+                    children: (
+                      <div className="pt-4">
+                        <UseCaseFeedbackTab
+                          feedbackRows={problems}
+                          emptyDescription="No problems for this use case"
+                        />
+                      </div>
+                    ),
+                  },
                 ]}
               />
             </Card>
+          </div>
+
+          {/* Sidebar - Personas */}
+          <div className="space-y-6">
+            <UseCasePersonasSidebar
+              useCaseId={useCaseId!}
+              teamId={useCase.teamId}
+            />
           </div>
         </div>
       </PageContent>

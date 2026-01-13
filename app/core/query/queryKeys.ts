@@ -13,10 +13,13 @@ export const queryKeys = {
     list: (teamId: string) => [...queryKeys.solutions.all, 'list', teamId] as const,
     detail: (id: string) => [...queryKeys.solutions.all, 'detail', id] as const,
   },
-  solutionOverviews: {
-    all: ['solutionOverviews'] as const,
+  solutionFactors: {
+    all: ['solutionFactors'] as const,
     bySolution: (solutionId: string) =>
-      [...queryKeys.solutionOverviews.all, 'bySolution', solutionId] as const,
+      [...queryKeys.solutionFactors.all, 'bySolution', solutionId] as const,
+    bySolutionAndType: (solutionId: string, type: string) =>
+      [...queryKeys.solutionFactors.all, 'bySolutionAndType', solutionId, type] as const,
+    detail: (id: string) => [...queryKeys.solutionFactors.all, 'detail', id] as const,
   },
   personas: {
     all: ['personas'] as const,

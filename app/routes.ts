@@ -21,6 +21,7 @@ export default [
   route("api/merge-personas", "routes/api.merge-personas.ts"),
   route("api/merge-use-cases", "routes/api.merge-use-cases.ts"),
   route("api/generate-overview-section", "routes/api.generate-overview-section.ts"),
+  route("api/generate-use-case", "routes/api.generate-use-case.ts"),
 
   // Discovery routes
   route("discovery", "routes/discovery.tsx"),
@@ -38,6 +39,7 @@ export default [
   // Solutions routes
   route("solutions/strategy/overview", "routes/overview.tsx"),
   route("solutions/strategy/overview/:solutionId", "product-management/routes/overview-detail.tsx"),
+  route("solutions/strategy/market-research", "routes/market-research.tsx"),
   route("solutions/scope", "routes/scope.tsx"),
   route("solutions/scope/:solutionId", "product-management/routes/solution-detail.tsx"),
   route("solutions/scope/:solutionId/use-cases/:useCaseId", "product-management/routes/use-case-detail.tsx"),

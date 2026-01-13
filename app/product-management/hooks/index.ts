@@ -4,4 +4,6 @@
 
 export { useMergePersonasLLM } from './useMergePersonasLLM';
 export { useMergeUseCasesLLM } from './useMergeUseCasesLLM';
-export { useGenerateOverviewSection } from './useGenerateOverviewSection';
+export { useGenerateFactors } from './useGenerateFactors';
+export { useRefineFactor } from './useRefineFactor';
+export { useGenerateUseCase } from './useGenerateUseCase';

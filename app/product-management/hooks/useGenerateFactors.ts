@@ -1,5 +1,5 @@
 /**
- * Hook for generating overview sections using LLM
+ * Hook for generating solution factors using LLM
  * Fetches solution context and invokes the generation API
  */
 
@@ -7,24 +7,24 @@ import { useState, useCallback, useRef } from 'react';
 import { usePersonasQuery, useUseCasesBySolutionQuery } from '../queries';
 import { useFeedbacksPaginatedQuery, useOutcomesPaginatedQuery } from '~/discovery/queries';
 import {
-  generateOverviewSection,
-  type GenerateOverviewSectionRequest,
-  OverviewGeneratorAPIError,
+  generateFactors,
+  type GenerateFactorsRequest,
+  type GeneratedFactorItem,
+  FactorGeneratorAPIError,
 } from '~/design-studio/lib/llm/overview-generator-api';
-import type { Solution } from '~/core/entities/product-management/types';
-import type { OverviewSectionType } from '~/design-studio/lib/llm/prompts/overview-prompts';
+import type { Solution, SolutionFactorType } from '~/core/entities/product-management/types';
 
-interface UseGenerateOverviewSectionOptions {
+interface UseGenerateFactorsOptions {
   solution: Solution | undefined;
   teamId: string;
 }
 
-export function useGenerateOverviewSection({
+export function useGenerateFactors({
   solution,
   teamId,
-}: UseGenerateOverviewSectionOptions) {
+}: UseGenerateFactorsOptions) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState<string | null>(null);
+  const [generatedFactors, setGeneratedFactors] = useState<GeneratedFactorItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -52,22 +52,22 @@ export function useGenerateOverviewSection({
   );
 
   const generate = useCallback(
-    async (sectionType: OverviewSectionType, existingContent?: string) => {
+    async (factorType: SolutionFactorType, existingContent?: string) => {
       if (!solution) {
         setError('Solution not loaded');
-        return '';
+        return [];
       }
 
       setIsGenerating(true);
       setError(null);
-      setGeneratedContent(null);
+      setGeneratedFactors(null);
 
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
 
       try {
-        const request: GenerateOverviewSectionRequest = {
-          sectionType,
+        const request: GenerateFactorsRequest = {
+          sectionType: factorType,
           solutionContext: {
             name: solution.name,
             description: solution.description,
@@ -97,17 +97,17 @@ export function useGenerateOverviewSection({
           existingContent: existingContent?.trim() || undefined,
         };
 
-        const content = await generateOverviewSection(
+        const factors = await generateFactors(
           request,
           abortControllerRef.current.signal
         );
-        setGeneratedContent(content);
-        return content;
+        setGeneratedFactors(factors);
+        return factors;
       } catch (err) {
         const message =
-          err instanceof OverviewGeneratorAPIError
+          err instanceof FactorGeneratorAPIError
             ? err.message
-            : 'Failed to generate content';
+            : 'Failed to generate factors';
         setError(message);
         throw err;
       } finally {
@@ -124,7 +124,7 @@ export function useGenerateOverviewSection({
   }, []);
 
   const reset = useCallback(() => {
-    setGeneratedContent(null);
+    setGeneratedFactors(null);
     setError(null);
   }, []);
 
@@ -133,7 +133,7 @@ export function useGenerateOverviewSection({
     cancel,
     reset,
     isGenerating,
-    generatedContent,
+    generatedFactors,
     error,
   };
 }
