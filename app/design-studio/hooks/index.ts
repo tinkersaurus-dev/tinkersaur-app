@@ -7,6 +7,7 @@
 
 // DesignWork hooks
 export { useDesignWorks, useChildDesignWorks, useRootDesignWorks, useDesignWork } from './useDesignWorks';
+export { useDesignWorksForContext } from './useDesignWorksForContext';
 
 // Diagram hooks - now lazy loaded
 export { useDiagram } from './useDiagrams';

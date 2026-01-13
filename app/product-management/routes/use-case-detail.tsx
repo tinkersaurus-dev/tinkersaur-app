@@ -1,6 +1,7 @@
 /**
  * Use Case Detail Page
  * Displays use case details and its requirements in a table
+ * Includes a Definition tab with embedded design studio for linked designworks
  */
 
 import { useState, useCallback, useEffect } from 'react';
@@ -25,6 +26,7 @@ import {
   UseCasePersonasSidebar,
   useUseCaseFeedback,
 } from '../components/use-case-detail';
+import { DesignStudioContent } from '~/design-studio/components/DesignStudioContent';
 
 // Loader function for SSR data fetching
 export async function loader({ params }: Route.LoaderArgs) {
@@ -45,6 +47,7 @@ function UseCaseDetailContent() {
   const { solutionId, useCaseId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
+  const [topLevelTab, setTopLevelTab] = useState('overview');
   const [activeTab, setActiveTab] = useState('requirements');
 
   // Solution store for auto-select
@@ -223,111 +226,140 @@ function UseCaseDetailContent() {
       />
 
       <PageContent>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main content */}
-          <div className="lg:col-span-2 space-y-6">
-            <UseCaseBasicInfo
-              useCase={useCase}
-              onSave={handleSaveBasicInfo}
-              isSaving={updateUseCase.isPending}
-            />
+        {/* Top-level tabs: Overview and Definition */}
+        <Tabs
+          type="line"
+          activeKey={topLevelTab}
+          onChange={setTopLevelTab}
+          items={[
+            {
+              key: 'overview',
+              label: 'Overview',
+              children: (
+                <div className="pt-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Main content */}
+                    <div className="lg:col-span-2 space-y-6">
+                      <UseCaseBasicInfo
+                        useCase={useCase}
+                        onSave={handleSaveBasicInfo}
+                        isSaving={updateUseCase.isPending}
+                      />
 
-            <Card>
-              <Tabs
-                type="line"
-                activeKey={activeTab}
-                onChange={setActiveTab}
-                items={[
-                  {
-                    key: 'requirements',
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        Requirements ({requirements.length})
-                      </span>
-                    ),
-                    children: (
-                      <div className="pt-4">
-                        <Table
-                          header={{
-                            title: 'Requirements',
-                            actions: (
-                              <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
-                              </Button>
-                            ),
-                          }}
-                          columns={columns}
-                          dataSource={requirements}
-                          rowKey="id"
-                          pagination={{ pageSize: 10 }}
-                          loading={isLoading}
+                      <Card>
+                        <Tabs
+                          type="line"
+                          activeKey={activeTab}
+                          onChange={setActiveTab}
+                          items={[
+                            {
+                              key: 'requirements',
+                              label: (
+                                <span className="flex items-center gap-1.5">
+                                  Requirements ({requirements.length})
+                                </span>
+                              ),
+                              children: (
+                                <div className="pt-4">
+                                  <Table
+                                    header={{
+                                      title: 'Requirements',
+                                      actions: (
+                                        <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
+                                        </Button>
+                                      ),
+                                    }}
+                                    columns={columns}
+                                    dataSource={requirements}
+                                    rowKey="id"
+                                    pagination={{ pageSize: 10 }}
+                                    loading={isLoading}
+                                  />
+                                </div>
+                              ),
+                            },
+                            {
+                              key: 'quotes',
+                              label: (
+                                <span className="flex items-center gap-1.5">
+                                  <FiMessageCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
+                                  Supporting Quotes ({useCase.quotes?.length || 0})
+                                </span>
+                              ),
+                              children: (
+                                <div className="pt-4">
+                                  <UseCaseSupportingQuotes
+                                    quotes={useCase.quotes || []}
+                                    intakeSourceId={useCase.intakeSourceId}
+                                  />
+                                </div>
+                              ),
+                            },
+                            {
+                              key: 'suggestions',
+                              label: (
+                                <span className="flex items-center gap-1.5">
+                                  <FiArchive className="w-3.5 h-3.5 text-blue-500" />
+                                  Suggestions ({suggestionsCount})
+                                </span>
+                              ),
+                              children: (
+                                <div className="pt-4">
+                                  <UseCaseFeedbackTab
+                                    feedbackRows={suggestions}
+                                    emptyDescription="No suggestions for this use case"
+                                  />
+                                </div>
+                              ),
+                            },
+                            {
+                              key: 'problems',
+                              label: (
+                                <span className="flex items-center gap-1.5">
+                                  <FiAlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                                  Problems ({problemsCount})
+                                </span>
+                              ),
+                              children: (
+                                <div className="pt-4">
+                                  <UseCaseFeedbackTab
+                                    feedbackRows={problems}
+                                    emptyDescription="No problems for this use case"
+                                  />
+                                </div>
+                              ),
+                            },
+                          ]}
                         />
-                      </div>
-                    ),
-                  },
-                  {
-                    key: 'quotes',
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <FiMessageCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
-                        Supporting Quotes ({useCase.quotes?.length || 0})
-                      </span>
-                    ),
-                    children: (
-                      <div className="pt-4">
-                        <UseCaseSupportingQuotes
-                          quotes={useCase.quotes || []}
-                          intakeSourceId={useCase.intakeSourceId}
-                        />
-                      </div>
-                    ),
-                  },
-                  {
-                    key: 'suggestions',
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <FiArchive className="w-3.5 h-3.5 text-blue-500" />
-                        Suggestions ({suggestionsCount})
-                      </span>
-                    ),
-                    children: (
-                      <div className="pt-4">
-                        <UseCaseFeedbackTab
-                          feedbackRows={suggestions}
-                          emptyDescription="No suggestions for this use case"
-                        />
-                      </div>
-                    ),
-                  },
-                  {
-                    key: 'problems',
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        <FiAlertTriangle className="w-3.5 h-3.5 text-red-500" />
-                        Problems ({problemsCount})
-                      </span>
-                    ),
-                    children: (
-                      <div className="pt-4">
-                        <UseCaseFeedbackTab
-                          feedbackRows={problems}
-                          emptyDescription="No problems for this use case"
-                        />
-                      </div>
-                    ),
-                  },
-                ]}
-              />
-            </Card>
-          </div>
+                      </Card>
+                    </div>
 
-          {/* Sidebar - Personas */}
-          <div className="space-y-6">
-            <UseCasePersonasSidebar
-              useCaseId={useCaseId!}
-              teamId={useCase.teamId}
-            />
-          </div>
-        </div>
+                    {/* Sidebar - Personas */}
+                    <div className="space-y-6">
+                      <UseCasePersonasSidebar
+                        useCaseId={useCaseId!}
+                        teamId={useCase.teamId}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              key: 'definition',
+              label: 'Definition',
+              children: (
+                <div className="pt-0 h-[calc(90vh-100px)]">
+                  <DesignStudioContent
+                    solutionId={solutionId!}
+                    useCaseId={useCaseId}
+                    className=""
+                  />
+                </div>
+              ),
+            },
+          ]}
+        />
       </PageContent>
 
       <Modal

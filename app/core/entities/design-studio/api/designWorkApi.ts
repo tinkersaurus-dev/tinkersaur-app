@@ -208,6 +208,21 @@ class DesignWorkApi {
   }
 
   /**
+   * Get all design works for a use case with content metadata.
+   * Used for embedded design studio view in use case detail.
+   */
+  async listWithContentByUseCase(solutionId: string, useCaseId: string): Promise<DesignWorksWithReferences> {
+    const data = await httpClient.get<DesignWorkWithContentDto[]>(
+      `/api/design-works/with-content/by-use-case?solutionId=${solutionId}&useCaseId=${useCaseId}`
+    );
+
+    const designWorks = data.map(transformDesignWorkWithContent);
+    const references: Reference[] = data.flatMap((dw) => (dw.references || []).map(toFullReference));
+
+    return { designWorks, references };
+  }
+
+  /**
    * Get a single design work by ID
    */
   async get(id: string): Promise<DesignWork | null> {

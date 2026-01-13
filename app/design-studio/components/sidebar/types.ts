@@ -23,6 +23,7 @@ export type { TreeNodeData, DropPosition, DropdownMenuItem };
 /** Props for the main StudioSidebar component */
 export interface StudioSidebarProps {
   solutionId: string;
+  useCaseId?: string; // For auto-linking new designworks
 }
 
 /** Context menu position and target state */

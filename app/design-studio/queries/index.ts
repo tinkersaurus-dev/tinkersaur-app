@@ -15,6 +15,7 @@ export {
 export {
   useDesignWorksQuery,
   useDesignWorksWithContentQuery,
+  useDesignWorksWithContentByUseCaseQuery,
   useDesignWorkQuery,
   prefetchDesignWorks,
   prefetchDesignWork,

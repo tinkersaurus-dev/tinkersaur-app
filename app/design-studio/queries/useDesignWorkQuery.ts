@@ -36,6 +36,25 @@ export function useDesignWorksQuery(solutionId: string | undefined) {
 }
 
 /**
+ * Query hook for fetching design works filtered by use case.
+ * Used in embedded design studio view within use case detail page.
+ */
+export function useDesignWorksWithContentByUseCaseQuery(
+  solutionId: string | undefined,
+  useCaseId: string | undefined
+) {
+  return useQuery({
+    queryKey: queryKeys.designWorks.listByUseCase(solutionId!, useCaseId!),
+    queryFn: () => designWorkApi.listWithContentByUseCase(solutionId!, useCaseId!),
+    enabled: !!solutionId && !!useCaseId,
+    staleTime: STALE_TIMES.designWorks,
+    refetchInterval: REFETCH_INTERVALS.designWorks,
+    refetchOnWindowFocus: 'always',
+    select: (data: DesignWorksWithReferences) => data,
+  });
+}
+
+/**
  * Query hook for fetching a single design work
  */
 export function useDesignWorkQuery(designWorkId: string | undefined) {

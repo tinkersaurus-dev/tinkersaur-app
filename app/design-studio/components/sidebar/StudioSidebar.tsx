@@ -17,9 +17,9 @@ import { SidebarContextMenu } from './SidebarContextMenu';
 import { SidebarModals } from './SidebarModals';
 import type { StudioSidebarProps, SidebarModalState } from './types';
 
-export function StudioSidebar({ solutionId }: StudioSidebarProps) {
+export function StudioSidebar({ solutionId, useCaseId }: StudioSidebarProps) {
   // 1. State hook - all store interactions
-  const sidebarState = useSidebarState({ solutionId });
+  const sidebarState = useSidebarState({ solutionId, useCaseId });
 
   // 2. Tree building hook
   const { treeData, defaultExpandedKeys, getAllItemsAtLevel } = useSidebarTree({
@@ -69,6 +69,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     try {
       await sidebarState.crudOperations.createDesignWork({
         solutionId,
+        useCaseId, // Auto-link to use case if provided
         name: 'New Folder',
         version: '1.0.0',
         diagrams: [],
@@ -79,13 +80,14 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
     } catch (error) {
       console.error('Failed to create folder:', error);
     }
-  }, [sidebarState.crudOperations, solutionId]);
+  }, [sidebarState.crudOperations, solutionId, useCaseId]);
 
   const handleAddSubfolder = useCallback(
     async (parentFolderId: string) => {
       try {
         const newFolder = await sidebarState.crudOperations.createDesignWork({
           solutionId,
+          useCaseId, // Auto-link to use case if provided
           parentDesignWorkId: parentFolderId,
           name: 'New Folder',
           version: '1.0.0',
@@ -102,7 +104,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
         console.error('Failed to create subfolder:', error);
       }
     },
-    [sidebarState.crudOperations, solutionId]
+    [sidebarState.crudOperations, solutionId, useCaseId]
   );
 
   // 7. Context menu hook
@@ -242,7 +244,7 @@ export function StudioSidebar({ solutionId }: StudioSidebarProps) {
   );
 
   return (
-    <div className="bg-[var(--bg-dark)]" style={{ padding: '8px', height: '100%', overflow: 'auto' }}>
+    <div className="bg-[var(--bg-dark)]" style={{ padding: '4px', height: '100%', overflow: 'auto' }}>
       <h3 className="text-[var(--text)]" style={{ marginBottom: '8px' }}>
         {sidebarState.solutionName || 'Product Name'}
       </h3>

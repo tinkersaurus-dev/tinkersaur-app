@@ -16,6 +16,7 @@ import type { DiagramType } from '~/core/entities/design-studio';
 
 interface UseSidebarStateProps {
   solutionId: string;
+  useCaseId?: string;
 }
 
 export function useSidebarState({ solutionId }: UseSidebarStateProps): UseSidebarStateReturn {

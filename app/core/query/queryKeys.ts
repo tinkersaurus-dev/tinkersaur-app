@@ -107,6 +107,8 @@ export const queryKeys = {
   designWorks: {
     all: ['designWorks'] as const,
     list: (solutionId: string) => [...queryKeys.designWorks.all, 'list', solutionId] as const,
+    listByUseCase: (solutionId: string, useCaseId: string) =>
+      [...queryKeys.designWorks.all, 'listByUseCase', solutionId, useCaseId] as const,
     detail: (id: string) => [...queryKeys.designWorks.all, 'detail', id] as const,
   },
   documents: {
