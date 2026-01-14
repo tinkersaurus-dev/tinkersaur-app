@@ -54,8 +54,6 @@ export async function generateTechSpecStructured(content: string, teamId: string
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const data = await httpClient.post<GenerateTechSpecAPIResponse>(
       `/api/ai/generate-tech-spec?teamId=${teamId}`,
       { content }
@@ -77,9 +75,6 @@ export async function generateTechSpecStructured(content: string, teamId: string
 
     const sectionsWithIds = addIdsToSections(data.sections);
 
-    logger.info('Successfully received tech spec sections', {
-      count: sectionsWithIds.length,
-    });
     return sectionsWithIds;
   } catch (error) {
     logger.error('Exception in generateTechSpecStructured', error);
@@ -124,8 +119,6 @@ export async function regenerateTechSpecSection(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const data = await httpClient.post<TechSpecOperationResponse>(
       `/api/ai/regenerate-tech-spec?teamId=${teamId}`,
       { section, originalContent, instructions }

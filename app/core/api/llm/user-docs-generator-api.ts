@@ -52,8 +52,6 @@ export async function generateUserDocs(content: string, teamId: string): Promise
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const data = await httpClient.post<GenerateUserDocsAPIResponse>(
       `/api/ai/generate-user-docs?teamId=${teamId}`,
       { content }
@@ -77,9 +75,6 @@ export async function generateUserDocs(content: string, teamId: string): Promise
     const documentsWithIds = addIdsToDocuments(data.documents);
     const markdown = userDocumentsToMarkdown(documentsWithIds);
 
-    logger.info('Successfully received user documentation', {
-      length: markdown.length,
-    });
     return markdown;
   } catch (error) {
     logger.error('Exception in generateUserDocs', error);
@@ -115,8 +110,6 @@ export async function generateUserDocsStructured(content: string, teamId: string
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const data = await httpClient.post<GenerateUserDocsAPIResponse>(
       `/api/ai/generate-user-docs?teamId=${teamId}`,
       { content }
@@ -138,9 +131,6 @@ export async function generateUserDocsStructured(content: string, teamId: string
 
     const documentsWithIds = addIdsToDocuments(data.documents);
 
-    logger.info('Successfully received user documents', {
-      count: documentsWithIds.length,
-    });
     return documentsWithIds;
   } catch (error) {
     logger.error('Exception in generateUserDocsStructured', error);
@@ -184,8 +174,6 @@ export async function regenerateUserDocument(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const data = await httpClient.post<UserDocOperationResponse>(
       `/api/ai/regenerate-user-doc?teamId=${teamId}`,
       { document, originalContent, instructions }

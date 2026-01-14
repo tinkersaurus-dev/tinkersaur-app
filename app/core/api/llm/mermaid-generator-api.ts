@@ -51,8 +51,6 @@ export async function generateMermaid(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const data = await httpClient.post<GenerateMermaidResponse>(
       `/api/ai/generate-mermaid?teamId=${teamId}`,
       { prompt, diagramType }
@@ -76,9 +74,6 @@ export async function generateMermaid(
       );
     }
 
-    logger.info('Successfully received mermaid syntax', {
-      length: data.mermaid.length,
-    });
     return data.mermaid;
   } catch (error) {
     logger.error('Exception in generateMermaid', error);

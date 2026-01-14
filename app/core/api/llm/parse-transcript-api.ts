@@ -47,8 +47,6 @@ export async function parseTranscript(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const data = await httpClient.post<ParseTranscriptResponse>(
       `/api/ai/parse-transcript?teamId=${teamId}`,
       { sourceType, content, metadata }

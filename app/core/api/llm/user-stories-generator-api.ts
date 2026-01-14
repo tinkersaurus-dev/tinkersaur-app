@@ -98,8 +98,6 @@ export async function generateUserStories(content: string, teamId: string): Prom
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const data = await httpClient.post<GenerateUserStoriesResponse>(
       `/api/ai/generate-user-stories?teamId=${teamId}`,
       { content }
@@ -121,9 +119,6 @@ export async function generateUserStories(content: string, teamId: string): Prom
 
     const storiesWithIds = data.stories.map(toUserStory);
 
-    logger.info('Successfully received user stories', {
-      count: storiesWithIds.length,
-    });
     return storiesWithIds;
   } catch (error) {
     logger.error('Exception in generateUserStories', error);
@@ -164,8 +159,6 @@ export async function combineUserStories(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const storiesToSend = stories.map((s) => parseStoryContent(s.content));
 
     const data = await httpClient.post<CombineUserStoriesResponse>(
@@ -230,8 +223,6 @@ export async function splitUserStory(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const storyToSend = parseStoryContent(story.content);
 
     const data = await httpClient.post<SplitUserStoryResponse>(
@@ -300,8 +291,6 @@ export async function regenerateUserStory(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const storyToSend = parseStoryContent(story.content);
 
     const data = await httpClient.post<RegenerateUserStoryResponse>(

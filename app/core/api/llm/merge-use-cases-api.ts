@@ -62,8 +62,6 @@ export async function mergeUseCases(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const useCaseInputs = useCases.map(toUseCaseInput);
 
     const data = await httpClient.post<MergeUseCasesResponse>(
@@ -88,9 +86,6 @@ export async function mergeUseCases(
       );
     }
 
-    logger.info('Successfully received merged use case', {
-      name: data.useCase.name,
-    });
     return data.useCase;
   } catch (error) {
     logger.error('Exception in mergeUseCases', error);

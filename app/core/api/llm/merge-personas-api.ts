@@ -74,8 +74,6 @@ export async function mergePersonas(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const personaInputs = personas.map(toPersonaInput);
 
     const data = await httpClient.post<MergePersonasResponse>(
@@ -100,9 +98,6 @@ export async function mergePersonas(
       );
     }
 
-    logger.info('Successfully received merged persona', {
-      name: data.persona.name,
-    });
     return data.persona;
   } catch (error) {
     logger.error('Exception in mergePersonas', error);

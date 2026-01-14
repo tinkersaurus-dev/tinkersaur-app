@@ -59,8 +59,6 @@ export async function generateSuggestions(
   });
 
   try {
-    logger.info('Sending request to AI proxy endpoint');
-
     const data = await httpClient.post<GenerateSuggestionsResponse>(
       `/api/ai/generate-suggestions?teamId=${teamId}`,
       { mermaid: mermaidSyntax, diagramType, context }
@@ -84,9 +82,6 @@ export async function generateSuggestions(
       );
     }
 
-    logger.info('Successfully received suggestions', {
-      count: data.suggestions.length,
-    });
     return data.suggestions;
   } catch (error) {
     logger.error('Exception in generateSuggestions', error);
