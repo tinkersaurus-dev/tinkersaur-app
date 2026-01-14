@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useDiagramStore,
   useInterfaceStore,
@@ -13,16 +14,25 @@ import {
   type Document,
 } from '~/core/entities/design-studio';
 import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
+import { queryKeys } from '~/core/query/queryKeys';
 
 /**
  * Hook providing CRUD operations for all design studio entities
  * Combines entity store operations in a convenient interface
+ * Invalidates TanStack Query cache after mutations to keep data in sync
  */
 export function useDesignStudioCRUD() {
+  const queryClient = useQueryClient();
+
   // DesignWork operations
   const createDesignWork = useDesignWorkStore((state) => state.createDesignWork);
   const updateDesignWork = useDesignWorkStore((state) => state.updateDesignWork);
   const deleteDesignWork = useDesignWorkStore((state) => state.deleteDesignWork);
+
+  // Helper to invalidate all design work queries
+  const invalidateDesignWorkQueries = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.designWorks.all });
+  }, [queryClient]);
 
   // Diagram operations
   const createDiagram = useDiagramStore((state) => state.createDiagram);
@@ -42,89 +52,111 @@ export function useDesignStudioCRUD() {
   // DesignWork handlers
   const handleCreateDesignWork = useCallback(
     async (data: CreateDesignWorkDto) => {
-      return await createDesignWork(data);
+      const result = await createDesignWork(data);
+      invalidateDesignWorkQueries();
+      return result;
     },
-    [createDesignWork]
+    [createDesignWork, invalidateDesignWorkQueries]
   );
 
   const handleUpdateDesignWork = useCallback(
     async (id: string, updates: Partial<DesignWork>) => {
       await updateDesignWork(id, updates);
+      invalidateDesignWorkQueries();
     },
-    [updateDesignWork]
+    [updateDesignWork, invalidateDesignWorkQueries]
   );
 
   const handleDeleteDesignWork = useCallback(
     async (id: string) => {
       await deleteDesignWork(id);
+      invalidateDesignWorkQueries();
     },
-    [deleteDesignWork]
+    [deleteDesignWork, invalidateDesignWorkQueries]
   );
 
   // Diagram handlers
   const handleCreateDiagram = useCallback(
     async (data: CreateDiagramDto) => {
-      return await createDiagram(data);
+      const result = await createDiagram(data);
+      invalidateDesignWorkQueries();
+      queryClient.invalidateQueries({ queryKey: queryKeys.diagrams.detail(result.id) });
+      return result;
     },
-    [createDiagram]
+    [createDiagram, invalidateDesignWorkQueries, queryClient]
   );
 
   const handleUpdateDiagram = useCallback(
     async (id: string, updates: Partial<Diagram>) => {
       await updateDiagram(id, updates);
+      queryClient.invalidateQueries({ queryKey: queryKeys.diagrams.detail(id) });
     },
-    [updateDiagram]
+    [updateDiagram, queryClient]
   );
 
   const handleDeleteDiagram = useCallback(
     async (id: string) => {
       await deleteDiagram(id);
+      invalidateDesignWorkQueries();
+      queryClient.invalidateQueries({ queryKey: queryKeys.diagrams.detail(id) });
     },
-    [deleteDiagram]
+    [deleteDiagram, invalidateDesignWorkQueries, queryClient]
   );
 
   // Interface handlers
   const handleCreateInterface = useCallback(
     async (data: CreateInterfaceDto) => {
-      return await createInterface(data);
+      const result = await createInterface(data);
+      invalidateDesignWorkQueries();
+      queryClient.invalidateQueries({ queryKey: queryKeys.interfaces.detail(result.id) });
+      return result;
     },
-    [createInterface]
+    [createInterface, invalidateDesignWorkQueries, queryClient]
   );
 
   const handleUpdateInterface = useCallback(
     async (id: string, updates: Partial<Interface>) => {
       await updateInterface(id, updates);
+      queryClient.invalidateQueries({ queryKey: queryKeys.interfaces.detail(id) });
     },
-    [updateInterface]
+    [updateInterface, queryClient]
   );
 
   const handleDeleteInterface = useCallback(
     async (id: string) => {
       await deleteInterface(id);
+      invalidateDesignWorkQueries();
+      queryClient.invalidateQueries({ queryKey: queryKeys.interfaces.detail(id) });
     },
-    [deleteInterface]
+    [deleteInterface, invalidateDesignWorkQueries, queryClient]
   );
 
   // Document handlers
   const handleCreateDocument = useCallback(
     async (data: CreateDocumentDto) => {
-      return await createDocument(data);
+      const result = await createDocument(data);
+      invalidateDesignWorkQueries();
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.detail(result.id) });
+      return result;
     },
-    [createDocument]
+    [createDocument, invalidateDesignWorkQueries, queryClient]
   );
 
   const handleUpdateDocument = useCallback(
     async (id: string, updates: Partial<Document>) => {
       await updateDocument(id, updates);
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.detail(id) });
     },
-    [updateDocument]
+    [updateDocument, queryClient]
   );
 
   const handleDeleteDocument = useCallback(
     async (id: string) => {
       await deleteDocument(id);
+      invalidateDesignWorkQueries();
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.detail(id) });
     },
-    [deleteDocument]
+    [deleteDocument, invalidateDesignWorkQueries, queryClient]
   );
 
   return {

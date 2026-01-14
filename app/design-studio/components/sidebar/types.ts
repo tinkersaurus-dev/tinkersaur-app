@@ -125,7 +125,6 @@ export interface SidebarModalsProps {
 
 /** Return type for useSidebarState hook */
 export interface UseSidebarStateReturn {
-  solutionName: string | undefined;
   teamId: string | undefined;
   designWorks: DesignWork[];
   references: Record<string, Reference>;

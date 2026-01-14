@@ -245,10 +245,6 @@ export function StudioSidebar({ solutionId, useCaseId }: StudioSidebarProps) {
 
   return (
     <div className="bg-[var(--bg-dark)]" style={{ padding: '4px', height: '100%', overflow: 'auto' }}>
-      <h3 className="text-[var(--text)]" style={{ marginBottom: '8px' }}>
-        {sidebarState.solutionName || 'Product Name'}
-      </h3>
-
       {/* Action bar */}
       <div style={{ marginBottom: '16px' }}>
         <Button variant="text" size="small" icon={<FiFolderPlus />} onClick={handleAddFolder} />

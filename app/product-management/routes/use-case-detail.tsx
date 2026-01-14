@@ -11,7 +11,7 @@ import { useSolutionStore } from '~/core/solution';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Button, Tag, HStack, Table, Form, useForm, Modal, Select, Input, Card, Tabs } from '~/core/components/ui';
+import { Button, Tag, HStack, Table, Form, useForm, Modal, Select, Input, Card, Tabs, MarkdownContent } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
 import { useSolutionQuery, useUseCaseQuery, useRequirementsQuery } from '../queries';
@@ -27,6 +27,8 @@ import {
   useUseCaseFeedback,
 } from '../components/use-case-detail';
 import { DesignStudioContent } from '~/design-studio/components/DesignStudioContent';
+import { useUseCaseContent } from '../hooks/useUseCaseContent';
+import '~/design-studio/styles/markdown-content.css';
 
 // Loader function for SSR data fetching
 export async function loader({ params }: Route.LoaderArgs) {
@@ -72,6 +74,12 @@ function UseCaseDetailContent() {
   // Feedback data for tabs
   const { suggestions, problems, suggestionsCount, problemsCount } = useUseCaseFeedback(
     useCase?.teamId,
+    useCaseId
+  );
+
+  // Use case content compilation for Specification tab
+  const { content: specificationContent, loading: specificationLoading } = useUseCaseContent(
+    solutionId,
     useCaseId
   );
 
@@ -355,6 +363,31 @@ function UseCaseDetailContent() {
                     useCaseId={useCaseId}
                     className=""
                   />
+                </div>
+              ),
+            },
+            {
+              key: 'specification',
+              label: 'Specification',
+              children: (
+                <div className="pt-0 h-[calc(90vh-100px)]">
+                  <div className="h-full flex flex-col overflow-hidden bg-[var(--bg)]">
+                    {/* Toolbar placeholder */}
+                    <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)] bg-[var(--surface)]" />
+                    {/* Content area */}
+                    <div className="flex-1 overflow-auto p-4 bg-[var(--bg-light)]">
+                      {specificationLoading ? (
+                        <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
+                          <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                          Loading specification...
+                        </div>
+                      ) : (
+                        <div className="markdown-content markdown-content--compact">
+                          <MarkdownContent content={specificationContent} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ),
             },

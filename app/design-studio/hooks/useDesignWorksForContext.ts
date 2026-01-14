@@ -41,7 +41,7 @@ export function useDesignWorksForContext({ solutionId, useCaseId }: UseDesignWor
   const data = useCaseId ? useCaseData : solutionData;
   const isLoading = useCaseId ? loadingUseCase : loadingSolution;
 
-  // Sync to Zustand stores
+  // Sync to Zustand stores when data changes
   useEffect(() => {
     if (data) {
       setDesignWorks(data.designWorks);

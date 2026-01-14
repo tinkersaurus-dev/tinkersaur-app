@@ -23,9 +23,8 @@ export function useSidebarState({ solutionId }: UseSidebarStateProps): UseSideba
   // Tab management from UI store
   const { openTab } = useDesignStudioUIStore();
 
-  // Get solution name from TanStack Query
+  // Get solution data from TanStack Query (for teamId)
   const { data: solution } = useSolutionQuery(solutionId);
-  const solutionName = solution?.name;
 
   // Entity data from Zustand stores
   const designWorks = useDesignWorkStore((state) => state.designWorks);
@@ -67,7 +66,6 @@ export function useSidebarState({ solutionId }: UseSidebarStateProps): UseSideba
   );
 
   return {
-    solutionName,
     teamId: solution?.teamId,
     designWorks,
     references,
