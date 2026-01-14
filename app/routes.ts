@@ -4,25 +4,6 @@ export default [
   index("routes/home.tsx"),
   route("login", "routes/login.tsx"),
 
-  // API routes
-  route("api/generate-mermaid", "routes/api.generate-mermaid.ts"),
-  route("api/generate-user-stories", "routes/api.generate-user-stories.ts"),
-  route("api/generate-user-docs", "routes/api.generate-user-docs.ts"),
-  route("api/generate-suggestions", "routes/api.generate-suggestions.ts"),
-  route("api/generate-apply-suggestion", "routes/api.generate-apply-suggestion.ts"),
-  route("api/generate-combine-stories", "routes/api.generate-combine-stories.ts"),
-  route("api/generate-split-story", "routes/api.generate-split-story.ts"),
-  route("api/generate-regenerate-story", "routes/api.generate-regenerate-story.ts"),
-  route("api/generate-user-docs-structured", "routes/api.generate-user-docs-structured.ts"),
-  route("api/generate-user-docs-regenerate", "routes/api.generate-user-docs-regenerate.ts"),
-  route("api/generate-tech-spec-structured", "routes/api.generate-tech-spec-structured.ts"),
-  route("api/generate-tech-spec-regenerate", "routes/api.generate-tech-spec-regenerate.ts"),
-  route("api/parse-transcript", "routes/api.parse-transcript.ts"),
-  route("api/merge-personas", "routes/api.merge-personas.ts"),
-  route("api/merge-use-cases", "routes/api.merge-use-cases.ts"),
-  route("api/generate-overview-section", "routes/api.generate-overview-section.ts"),
-  route("api/generate-use-case", "routes/api.generate-use-case.ts"),
-
   // Discovery routes
   route("discovery", "routes/discovery.tsx"),
   route("discovery/intake", "routes/discovery/intake.tsx"),

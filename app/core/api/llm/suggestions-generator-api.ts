@@ -1,7 +1,9 @@
 /**
  * Client-side API wrapper for LLM-based diagram improvement suggestions
+ * Calls tinkersaur-api which proxies to tinkersaur-ai
  */
 
+import { httpClient, ApiError } from '~/core/api/httpClient';
 import { logger } from '~/core/utils/logger';
 
 export interface Suggestion {
@@ -10,8 +12,9 @@ export interface Suggestion {
 }
 
 export interface GenerateSuggestionsRequest {
-  mermaidSyntax: string;
+  mermaid: string;
   diagramType: string;
+  context?: string;
 }
 
 export interface GenerateSuggestionsResponse {
@@ -38,57 +41,38 @@ export class SuggestionsGeneratorAPIError extends Error {
  *
  * @param mermaidSyntax - The Mermaid syntax representing the current diagram
  * @param diagramType - Type of diagram (bpmn, class, sequence, architecture)
+ * @param teamId - The team ID for authorization
+ * @param context - Optional additional context
  * @returns Promise that resolves to an array of suggestions
  * @throws SuggestionsGeneratorAPIError if generation fails
  */
 export async function generateSuggestions(
   mermaidSyntax: string,
-  diagramType: string
+  diagramType: string,
+  teamId: string,
+  context?: string
 ): Promise<Suggestion[]> {
   logger.debug('generateSuggestions called', {
     mermaidLength: mermaidSyntax.length,
     diagramType,
+    teamId,
   });
 
   try {
-    logger.info('Sending request to /api/generate-suggestions');
+    logger.info('Sending request to AI proxy endpoint');
 
-    // Create an AbortController with a timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      logger.error('Suggestions request timeout after 120 seconds');
-      controller.abort();
-    }, 120000);
+    const data = await httpClient.post<GenerateSuggestionsResponse>(
+      `/api/ai/generate-suggestions?teamId=${teamId}`,
+      { mermaid: mermaidSyntax, diagramType, context }
+    );
 
-    const response = await fetch('/api/generate-suggestions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        mermaidSyntax,
-        diagramType,
-      } satisfies GenerateSuggestionsRequest),
-      signal: controller.signal,
-    }).finally(() => {
-      clearTimeout(timeoutId);
-    });
-
-    logger.debug('Suggestions response received', {
-      status: response.status,
-      ok: response.ok,
-    });
-
-    const data: GenerateSuggestionsResponse = await response.json();
-
-    if (!response.ok || !data.success) {
+    if (!data.success) {
       logger.error('Error in suggestions API response', undefined, {
         error: data.error,
-        status: response.status,
       });
       throw new SuggestionsGeneratorAPIError(
-        data.error || `Failed to generate suggestions (HTTP ${response.status})`,
-        response.status
+        data.error || 'Failed to generate suggestions',
+        500
       );
     }
 
@@ -106,9 +90,15 @@ export async function generateSuggestions(
     return data.suggestions;
   } catch (error) {
     logger.error('Exception in generateSuggestions', error);
+
     // Re-throw our custom errors
     if (error instanceof SuggestionsGeneratorAPIError) {
       throw error;
+    }
+
+    // Handle API errors
+    if (error instanceof ApiError) {
+      throw new SuggestionsGeneratorAPIError(error.message, error.status);
     }
 
     // Wrap network errors and other exceptions

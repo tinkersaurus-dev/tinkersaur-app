@@ -225,13 +225,9 @@ class DesignWorkApi {
   /**
    * Get a single design work by ID
    */
-  async get(id: string): Promise<DesignWork | null> {
-    try {
-      const data = await httpClient.get<DesignWork>(`/api/design-works/${id}`);
-      return normalizeDesignWork(deserializeDates(data));
-    } catch {
-      return null;
-    }
+  async get(id: string): Promise<DesignWork> {
+    const data = await httpClient.get<DesignWork>(`/api/design-works/${id}`);
+    return normalizeDesignWork(deserializeDates(data));
   }
 
   /**
@@ -245,25 +241,16 @@ class DesignWorkApi {
   /**
    * Update an existing design work
    */
-  async update(id: string, updates: Partial<UpdateDesignWorkDto>): Promise<DesignWork | null> {
-    try {
-      const result = await httpClient.put<DesignWork>(`/api/design-works/${id}`, updates);
-      return normalizeDesignWork(deserializeDates(result));
-    } catch {
-      return null;
-    }
+  async update(id: string, updates: Partial<UpdateDesignWorkDto>): Promise<DesignWork> {
+    const result = await httpClient.put<DesignWork>(`/api/design-works/${id}`, updates);
+    return normalizeDesignWork(deserializeDates(result));
   }
 
   /**
    * Delete a design work
    */
-  async delete(id: string): Promise<boolean> {
-    try {
-      await httpClient.delete(`/api/design-works/${id}`);
-      return true;
-    } catch {
-      return false;
-    }
+  async delete(id: string): Promise<void> {
+    await httpClient.delete(`/api/design-works/${id}`);
   }
 
   /**

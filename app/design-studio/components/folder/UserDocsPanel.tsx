@@ -6,12 +6,16 @@
  * delete, edit, and copy.
  */
 
-import type { UserDocument } from '../../lib/llm/types';
-import { userDocumentToMarkdown } from '../../lib/llm/types';
+import { useCallback } from 'react';
+import { useAuthStore } from '~/core/auth';
+import {
+  regenerateUserDocument,
+  userDocumentToMarkdown,
+  type UserDocument,
+} from '~/core/api/llm';
 import { UserDocCard } from './UserDocCard';
 import { UserDocSidebar } from './UserDocSidebar';
 import { DocOperationModal } from './DocOperationModal';
-import { regenerateUserDocument } from '../../lib/llm/user-docs-generator-api';
 import { ListPanel, type ListPanelModalProps } from './ListPanel';
 
 export interface UserDocsPanelProps {
@@ -25,6 +29,14 @@ export function UserDocsPanel({
   folderContent,
   onDocumentsChange,
 }: UserDocsPanelProps) {
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
+
+  const handleRegenerate = useCallback(
+    (document: UserDocument, context: string, instructions?: string) =>
+      regenerateUserDocument(document, context, teamId, instructions),
+    [teamId]
+  );
+
   return (
     <ListPanel<UserDocument>
       initialItems={initialDocuments}
@@ -52,7 +64,7 @@ export function UserDocsPanel({
       emptyMessage="No documents yet. Click &quot;Generate&quot; to create documentation from the folder content."
       noSelectionMessage="Select a document from the sidebar to view it."
       toMarkdown={userDocumentToMarkdown}
-      regenerate={regenerateUserDocument}
+      regenerate={handleRegenerate}
     />
   );
 }

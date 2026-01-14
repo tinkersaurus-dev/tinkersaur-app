@@ -17,13 +17,9 @@ class DocumentApi {
   /**
    * Get a single document by ID
    */
-  async get(id: string): Promise<Document | null> {
-    try {
-      const data = await httpClient.get<Document>(`/api/documents/${id}`);
-      return deserializeDates(data);
-    } catch {
-      return null;
-    }
+  async get(id: string): Promise<Document> {
+    const data = await httpClient.get<Document>(`/api/documents/${id}`);
+    return deserializeDates(data);
   }
 
   /**
@@ -37,42 +33,27 @@ class DocumentApi {
   /**
    * Update an existing document
    */
-  async update(id: string, updates: Partial<UpdateDocumentDto>): Promise<Document | null> {
-    try {
-      const result = await httpClient.put<Document>(`/api/documents/${id}`, updates);
-      return deserializeDates(result);
-    } catch {
-      return null;
-    }
+  async update(id: string, updates: Partial<UpdateDocumentDto>): Promise<Document> {
+    const result = await httpClient.put<Document>(`/api/documents/${id}`, updates);
+    return deserializeDates(result);
   }
 
   /**
    * Delete a document
    */
-  async delete(id: string): Promise<boolean> {
-    try {
-      await httpClient.delete(`/api/documents/${id}`);
-      return true;
-    } catch {
-      return false;
-    }
+  async delete(id: string): Promise<void> {
+    await httpClient.delete(`/api/documents/${id}`);
   }
 
   /**
    * Delete all documents for a design work
    */
   async deleteByDesignWorkId(designWorkId: string): Promise<number> {
-    try {
-      const documents = await this.list(designWorkId);
-      let deletedCount = 0;
-      for (const doc of documents) {
-        const success = await this.delete(doc.id);
-        if (success) deletedCount++;
-      }
-      return deletedCount;
-    } catch {
-      return 0;
+    const documents = await this.list(designWorkId);
+    for (const doc of documents) {
+      await this.delete(doc.id);
     }
+    return documents.length;
   }
 }
 

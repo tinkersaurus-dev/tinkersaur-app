@@ -7,7 +7,7 @@ import type { LLMPreviewShapeData } from '../../../entities/design-studio/types/
 import type { MermaidImportResult, MermaidShapeRef } from '~/design-studio/diagrams/shared/mermaid/importer';
 import { getMermaidExporter } from '~/design-studio/diagrams/shared/mermaid/registry';
 import { getMermaidImporter } from '~/design-studio/diagrams/shared/mermaid/registry';
-import { applySuggestion } from '~/design-studio/lib/llm/apply-suggestion-api';
+import { applySuggestion } from '~/core/api/llm';
 import { isSuggestionCommentShapeData } from '../../../entities/design-studio/types/Shape';
 
 /**
@@ -37,6 +37,7 @@ export class ApplySuggestionCommand implements Command {
     private readonly diagramId: string,
     private readonly diagramType: DiagramType,
     private readonly suggestionShapeId: string,
+    private readonly teamId: string,
     private readonly getShapeFn: (diagramId: string, shapeId: string) => Promise<Shape | null>,
     private readonly deleteShapeFn: (diagramId: string, shapeId: string) => Promise<Diagram | null>,
     private readonly addShapeFn: (diagramId: string, shapeData: CreateShapeDTO) => Promise<Diagram>,
@@ -101,11 +102,12 @@ export class ApplySuggestionCommand implements Command {
     const targetMermaid = exportResult.value.syntax;
 
     // 5. Call LLM API to get updated mermaid
-    const updatedMermaid = await applySuggestion({
-      targetShapeMermaid: targetMermaid,
-      suggestion: suggestion,
-      diagramType: this.diagramType,
-    });
+    const updatedMermaid = await applySuggestion(
+      targetMermaid,
+      suggestion,
+      this.diagramType,
+      this.teamId
+    );
 
     // 6. Parse updated mermaid into shapes
     const importerResult = getMermaidImporter(this.diagramType);

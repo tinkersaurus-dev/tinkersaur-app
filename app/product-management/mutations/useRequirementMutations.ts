@@ -52,14 +52,10 @@ export function useDeleteRequirement() {
 
   return useMutation({
     mutationFn: (id: string) => requirementApi.delete(id),
-    onSuccess: (success, id) => {
-      if (success) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.requirements.all });
-        queryClient.removeQueries({ queryKey: queryKeys.requirements.detail(id) });
-        toast.success('Requirement deleted successfully');
-      } else {
-        toast.error('Failed to delete requirement');
-      }
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.requirements.all });
+      queryClient.removeQueries({ queryKey: queryKeys.requirements.detail(id) });
+      toast.success('Requirement deleted successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete requirement');

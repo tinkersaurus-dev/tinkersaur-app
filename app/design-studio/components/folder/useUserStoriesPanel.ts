@@ -6,13 +6,13 @@
  */
 
 import { useState, useCallback, useMemo, useEffect, useReducer } from 'react';
-import type { UserStory } from '../../lib/llm/types';
-import type { OperationType } from './StoryOperationModal';
 import {
   combineUserStories,
   splitUserStory,
   regenerateUserStory,
-} from '../../lib/llm/user-stories-generator-api';
+  type UserStory,
+} from '~/core/api/llm';
+import type { OperationType } from './StoryOperationModal';
 
 // Operation state machine types
 type OperationState =
@@ -57,6 +57,7 @@ function operationReducer(
 export interface UseUserStoriesPanelOptions {
   initialStories: UserStory[];
   folderContent: string;
+  teamId: string;
   onStoriesChange?: (stories: UserStory[]) => void;
 }
 
@@ -93,6 +94,7 @@ export interface UseUserStoriesPanelReturn {
 export function useUserStoriesPanel({
   initialStories,
   folderContent,
+  teamId,
   onStoriesChange,
 }: UseUserStoriesPanelOptions): UseUserStoriesPanelReturn {
   // Data state (simple useState)
@@ -214,6 +216,7 @@ export function useUserStoriesPanel({
         if (currentOperationType === 'combine') {
           const combinedStory = await combineUserStories(
             selectedStories,
+            teamId,
             instructions
           );
           const firstSelectedIndex = stories.findIndex((s) =>
@@ -225,7 +228,7 @@ export function useUserStoriesPanel({
           clearSelection();
         } else if (currentOperationType === 'split') {
           const storyToSplit = selectedStories[0];
-          const splitStories = await splitUserStory(storyToSplit, instructions);
+          const splitStories = await splitUserStory(storyToSplit, teamId, instructions);
           const storyIndex = stories.findIndex((s) => s.id === storyToSplit.id);
           const newStories = [...stories];
           newStories.splice(storyIndex, 1, ...splitStories);
@@ -237,6 +240,7 @@ export function useUserStoriesPanel({
             const regeneratedStory = await regenerateUserStory(
               story,
               folderContent,
+              teamId,
               instructions
             );
             const storyIndex = newStories.findIndex((s) => s.id === story.id);
@@ -262,6 +266,7 @@ export function useUserStoriesPanel({
       stories,
       selectedIds,
       folderContent,
+      teamId,
       updateStories,
       clearSelection,
     ]

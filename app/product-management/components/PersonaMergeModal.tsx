@@ -34,7 +34,7 @@ export function PersonaMergeModal({
   const step = llmResult ? 'preview' : 'confirm';
 
   const handleGeneratePreview = () => {
-    llmMerge(selectedPersonas, instructions || undefined);
+    llmMerge(selectedPersonas, teamId, instructions || undefined);
   };
 
   const handleConfirmMerge = async () => {

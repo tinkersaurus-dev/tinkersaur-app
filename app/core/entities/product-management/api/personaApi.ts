@@ -28,13 +28,9 @@ export const personaApi = {
     };
   },
 
-  async get(id: string): Promise<Persona | null> {
-    try {
-      const data = await httpClient.get<Persona>(`/api/personas/${id}`);
-      return deserializeDates(data);
-    } catch {
-      return null;
-    }
+  async get(id: string): Promise<Persona> {
+    const data = await httpClient.get<Persona>(`/api/personas/${id}`);
+    return deserializeDates(data);
   },
 
   async create(data: CreatePersonaDto): Promise<Persona> {
@@ -42,22 +38,13 @@ export const personaApi = {
     return deserializeDates(result);
   },
 
-  async update(id: string, updates: Partial<CreatePersonaDto>): Promise<Persona | null> {
-    try {
-      const result = await httpClient.put<Persona>(`/api/personas/${id}`, updates);
-      return deserializeDates(result);
-    } catch {
-      return null;
-    }
+  async update(id: string, updates: Partial<CreatePersonaDto>): Promise<Persona> {
+    const result = await httpClient.put<Persona>(`/api/personas/${id}`, updates);
+    return deserializeDates(result);
   },
 
-  async delete(id: string): Promise<boolean> {
-    try {
-      await httpClient.delete(`/api/personas/${id}`);
-      return true;
-    } catch {
-      return false;
-    }
+  async delete(id: string): Promise<void> {
+    await httpClient.delete(`/api/personas/${id}`);
   },
 
   async findSimilar(request: FindSimilarPersonasRequest): Promise<SimilarPersonaResult[]> {

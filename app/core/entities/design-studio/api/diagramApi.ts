@@ -21,24 +21,16 @@ class DiagramApi {
   /**
    * Get a single diagram by ID
    */
-  async get(id: string): Promise<Diagram | null> {
-    try {
-      const data = await httpClient.get<Diagram>(`/api/diagrams/${id}`);
-      return deserializeDates(data);
-    } catch {
-      return null;
-    }
+  async get(id: string): Promise<Diagram> {
+    const data = await httpClient.get<Diagram>(`/api/diagrams/${id}`);
+    return deserializeDates(data);
   }
 
   /**
    * Get a single shape from a diagram by ID
    */
-  async getShape(diagramId: string, shapeId: string): Promise<Shape | null> {
-    try {
-      return await httpClient.get<Shape>(`/api/diagrams/${diagramId}/shapes/${shapeId}`);
-    } catch {
-      return null;
-    }
+  async getShape(diagramId: string, shapeId: string): Promise<Shape> {
+    return await httpClient.get<Shape>(`/api/diagrams/${diagramId}/shapes/${shapeId}`);
   }
 
   /**
@@ -57,42 +49,27 @@ class DiagramApi {
   /**
    * Update an existing diagram
    */
-  async update(id: string, updates: Partial<UpdateDiagramDto>): Promise<Diagram | null> {
-    try {
-      const result = await httpClient.put<Diagram>(`/api/diagrams/${id}`, updates);
-      return deserializeDates(result);
-    } catch {
-      return null;
-    }
+  async update(id: string, updates: Partial<UpdateDiagramDto>): Promise<Diagram> {
+    const result = await httpClient.put<Diagram>(`/api/diagrams/${id}`, updates);
+    return deserializeDates(result);
   }
 
   /**
    * Delete a diagram
    */
-  async delete(id: string): Promise<boolean> {
-    try {
-      await httpClient.delete(`/api/diagrams/${id}`);
-      return true;
-    } catch {
-      return false;
-    }
+  async delete(id: string): Promise<void> {
+    await httpClient.delete(`/api/diagrams/${id}`);
   }
 
   /**
    * Delete all diagrams for a design work
    */
   async deleteByDesignWorkId(designWorkId: string): Promise<number> {
-    try {
-      const diagrams = await this.list(designWorkId);
-      let deletedCount = 0;
-      for (const diagram of diagrams) {
-        const success = await this.delete(diagram.id);
-        if (success) deletedCount++;
-      }
-      return deletedCount;
-    } catch {
-      return 0;
+    const diagrams = await this.list(designWorkId);
+    for (const diagram of diagrams) {
+      await this.delete(diagram.id);
     }
+    return diagrams.length;
   }
 
   // ============================================
@@ -103,9 +80,8 @@ class DiagramApi {
   /**
    * Add a shape to a diagram
    */
-  async addShape(diagramId: string, shapeData: CreateShapeDTO): Promise<Diagram | null> {
+  async addShape(diagramId: string, shapeData: CreateShapeDTO): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const shape: Shape = {
       id: uuidv4(),
@@ -125,16 +101,15 @@ class DiagramApi {
     diagramId: string,
     shapeId: string,
     updates: Partial<Shape>
-  ): Promise<Diagram | null> {
+  ): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const shapes = (diagram.shapes || []).map((s) =>
       s.id === shapeId ? { ...s, ...updates, id: shapeId } : s
     );
 
     if (!shapes.some((s) => s.id === shapeId)) {
-      return null; // Shape not found
+      throw new Error(`Shape ${shapeId} not found in diagram ${diagramId}`);
     }
 
     return this.update(diagramId, { shapes });
@@ -146,9 +121,8 @@ class DiagramApi {
   async updateShapes(
     diagramId: string,
     updates: Array<{ shapeId: string; updates: Partial<Shape> }>
-  ): Promise<Diagram | null> {
+  ): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const updatesMap = new Map(updates.map((u) => [u.shapeId, u.updates]));
     const shapes = (diagram.shapes || []).map((s) => {
@@ -162,9 +136,8 @@ class DiagramApi {
   /**
    * Delete a shape from a diagram
    */
-  async deleteShape(diagramId: string, shapeId: string): Promise<Diagram | null> {
+  async deleteShape(diagramId: string, shapeId: string): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const shapes = (diagram.shapes || []).filter((s) => s.id !== shapeId);
     return this.update(diagramId, { shapes });
@@ -173,9 +146,8 @@ class DiagramApi {
   /**
    * Restore a shape with its original ID (used for undo operations)
    */
-  async restoreShape(diagramId: string, shape: Shape): Promise<Diagram | null> {
+  async restoreShape(diagramId: string, shape: Shape): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const shapes = [...(diagram.shapes || []), shape];
     return this.update(diagramId, { shapes });
@@ -185,9 +157,8 @@ class DiagramApi {
    * Delete multiple shapes by their IDs in a single operation
    * (Batch operation for atomic delete)
    */
-  async deleteShapesByIds(diagramId: string, shapeIds: string[]): Promise<Diagram | null> {
+  async deleteShapesByIds(diagramId: string, shapeIds: string[]): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const shapeIdSet = new Set(shapeIds);
     const shapes = (diagram.shapes || []).filter((s) => !shapeIdSet.has(s.id));
@@ -198,9 +169,8 @@ class DiagramApi {
    * Restore multiple shapes with their original IDs (used for undo operations)
    * (Batch operation for atomic restore)
    */
-  async restoreShapes(diagramId: string, shapes: Shape[]): Promise<Diagram | null> {
+  async restoreShapes(diagramId: string, shapes: Shape[]): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const updatedShapes = [...(diagram.shapes || []), ...shapes];
     return this.update(diagramId, { shapes: updatedShapes });
@@ -213,9 +183,8 @@ class DiagramApi {
   /**
    * Add a connector to a diagram
    */
-  async addConnector(diagramId: string, connectorData: CreateConnectorDTO): Promise<Diagram | null> {
+  async addConnector(diagramId: string, connectorData: CreateConnectorDTO): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const connector: Connector = {
       id: uuidv4(),
@@ -234,16 +203,15 @@ class DiagramApi {
     diagramId: string,
     connectorId: string,
     updates: Partial<Connector>
-  ): Promise<Diagram | null> {
+  ): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const connectors = (diagram.connectors || []).map((c) =>
       c.id === connectorId ? { ...c, ...updates, id: connectorId } : c
     );
 
     if (!connectors.some((c) => c.id === connectorId)) {
-      return null; // Connector not found
+      throw new Error(`Connector ${connectorId} not found in diagram ${diagramId}`);
     }
 
     return this.update(diagramId, { connectors });
@@ -252,9 +220,8 @@ class DiagramApi {
   /**
    * Delete a connector from a diagram
    */
-  async deleteConnector(diagramId: string, connectorId: string): Promise<Diagram | null> {
+  async deleteConnector(diagramId: string, connectorId: string): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const connectors = (diagram.connectors || []).filter((c) => c.id !== connectorId);
     return this.update(diagramId, { connectors });
@@ -263,9 +230,8 @@ class DiagramApi {
   /**
    * Restore a connector with its original ID (used for undo operations)
    */
-  async restoreConnector(diagramId: string, connector: Connector): Promise<Diagram | null> {
+  async restoreConnector(diagramId: string, connector: Connector): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const connectors = [...(diagram.connectors || []), connector];
     return this.update(diagramId, { connectors });
@@ -274,9 +240,8 @@ class DiagramApi {
   /**
    * Delete connectors connected to a specific shape (used when deleting shapes)
    */
-  async deleteConnectorsByShapeId(diagramId: string, shapeId: string): Promise<Diagram | null> {
+  async deleteConnectorsByShapeId(diagramId: string, shapeId: string): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const connectors = (diagram.connectors || []).filter(
       (c) => c.sourceShapeId !== shapeId && c.targetShapeId !== shapeId
@@ -288,9 +253,8 @@ class DiagramApi {
    * Delete multiple connectors by their IDs in a single operation
    * Used for batch deletion to ensure atomic operations
    */
-  async deleteConnectorsByIds(diagramId: string, connectorIds: string[]): Promise<Diagram | null> {
+  async deleteConnectorsByIds(diagramId: string, connectorIds: string[]): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const connectorIdSet = new Set(connectorIds);
     const connectors = (diagram.connectors || []).filter((c) => !connectorIdSet.has(c.id));
@@ -301,9 +265,8 @@ class DiagramApi {
    * Restore multiple connectors at once in a single operation
    * Used for batch restore to ensure atomic operations during undo
    */
-  async restoreConnectors(diagramId: string, connectors: Connector[]): Promise<Diagram | null> {
+  async restoreConnectors(diagramId: string, connectors: Connector[]): Promise<Diagram> {
     const diagram = await this.get(diagramId);
-    if (!diagram) return null;
 
     const updatedConnectors = [...(diagram.connectors || []), ...connectors];
     return this.update(diagramId, { connectors: updatedConnectors });

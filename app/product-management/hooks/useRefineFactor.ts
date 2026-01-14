@@ -10,7 +10,7 @@ import {
   generateFactors,
   type GenerateFactorsRequest,
   FactorGeneratorAPIError,
-} from '~/design-studio/lib/llm/overview-generator-api';
+} from '~/core/api/llm';
 import type { Solution, SolutionFactorType } from '~/core/entities/product-management/types';
 
 interface UseRefineFactorOptions {
@@ -131,7 +131,7 @@ export function useRefineFactor({ solution, teamId }: UseRefineFactorOptions) {
           mode: 'refine',
         };
 
-        const factors = await generateFactors(request, abortControllerRef.current.signal);
+        const factors = await generateFactors(request, teamId, abortControllerRef.current.signal);
 
         // Take the first (and should be only) factor's content
         const content = factors[0]?.content || '';
@@ -147,7 +147,7 @@ export function useRefineFactor({ solution, teamId }: UseRefineFactorOptions) {
         abortControllerRef.current = null;
       }
     },
-    [solution, personas, useCases, feedbackData, outcomesData]
+    [solution, teamId, personas, useCases, feedbackData, outcomesData]
   );
 
   const cancel = useCallback(() => {

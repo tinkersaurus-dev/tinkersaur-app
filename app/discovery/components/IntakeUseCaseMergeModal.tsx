@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { FiClipboard, FiAlertTriangle } from 'react-icons/fi';
 import { Card } from '~/core/components/ui';
+import { useAuthStore } from '~/core/auth';
 import type { ExtractedUseCase } from '~/core/entities/discovery';
 import type { UseCase, MergedUseCaseData, Solution } from '~/core/entities/product-management/types';
 import { useCaseApi } from '~/core/entities/product-management/api';
@@ -47,6 +48,9 @@ export function IntakeUseCaseMergeModal({
   intakeSolutionId,
   solutions = [],
 }: IntakeUseCaseMergeModalProps) {
+  // Get teamId for API calls
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
+
   // Fetch the existing use cases details using useQueries (proper hook usage)
   const existingUseCaseQueries = useQueries({
     queries: existingUseCaseIds.map(id => ({
@@ -99,7 +103,7 @@ export function IntakeUseCaseMergeModal({
       })),
     ];
 
-    llmMerge(allUseCases);
+    llmMerge(allUseCases, teamId);
   };
 
   const handleConfirmMerge = () => {

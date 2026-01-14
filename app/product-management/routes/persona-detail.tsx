@@ -5,7 +5,7 @@
 
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, useLoaderData } from 'react-router';
-import { HydrationBoundary, useQueries } from '@tanstack/react-query';
+import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle, FiArchive, FiAlertTriangle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
@@ -13,17 +13,12 @@ import { Button, Card, Modal, Tabs, Empty, Table, EditableSection, EditableField
 import type { TableColumn } from '~/core/components/ui';
 import type { PersonaUseCase } from '~/core/entities/product-management/types';
 import type { Feedback } from '~/core/entities/discovery/types';
-import { usePersonaQuery, usePersonaUseCasesQuery } from '../queries';
+import { usePersonaQuery, usePersonaUseCasesQuery, useUseCaseDetailsQuery } from '../queries';
 import { useDeletePersona, useCreatePersonaUseCase, useDeletePersonaUseCase, useUpdatePersona } from '../mutations';
 import { loadPersonaDetail } from '../loaders';
 import type { PersonaDetailLoaderData } from '../loaders';
 import type { Route } from './+types/persona-detail';
-import { useFeedbacksPaginatedQuery } from '~/discovery/queries';
-import { intakeSourceApi } from '~/core/entities/discovery/api';
-import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { useCaseApi } from '~/core/entities/product-management/api';
+import { useFeedbacksPaginatedQuery, useIntakeSourceDetailsQuery } from '~/discovery/queries';
 
 // Feedback row type for table display
 interface FeedbackRow {
@@ -87,25 +82,7 @@ function PersonaDetailContent() {
     [personaUseCases]
   );
 
-  const useCaseQueries = useQueries({
-    queries: useCaseIds.map((id: string) => ({
-      queryKey: queryKeys.useCases.detail(id),
-      queryFn: () => useCaseApi.get(id),
-      staleTime: STALE_TIMES.useCases,
-      enabled: !!id,
-    })),
-  });
-
-  // Create a map of useCaseId -> useCaseName
-  const useCaseNameMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    useCaseQueries.forEach((query, index) => {
-      if (query.data) {
-        map[useCaseIds[index]] = query.data.name;
-      }
-    });
-    return map;
-  }, [useCaseQueries, useCaseIds]);
+  const { nameMap: useCaseNameMap } = useUseCaseDetailsQuery(useCaseIds);
 
   // Get unique intake source IDs from feedback
   const intakeSourceIds = useMemo(() => {
@@ -118,36 +95,8 @@ function PersonaDetailContent() {
     return Array.from(ids);
   }, [feedbackData]);
 
-  // Fetch intake sources for feedback
-  const intakeSourceQueries = useQueries({
-    queries: intakeSourceIds.map((id: string) => ({
-      queryKey: queryKeys.intakeSources.detail(id),
-      queryFn: () => intakeSourceApi.get(id),
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      enabled: !!id,
-    })),
-  });
-
-  // Create a map of intakeSourceId -> display name
-  const intakeSourceNameMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    intakeSourceQueries.forEach((query, index) => {
-      if (query.data) {
-        const source = query.data;
-        if (source.meetingName) {
-          map[intakeSourceIds[index]] = source.meetingName;
-        } else if (source.surveyName) {
-          map[intakeSourceIds[index]] = source.surveyName;
-        } else if (source.ticketId) {
-          map[intakeSourceIds[index]] = `Ticket ${source.ticketId}`;
-        } else {
-          const sourceType = source.sourceType as SourceTypeKey;
-          map[intakeSourceIds[index]] = SOURCE_TYPES[sourceType]?.label || sourceType;
-        }
-      }
-    });
-    return map;
-  }, [intakeSourceQueries, intakeSourceIds]);
+  // Fetch intake sources for feedback - using batch hook for clean name mapping
+  const { nameMap: intakeSourceNameMap } = useIntakeSourceDetailsQuery(intakeSourceIds);
 
   // Prepare feedback rows for table display
   const suggestionRows = useMemo((): FeedbackRow[] => {

@@ -20,7 +20,7 @@ interface PersonaInput {
 }
 
 export const useMergePersonasLLM = createLLMMergeHook<PersonaInput, Persona | PersonaInput, MergedPersonaData>({
-  action: '/api/merge-personas',
+  endpoint: '/api/ai/merge-personas',
   itemsFieldName: 'personas',
   toInput: (p) => ({
     name: p.name,
@@ -30,5 +30,5 @@ export const useMergePersonasLLM = createLLMMergeHook<PersonaInput, Persona | Pe
     painPoints: p.painPoints,
     demographics: p.demographics,
   }),
-  getMergedResult: (response) => response.mergedPersona as MergedPersonaData | undefined,
+  getMergedResult: (response) => response.persona as MergedPersonaData | undefined,
 });

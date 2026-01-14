@@ -12,8 +12,20 @@ export function useCreatePersona() {
 
   return useMutation({
     mutationFn: (data: CreatePersonaDto) => personaApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
+    onSuccess: (newPersona, variables) => {
+      // Only invalidate the list for this specific team
+      queryClient.invalidateQueries({ queryKey: queryKeys.personas.list(variables.teamId) });
+      // Invalidate paginated queries for this team
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.personas.all,
+        predicate: (query) =>
+          query.queryKey.includes('paginated') &&
+          JSON.stringify(query.queryKey).includes(variables.teamId),
+      });
+      // Set the new persona in cache directly
+      if (newPersona) {
+        queryClient.setQueryData(queryKeys.personas.detail(newPersona.id), newPersona);
+      }
       toast.success('Persona created successfully');
     },
     onError: (error: Error) => {
@@ -32,9 +44,17 @@ export function useUpdatePersona() {
     mutationFn: ({ id, updates }: { id: string; updates: Partial<CreatePersonaDto> }) =>
       personaApi.update(id, updates),
     onSuccess: (updatedPersona, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
+      // Update the cache directly with the new data
       if (updatedPersona) {
         queryClient.setQueryData(queryKeys.personas.detail(variables.id), updatedPersona);
+        // Invalidate only the team's list and paginated queries
+        queryClient.invalidateQueries({ queryKey: queryKeys.personas.list(updatedPersona.teamId) });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.personas.all,
+          predicate: (query) =>
+            query.queryKey.includes('paginated') &&
+            JSON.stringify(query.queryKey).includes(updatedPersona.teamId),
+        });
       }
       toast.success('Persona updated successfully');
     },
@@ -52,16 +72,12 @@ export function useDeletePersona() {
 
   return useMutation({
     mutationFn: (id: string) => personaApi.delete(id),
-    onSuccess: (success, id) => {
-      if (success) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
-        queryClient.removeQueries({ queryKey: queryKeys.personas.detail(id) });
-        // Invalidate persona-use case associations
-        queryClient.invalidateQueries({ queryKey: queryKeys.personaUseCases.all });
-        toast.success('Persona deleted successfully');
-      } else {
-        toast.error('Failed to delete persona');
-      }
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
+      queryClient.removeQueries({ queryKey: queryKeys.personas.detail(id) });
+      // Invalidate persona-use case associations
+      queryClient.invalidateQueries({ queryKey: queryKeys.personaUseCases.all });
+      toast.success('Persona deleted successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete persona');

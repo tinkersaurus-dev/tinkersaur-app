@@ -11,7 +11,7 @@ import {
   type GenerateFactorsRequest,
   type GeneratedFactorItem,
   FactorGeneratorAPIError,
-} from '~/design-studio/lib/llm/overview-generator-api';
+} from '~/core/api/llm';
 import type { Solution, SolutionFactorType } from '~/core/entities/product-management/types';
 
 interface UseGenerateFactorsOptions {
@@ -99,6 +99,7 @@ export function useGenerateFactors({
 
         const factors = await generateFactors(
           request,
+          teamId,
           abortControllerRef.current.signal
         );
         setGeneratedFactors(factors);
@@ -115,7 +116,7 @@ export function useGenerateFactors({
         abortControllerRef.current = null;
       }
     },
-    [solution, personas, useCases, feedbackData, outcomesData]
+    [solution, teamId, personas, useCases, feedbackData, outcomesData]
   );
 
   const cancel = useCallback(() => {

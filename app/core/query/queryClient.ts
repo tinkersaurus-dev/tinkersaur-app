@@ -21,6 +21,10 @@ export const STALE_TIMES = {
   currentUser: 30 * 60 * 1000,  // 30 min - auth data
   feedbacks: 5 * 60 * 1000,     // 5 min - discovery data
   outcomes: 5 * 60 * 1000,      // 5 min - discovery data
+  intakeSources: 10 * 60 * 1000, // 10 min - reference data
+  personaUseCases: 5 * 60 * 1000, // 5 min - junction data
+  feedbackPersonas: 5 * 60 * 1000, // 5 min - junction data
+  feedbackUseCases: 5 * 60 * 1000, // 5 min - junction data
 } as const;
 
 /**
@@ -43,16 +47,33 @@ function handleMutationError(error: Error) {
 }
 
 /**
- * Create and configure the QueryClient with global defaults
+ * Check if an error is an auth error that shouldn't be retried
  */
-export function createQueryClient(): QueryClient {
+function isAuthError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    return message.includes('401') || message.includes('403') ||
+           message.includes('unauthorized') || message.includes('forbidden');
+  }
+  return false;
+}
+
+/**
+ * Create and configure the QueryClient with global defaults
+ * @param isServer - Whether this is running on the server (SSR)
+ */
+export function createQueryClient(isServer = false): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
         // Default stale time - can be overridden per query
         staleTime: 5 * 60 * 1000, // 5 minutes
-        // Retry configuration with exponential backoff
-        retry: 3,
+        // Retry configuration - disabled during SSR to avoid delays
+        // Don't retry auth errors (401/403) since they won't succeed without login
+        retry: isServer ? false : (failureCount, error) => {
+          if (isAuthError(error)) return false;
+          return failureCount < 3;
+        },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
         // Refetch behavior
         refetchOnWindowFocus: true,
@@ -61,8 +82,11 @@ export function createQueryClient(): QueryClient {
         placeholderData: (previousData: unknown) => previousData,
       },
       mutations: {
-        // Retry mutations on failure
-        retry: 1,
+        // Retry mutations on failure (but not auth errors)
+        retry: (failureCount, error) => {
+          if (isAuthError(error)) return false;
+          return failureCount < 1;
+        },
         retryDelay: 1000,
         onError: handleMutationError,
       },
@@ -77,14 +101,14 @@ export function createQueryClient(): QueryClient {
 let browserQueryClient: QueryClient | undefined;
 
 export function getQueryClient(): QueryClient {
-  // Server: always create a new query client
+  // Server: always create a new query client with retries disabled
   if (typeof window === 'undefined') {
-    return createQueryClient();
+    return createQueryClient(true);
   }
 
-  // Browser: reuse the same query client
+  // Browser: reuse the same query client with retries enabled
   if (!browserQueryClient) {
-    browserQueryClient = createQueryClient();
+    browserQueryClient = createQueryClient(false);
   }
 
   return browserQueryClient;

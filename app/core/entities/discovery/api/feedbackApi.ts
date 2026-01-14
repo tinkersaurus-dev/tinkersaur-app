@@ -46,13 +46,9 @@ export const feedbackApi = {
     };
   },
 
-  async get(id: string): Promise<Feedback | null> {
-    try {
-      const data = await httpClient.get<Feedback>(`/api/feedbacks/${id}`);
-      return deserializeDates(data);
-    } catch {
-      return null;
-    }
+  async get(id: string): Promise<Feedback> {
+    const data = await httpClient.get<Feedback>(`/api/feedbacks/${id}`);
+    return deserializeDates(data);
   },
 
   async create(data: CreateFeedbackDto): Promise<Feedback> {
@@ -60,22 +56,13 @@ export const feedbackApi = {
     return deserializeDates(result);
   },
 
-  async update(id: string, updates: Partial<CreateFeedbackDto>): Promise<Feedback | null> {
-    try {
-      const result = await httpClient.put<Feedback>(`/api/feedbacks/${id}`, updates);
-      return deserializeDates(result);
-    } catch {
-      return null;
-    }
+  async update(id: string, updates: Partial<CreateFeedbackDto>): Promise<Feedback> {
+    const result = await httpClient.put<Feedback>(`/api/feedbacks/${id}`, updates);
+    return deserializeDates(result);
   },
 
-  async delete(id: string): Promise<boolean> {
-    try {
-      await httpClient.delete(`/api/feedbacks/${id}`);
-      return true;
-    } catch {
-      return false;
-    }
+  async delete(id: string): Promise<void> {
+    await httpClient.delete(`/api/feedbacks/${id}`);
   },
 
   async findSimilar(request: FindSimilarFeedbackRequest): Promise<SimilarFeedbackResult[]> {
@@ -100,15 +87,11 @@ export const feedbackApi = {
     return deserializeDates(result);
   },
 
-  async getWithChildren(id: string): Promise<FeedbackWithChildren | null> {
-    try {
-      const data = await httpClient.get<FeedbackWithChildren>(`/api/feedbacks/${id}/with-children`);
-      return {
-        ...deserializeDates(data),
-        children: deserializeDatesArray(data.children),
-      };
-    } catch {
-      return null;
-    }
+  async getWithChildren(id: string): Promise<FeedbackWithChildren> {
+    const data = await httpClient.get<FeedbackWithChildren>(`/api/feedbacks/${id}/with-children`);
+    return {
+      ...deserializeDates(data),
+      children: deserializeDatesArray(data.children),
+    };
   },
 };

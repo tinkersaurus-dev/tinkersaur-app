@@ -9,7 +9,7 @@ import { Modal } from '~/core/components/ui/Modal';
 import { MarkdownContent } from '~/core/components/ui/MarkdownContent';
 import type { SolutionFactorType } from '~/core/entities/product-management/types';
 import { FACTOR_TYPE_LABELS } from '~/core/entities/product-management/types';
-import type { GeneratedFactorItem } from '~/design-studio/lib/llm/overview-generator-api';
+import type { GeneratedFactorItem } from '~/core/api/llm';
 
 interface FactorGenerateModalProps {
   open: boolean;

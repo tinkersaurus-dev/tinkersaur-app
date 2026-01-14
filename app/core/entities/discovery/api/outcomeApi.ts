@@ -32,13 +32,9 @@ export const outcomeApi = {
     };
   },
 
-  async get(id: string): Promise<Outcome | null> {
-    try {
-      const data = await httpClient.get<Outcome>(`/api/outcomes/${id}`);
-      return deserializeDates(data);
-    } catch {
-      return null;
-    }
+  async get(id: string): Promise<Outcome> {
+    const data = await httpClient.get<Outcome>(`/api/outcomes/${id}`);
+    return deserializeDates(data);
   },
 
   async create(data: CreateOutcomeDto): Promise<Outcome> {
@@ -46,22 +42,13 @@ export const outcomeApi = {
     return deserializeDates(result);
   },
 
-  async update(id: string, updates: Partial<CreateOutcomeDto>): Promise<Outcome | null> {
-    try {
-      const result = await httpClient.put<Outcome>(`/api/outcomes/${id}`, updates);
-      return deserializeDates(result);
-    } catch {
-      return null;
-    }
+  async update(id: string, updates: Partial<CreateOutcomeDto>): Promise<Outcome> {
+    const result = await httpClient.put<Outcome>(`/api/outcomes/${id}`, updates);
+    return deserializeDates(result);
   },
 
-  async delete(id: string): Promise<boolean> {
-    try {
-      await httpClient.delete(`/api/outcomes/${id}`);
-      return true;
-    } catch {
-      return false;
-    }
+  async delete(id: string): Promise<void> {
+    await httpClient.delete(`/api/outcomes/${id}`);
   },
 
   async findSimilar(request: FindSimilarOutcomesRequest): Promise<SimilarOutcomeResult[]> {

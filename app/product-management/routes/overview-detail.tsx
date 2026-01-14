@@ -22,7 +22,7 @@ import {
   type SolutionFactorType,
   type UpdateSolutionFactorDto,
 } from '~/core/entities/product-management/types';
-import type { GeneratedFactorItem } from '~/design-studio/lib/llm/overview-generator-api';
+import type { GeneratedFactorItem } from '~/core/api/llm';
 
 // Factor type sections in display order
 const FACTOR_SECTIONS: {

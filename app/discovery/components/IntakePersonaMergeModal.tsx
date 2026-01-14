@@ -10,6 +10,7 @@
 
 import { FiUser, FiTarget, FiAlertCircle } from 'react-icons/fi';
 import { Card } from '~/core/components/ui';
+import { useAuthStore } from '~/core/auth';
 import type { ExtractedPersona } from '~/core/entities/discovery';
 import { useMergePersonasLLM } from '~/discovery/hooks';
 import { usePersonaQuery } from '~/product-management/queries';
@@ -35,6 +36,9 @@ export function IntakePersonaMergeModal({
   existingPersonaId,
   onMergeConfirmed,
 }: IntakePersonaMergeModalProps) {
+  // Get teamId for API calls
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
+
   // Fetch the existing persona details
   const { data: existingPersona, isLoading: existingLoading } = usePersonaQuery(existingPersonaId);
 
@@ -53,7 +57,7 @@ export function IntakePersonaMergeModal({
       demographics: intakePersona.demographics,
     };
 
-    llmMerge([intakePersonaForLLM, existingPersona]);
+    llmMerge([intakePersonaForLLM, existingPersona], teamId);
   };
 
   const handleConfirmMerge = () => {

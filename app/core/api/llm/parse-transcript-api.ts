@@ -1,0 +1,85 @@
+/**
+ * Client-side API wrapper for LLM-based transcript parsing
+ * Calls tinkersaur-api which proxies to tinkersaur-ai
+ */
+
+import { httpClient, ApiError } from '~/core/api/httpClient';
+import { logger } from '~/core/utils/logger';
+import type {
+  SourceTypeKey,
+  IntakeResult,
+  ParseTranscriptResponse,
+} from '~/core/entities/discovery';
+
+/**
+ * Custom error class for transcript parsing failures
+ */
+export class ParseTranscriptAPIError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode?: number
+  ) {
+    super(message);
+    this.name = 'ParseTranscriptAPIError';
+  }
+}
+
+/**
+ * Parse a transcript using AWS Bedrock LLM
+ *
+ * @param sourceType - The type of source document
+ * @param content - The transcript content to parse
+ * @param metadata - Additional metadata about the source
+ * @param teamId - The team ID for authorization
+ * @returns Promise that resolves to the parsed intake result
+ * @throws ParseTranscriptAPIError if parsing fails
+ */
+export async function parseTranscript(
+  sourceType: SourceTypeKey,
+  content: string,
+  metadata: Record<string, string>,
+  teamId: string
+): Promise<IntakeResult> {
+  logger.debug('parseTranscript called', {
+    sourceType,
+    contentLength: content.length,
+    teamId,
+  });
+
+  try {
+    logger.info('Sending request to AI proxy endpoint');
+
+    const data = await httpClient.post<ParseTranscriptResponse>(
+      `/api/ai/parse-transcript?teamId=${teamId}`,
+      { sourceType, content, metadata }
+    );
+
+    if (!data.success || !data.result) {
+      throw new ParseTranscriptAPIError(
+        data.error || 'Failed to parse transcript',
+        500
+      );
+    }
+
+    logger.info('Successfully parsed transcript', {
+      personaCount: data.result.personas?.length ?? 0,
+      useCaseCount: data.result.useCases?.length ?? 0,
+    });
+    return data.result;
+  } catch (error) {
+    logger.error('Exception in parseTranscript', error);
+
+    if (error instanceof ParseTranscriptAPIError) {
+      throw error;
+    }
+
+    if (error instanceof ApiError) {
+      throw new ParseTranscriptAPIError(error.message, error.status);
+    }
+
+    throw new ParseTranscriptAPIError(
+      error instanceof Error ? error.message : 'Network error occurred',
+      0
+    );
+  }
+}

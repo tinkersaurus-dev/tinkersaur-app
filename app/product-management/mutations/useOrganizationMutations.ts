@@ -52,16 +52,12 @@ export function useDeleteOrganization() {
 
   return useMutation({
     mutationFn: (id: string) => organizationApi.delete(id),
-    onSuccess: (success, id) => {
-      if (success) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.organizations.all });
-        queryClient.removeQueries({ queryKey: queryKeys.organizations.detail(id) });
-        // Invalidate related teams (cascade effect)
-        queryClient.invalidateQueries({ queryKey: queryKeys.teams.all });
-        toast.success('Organization deleted successfully');
-      } else {
-        toast.error('Failed to delete organization');
-      }
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.all });
+      queryClient.removeQueries({ queryKey: queryKeys.organizations.detail(id) });
+      // Invalidate related teams (cascade effect)
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.all });
+      toast.success('Organization deleted successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete organization');

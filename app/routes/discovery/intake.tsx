@@ -11,6 +11,7 @@ import { MainLayout } from '~/core/components/MainLayout';
 import { PageHeader } from '~/core/components/PageHeader';
 import { PageContent } from '~/core/components/PageContent';
 import { Card } from '~/core/components/ui/Card';
+import { useAuthStore } from '~/core/auth';
 import type { SourceTypeKey, IntakeResult } from '~/core/entities/discovery';
 import { SourceTypeKeySchema } from '~/core/entities/discovery';
 import { IntakeForm, IntakeResults } from '~/discovery/components';
@@ -20,6 +21,7 @@ export default function IntakePage() {
   const [result, setResult] = useState<IntakeResult | null>(null);
   const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null);
   const { parseTranscript, isLoading, error, clearError } = useParseTranscript();
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
 
   const [searchParams] = useSearchParams();
 
@@ -40,7 +42,7 @@ export default function IntakePage() {
   ) => {
     clearError();
     setSelectedSolutionId(solutionId);
-    const analysisResult = await parseTranscript(sourceType, content, metadata);
+    const analysisResult = await parseTranscript(sourceType, content, metadata, teamId);
     if (analysisResult) {
       setResult(analysisResult);
     }

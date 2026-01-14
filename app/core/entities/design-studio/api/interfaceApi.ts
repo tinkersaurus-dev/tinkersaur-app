@@ -17,13 +17,9 @@ class InterfaceApi {
   /**
    * Get a single interface by ID
    */
-  async get(id: string): Promise<Interface | null> {
-    try {
-      const data = await httpClient.get<Interface>(`/api/interfaces/${id}`);
-      return deserializeDates(data);
-    } catch {
-      return null;
-    }
+  async get(id: string): Promise<Interface> {
+    const data = await httpClient.get<Interface>(`/api/interfaces/${id}`);
+    return deserializeDates(data);
   }
 
   /**
@@ -37,42 +33,27 @@ class InterfaceApi {
   /**
    * Update an existing interface
    */
-  async update(id: string, updates: Partial<UpdateInterfaceDto>): Promise<Interface | null> {
-    try {
-      const result = await httpClient.put<Interface>(`/api/interfaces/${id}`, updates);
-      return deserializeDates(result);
-    } catch {
-      return null;
-    }
+  async update(id: string, updates: Partial<UpdateInterfaceDto>): Promise<Interface> {
+    const result = await httpClient.put<Interface>(`/api/interfaces/${id}`, updates);
+    return deserializeDates(result);
   }
 
   /**
    * Delete an interface
    */
-  async delete(id: string): Promise<boolean> {
-    try {
-      await httpClient.delete(`/api/interfaces/${id}`);
-      return true;
-    } catch {
-      return false;
-    }
+  async delete(id: string): Promise<void> {
+    await httpClient.delete(`/api/interfaces/${id}`);
   }
 
   /**
    * Delete all interfaces for a design work
    */
   async deleteByDesignWorkId(designWorkId: string): Promise<number> {
-    try {
-      const interfaces = await this.list(designWorkId);
-      let deletedCount = 0;
-      for (const iface of interfaces) {
-        const success = await this.delete(iface.id);
-        if (success) deletedCount++;
-      }
-      return deletedCount;
-    } catch {
-      return 0;
+    const interfaces = await this.list(designWorkId);
+    for (const iface of interfaces) {
+      await this.delete(iface.id);
     }
+    return interfaces.length;
   }
 }
 

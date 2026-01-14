@@ -13,9 +13,13 @@ export function useCreateSolution() {
 
   return useMutation({
     mutationFn: (data: CreateSolutionDto) => solutionApi.create(data),
-    onSuccess: () => {
-      // Invalidate the solutions list for this team
-      queryClient.invalidateQueries({ queryKey: queryKeys.solutions.all });
+    onSuccess: (newSolution, variables) => {
+      // Only invalidate the list for this specific team
+      queryClient.invalidateQueries({ queryKey: queryKeys.solutions.list(variables.teamId) });
+      // Set the new solution in cache directly
+      if (newSolution) {
+        queryClient.setQueryData(queryKeys.solutions.detail(newSolution.id), newSolution);
+      }
       toast.success('Solution created successfully');
     },
     onError: (error: Error) => {
@@ -34,10 +38,11 @@ export function useUpdateSolution() {
     mutationFn: ({ id, updates }: { id: string; updates: Partial<CreateSolutionDto> }) =>
       solutionApi.update(id, updates),
     onSuccess: (updatedSolution, variables) => {
-      // Invalidate both the list and the specific solution
-      queryClient.invalidateQueries({ queryKey: queryKeys.solutions.all });
+      // Update the cache directly with the new data
       if (updatedSolution) {
         queryClient.setQueryData(queryKeys.solutions.detail(variables.id), updatedSolution);
+        // Invalidate only the team's list
+        queryClient.invalidateQueries({ queryKey: queryKeys.solutions.list(updatedSolution.teamId) });
       }
       toast.success('Solution updated successfully');
     },
@@ -57,27 +62,23 @@ export function useDeleteSolution() {
 
   return useMutation({
     mutationFn: (id: string) => solutionApi.delete(id),
-    onSuccess: async (success, id) => {
-      if (success) {
-        // Clear solution selection if the deleted solution was selected
-        if (selectedSolution?.solutionId === id) {
-          clearSolution();
-        }
-        // Cancel any in-flight queries for the deleted solution to prevent 404 errors
-        await queryClient.cancelQueries({ queryKey: queryKeys.solutions.detail(id) });
-        // Remove the specific solution from cache
-        queryClient.removeQueries({ queryKey: queryKeys.solutions.detail(id) });
-        // Invalidate solutions lists (but not the detail query we just removed)
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.solutions.all,
-          predicate: (query) => !query.queryKey.includes('detail'),
-        });
-        // Invalidate related use cases (cascade effect)
-        queryClient.invalidateQueries({ queryKey: queryKeys.useCases.all });
-        toast.success('Solution deleted successfully');
-      } else {
-        toast.error('Failed to delete solution');
+    onSuccess: async (_, id) => {
+      // Clear solution selection if the deleted solution was selected
+      if (selectedSolution?.solutionId === id) {
+        clearSolution();
       }
+      // Cancel any in-flight queries for the deleted solution to prevent 404 errors
+      await queryClient.cancelQueries({ queryKey: queryKeys.solutions.detail(id) });
+      // Remove the specific solution from cache
+      queryClient.removeQueries({ queryKey: queryKeys.solutions.detail(id) });
+      // Invalidate solutions lists (but not the detail query we just removed)
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.solutions.all,
+        predicate: (query) => !query.queryKey.includes('detail'),
+      });
+      // Invalidate related use cases (cascade effect)
+      queryClient.invalidateQueries({ queryKey: queryKeys.useCases.all });
+      toast.success('Solution deleted successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete solution');

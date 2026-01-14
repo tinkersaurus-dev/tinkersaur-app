@@ -9,14 +9,20 @@ import { useState, useCallback } from 'react';
 import { LuSparkles, LuCopy } from 'react-icons/lu';
 import { MarkdownContent, Tabs } from '~/core/components/ui';
 import { Button } from '~/core/components/ui/Button';
-import { generateUserStories } from '../../lib/llm/user-stories-generator-api';
-import { generateUserDocsStructured } from '../../lib/llm/user-docs-generator-api';
-import { generateTechSpecStructured } from '../../lib/llm/tech-spec-generator-api';
+import { useAuthStore } from '~/core/auth';
+import {
+  generateUserStories,
+  generateUserDocsStructured,
+  generateTechSpecStructured,
+  userDocumentsToMarkdown,
+  techSpecSectionsToMarkdown,
+  type UserStory,
+  type UserDocument,
+  type TechSpecSection,
+} from '~/core/api/llm';
 import { UserStoriesPanel } from './UserStoriesPanel';
 import { UserDocsPanel } from './UserDocsPanel';
 import { TechSpecPanel } from './TechSpecPanel';
-import type { UserStory, UserDocument, TechSpecSection } from '../../lib/llm/types';
-import { userDocumentsToMarkdown, techSpecSectionsToMarkdown } from '../../lib/llm/types';
 import { useAsyncGeneration } from '../../hooks';
 import '../../styles/markdown-content.css';
 
@@ -38,18 +44,19 @@ export interface FolderEditorProps {
  */
 export function FolderEditor({ content, height = '100%' }: FolderEditorProps) {
   const [activeTab, setActiveTab] = useState('context');
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
 
   // Async generation hooks for LLM operations
   const userStoriesGen = useAsyncGeneration<UserStory>({
-    generatorFn: useCallback(() => generateUserStories(content), [content]),
+    generatorFn: useCallback(() => generateUserStories(content, teamId), [content, teamId]),
   });
 
   const userDocsGen = useAsyncGeneration<UserDocument>({
-    generatorFn: useCallback(() => generateUserDocsStructured(content), [content]),
+    generatorFn: useCallback(() => generateUserDocsStructured(content, teamId), [content, teamId]),
   });
 
   const techSpecGen = useAsyncGeneration<TechSpecSection>({
-    generatorFn: useCallback(() => generateTechSpecStructured(content), [content]),
+    generatorFn: useCallback(() => generateTechSpecStructured(content, teamId), [content, teamId]),
   });
 
   const handleCopyUserStories = async () => {

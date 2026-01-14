@@ -18,6 +18,7 @@ import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasD
 import { commandManager } from '~/core/commands/CommandManager';
 import { RejectSuggestionCommand } from '~/core/commands/canvas/suggestions/RejectSuggestionCommand';
 import { ApplySuggestionCommand } from '~/core/commands/canvas/suggestions/ApplySuggestionCommand';
+import { useAuthStore } from '~/core/auth';
 import { toast } from 'sonner';
 
 export function SuggestionCommentRenderer({
@@ -45,6 +46,9 @@ export function SuggestionCommentRenderer({
 
   // Create a getDiagram function that matches the expected signature
   const getDiagram = (id: string) => diagrams[id];
+
+  // Get teamId for API calls
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
 
   // Extract suggestion data
   const suggestionData = shape.data && isSuggestionCommentShapeData(shape.data)
@@ -112,6 +116,7 @@ export function SuggestionCommentRenderer({
         diagramId,
         diagram.type,
         shape.id,
+        teamId,
         getShape,
         deleteShape,
         addShape,

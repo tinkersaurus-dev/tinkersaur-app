@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { authApi } from './authApi';
+import { setAuthToken, clearAuthToken, getAuthToken } from '~/core/api/httpClient';
 import type { TeamAccess, SelectedTeam } from './types';
 import { useSolutionStore } from '~/core/solution';
 
@@ -41,17 +42,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       // Login via email lookup
-      const meResponse = await authApi.login(email);
+      const loginResponse = await authApi.login(email);
+
+      // Store the JWT token for subsequent API calls
+      setAuthToken(loginResponse.accessToken);
 
       const userInfo: UserInfo = {
-        userId: meResponse.userId,
-        email: meResponse.email,
-        name: meResponse.name,
-        primaryTeamId: meResponse.primaryTeamId,
+        userId: loginResponse.userId,
+        email: loginResponse.email,
+        name: loginResponse.name,
+        primaryTeamId: loginResponse.primaryTeamId,
       };
 
       // Find primary team for default selection
-      const primaryTeam = meResponse.teamAccess.find(t => t.isPrimary);
+      const primaryTeam = loginResponse.teamAccess.find(t => t.isPrimary);
       const selectedTeam: SelectedTeam | null = primaryTeam
         ? {
             teamId: primaryTeam.teamId,
@@ -62,14 +66,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Persist to localStorage
       localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
-      localStorage.setItem(TEAM_ACCESS_KEY, JSON.stringify(meResponse.teamAccess));
+      localStorage.setItem(TEAM_ACCESS_KEY, JSON.stringify(loginResponse.teamAccess));
       if (selectedTeam) {
         localStorage.setItem(SELECTED_TEAM_KEY, JSON.stringify(selectedTeam));
       }
 
       set({
         userInfo,
-        teamAccess: meResponse.teamAccess,
+        teamAccess: loginResponse.teamAccess,
         selectedTeam,
         isAuthenticated: true,
         loading: false,
@@ -102,8 +106,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const storedUserInfo = localStorage.getItem(USER_INFO_KEY);
     const storedTeamAccess = localStorage.getItem(TEAM_ACCESS_KEY);
     const storedSelectedTeam = localStorage.getItem(SELECTED_TEAM_KEY);
+    const hasToken = getAuthToken() !== null;
 
-    if (storedUserInfo && storedTeamAccess) {
+    if (storedUserInfo && storedTeamAccess && hasToken) {
       try {
         const userInfo = JSON.parse(storedUserInfo) as UserInfo;
         const teamAccess = JSON.parse(storedTeamAccess) as TeamAccess[];
@@ -121,10 +126,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return;
       } catch {
         // Clear invalid data
+        clearAuthToken();
         localStorage.removeItem(USER_INFO_KEY);
         localStorage.removeItem(TEAM_ACCESS_KEY);
         localStorage.removeItem(SELECTED_TEAM_KEY);
       }
+    } else if (!hasToken) {
+      // No token means not authenticated - clear any stale data
+      localStorage.removeItem(USER_INFO_KEY);
+      localStorage.removeItem(TEAM_ACCESS_KEY);
+      localStorage.removeItem(SELECTED_TEAM_KEY);
     }
 
     set({ initialized: true });

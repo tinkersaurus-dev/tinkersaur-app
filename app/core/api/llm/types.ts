@@ -1,5 +1,5 @@
 /**
- * Types for LLM-generated user stories
+ * Types for LLM API clients
  */
 
 /**

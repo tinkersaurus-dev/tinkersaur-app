@@ -37,13 +37,9 @@ export const useCaseApi = {
     return deserializeDatesArray(data);
   },
 
-  async get(id: string): Promise<UseCase | null> {
-    try {
-      const data = await httpClient.get<UseCase>(`/api/use-cases/${id}`);
-      return deserializeDates(data);
-    } catch {
-      return null;
-    }
+  async get(id: string): Promise<UseCase> {
+    const data = await httpClient.get<UseCase>(`/api/use-cases/${id}`);
+    return deserializeDates(data);
   },
 
   async create(data: CreateUseCaseDto): Promise<UseCase> {
@@ -51,22 +47,13 @@ export const useCaseApi = {
     return deserializeDates(result);
   },
 
-  async update(id: string, updates: Partial<CreateUseCaseDto>): Promise<UseCase | null> {
-    try {
-      const result = await httpClient.put<UseCase>(`/api/use-cases/${id}`, updates);
-      return deserializeDates(result);
-    } catch {
-      return null;
-    }
+  async update(id: string, updates: Partial<CreateUseCaseDto>): Promise<UseCase> {
+    const result = await httpClient.put<UseCase>(`/api/use-cases/${id}`, updates);
+    return deserializeDates(result);
   },
 
-  async delete(id: string): Promise<boolean> {
-    try {
-      await httpClient.delete(`/api/use-cases/${id}`);
-      return true;
-    } catch {
-      return false;
-    }
+  async delete(id: string): Promise<void> {
+    await httpClient.delete(`/api/use-cases/${id}`);
   },
 
   async findSimilar(request: FindSimilarUseCasesRequest): Promise<SimilarUseCaseResult[]> {

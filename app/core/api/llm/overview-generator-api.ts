@@ -1,7 +1,9 @@
 /**
  * Client-side API wrapper for solution factor generation
+ * Calls tinkersaur-api which proxies to tinkersaur-ai
  */
 
+import { httpClient, ApiError } from '~/core/api/httpClient';
 import { logger } from '~/core/utils/logger';
 import type { SolutionFactorType } from '~/core/entities/product-management/types';
 
@@ -49,12 +51,12 @@ export interface GenerateFactorsRequest {
   feedback: FeedbackContext[];
   outcomes: OutcomeContext[];
   existingContent?: string;
-  /** Mode: 'generate' for bulk generation, 'refine' for single-factor refinement */
   mode?: 'generate' | 'refine';
 }
 
 export interface GenerateFactorsResponse {
   success: boolean;
+  content?: string;
   factors?: GeneratedFactorItem[];
   error?: string;
 }
@@ -71,33 +73,37 @@ export class FactorGeneratorAPIError extends Error {
 
 export async function generateFactors(
   request: GenerateFactorsRequest,
-  signal?: AbortSignal
+  teamId: string,
+  _signal?: AbortSignal
 ): Promise<GeneratedFactorItem[]> {
   logger.debug('generateFactors called', {
     sectionType: request.sectionType,
+    teamId,
     hasExistingContent: !!request.existingContent,
   });
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, 120000);
+    const data = await httpClient.post<GenerateFactorsResponse>(
+      `/api/ai/generate-overview-section?teamId=${teamId}`,
+      {
+        sectionType: request.sectionType,
+        personas: request.personas,
+        useCases: request.useCases,
+        feedback: request.feedback,
+        outcomes: request.outcomes,
+      }
+    );
 
-    const response = await fetch('/api/generate-overview-section', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-      signal: signal || controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
-
-    const data: GenerateFactorsResponse = await response.json();
-
-    if (!response.ok || !data.success) {
+    if (!data.success) {
       throw new FactorGeneratorAPIError(
-        data.error || `Failed to generate factors (HTTP ${response.status})`,
-        response.status
+        data.error || 'Failed to generate factors',
+        500
       );
+    }
+
+    // Handle both content (string) and factors (array) response formats
+    if (data.content) {
+      return [{ content: data.content, notes: '' }];
     }
 
     if (!data.factors || data.factors.length === 0) {
@@ -107,9 +113,11 @@ export async function generateFactors(
     return data.factors;
   } catch (error) {
     if (error instanceof FactorGeneratorAPIError) throw error;
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new FactorGeneratorAPIError('Request was cancelled', 0);
+
+    if (error instanceof ApiError) {
+      throw new FactorGeneratorAPIError(error.message, error.status);
     }
+
     throw new FactorGeneratorAPIError(
       error instanceof Error ? error.message : 'Network error occurred',
       0
@@ -126,8 +134,9 @@ export const OverviewGeneratorAPIError = FactorGeneratorAPIError;
 // Legacy function that returns a single string (first factor's content)
 export async function generateOverviewSection(
   request: GenerateFactorsRequest,
+  teamId: string,
   signal?: AbortSignal
 ): Promise<string> {
-  const factors = await generateFactors(request, signal);
+  const factors = await generateFactors(request, teamId, signal);
   return factors.map((f) => f.content).join('\n\n');
 }

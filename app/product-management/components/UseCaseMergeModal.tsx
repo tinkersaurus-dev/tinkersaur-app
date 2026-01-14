@@ -56,7 +56,7 @@ export function UseCaseMergeModal({
   }, [selectedUseCases, solutions]);
 
   const handleGeneratePreview = () => {
-    llmMerge(selectedUseCases, instructions || undefined);
+    llmMerge(selectedUseCases, teamId, instructions || undefined);
   };
 
   const handleConfirmMerge = async () => {

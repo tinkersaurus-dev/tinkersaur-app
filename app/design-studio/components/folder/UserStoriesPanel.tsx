@@ -8,7 +8,8 @@
 import { useCallback } from 'react';
 import { LuTrash2, LuSplit, LuMerge, LuRefreshCw, LuPencil } from 'react-icons/lu';
 import { Button } from '~/core/components/ui/Button';
-import type { UserStory } from '../../lib/llm/types';
+import { useAuthStore } from '~/core/auth';
+import type { UserStory } from '~/core/api/llm';
 import { UserStoryCard } from './UserStoryCard';
 import { StoryOperationModal } from './StoryOperationModal';
 import { useUserStoriesPanel } from './useUserStoriesPanel';
@@ -24,6 +25,8 @@ export function UserStoriesPanel({
   folderContent,
   onStoriesChange,
 }: UserStoriesPanelProps) {
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
+
   const {
     stories,
     selectedIds,
@@ -46,7 +49,7 @@ export function UserStoriesPanel({
     canSplit,
     canRegenerate,
     canEdit,
-  } = useUserStoriesPanel({ initialStories, folderContent, onStoriesChange });
+  } = useUserStoriesPanel({ initialStories, folderContent, teamId, onStoriesChange });
 
   // Memoized handlers to prevent unnecessary re-renders
   const handleOpenCombine = useCallback(() => openOperationModal('combine'), [openOperationModal]);

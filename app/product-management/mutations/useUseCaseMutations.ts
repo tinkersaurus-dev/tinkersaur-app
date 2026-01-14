@@ -53,18 +53,14 @@ export function useDeleteUseCase() {
 
   return useMutation({
     mutationFn: (id: string) => useCaseApi.delete(id),
-    onSuccess: (success, id) => {
-      if (success) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.useCases.all });
-        queryClient.removeQueries({ queryKey: queryKeys.useCases.detail(id) });
-        // Invalidate related requirements (cascade effect)
-        queryClient.invalidateQueries({ queryKey: queryKeys.requirements.all });
-        // Invalidate persona-use case associations
-        queryClient.invalidateQueries({ queryKey: queryKeys.personaUseCases.all });
-        toast.success('Use case deleted successfully');
-      } else {
-        toast.error('Failed to delete use case');
-      }
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.useCases.all });
+      queryClient.removeQueries({ queryKey: queryKeys.useCases.detail(id) });
+      // Invalidate related requirements (cascade effect)
+      queryClient.invalidateQueries({ queryKey: queryKeys.requirements.all });
+      // Invalidate persona-use case associations
+      queryClient.invalidateQueries({ queryKey: queryKeys.personaUseCases.all });
+      toast.success('Use case deleted successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete use case');

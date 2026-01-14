@@ -12,10 +12,11 @@ import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useDiagramStore } from '~/core/entities/design-studio';
 import { useCanvasDiagram } from '~/design-studio/components/canvas/core/CanvasDiagramContext';
-import { generateMermaid, MermaidGeneratorAPIError } from '~/design-studio/lib/llm/mermaid-generator-api';
+import { generateMermaid, MermaidGeneratorAPIError } from '~/core/api/llm';
 import { commandManager } from '~/core/commands/CommandManager';
 import { ReplaceWithPreviewCommand } from '~/core/commands/canvas/preview-import/ReplaceWithPreviewCommand';
 import { applySequenceDiagramPostProcessing } from '~/design-studio/diagrams/sequence/postProcessing';
+import { useAuthStore } from '~/core/auth';
 import type { LLMGeneratorShapeData, DiagramType } from '~/core/entities/design-studio/types';
 import type { Diagram } from '~/core/entities/design-studio/types';
 import type { Shape } from '~/core/entities/design-studio/types';
@@ -46,6 +47,9 @@ export function useGenerateDiagram(
   const addConnectorsBatch = useDiagramStore((state) => state._internalAddConnectorsBatch);
   const commandFactory = useDiagramStore((state) => state.commandFactory);
   const _internalUpdateShape = useDiagramStore((state) => state._internalUpdateShape);
+
+  // Get teamId for API calls
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
 
   const diagramType = diagram?.type as DiagramType | undefined;
 
@@ -115,7 +119,7 @@ export function useGenerateDiagram(
         });
       }
 
-      const mermaidSyntax = await generateMermaid(enhancedPrompt, diagramType);
+      const mermaidSyntax = await generateMermaid(enhancedPrompt, diagramType, teamId);
 
       const command = new ReplaceWithPreviewCommand(
         diagramId,
@@ -155,6 +159,7 @@ export function useGenerateDiagram(
     isGenerating,
     prompt,
     diagramType,
+    teamId,
     referencedDiagrams,
     diagramId,
     shape.id,

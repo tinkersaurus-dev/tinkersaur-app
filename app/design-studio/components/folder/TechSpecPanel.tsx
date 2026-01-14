@@ -6,12 +6,16 @@
  * delete, edit, and copy.
  */
 
-import type { TechSpecSection } from '../../lib/llm/types';
-import { techSpecSectionToMarkdown } from '../../lib/llm/types';
+import { useCallback } from 'react';
+import { useAuthStore } from '~/core/auth';
+import {
+  regenerateTechSpecSection,
+  techSpecSectionToMarkdown,
+  type TechSpecSection,
+} from '~/core/api/llm';
 import { TechSpecCard } from './TechSpecCard';
 import { TechSpecSidebar } from './TechSpecSidebar';
 import { TechSpecOperationModal } from './TechSpecOperationModal';
-import { regenerateTechSpecSection } from '../../lib/llm/tech-spec-generator-api';
 import { ListPanel, type ListPanelModalProps } from './ListPanel';
 
 export interface TechSpecPanelProps {
@@ -25,6 +29,14 @@ export function TechSpecPanel({
   folderContent,
   onSectionsChange,
 }: TechSpecPanelProps) {
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
+
+  const handleRegenerate = useCallback(
+    (section: TechSpecSection, context: string, instructions?: string) =>
+      regenerateTechSpecSection(section, context, teamId, instructions),
+    [teamId]
+  );
+
   return (
     <ListPanel<TechSpecSection>
       initialItems={initialSections}
@@ -52,7 +64,7 @@ export function TechSpecPanel({
       emptyMessage="No specification yet. Click &quot;Generate&quot; to create a technical specification from the folder content."
       noSelectionMessage="Select a section from the sidebar to view it."
       toMarkdown={techSpecSectionToMarkdown}
-      regenerate={regenerateTechSpecSection}
+      regenerate={handleRegenerate}
     />
   );
 }

@@ -73,3 +73,9 @@ export {
   useSolutionFactorsByTypeQuery,
   prefetchSolutionFactors,
 } from './useSolutionFactorsQuery';
+
+export {
+  useUseCaseDetailsQuery,
+  usePersonaDetailsQuery,
+  useCombinedQueryState,
+} from './useBatchQueries';

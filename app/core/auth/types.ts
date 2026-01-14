@@ -32,3 +32,12 @@ export interface TeamAccessResponse {
   primaryTeamId: string;
   teamAccess: TeamAccess[];
 }
+
+export interface LoginApiResponse {
+  userId: string;
+  email: string;
+  name: string;
+  primaryTeamId: string;
+  teamAccess: TeamAccess[];
+  accessToken: string;
+}

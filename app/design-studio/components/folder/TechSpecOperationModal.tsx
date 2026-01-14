@@ -5,8 +5,8 @@
  */
 
 import { Input } from '~/core/components/ui';
-import type { TechSpecSection, TechSpecSubsection } from '../../lib/llm/types';
-import { TECH_SPEC_SECTION_LABELS } from '../../lib/llm/types';
+import type { TechSpecSection, TechSpecSubsection } from '~/core/api/llm';
+import { TECH_SPEC_SECTION_LABELS } from '~/core/api/llm';
 import {
   OperationModal,
   ArrayFieldCardEditor,

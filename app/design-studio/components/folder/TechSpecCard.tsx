@@ -6,8 +6,8 @@
  */
 
 import { MarkdownContent } from '~/core/components/ui';
-import type { TechSpecSection } from '../../lib/llm/types';
-import { TECH_SPEC_SECTION_LABELS } from '../../lib/llm/types';
+import type { TechSpecSection } from '~/core/api/llm';
+import { TECH_SPEC_SECTION_LABELS } from '~/core/api/llm';
 import '../../styles/markdown-content.css';
 
 export interface TechSpecCardProps {

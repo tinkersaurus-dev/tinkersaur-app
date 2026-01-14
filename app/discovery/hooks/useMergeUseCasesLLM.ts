@@ -12,11 +12,11 @@ interface UseCaseInput {
 }
 
 export const useMergeUseCasesLLM = createLLMMergeHook<UseCaseInput, UseCase | UseCaseInput, MergedUseCaseData>({
-  action: '/api/merge-use-cases',
+  endpoint: '/api/ai/merge-use-cases',
   itemsFieldName: 'useCases',
   toInput: (uc) => ({
     name: uc.name,
     description: uc.description,
   }),
-  getMergedResult: (response) => response.mergedUseCase as MergedUseCaseData | undefined,
+  getMergedResult: (response) => response.useCase as MergedUseCaseData | undefined,
 });

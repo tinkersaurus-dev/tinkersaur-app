@@ -5,29 +5,26 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, useLoaderData, Link } from 'react-router';
-import { HydrationBoundary, useQueries } from '@tanstack/react-query';
+import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiUser, FiLink, FiMessageCircle, FiCopy } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Card, Modal, Tag, Empty, Tabs, Table, EditableSection, EditableField } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { FeedbackPersona, FeedbackUseCase } from '~/core/entities/discovery/types';
-import type { IntakeSource } from '~/core/entities/discovery/types/IntakeSource';
 import { FEEDBACK_TYPE_CONFIG } from '~/core/entities/discovery/types/Feedback';
 import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
 import {
   useFeedbackWithChildrenQuery,
   useFeedbackPersonasQuery,
   useFeedbackUseCasesQuery,
+  useIntakeSourceDetailsQuery,
 } from '../queries';
 import { useDeleteFeedback, useUpdateFeedback } from '../mutations';
 import { loadFeedbackDetail } from '~/product-management/loaders';
 import type { FeedbackDetailLoaderData } from '~/product-management/loaders';
 import type { Route } from './+types/feedback-detail';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { personaApi, useCaseApi } from '~/core/entities/product-management/api';
-import { intakeSourceApi } from '~/core/entities/discovery/api';
+import { usePersonaDetailsQuery, useUseCaseDetailsQuery } from '~/product-management/queries';
 
 // Quote row type for the quotes table
 interface QuoteRow {
@@ -98,66 +95,10 @@ function FeedbackDetailContent() {
     return [...new Set(ids)]; // Deduplicate
   }, [feedback]);
 
-  // Batch load persona details
-  const personaQueries = useQueries({
-    queries: personaIds.map((id: string) => ({
-      queryKey: queryKeys.personas.detail(id),
-      queryFn: () => personaApi.get(id),
-      staleTime: STALE_TIMES.personas,
-      enabled: !!id,
-    })),
-  });
-
-  // Batch load use case details
-  const useCaseQueries = useQueries({
-    queries: useCaseIds.map((id: string) => ({
-      queryKey: queryKeys.useCases.detail(id),
-      queryFn: () => useCaseApi.get(id),
-      staleTime: STALE_TIMES.useCases,
-      enabled: !!id,
-    })),
-  });
-
-  // Batch load intake sources for children
-  const intakeSourceQueries = useQueries({
-    queries: allIntakeSourceIds.map((id: string) => ({
-      queryKey: queryKeys.intakeSources.detail(id),
-      queryFn: () => intakeSourceApi.get(id),
-      staleTime: STALE_TIMES.feedbacks,
-      enabled: !!id,
-    })),
-  });
-
-  // Create maps for quick lookup, filtering out null (merged/deleted) entities
-  const personaDataMap = useMemo(() => {
-    const map: Record<string, { name: string }> = {};
-    personaQueries.forEach((query, index) => {
-      if (query.data) {
-        map[personaIds[index]] = { name: query.data.name };
-      }
-    });
-    return map;
-  }, [personaQueries, personaIds]);
-
-  const useCaseDataMap = useMemo(() => {
-    const map: Record<string, { name: string }> = {};
-    useCaseQueries.forEach((query, index) => {
-      if (query.data) {
-        map[useCaseIds[index]] = { name: query.data.name };
-      }
-    });
-    return map;
-  }, [useCaseQueries, useCaseIds]);
-
-  const intakeSourceMap = useMemo(() => {
-    const map: Record<string, IntakeSource> = {};
-    intakeSourceQueries.forEach((query, index) => {
-      if (query.data) {
-        map[allIntakeSourceIds[index]] = query.data;
-      }
-    });
-    return map;
-  }, [intakeSourceQueries, allIntakeSourceIds]);
+  // Batch load persona, use case, and intake source details using dedicated hooks
+  const { dataMap: personaDataMap } = usePersonaDetailsQuery(personaIds);
+  const { dataMap: useCaseDataMap } = useUseCaseDetailsQuery(useCaseIds);
+  const { dataMap: intakeSourceMap } = useIntakeSourceDetailsQuery(allIntakeSourceIds);
 
   // Filter personas and use cases to only show those that still exist (not merged/deleted)
   const validPersonas = useMemo(
@@ -221,7 +162,7 @@ function FeedbackDetailContent() {
       intakeSourceId: child.intakeSourceId,
       createdAt: child.createdAt,
     }));
-  }, [feedback?.children]);
+  }, [feedback]);
 
   // Table columns for quotes
   const quoteColumns: TableColumn<QuoteRow>[] = [

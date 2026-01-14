@@ -5,7 +5,7 @@
  * Also handles local Edit operation with markdown textarea.
  */
 
-import type { UserStory } from '../../lib/llm/types';
+import type { UserStory } from '~/core/api/llm';
 import { OperationModal, type OperationModalConfig } from './OperationModal';
 
 export type OperationType = 'combine' | 'split' | 'regenerate' | 'edit';

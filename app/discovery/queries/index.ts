@@ -17,3 +17,5 @@ export {
   useSimilarFeedbackQuery,
   useSimilarOutcomesQuery,
 } from './useSimilarityQueries';
+
+export { useIntakeSourceDetailsQuery } from './useBatchQueries';

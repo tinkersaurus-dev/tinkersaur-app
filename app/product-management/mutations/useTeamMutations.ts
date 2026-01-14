@@ -52,18 +52,14 @@ export function useDeleteTeam() {
 
   return useMutation({
     mutationFn: (id: string) => teamApi.delete(id),
-    onSuccess: (success, id) => {
-      if (success) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.teams.all });
-        queryClient.removeQueries({ queryKey: queryKeys.teams.detail(id) });
-        // Invalidate related data (cascade effect)
-        queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-        queryClient.invalidateQueries({ queryKey: queryKeys.solutions.all });
-        queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
-        toast.success('Team deleted successfully');
-      } else {
-        toast.error('Failed to delete team');
-      }
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.teams.all });
+      queryClient.removeQueries({ queryKey: queryKeys.teams.detail(id) });
+      // Invalidate related data (cascade effect)
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.solutions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
+      toast.success('Team deleted successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete team');

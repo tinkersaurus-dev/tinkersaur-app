@@ -1,63 +1,49 @@
 /**
  * Hook for merging use cases using the LLM API
- * Sends use cases to Bedrock for intelligent merging
+ * Sends use cases to tinkersaur-api for intelligent merging
  */
 
-import { useFetcher } from 'react-router';
 import { useCallback, useState } from 'react';
+import {
+  mergeUseCases,
+  MergeUseCasesAPIError,
+  type UseCaseInput,
+} from '~/core/api/llm';
 import type { MergedUseCaseData, UseCase } from '~/core/entities/product-management/types';
 
-interface UseCaseInput {
-  name: string;
-  description: string;
-}
-
-interface MergeUseCasesLLMResponse {
-  success: boolean;
-  mergedUseCase?: MergedUseCaseData;
-  error?: string;
-}
-
 export function useMergeUseCasesLLM() {
-  const fetcher = useFetcher<MergeUseCasesLLMResponse>();
-  const [lastSubmitKey, setLastSubmitKey] = useState<string | null>(null);
-
-  const isLoading = fetcher.state === 'submitting' || fetcher.state === 'loading';
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<MergedUseCaseData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const merge = useCallback(
-    (useCases: UseCase[] | UseCaseInput[], instructions?: string) => {
-      // Convert use cases to input format
-      const useCaseInputs: UseCaseInput[] = useCases.map((uc) => ({
-        name: uc.name,
-        description: uc.description,
-      }));
+    async (useCases: UseCase[] | UseCaseInput[], teamId: string, instructions?: string) => {
+      setIsLoading(true);
+      setError(null);
+      setResult(null);
 
-      // Track the submission to help with reset logic
-      setLastSubmitKey(Date.now().toString());
-
-      fetcher.submit(
-        JSON.stringify({
-          useCases: useCaseInputs,
-          ...(instructions && { instructions }),
-        }),
-        {
-          method: 'POST',
-          action: '/api/merge-use-cases',
-          encType: 'application/json',
+      try {
+        const mergedUseCase = await mergeUseCases(useCases, teamId, instructions);
+        setResult(mergedUseCase);
+      } catch (err) {
+        let errorMessage = 'Network error occurred';
+        if (err instanceof MergeUseCasesAPIError) {
+          errorMessage = err.message;
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
         }
-      );
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
     },
-    [fetcher]
+    []
   );
 
   const reset = useCallback(() => {
-    setLastSubmitKey(null);
+    setResult(null);
+    setError(null);
   }, []);
-
-  // Derive result and error directly from fetcher data
-  // Gate with lastSubmitKey so reset() can clear stale results
-  const result = fetcher.data?.success && lastSubmitKey ? fetcher.data.mergedUseCase : null;
-  const error = fetcher.data?.success === false ? fetcher.data.error : null;
 
   return {
     merge,

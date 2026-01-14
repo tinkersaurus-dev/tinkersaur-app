@@ -1,8 +1,10 @@
 /**
  * Client-side API wrapper for LLM-based technical specification generation
+ * Calls tinkersaur-api which proxies to tinkersaur-ai
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import { httpClient, ApiError } from '~/core/api/httpClient';
 import { logger } from '~/core/utils/logger';
 import type {
   TechSpecSection,
@@ -41,62 +43,38 @@ function addIdsToSections(sections: TechSpecSectionResponse[]): TechSpecSection[
  * Returns multiple sections, each covering a specific aspect of the specification
  *
  * @param content - Compiled design documentation (diagrams + documents)
+ * @param teamId - The team ID for authorization
  * @returns Promise that resolves to an array of tech spec sections
  * @throws TechSpecGeneratorAPIError if generation fails
  */
-export async function generateTechSpecStructured(content: string): Promise<TechSpecSection[]> {
+export async function generateTechSpecStructured(content: string, teamId: string): Promise<TechSpecSection[]> {
   logger.debug('generateTechSpecStructured called', {
     contentLength: content.length,
+    teamId,
   });
 
   try {
-    logger.info('Sending request to /api/generate-tech-spec-structured');
+    logger.info('Sending request to AI proxy endpoint');
 
-    // Create an AbortController with a timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      logger.error('Request timeout after 120 seconds');
-      controller.abort();
-    }, 120000);
+    const data = await httpClient.post<GenerateTechSpecAPIResponse>(
+      `/api/ai/generate-tech-spec?teamId=${teamId}`,
+      { content }
+    );
 
-    const response = await fetch('/api/generate-tech-spec-structured', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ content }),
-      signal: controller.signal,
-    }).finally(() => {
-      clearTimeout(timeoutId);
-    });
-
-    logger.debug('Response received', {
-      status: response.status,
-      ok: response.ok,
-    });
-
-    const data: GenerateTechSpecAPIResponse = await response.json();
-
-    if (!response.ok || !data.success) {
-      logger.error('Error in API response', undefined, {
-        error: data.error,
-        status: response.status,
-      });
+    if (!data.success) {
       throw new TechSpecGeneratorAPIError(
-        data.error || `Failed to generate technical specification (HTTP ${response.status})`,
-        response.status
+        data.error || 'Failed to generate technical specification',
+        500
       );
     }
 
     if (!data.sections || data.sections.length === 0) {
-      logger.error('No sections in response');
       throw new TechSpecGeneratorAPIError(
         'No sections returned from API',
         500
       );
     }
 
-    // Add client-generated IDs
     const sectionsWithIds = addIdsToSections(data.sections);
 
     logger.info('Successfully received tech spec sections', {
@@ -105,12 +83,15 @@ export async function generateTechSpecStructured(content: string): Promise<TechS
     return sectionsWithIds;
   } catch (error) {
     logger.error('Exception in generateTechSpecStructured', error);
-    // Re-throw our custom errors
+
     if (error instanceof TechSpecGeneratorAPIError) {
       throw error;
     }
 
-    // Wrap network errors and other exceptions
+    if (error instanceof ApiError) {
+      throw new TechSpecGeneratorAPIError(error.message, error.status);
+    }
+
     throw new TechSpecGeneratorAPIError(
       error instanceof Error ? error.message : 'Network error occurred',
       0
@@ -123,6 +104,7 @@ export async function generateTechSpecStructured(content: string): Promise<TechS
  *
  * @param section - The section to regenerate
  * @param originalContent - The original design documentation
+ * @param teamId - The team ID for authorization
  * @param instructions - Optional instructions for regeneration
  * @returns Promise that resolves to the regenerated section (with original ID preserved)
  * @throws TechSpecGeneratorAPIError if regeneration fails
@@ -130,60 +112,33 @@ export async function generateTechSpecStructured(content: string): Promise<TechS
 export async function regenerateTechSpecSection(
   section: TechSpecSection,
   originalContent: string,
+  teamId: string,
   instructions?: string
 ): Promise<TechSpecSection> {
   logger.debug('regenerateTechSpecSection called', {
     sectionId: section.id,
     sectionType: section.sectionType,
+    teamId,
     contentLength: originalContent.length,
     hasInstructions: !!instructions,
   });
 
   try {
-    logger.info('Sending request to /api/generate-tech-spec-regenerate');
+    logger.info('Sending request to AI proxy endpoint');
 
-    // Create an AbortController with a timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      logger.error('Request timeout after 120 seconds');
-      controller.abort();
-    }, 120000);
+    const data = await httpClient.post<TechSpecOperationResponse>(
+      `/api/ai/regenerate-tech-spec?teamId=${teamId}`,
+      { section, originalContent, instructions }
+    );
 
-    const response = await fetch('/api/generate-tech-spec-regenerate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        section,
-        originalContent,
-        instructions,
-      }),
-      signal: controller.signal,
-    }).finally(() => {
-      clearTimeout(timeoutId);
-    });
-
-    logger.debug('Response received', {
-      status: response.status,
-      ok: response.ok,
-    });
-
-    const data: TechSpecOperationResponse = await response.json();
-
-    if (!response.ok || !data.success) {
-      logger.error('Error in API response', undefined, {
-        error: data.error,
-        status: response.status,
-      });
+    if (!data.success) {
       throw new TechSpecGeneratorAPIError(
-        data.error || `Failed to regenerate section (HTTP ${response.status})`,
-        response.status
+        data.error || 'Failed to regenerate section',
+        500
       );
     }
 
     if (!data.section) {
-      logger.error('No section in response');
       throw new TechSpecGeneratorAPIError(
         'No section returned from API',
         500
@@ -204,12 +159,15 @@ export async function regenerateTechSpecSection(
     return regeneratedSection;
   } catch (error) {
     logger.error('Exception in regenerateTechSpecSection', error);
-    // Re-throw our custom errors
+
     if (error instanceof TechSpecGeneratorAPIError) {
       throw error;
     }
 
-    // Wrap network errors and other exceptions
+    if (error instanceof ApiError) {
+      throw new TechSpecGeneratorAPIError(error.message, error.status);
+    }
+
     throw new TechSpecGeneratorAPIError(
       error instanceof Error ? error.message : 'Network error occurred',
       0

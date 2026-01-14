@@ -43,30 +43,30 @@ export interface FeedbackDetailLoaderData {
 /**
  * Load solution and its use cases for solution-detail page
  * Prefetches queries that will be used by the page
+ * Note: SSR prefetch may fail without auth token - client will refetch
  */
 export async function loadSolutionDetail(solutionId: string): Promise<SolutionDetailLoaderData> {
   const queryClient = getQueryClient();
 
-  // Prefetch solution and use cases in parallel
-  await Promise.all([
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.solutions.detail(solutionId),
-      queryFn: () => solutionApi.get(solutionId),
-      staleTime: STALE_TIMES.solutions,
-    }),
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.useCases.listBySolution(solutionId),
-      queryFn: () => useCaseApi.listBySolution(solutionId),
-      staleTime: STALE_TIMES.useCases,
-    }),
-  ]);
-
-  // Check if solution was found
-  const solution = queryClient.getQueryData(queryKeys.solutions.detail(solutionId));
-  if (!solution) {
-    throw new Response('Solution not found', { status: 404 });
+  try {
+    // Prefetch solution and use cases in parallel
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.solutions.detail(solutionId),
+        queryFn: () => solutionApi.get(solutionId),
+        staleTime: STALE_TIMES.solutions,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.useCases.listBySolution(solutionId),
+        queryFn: () => useCaseApi.listBySolution(solutionId),
+        staleTime: STALE_TIMES.useCases,
+      }),
+    ]);
+  } catch {
+    // SSR prefetch failed (likely no auth token) - client will refetch
   }
 
+  // Don't throw 404 on SSR - let client handle it with proper auth
   return {
     dehydratedState: dehydrate(queryClient),
     solutionId,
@@ -75,6 +75,7 @@ export async function loadSolutionDetail(solutionId: string): Promise<SolutionDe
 
 /**
  * Load use case, its parent solution, and requirements for use-case-detail page
+ * Note: SSR prefetch may fail without auth token - client will refetch
  */
 export async function loadUseCaseDetail(
   solutionId: string,
@@ -82,32 +83,30 @@ export async function loadUseCaseDetail(
 ): Promise<UseCaseDetailLoaderData> {
   const queryClient = getQueryClient();
 
-  // Parallel prefetch for better performance
-  await Promise.all([
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.solutions.detail(solutionId),
-      queryFn: () => solutionApi.get(solutionId),
-      staleTime: STALE_TIMES.solutions,
-    }),
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.useCases.detail(useCaseId),
-      queryFn: () => useCaseApi.get(useCaseId),
-      staleTime: STALE_TIMES.useCases,
-    }),
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.requirements.list(useCaseId),
-      queryFn: () => requirementApi.list(useCaseId),
-      staleTime: STALE_TIMES.requirements,
-    }),
-  ]);
-
-  // Check if resources were found
-  const solution = queryClient.getQueryData(queryKeys.solutions.detail(solutionId));
-  const useCase = queryClient.getQueryData(queryKeys.useCases.detail(useCaseId));
-  if (!solution || !useCase) {
-    throw new Response('Resource not found', { status: 404 });
+  try {
+    // Parallel prefetch for better performance
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.solutions.detail(solutionId),
+        queryFn: () => solutionApi.get(solutionId),
+        staleTime: STALE_TIMES.solutions,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.useCases.detail(useCaseId),
+        queryFn: () => useCaseApi.get(useCaseId),
+        staleTime: STALE_TIMES.useCases,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.requirements.list(useCaseId),
+        queryFn: () => requirementApi.list(useCaseId),
+        staleTime: STALE_TIMES.requirements,
+      }),
+    ]);
+  } catch {
+    // SSR prefetch failed (likely no auth token) - client will refetch
   }
 
+  // Don't throw 404 on SSR - let client handle it with proper auth
   return {
     dehydratedState: dehydrate(queryClient),
     solutionId,
@@ -117,22 +116,22 @@ export async function loadUseCaseDetail(
 
 /**
  * Load persona for persona-detail page
+ * Note: SSR prefetch may fail without auth token - client will refetch
  */
 export async function loadPersonaDetail(personaId: string): Promise<PersonaDetailLoaderData> {
   const queryClient = getQueryClient();
 
-  await queryClient.prefetchQuery({
-    queryKey: queryKeys.personas.detail(personaId),
-    queryFn: () => personaApi.get(personaId),
-    staleTime: STALE_TIMES.personas,
-  });
-
-  // Check if persona was found
-  const persona = queryClient.getQueryData(queryKeys.personas.detail(personaId));
-  if (!persona) {
-    throw new Response('Persona not found', { status: 404 });
+  try {
+    await queryClient.prefetchQuery({
+      queryKey: queryKeys.personas.detail(personaId),
+      queryFn: () => personaApi.get(personaId),
+      staleTime: STALE_TIMES.personas,
+    });
+  } catch {
+    // SSR prefetch failed (likely no auth token) - client will refetch
   }
 
+  // Don't throw 404 on SSR - let client handle it with proper auth
   return {
     dehydratedState: dehydrate(queryClient),
     personaId,
@@ -142,22 +141,22 @@ export async function loadPersonaDetail(personaId: string): Promise<PersonaDetai
 /**
  * Load use case for discovery-use-case-detail page
  * Does not require solutionId - standalone use case view
+ * Note: SSR prefetch may fail without auth token - client will refetch
  */
 export async function loadDiscoveryUseCaseDetail(useCaseId: string): Promise<DiscoveryUseCaseDetailLoaderData> {
   const queryClient = getQueryClient();
 
-  await queryClient.prefetchQuery({
-    queryKey: queryKeys.useCases.detail(useCaseId),
-    queryFn: () => useCaseApi.get(useCaseId),
-    staleTime: STALE_TIMES.useCases,
-  });
-
-  // Check if use case was found
-  const useCase = queryClient.getQueryData(queryKeys.useCases.detail(useCaseId));
-  if (!useCase) {
-    throw new Response('Use case not found', { status: 404 });
+  try {
+    await queryClient.prefetchQuery({
+      queryKey: queryKeys.useCases.detail(useCaseId),
+      queryFn: () => useCaseApi.get(useCaseId),
+      staleTime: STALE_TIMES.useCases,
+    });
+  } catch {
+    // SSR prefetch failed (likely no auth token) - client will refetch
   }
 
+  // Don't throw 404 on SSR - let client handle it with proper auth
   return {
     dehydratedState: dehydrate(queryClient),
     useCaseId,
@@ -166,22 +165,22 @@ export async function loadDiscoveryUseCaseDetail(useCaseId: string): Promise<Dis
 
 /**
  * Load feedback with children for feedback-detail page
+ * Note: SSR prefetch may fail without auth token - client will refetch
  */
 export async function loadFeedbackDetail(feedbackId: string): Promise<FeedbackDetailLoaderData> {
   const queryClient = getQueryClient();
 
-  await queryClient.prefetchQuery({
-    queryKey: queryKeys.feedbacks.withChildren(feedbackId),
-    queryFn: () => feedbackApi.getWithChildren(feedbackId),
-    staleTime: STALE_TIMES.feedbacks,
-  });
-
-  // Check if feedback was found
-  const feedback = queryClient.getQueryData(queryKeys.feedbacks.withChildren(feedbackId));
-  if (!feedback) {
-    throw new Response('Feedback not found', { status: 404 });
+  try {
+    await queryClient.prefetchQuery({
+      queryKey: queryKeys.feedbacks.withChildren(feedbackId),
+      queryFn: () => feedbackApi.getWithChildren(feedbackId),
+      staleTime: STALE_TIMES.feedbacks,
+    });
+  } catch {
+    // SSR prefetch failed (likely no auth token) - client will refetch
   }
 
+  // Don't throw 404 on SSR - let client handle it with proper auth
   return {
     dehydratedState: dehydrate(queryClient),
     feedbackId,

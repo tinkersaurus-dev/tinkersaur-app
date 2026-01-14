@@ -1,15 +1,13 @@
 import { useState, useCallback } from 'react';
-import type {
-  SourceTypeKey,
-  IntakeResult,
-  ParseTranscriptResponse,
-} from '~/core/entities/discovery';
+import { parseTranscript as parseTranscriptApi, ParseTranscriptAPIError } from '~/core/api/llm';
+import type { SourceTypeKey, IntakeResult } from '~/core/entities/discovery';
 
 interface UseParseTranscriptReturn {
   parseTranscript: (
     sourceType: SourceTypeKey,
     content: string,
-    metadata: Record<string, string>
+    metadata: Record<string, string>,
+    teamId: string
   ) => Promise<IntakeResult | null>;
   isLoading: boolean;
   error: string | null;
@@ -28,30 +26,22 @@ export function useParseTranscript(): UseParseTranscriptReturn {
     async (
       sourceType: SourceTypeKey,
       content: string,
-      metadata: Record<string, string>
+      metadata: Record<string, string>,
+      teamId: string
     ): Promise<IntakeResult | null> => {
       setIsLoading(true);
       setError(null);
 
       try {
-        const response = await fetch('/api/parse-transcript', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sourceType, content, metadata }),
-        });
-
-        const data: ParseTranscriptResponse = await response.json();
-
-        if (!data.success || !data.result) {
-          const errorMessage = data.error || 'Failed to parse transcript';
-          setError(errorMessage);
-          return null;
-        }
-
-        return data.result;
+        const result = await parseTranscriptApi(sourceType, content, metadata, teamId);
+        return result;
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Network error occurred';
+        let errorMessage = 'Network error occurred';
+        if (err instanceof ParseTranscriptAPIError) {
+          errorMessage = err.message;
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
         setError(errorMessage);
         return null;
       } finally {

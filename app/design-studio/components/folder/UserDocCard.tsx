@@ -5,7 +5,7 @@
  * steps, troubleshooting, related topics) as formatted content.
  */
 
-import type { UserDocument } from '../../lib/llm/types';
+import type { UserDocument } from '~/core/api/llm';
 import '../../styles/markdown-content.css';
 
 export interface UserDocCardProps {

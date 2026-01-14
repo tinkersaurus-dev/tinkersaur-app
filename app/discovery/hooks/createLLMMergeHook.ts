@@ -1,10 +1,10 @@
 /**
  * Factory for creating LLM-powered merge hooks
- * Creates hooks that send entities to the LLM API for intelligent merging
+ * Creates hooks that send entities to tinkersaur-api for intelligent merging
  */
 
-import { useFetcher } from 'react-router';
 import { useCallback, useState } from 'react';
+import { httpClient, ApiError } from '~/core/api/httpClient';
 
 /**
  * Response type for LLM merge API endpoints
@@ -19,8 +19,8 @@ export interface LLMMergeResponse<_TMergedResult> {
  * Configuration for creating an LLM merge hook
  */
 export interface LLMMergeConfig<TInput, TEntity, TMergedResult> {
-  /** API action path (e.g., '/api/merge-personas') */
-  action: string;
+  /** API endpoint path (e.g., '/api/ai/merge-personas') */
+  endpoint: string;
   /** Field name for items in request body (e.g., 'personas', 'useCases') */
   itemsFieldName: string;
   /** Convert entity to input format for the API */
@@ -34,7 +34,7 @@ export interface LLMMergeConfig<TInput, TEntity, TMergedResult> {
  */
 export interface LLMMergeHookResult<TEntity, TMergedResult> {
   /** Trigger the merge operation */
-  merge: (entities: TEntity[], instructions?: string) => void;
+  merge: (entities: TEntity[], teamId: string, instructions?: string) => Promise<void>;
   /** Reset the hook state (clears result and error) */
   reset: () => void;
   /** Whether a merge is in progress */
@@ -48,13 +48,13 @@ export interface LLMMergeHookResult<TEntity, TMergedResult> {
 /**
  * Factory function to create LLM-powered merge hooks.
  *
- * These hooks use useFetcher to submit entities to an LLM API endpoint
+ * These hooks use httpClient to send entities to tinkersaur-api
  * for intelligent merging, with state management for result/error/loading.
  *
  * @example
  * ```ts
  * export const useMergePersonasLLM = createLLMMergeHook<PersonaInput, Persona, MergedPersonaData>({
- *   action: '/api/merge-personas',
+ *   endpoint: '/api/ai/merge-personas',
  *   itemsFieldName: 'personas',
  *   toInput: (p) => ({
  *     name: p.name,
@@ -64,7 +64,7 @@ export interface LLMMergeHookResult<TEntity, TMergedResult> {
  *     painPoints: p.painPoints,
  *     demographics: p.demographics,
  *   }),
- *   getMergedResult: (response) => response.mergedPersona as MergedPersonaData | undefined,
+ *   getMergedResult: (response) => response.persona as MergedPersonaData | undefined,
  * });
  * ```
  */
@@ -72,44 +72,54 @@ export function createLLMMergeHook<TInput, TEntity, TMergedResult>(
   config: LLMMergeConfig<TInput, TEntity, TMergedResult>
 ): () => LLMMergeHookResult<TEntity, TMergedResult> {
   return function useLLMMerge() {
-    const fetcher = useFetcher<LLMMergeResponse<TMergedResult>>();
-    const [lastSubmitKey, setLastSubmitKey] = useState<string | null>(null);
-
-    const isLoading = fetcher.state === 'submitting' || fetcher.state === 'loading';
+    const [isLoading, setIsLoading] = useState(false);
+    const [result, setResult] = useState<TMergedResult | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const merge = useCallback(
-      (entities: TEntity[], instructions?: string) => {
-        // Convert entities to input format
-        const inputs = entities.map(config.toInput);
+      async (entities: TEntity[], teamId: string, instructions?: string) => {
+        setIsLoading(true);
+        setError(null);
+        setResult(null);
 
-        // Track the submission to help with reset logic
-        setLastSubmitKey(Date.now().toString());
+        try {
+          // Convert entities to input format
+          const inputs = entities.map(config.toInput);
 
-        fetcher.submit(
-          JSON.stringify({
-            [config.itemsFieldName]: inputs,
-            ...(instructions && { instructions }),
-          }),
-          {
-            method: 'POST',
-            action: config.action,
-            encType: 'application/json',
+          const response = await httpClient.post<LLMMergeResponse<TMergedResult>>(
+            `${config.endpoint}?teamId=${teamId}`,
+            {
+              [config.itemsFieldName]: inputs,
+              ...(instructions && { instructions }),
+            }
+          );
+
+          if (!response.success) {
+            setError(response.error || 'Merge failed');
+            return;
           }
-        );
+
+          const mergedResult = config.getMergedResult(response);
+          setResult(mergedResult ?? null);
+        } catch (err) {
+          let errorMessage = 'Network error occurred';
+          if (err instanceof ApiError) {
+            errorMessage = err.message;
+          } else if (err instanceof Error) {
+            errorMessage = err.message;
+          }
+          setError(errorMessage);
+        } finally {
+          setIsLoading(false);
+        }
       },
-      [fetcher]
+      []
     );
 
     const reset = useCallback(() => {
-      setLastSubmitKey(null);
+      setResult(null);
+      setError(null);
     }, []);
-
-    // Derive result and error directly from fetcher data
-    // Gate with lastSubmitKey so reset() can clear stale results
-    const result = fetcher.data?.success && lastSubmitKey
-      ? (config.getMergedResult(fetcher.data) ?? null)
-      : null;
-    const error = fetcher.data?.success === false ? fetcher.data.error : null;
 
     return {
       merge,

@@ -1,53 +1,34 @@
 /**
  * Client-side API wrapper for LLM-based user story generation and operations
- * User stories are stored as { id, content } where content is markdown
+ * Calls tinkersaur-api which proxies to tinkersaur-ai
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import { httpClient, ApiError } from '~/core/api/httpClient';
 import { logger } from '~/core/utils/logger';
 import type { UserStory } from './types';
 
-export interface GenerateUserStoriesRequest {
-  content: string;
-}
-
 export interface GenerateUserStoriesResponse {
   success: boolean;
-  stories?: string[]; // Array of markdown strings
+  stories?: Array<{ title: string; description: string; acceptanceCriteria: string }>;
   error?: string;
-}
-
-export interface CombineUserStoriesRequest {
-  stories: string[]; // Array of markdown content strings
-  instructions?: string;
 }
 
 export interface CombineUserStoriesResponse {
   success: boolean;
-  story?: string; // Markdown string
+  story?: { title: string; description: string; acceptanceCriteria: string };
   error?: string;
-}
-
-export interface SplitUserStoryRequest {
-  story: string; // Markdown content string
-  instructions?: string;
 }
 
 export interface SplitUserStoryResponse {
   success: boolean;
-  stories?: string[]; // Array of markdown strings
+  stories?: Array<{ title: string; description: string; acceptanceCriteria: string }>;
   error?: string;
-}
-
-export interface RegenerateUserStoryRequest {
-  story: string; // Markdown content string
-  originalContent: string;
-  instructions?: string;
 }
 
 export interface RegenerateUserStoryResponse {
   success: boolean;
-  story?: string; // Markdown string
+  story?: { title: string; description: string; acceptanceCriteria: string };
   error?: string;
 }
 
@@ -65,78 +46,80 @@ export class UserStoriesGeneratorAPIError extends Error {
 }
 
 /**
- * Add client-generated IDs to user story markdown strings
+ * Convert API response to UserStory format
  */
-function addIdsToStories(stories: string[]): UserStory[] {
-  return stories.map((content) => ({
-    id: uuidv4(),
-    content,
-  }));
+function toUserStory(item: { title: string; description: string; acceptanceCriteria: string }): UserStory {
+  const content = `## ${item.title}\n\n${item.description}\n\n### Acceptance Criteria\n\n${item.acceptanceCriteria}`;
+  return { id: uuidv4(), content };
+}
+
+/**
+ * Parse markdown content to extract structured data for API
+ */
+function parseStoryContent(content: string): { title: string; description: string; acceptanceCriteria: string } {
+  const lines = content.split('\n');
+  let title = '';
+  let description = '';
+  let acceptanceCriteria = '';
+  let section = 'title';
+
+  for (const line of lines) {
+    if (line.startsWith('## ')) {
+      title = line.replace('## ', '').trim();
+      section = 'description';
+    } else if (line.startsWith('### Acceptance Criteria')) {
+      section = 'criteria';
+    } else if (section === 'description') {
+      description += line + '\n';
+    } else if (section === 'criteria') {
+      acceptanceCriteria += line + '\n';
+    }
+  }
+
+  return {
+    title: title || 'Untitled',
+    description: description.trim(),
+    acceptanceCriteria: acceptanceCriteria.trim(),
+  };
 }
 
 /**
  * Generate user stories with acceptance criteria using AWS Bedrock LLM
  *
  * @param content - Compiled design documentation (diagrams + documents)
+ * @param teamId - The team ID for authorization
  * @returns Promise that resolves to array of user stories with IDs
  * @throws UserStoriesGeneratorAPIError if generation fails
  */
-export async function generateUserStories(content: string): Promise<UserStory[]> {
+export async function generateUserStories(content: string, teamId: string): Promise<UserStory[]> {
   logger.debug('generateUserStories called', {
     contentLength: content.length,
+    teamId,
   });
 
   try {
-    logger.info('Sending request to /api/generate-user-stories');
+    logger.info('Sending request to AI proxy endpoint');
 
-    // Create an AbortController with a timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      logger.error('Request timeout after 120 seconds');
-      controller.abort();
-    }, 120000);
+    const data = await httpClient.post<GenerateUserStoriesResponse>(
+      `/api/ai/generate-user-stories?teamId=${teamId}`,
+      { content }
+    );
 
-    const response = await fetch('/api/generate-user-stories', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        content,
-      } satisfies GenerateUserStoriesRequest),
-      signal: controller.signal,
-    }).finally(() => {
-      clearTimeout(timeoutId);
-    });
-
-    logger.debug('Response received', {
-      status: response.status,
-      ok: response.ok,
-    });
-
-    const data: GenerateUserStoriesResponse = await response.json();
-
-    if (!response.ok || !data.success) {
-      logger.error('Error in API response', undefined, {
-        error: data.error,
-        status: response.status,
-      });
+    if (!data.success) {
       throw new UserStoriesGeneratorAPIError(
-        data.error || `Failed to generate user stories (HTTP ${response.status})`,
-        response.status
+        data.error || 'Failed to generate user stories',
+        500
       );
     }
 
     if (!data.stories || data.stories.length === 0) {
-      logger.error('No user stories in response');
       throw new UserStoriesGeneratorAPIError(
         'No user stories returned from API',
         500
       );
     }
 
-    // Add client-generated IDs to the stories
-    const storiesWithIds = addIdsToStories(data.stories);
+    const storiesWithIds = data.stories.map(toUserStory);
 
     logger.info('Successfully received user stories', {
       count: storiesWithIds.length,
@@ -144,12 +127,15 @@ export async function generateUserStories(content: string): Promise<UserStory[]>
     return storiesWithIds;
   } catch (error) {
     logger.error('Exception in generateUserStories', error);
-    // Re-throw our custom errors
+
     if (error instanceof UserStoriesGeneratorAPIError) {
       throw error;
     }
 
-    // Wrap network errors and other exceptions
+    if (error instanceof ApiError) {
+      throw new UserStoriesGeneratorAPIError(error.message, error.status);
+    }
+
     throw new UserStoriesGeneratorAPIError(
       error instanceof Error ? error.message : 'Network error occurred',
       0
@@ -161,51 +147,36 @@ export async function generateUserStories(content: string): Promise<UserStory[]>
  * Combine multiple user stories into one using AWS Bedrock LLM
  *
  * @param stories - Array of user stories to combine
+ * @param teamId - The team ID for authorization
  * @param instructions - Optional instructions for the combination
  * @returns Promise that resolves to a single combined user story with ID
  * @throws UserStoriesGeneratorAPIError if combination fails
  */
 export async function combineUserStories(
   stories: UserStory[],
+  teamId: string,
   instructions?: string
 ): Promise<UserStory> {
   logger.debug('combineUserStories called', {
     storyCount: stories.length,
+    teamId,
     hasInstructions: !!instructions,
   });
 
   try {
-    logger.info('Sending request to /api/generate-combine-stories');
+    logger.info('Sending request to AI proxy endpoint');
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      logger.error('Request timeout after 120 seconds');
-      controller.abort();
-    }, 120000);
+    const storiesToSend = stories.map((s) => parseStoryContent(s.content));
 
-    // Extract markdown content from stories to send to API
-    const storyContents = stories.map((s) => s.content);
+    const data = await httpClient.post<CombineUserStoriesResponse>(
+      `/api/ai/combine-stories?teamId=${teamId}`,
+      { stories: storiesToSend, instructions }
+    );
 
-    const response = await fetch('/api/generate-combine-stories', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        stories: storyContents,
-        instructions,
-      } satisfies CombineUserStoriesRequest),
-      signal: controller.signal,
-    }).finally(() => {
-      clearTimeout(timeoutId);
-    });
-
-    const data: CombineUserStoriesResponse = await response.json();
-
-    if (!response.ok || !data.success) {
+    if (!data.success) {
       throw new UserStoriesGeneratorAPIError(
-        data.error || `Failed to combine user stories (HTTP ${response.status})`,
-        response.status
+        data.error || 'Failed to combine user stories',
+        500
       );
     }
 
@@ -216,19 +187,21 @@ export async function combineUserStories(
       );
     }
 
-    // Add client-generated ID to the combined story
-    const storyWithId: UserStory = {
-      id: uuidv4(),
-      content: data.story,
-    };
+    const storyWithId = toUserStory(data.story);
 
     logger.info('Successfully combined user stories');
     return storyWithId;
   } catch (error) {
     logger.error('Exception in combineUserStories', error);
+
     if (error instanceof UserStoriesGeneratorAPIError) {
       throw error;
     }
+
+    if (error instanceof ApiError) {
+      throw new UserStoriesGeneratorAPIError(error.message, error.status);
+    }
+
     throw new UserStoriesGeneratorAPIError(
       error instanceof Error ? error.message : 'Network error occurred',
       0
@@ -240,48 +213,36 @@ export async function combineUserStories(
  * Split a user story into multiple stories using AWS Bedrock LLM
  *
  * @param story - The user story to split
+ * @param teamId - The team ID for authorization
  * @param instructions - Optional instructions for the split
  * @returns Promise that resolves to an array of user stories with IDs
  * @throws UserStoriesGeneratorAPIError if split fails
  */
 export async function splitUserStory(
   story: UserStory,
+  teamId: string,
   instructions?: string
 ): Promise<UserStory[]> {
   logger.debug('splitUserStory called', {
     storyId: story.id,
+    teamId,
     hasInstructions: !!instructions,
   });
 
   try {
-    logger.info('Sending request to /api/generate-split-story');
+    logger.info('Sending request to AI proxy endpoint');
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      logger.error('Request timeout after 120 seconds');
-      controller.abort();
-    }, 120000);
+    const storyToSend = parseStoryContent(story.content);
 
-    const response = await fetch('/api/generate-split-story', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        story: story.content, // Send markdown content
-        instructions,
-      } satisfies SplitUserStoryRequest),
-      signal: controller.signal,
-    }).finally(() => {
-      clearTimeout(timeoutId);
-    });
+    const data = await httpClient.post<SplitUserStoryResponse>(
+      `/api/ai/split-story?teamId=${teamId}`,
+      { story: storyToSend, instructions }
+    );
 
-    const data: SplitUserStoryResponse = await response.json();
-
-    if (!response.ok || !data.success) {
+    if (!data.success) {
       throw new UserStoriesGeneratorAPIError(
-        data.error || `Failed to split user story (HTTP ${response.status})`,
-        response.status
+        data.error || 'Failed to split user story',
+        500
       );
     }
 
@@ -292,8 +253,7 @@ export async function splitUserStory(
       );
     }
 
-    // Add client-generated IDs to the split stories
-    const storiesWithIds = addIdsToStories(data.stories);
+    const storiesWithIds = data.stories.map(toUserStory);
 
     logger.info('Successfully split user story', {
       resultCount: storiesWithIds.length,
@@ -301,9 +261,15 @@ export async function splitUserStory(
     return storiesWithIds;
   } catch (error) {
     logger.error('Exception in splitUserStory', error);
+
     if (error instanceof UserStoriesGeneratorAPIError) {
       throw error;
     }
+
+    if (error instanceof ApiError) {
+      throw new UserStoriesGeneratorAPIError(error.message, error.status);
+    }
+
     throw new UserStoriesGeneratorAPIError(
       error instanceof Error ? error.message : 'Network error occurred',
       0
@@ -316,6 +282,7 @@ export async function splitUserStory(
  *
  * @param story - The user story to regenerate
  * @param originalContent - The original design documentation
+ * @param teamId - The team ID for authorization
  * @param instructions - Optional instructions for regeneration
  * @returns Promise that resolves to the regenerated user story (preserves original ID)
  * @throws UserStoriesGeneratorAPIError if regeneration fails
@@ -323,43 +290,29 @@ export async function splitUserStory(
 export async function regenerateUserStory(
   story: UserStory,
   originalContent: string,
+  teamId: string,
   instructions?: string
 ): Promise<UserStory> {
   logger.debug('regenerateUserStory called', {
     storyId: story.id,
+    teamId,
     hasInstructions: !!instructions,
   });
 
   try {
-    logger.info('Sending request to /api/generate-regenerate-story');
+    logger.info('Sending request to AI proxy endpoint');
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      logger.error('Request timeout after 120 seconds');
-      controller.abort();
-    }, 120000);
+    const storyToSend = parseStoryContent(story.content);
 
-    const response = await fetch('/api/generate-regenerate-story', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        story: story.content, // Send markdown content
-        originalContent,
-        instructions,
-      } satisfies RegenerateUserStoryRequest),
-      signal: controller.signal,
-    }).finally(() => {
-      clearTimeout(timeoutId);
-    });
+    const data = await httpClient.post<RegenerateUserStoryResponse>(
+      `/api/ai/regenerate-story?teamId=${teamId}`,
+      { story: storyToSend, originalContent, instructions }
+    );
 
-    const data: RegenerateUserStoryResponse = await response.json();
-
-    if (!response.ok || !data.success) {
+    if (!data.success) {
       throw new UserStoriesGeneratorAPIError(
-        data.error || `Failed to regenerate user story (HTTP ${response.status})`,
-        response.status
+        data.error || 'Failed to regenerate user story',
+        500
       );
     }
 
@@ -371,18 +324,22 @@ export async function regenerateUserStory(
     }
 
     // Preserve the original ID, update content
-    const regeneratedStory: UserStory = {
-      id: story.id,
-      content: data.story,
-    };
+    const regeneratedStory = toUserStory(data.story);
+    regeneratedStory.id = story.id;
 
     logger.info('Successfully regenerated user story');
     return regeneratedStory;
   } catch (error) {
     logger.error('Exception in regenerateUserStory', error);
+
     if (error instanceof UserStoriesGeneratorAPIError) {
       throw error;
     }
+
+    if (error instanceof ApiError) {
+      throw new UserStoriesGeneratorAPIError(error.message, error.status);
+    }
+
     throw new UserStoriesGeneratorAPIError(
       error instanceof Error ? error.message : 'Network error occurred',
       0

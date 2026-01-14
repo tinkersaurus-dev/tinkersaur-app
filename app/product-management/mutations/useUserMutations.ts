@@ -52,14 +52,10 @@ export function useDeleteUser() {
 
   return useMutation({
     mutationFn: (id: string) => userApi.delete(id),
-    onSuccess: (success, id) => {
-      if (success) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-        queryClient.removeQueries({ queryKey: queryKeys.users.detail(id) });
-        toast.success('User deleted successfully');
-      } else {
-        toast.error('Failed to delete user');
-      }
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+      queryClient.removeQueries({ queryKey: queryKeys.users.detail(id) });
+      toast.success('User deleted successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete user');

@@ -11,10 +11,11 @@
  */
 
 import { useState, useCallback } from 'react';
-import { generateSuggestions } from '../lib/llm/suggestions-generator-api';
+import { generateSuggestions } from '~/core/api/llm';
 import { useMermaidViewerStore } from '../store/mermaid/mermaidViewerStore';
 import { useOverlayVisibilityStore } from '../store/overlay/overlayVisibilityStore';
 import { useDiagramCRUD } from './useDiagramCRUD';
+import { useAuthStore } from '~/core/auth';
 import type { Shape, CreateShapeDTO } from '~/core/entities/design-studio/types/Shape';
 import type { CreateConnectorDTO } from '~/core/entities/design-studio/types/Connector';
 import type { SuggestionCommentShapeData } from '~/core/entities/design-studio/types/Shape';
@@ -55,6 +56,9 @@ export function useSuggestionsGenerator({
 
   // Get CRUD operations
   const { addShape, addConnector } = useDiagramCRUD(diagramId);
+
+  // Get teamId for API calls
+  const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
 
   /**
    * Find a shape by its label (case-insensitive matching)
@@ -104,7 +108,7 @@ export function useSuggestionsGenerator({
 
     try {
       // Call API to get suggestions
-      const suggestions = await generateSuggestions(mermaidSyntax, diagramType);
+      const suggestions = await generateSuggestions(mermaidSyntax, diagramType, teamId);
 
       if (suggestions.length === 0) {
         setError('No suggestions generated - your diagram looks good!');
@@ -203,6 +207,7 @@ export function useSuggestionsGenerator({
   }, [
     diagramId,
     diagramType,
+    teamId,
     mermaidSyntax,
     shapes,
     addShape,
