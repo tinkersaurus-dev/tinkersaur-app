@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { authApi } from './authApi';
-import { setAuthToken, clearAuthToken, getAuthToken } from '~/core/api/httpClient';
+import {
+  setAuthToken,
+  clearAuthToken,
+  getAuthToken,
+  setRefreshToken,
+  getRefreshToken,
+  setTokenExpiry,
+} from '~/core/api/httpClient';
 import type { TeamAccess, SelectedTeam } from './types';
 import { useSolutionStore } from '~/core/solution';
 
@@ -25,7 +32,7 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   initialize: () => Promise<void>;
   selectTeam: (teamId: string) => void;
   clearMustChangePassword: () => void;
@@ -46,8 +53,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const loginResponse = await authApi.login(email, password);
 
-      // Store the JWT token for subsequent API calls
+      // Store the JWT tokens for subsequent API calls
       setAuthToken(loginResponse.accessToken);
+      setRefreshToken(loginResponse.refreshToken);
+      setTokenExpiry(loginResponse.accessTokenExpiry);
 
       const userInfo: UserInfo = {
         userId: loginResponse.userId,
@@ -88,8 +97,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  logout: () => {
-    authApi.logout();
+  logout: async () => {
+    await authApi.logout();
     localStorage.removeItem(USER_INFO_KEY);
     localStorage.removeItem(TEAM_ACCESS_KEY);
     localStorage.removeItem(SELECTED_TEAM_KEY);
@@ -110,8 +119,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const storedTeamAccess = localStorage.getItem(TEAM_ACCESS_KEY);
     const storedSelectedTeam = localStorage.getItem(SELECTED_TEAM_KEY);
     const hasToken = getAuthToken() !== null;
+    const hasRefreshToken = getRefreshToken() !== null;
 
-    if (storedUserInfo && storedTeamAccess && hasToken) {
+    if (storedUserInfo && storedTeamAccess && (hasToken || hasRefreshToken)) {
       try {
         const userInfo = JSON.parse(storedUserInfo) as UserInfo;
         const teamAccess = JSON.parse(storedTeamAccess) as TeamAccess[];
@@ -134,8 +144,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         localStorage.removeItem(TEAM_ACCESS_KEY);
         localStorage.removeItem(SELECTED_TEAM_KEY);
       }
-    } else if (!hasToken) {
-      // No token means not authenticated - clear any stale data
+    } else if (!hasToken && !hasRefreshToken) {
+      // No tokens means not authenticated - clear any stale data
       localStorage.removeItem(USER_INFO_KEY);
       localStorage.removeItem(TEAM_ACCESS_KEY);
       localStorage.removeItem(SELECTED_TEAM_KEY);

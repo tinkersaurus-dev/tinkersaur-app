@@ -40,7 +40,19 @@ export interface LoginApiResponse {
   primaryTeamId: string;
   teamAccess: TeamAccess[];
   accessToken: string;
+  refreshToken: string;
+  accessTokenExpiry: string;
   mustChangePassword: boolean;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiry: string;
 }
 
 export interface ForgotPasswordRequest {

@@ -1,10 +1,11 @@
-import { httpClient, clearAuthToken } from '~/core/api/httpClient';
+import { httpClient, clearAuthToken, getRefreshToken } from '~/core/api/httpClient';
 import type {
   LoginApiResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   ChangePasswordRequest,
   MessageResponse,
+  RefreshTokenRequest,
 } from './types';
 
 export const authApi = {
@@ -31,7 +32,18 @@ export const authApi = {
     } as ChangePasswordRequest);
   },
 
-  logout: (): void => {
+  logout: async (): Promise<void> => {
+    // Revoke the refresh token on the server before clearing local state
+    const refreshToken = getRefreshToken();
+    if (refreshToken) {
+      try {
+        await httpClient.post<MessageResponse>('/api/auth/revoke', {
+          refreshToken,
+        } as RefreshTokenRequest);
+      } catch {
+        // Ignore errors - we still want to clear local state
+      }
+    }
     clearAuthToken();
   },
 };
