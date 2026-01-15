@@ -20,13 +20,15 @@ interface AuthState {
   teamAccess: TeamAccess[];
   selectedTeam: SelectedTeam | null;
   isAuthenticated: boolean;
+  mustChangePassword: boolean;
   initialized: boolean;
   loading: boolean;
   error: string | null;
-  login: (email: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   initialize: () => Promise<void>;
   selectTeam: (teamId: string) => void;
+  clearMustChangePassword: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -34,15 +36,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   teamAccess: [],
   selectedTeam: null,
   isAuthenticated: false,
+  mustChangePassword: false,
   initialized: false,
   loading: false,
   error: null,
 
-  login: async (email: string) => {
+  login: async (email: string, password: string) => {
     set({ loading: true, error: null });
     try {
-      // Login via email lookup
-      const loginResponse = await authApi.login(email);
+      const loginResponse = await authApi.login(email, password);
 
       // Store the JWT token for subsequent API calls
       setAuthToken(loginResponse.accessToken);
@@ -76,6 +78,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         teamAccess: loginResponse.teamAccess,
         selectedTeam,
         isAuthenticated: true,
+        mustChangePassword: loginResponse.mustChangePassword,
         loading: false,
       });
     } catch (err) {
@@ -157,5 +160,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     localStorage.setItem(SELECTED_TEAM_KEY, JSON.stringify(selectedTeam));
     set({ selectedTeam });
+  },
+
+  clearMustChangePassword: () => {
+    set({ mustChangePassword: false });
   },
 }));

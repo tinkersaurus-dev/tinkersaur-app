@@ -11,7 +11,8 @@ import { Toaster } from "sonner";
 import type { Route } from "./+types/root";
 import { ThemeProvider, useTheme } from "./core/theme/ThemeProvider";
 import { QueryProvider } from "./core/query/QueryProvider";
-import { AuthGuard } from "./core/auth";
+import { AuthGuard, useAuthStore } from "./core/auth";
+import { ChangePasswordModal } from "./core/components/auth/ChangePasswordModal";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [];
@@ -36,11 +37,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 function AppContent() {
   const { theme } = useTheme();
-  /* TODO: Standalone custome CSS file for toast? */
-  /* TODO: Popconfirm to replace browser native confirm. */
+  const mustChangePassword = useAuthStore((state) => state.mustChangePassword);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return (
     <AuthGuard>
       <Outlet />
+      {isAuthenticated && mustChangePassword && (
+        <ChangePasswordModal
+          open={true}
+          onClose={() => {}}
+          forced={true}
+        />
+      )}
       <Toaster
         theme={theme}
         position="bottom-right"

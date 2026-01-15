@@ -7,6 +7,9 @@ export type { ButtonProps } from './Button';
 export { Input } from './Input';
 export type { InputProps, TextAreaProps } from './Input';
 
+export { PasswordInput } from './PasswordInput';
+export type { PasswordInputProps } from './PasswordInput';
+
 export { InputNumber } from './InputNumber';
 export type { InputNumberProps } from './InputNumber';
 

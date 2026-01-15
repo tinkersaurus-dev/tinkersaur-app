@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useAuthStore } from './useAuthStore';
 
-const PUBLIC_ROUTES = ['/login'];
+const PUBLIC_ROUTES = ['/login', '/forgot-password', '/reset-password', '/set-password'];
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const location = useLocation();
