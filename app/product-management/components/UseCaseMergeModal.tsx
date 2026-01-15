@@ -7,7 +7,7 @@
 
 import { useState, useMemo } from 'react';
 import { FiClipboard, FiZap, FiAlertTriangle } from 'react-icons/fi';
-import { Modal, Button, Card } from '~/core/components/ui';
+import { Modal, Button, Card, Input } from '~/core/components/ui';
 import type { UseCase, Solution } from '~/core/entities/product-management/types';
 import { useMergeUseCasesLLM } from '../hooks/useMergeUseCasesLLM';
 import { useMergeUseCases } from '../mutations';
@@ -181,11 +181,12 @@ export function UseCaseMergeModal({
             <label className="block text-sm font-medium text-[var(--text)] mb-2">
               Additional Instructions (optional)
             </label>
-            <textarea
+            <Input.TextArea
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
               placeholder="E.g., Focus on the core workflow, emphasize mobile experience..."
-              className="w-full h-24 px-3 py-2 text-sm border border-[var(--border)] rounded bg-[var(--bg)] text-[var(--text)] placeholder:text-[var(--text-muted)] resize-none focus:outline-none focus:border-[var(--primary)]"
+              rows={4}
+              size="small"
             />
           </div>
 

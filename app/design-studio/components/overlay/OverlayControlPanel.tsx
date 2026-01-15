@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { LuLayers } from 'react-icons/lu';
 import type { Shape, Connector } from '~/core/entities/design-studio/types';
 import { useOverlayVisibilityStore } from '../../store/overlay/overlayVisibilityStore';
+import { Checkbox } from '~/core/components/ui';
 
 interface OverlayControlPanelProps {
   shapes: Shape[];
@@ -72,36 +73,23 @@ export function OverlayControlPanel({ shapes, connectors }: OverlayControlPanelP
           const isVisible = visibleOverlays[tag] ?? false;
 
           return (
-            <label
+            <div
               key={tag}
               className="
-                flex items-center gap-2
                 px-1 py-1
                 rounded
-                cursor-pointer
                 hover:bg-[var(--highlight)]
                 transition-colors duration-100
               "
             >
-              <input
-                type="checkbox"
+              <Checkbox
+                id={`overlay-${tag}`}
+                size="small"
                 checked={isVisible}
                 onChange={() => toggleOverlay(tag)}
-                className="
-                  w-3.5 h-3.5
-                  rounded
-                  border border-[var(--border)]
-                  bg-[var(--bg-dark)]
-                  checked:bg-[var(--primary)]
-                  checked:border-[var(--primary)]
-                  cursor-pointer
-                  accent-[var(--primary)]
-                "
+                label={formatTagLabel(tag)}
               />
-              <span className="text-xs text-[var(--text)]">
-                {formatTagLabel(tag)}
-              </span>
-            </label>
+            </div>
           );
         })}
       </div>

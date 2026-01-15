@@ -3,13 +3,13 @@
  * Displays all feedback in a paginated table with filtering and multi-select
  */
 
-import { useMemo, useRef, useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { ListControlPanel } from '~/core/components/ListControlPanel';
-import { Button, Table, Empty, Tag } from '~/core/components/ui';
+import { Button, Table, Empty, Tag, Checkbox } from '~/core/components/ui';
 import type { TableColumn, TagColor } from '~/core/components/ui';
 import type { Feedback } from '~/core/entities/discovery';
 import { FEEDBACK_TYPE_CONFIG } from '~/core/entities/discovery/types/Feedback';
@@ -87,12 +87,10 @@ export default function FeedbackListPage() {
       title: '',
       width: 48,
       render: (_, record) => (
-        <input
-          type="checkbox"
+        <Checkbox
           checked={selection.isSelected(record.id)}
           onChange={() => selection.toggle(record.id)}
           onClick={(e) => e.stopPropagation()}
-          className="w-4 h-4 rounded border-[var(--border)] cursor-pointer accent-[var(--primary)]"
         />
       ),
     },
@@ -177,31 +175,21 @@ export default function FeedbackListPage() {
     },
   ], [selection, solutions]);
 
-  // Select all checkbox in header
-  const selectAllRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (selectAllRef.current) {
-      selectAllRef.current.indeterminate = selection.isIndeterminate;
-    }
-  }, [selection.isIndeterminate]);
-
   // Update first column to have select-all checkbox
   const columnsWithSelectAll = useMemo(() => {
     const cols = [...columns];
     cols[0] = {
       ...cols[0],
       title: (
-        <input
-          ref={selectAllRef}
-          type="checkbox"
+        <Checkbox
           checked={selection.isAllSelected}
+          indeterminate={selection.isIndeterminate}
           onChange={selection.toggleAll}
-          className="w-4 h-4 rounded border-[var(--border)] cursor-pointer accent-[var(--primary)]"
         />
       ),
     };
     return cols;
-  }, [columns, selection.isAllSelected, selection.toggleAll]);
+  }, [columns, selection.isAllSelected, selection.isIndeterminate, selection.toggleAll]);
 
   // Filter configuration
   const filters = useMemo(() => [

@@ -27,7 +27,7 @@ export function Input({
 
   // Size styles
   const sizeStyles = {
-    small: 'px-2 py-1 text-sm leading-normal h-6',
+    small: 'px-2 py-1 text-xs leading-normal h-6',
     medium: 'px-3 py-1.5 text-base leading-normal h-9',
     large: 'px-4 py-2 text-lg leading-normal h-11',
   };
@@ -35,7 +35,7 @@ export function Input({
   // State styles
   const stateStyles = error
     ? 'border-[var(--danger)] text-[var(--danger)] focus:ring-[var(--danger)] focus:border-[var(--danger)]'
-    : 'border-[var(--border-muted)] hover:border-[var(--border)] text-[var(--text)] focus:ring-[var(--border-muted)] focus:border-[var(--border)]';
+    : 'border-[var(--border-muted)] hover:border-[var(--primary)] text-[var(--text)] ring-opacity-20 focus:border-[var(--primary)]';
 
   // Disabled styles
   const disabledStyles = disabled
@@ -81,7 +81,7 @@ function TextArea({
   // State styles
   const stateStyles = error
     ? 'border-[var(--danger)] text-[var(--danger)] focus:ring-[var(--danger)] focus:border-[var(--danger)]'
-    : 'border-[var(--border-muted)] hover:border-[var(--border)] text-[var(--text)] focus:ring-[var(--border-muted)] focus:border-[var(--border)]';
+    : 'border-[var(--border-muted)] hover:border-[var(--primary)] text-[var(--text)] ring-opacity-20 focus:border-[var(--primary)]';
 
   // Disabled styles
   const disabledStyles = disabled

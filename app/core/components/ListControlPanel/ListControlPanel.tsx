@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { LuSearch } from 'react-icons/lu';
-import { Select, MultiSelect } from '~/core/components/ui';
+import { Select, MultiSelect, SearchInput } from '~/core/components/ui';
 import type { SelectOption } from '~/core/components/ui';
 import type { MultiSelectOption } from '~/core/components/ui/MultiSelect';
 
@@ -68,19 +67,23 @@ export function ListControlPanel({
     setLocalSearch(e.target.value);
   }, []);
 
+  const handleClearSearch = useCallback(() => {
+    setLocalSearch('');
+    onSearchChange('');
+  }, [onSearchChange]);
+
   return (
     <div className="bg-[var(--bg-light)] border border-[var(--border-muted)] rounded-md p-4 mb-4">
       {/* Filters Row */}
       <div className="flex flex-wrap gap-3 items-center">
         {/* Search Input */}
-        <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-          <LuSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-          <input
-            type="text"
+        <div className="flex-1 min-w-[200px] max-w-[300px]">
+          <SearchInput
             value={localSearch}
             onChange={handleSearchChange}
+            onClear={handleClearSearch}
             placeholder={searchPlaceholder}
-            className="w-full h-9 pl-9 pr-3 text-sm bg-[var(--bg)] border border-[var(--border-muted)] rounded-[var(--radius-sm)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)] focus:ring-opacity-20"
+            size="medium"
           />
         </div>
 

@@ -116,16 +116,16 @@ export function Select({
 
   // Size styles
   const sizeStyles = {
-    small: 'h-8 text-xs px-2',
-    medium: 'h-10 text-base px-3',
-    large: 'h-12 text-lg px-4',
+    small: 'h-6 text-xs px-2',
+    medium: 'h-9 text-base px-3',
+    large: 'h-11 text-lg px-4',
   };
 
   const baseStyles = `
     flex items-center justify-between
-    bg-[var(--bg)]
+    bg-[var(--bg-light)]
     border border-[var(--border-muted)]
-    rounded-[var(--radius-sm)]
+    rounded-sm
     cursor-pointer
     transition-all duration-[var(--transition-base)]
     ${sizeStyles[size]}
@@ -138,7 +138,7 @@ export function Select({
   const dropdownStyles = `
     bg-[var(--bg-light)]
     border border-[var(--border-muted)]
-    rounded-[var(--radius-sm)]
+    rounded-sm
     shadow-[var(--shadow)]
     max-h-64
     overflow-y-auto

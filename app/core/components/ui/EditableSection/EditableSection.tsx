@@ -6,6 +6,7 @@
 import type { ReactNode } from 'react';
 import { LuPencil, LuCheck, LuX, LuSparkles } from 'react-icons/lu';
 import { Card } from '../Card';
+import { Button } from '../Button';
 
 export interface EditableSectionProps {
   /** Section title */
@@ -45,40 +46,6 @@ export function EditableSection({
   onGenerateClick,
   isGenerating = false,
 }: EditableSectionProps) {
-  // Base icon button styles
-  const iconButtonBase = `
-    flex items-center justify-center
-    w-6 h-6
-    rounded-sm
-    transition-all
-    cursor-pointer
-  `.trim().replace(/\s+/g, ' ');
-
-  // Edit button (default state)
-  const editButtonClasses = `
-    ${iconButtonBase}
-    text-[var(--text-muted)]
-    hover:text-[var(--text)]
-    hover:bg-[var(--bg-dark)]
-  `.trim().replace(/\s+/g, ' ');
-
-  // Save button (green accent)
-  const saveButtonClasses = `
-    ${iconButtonBase}
-    text-[var(--text-muted)]
-    hover:text-[var(--success)]
-    hover:bg-[var(--bg-dark)]
-    ${isSaving || hasErrors ? 'opacity-50 cursor-not-allowed' : ''}
-  `.trim().replace(/\s+/g, ' ');
-
-  // Cancel button (red accent)
-  const cancelButtonClasses = `
-    ${iconButtonBase}
-    text-[var(--text-muted)]
-    hover:text-[var(--danger)]
-    hover:bg-[var(--bg-dark)]
-  `.trim().replace(/\s+/g, ' ');
-
   const handleSaveClick = async () => {
     if (isSaving || hasErrors) return;
     await onSave();
@@ -93,50 +60,48 @@ export function EditableSection({
         <div className="flex items-center gap-1">
           {isEditing ? (
             <>
-              <button
-                type="button"
-                className={saveButtonClasses}
+              <Button
+                variant="text"
+                size="small"
                 onClick={handleSaveClick}
                 disabled={isSaving || hasErrors}
                 title="Save"
-              >
-                {isSaving ? (
-                  <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <LuCheck className="w-4 h-4" />
-                )}
-              </button>
-              <button
-                type="button"
-                className={cancelButtonClasses}
+                icon={
+                  isSaving ? (
+                    <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <LuCheck className="w-4 h-4" />
+                  )
+                }
+              />
+              <Button
+                variant="text"
+                size="small"
                 onClick={onCancel}
                 disabled={isSaving}
                 title="Cancel"
-              >
-                <LuX className="w-4 h-4" />
-              </button>
+                icon={<LuX className="w-4 h-4" />}
+              />
             </>
           ) : (
             <>
               {onGenerateClick && (
-                <button
-                  type="button"
-                  className={editButtonClasses}
+                <Button
+                  variant="text"
+                  size="small"
                   onClick={onGenerateClick}
                   disabled={isGenerating}
                   title="Generate with AI"
-                >
-                  <LuSparkles className="w-4 h-4" />
-                </button>
+                  icon={<LuSparkles className="w-4 h-4" />}
+                />
               )}
-              <button
-                type="button"
-                className={editButtonClasses}
+              <Button
+                variant="text"
+                size="small"
                 onClick={onEditToggle}
                 title="Edit"
-              >
-                <LuPencil className="w-4 h-4" />
-              </button>
+                icon={<LuPencil className="w-4 h-4" />}
+              />
             </>
           )}
         </div>

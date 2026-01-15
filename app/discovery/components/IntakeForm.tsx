@@ -4,6 +4,7 @@ import { Button } from '~/core/components/ui/Button';
 import { Input } from '~/core/components/ui/Input';
 import { Select } from '~/core/components/ui/Select';
 import { Card } from '~/core/components/ui/Card';
+import { DatePicker } from '~/core/components/ui/DatePicker';
 import {
   SOURCE_TYPES,
   type SourceTypeKey,
@@ -123,22 +124,21 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
                   )}
                 </label>
                 {field.type === 'datetime' ? (
-                  <Input
+                  <DatePicker
                     id={field.name}
-                    type="datetime-local"
+                    showTime
                     value={metadata[field.name] || ''}
                     onChange={(e) => handleMetadataChange(field.name, e.target.value)}
                     disabled={isLoading}
-                    className='text-xs'
+                    size="small"
                   />
                 ) : field.type === 'date' ? (
-                  <Input
+                  <DatePicker
                     id={field.name}
-                    type="date"
                     value={metadata[field.name] || ''}
                     onChange={(e) => handleMetadataChange(field.name, e.target.value)}
                     disabled={isLoading}
-                    className='text-xs'
+                    size="small"
                   />
                 ) : (
                   <Input

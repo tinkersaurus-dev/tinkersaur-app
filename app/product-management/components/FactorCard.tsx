@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react';
 import { FiEdit2, FiTrash2, FiCheck, FiX, FiCalendar, FiEye, FiEyeOff, FiZap } from 'react-icons/fi';
 import { MarkdownContent } from '~/core/components/ui/MarkdownContent';
+import { Input, Button } from '~/core/components/ui';
 import { RefinementPreview } from './RefinementPreview';
 import type {
   SolutionFactor,
@@ -133,11 +134,11 @@ export function FactorCard({
             <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
               Content
             </label>
-            <textarea
+            <Input.TextArea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-[var(--border)] rounded-sm bg-[var(--bg)] text-[var(--text)] text-sm resize-none focus:outline-none focus:border-[var(--primary)]"
+              size="small"
               placeholder="Enter content (supports markdown)..."
             />
           </div>
@@ -145,11 +146,11 @@ export function FactorCard({
             <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
               Notes (optional)
             </label>
-            <input
+            <Input
               type="text"
               value={editNotes}
               onChange={(e) => setEditNotes(e.target.value)}
-              className="w-full px-3 py-2 border border-[var(--border)] rounded-sm bg-[var(--bg)] text-[var(--text)] text-sm focus:outline-none focus:border-[var(--primary)]"
+              size="small"
               placeholder="Add notes..."
             />
           </div>
@@ -158,11 +159,11 @@ export function FactorCard({
               <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                 Refinement Instructions
               </label>
-              <textarea
+              <Input.TextArea
                 value={refinementInstructions}
                 onChange={(e) => setRefinementInstructions(e.target.value)}
                 rows={2}
-                className="w-full px-3 py-2 border border-[var(--border)] rounded-sm bg-[var(--bg)] text-[var(--text)] text-sm resize-none focus:outline-none focus:border-[var(--primary)]"
+                size="small"
                 placeholder="Describe how to improve this factor (e.g., 'make it more concise', 'focus on enterprise customers')"
               />
             </div>
@@ -172,32 +173,30 @@ export function FactorCard({
           )}
           <div className="flex justify-end gap-2">
             {onRefine && (
-              <button
-                type="button"
+              <Button
+                variant="text"
+                size="small"
                 onClick={handleRefine}
                 disabled={!refinementInstructions.trim() || isRefining || isUpdating}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                icon={<FiZap className="w-3.5 h-3.5" />}
               >
-                <FiZap className="w-3.5 h-3.5" />
                 {isRefining ? 'Refining...' : 'Refine with AI'}
-              </button>
+              </Button>
             )}
-            <button
-              type="button"
+            <Button
+              variant="text"
+              size="small"
               onClick={handleCancel}
-              className="p-2 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
               disabled={isUpdating || isRefining}
-            >
-              <FiX className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
+              icon={<FiX className="w-4 h-4" />}
+            />
+            <Button
+              variant="text"
+              size="small"
               onClick={handleSave}
-              className="p-2 text-[var(--primary)] hover:opacity-80 transition-opacity"
               disabled={isUpdating || isRefining}
-            >
-              <FiCheck className="w-4 h-4" />
-            </button>
+              icon={<FiCheck className="w-4 h-4" />}
+            />
           </div>
         </div>
       </div>
@@ -227,30 +226,27 @@ export function FactorCard({
           )}
         </div>
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            type="button"
+          <Button
+            variant="text"
+            size="small"
             onClick={handleToggleActive}
-            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             title={factor.active ? 'Mark inactive' : 'Mark active'}
-          >
-            {factor.active ? <FiEye className="w-4 h-4" /> : <FiEyeOff className="w-4 h-4" />}
-          </button>
-          <button
-            type="button"
+            icon={factor.active ? <FiEye className="w-4 h-4" /> : <FiEyeOff className="w-4 h-4" />}
+          />
+          <Button
+            variant="text"
+            size="small"
             onClick={() => setIsEditing(true)}
-            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             title="Edit"
-          >
-            <FiEdit2 className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
+            icon={<FiEdit2 className="w-4 h-4" />}
+          />
+          <Button
+            variant="text"
+            size="small"
             onClick={() => onDelete(factor.id)}
-            className="p-1.5 text-[var(--text-muted)] hover:text-red-500 transition-colors"
             title="Delete"
-          >
-            <FiTrash2 className="w-4 h-4" />
-          </button>
+            icon={<FiTrash2 className="w-4 h-4" />}
+          />
         </div>
       </div>
     </div>

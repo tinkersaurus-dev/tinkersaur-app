@@ -4,6 +4,7 @@
 
 import { useState, useCallback } from 'react';
 import { FiPlus, FiZap } from 'react-icons/fi';
+import { Input, Button } from '~/core/components/ui';
 import { FactorCard } from './FactorCard';
 import { RefinementPreview } from './RefinementPreview';
 import type {
@@ -120,25 +121,25 @@ export function FactorsList({
         </div>
         <div className="flex gap-2">
           {onGenerateClick && (
-            <button
-              type="button"
+            <Button
+              variant="text"
+              size="small"
               onClick={onGenerateClick}
               disabled={isGenerating}
-              className="flex items-center gap-1 px-2 py-1 text-xs text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded transition-colors disabled:opacity-50"
+              icon={<FiZap className="w-3.5 h-3.5" />}
             >
-              <FiZap className="w-3.5 h-3.5" />
               {isGenerating ? 'Generating...' : 'Generate'}
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
+          <Button
+            variant="text"
+            size="small"
             onClick={() => setIsAddingNew(true)}
             disabled={isAddingNew}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)] rounded transition-colors disabled:opacity-50"
+            icon={<FiPlus className="w-3.5 h-3.5" />}
           >
-            <FiPlus className="w-3.5 h-3.5" />
             Add
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -177,11 +178,11 @@ export function FactorsList({
                   <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                     Content
                   </label>
-                  <textarea
+                  <Input.TextArea
                     value={newContent}
                     onChange={(e) => setNewContent(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-[var(--border)] rounded-sm bg-[var(--bg)] text-[var(--text)] text-sm resize-none focus:outline-none focus:border-[var(--primary)]"
+                    size="small"
                     placeholder="Enter content (supports markdown)..."
                     autoFocus
                   />
@@ -190,11 +191,11 @@ export function FactorsList({
                   <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                     Notes (optional)
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={newNotes}
                     onChange={(e) => setNewNotes(e.target.value)}
-                    className="w-full px-3 py-2 border border-[var(--border)] rounded-sm bg-[var(--bg)] text-[var(--text)] text-sm focus:outline-none focus:border-[var(--primary)]"
+                    size="small"
                     placeholder="Add notes..."
                   />
                 </div>
@@ -203,11 +204,11 @@ export function FactorsList({
                     <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                       Refinement Instructions
                     </label>
-                    <textarea
+                    <Input.TextArea
                       value={refinementInstructions}
                       onChange={(e) => setRefinementInstructions(e.target.value)}
                       rows={2}
-                      className="w-full px-3 py-2 border border-[var(--border)] rounded-sm bg-[var(--bg)] text-[var(--text)] text-sm resize-none focus:outline-none focus:border-[var(--primary)]"
+                      size="small"
                       placeholder="Describe what you want (e.g., 'a principle about user privacy') or refine the draft above"
                     />
                   </div>
@@ -217,32 +218,32 @@ export function FactorsList({
                 )}
                 <div className="flex justify-end gap-2">
                   {onRefine && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="text"
+                      size="small"
                       onClick={handleRefine}
                       disabled={!refinementInstructions.trim() || isRefining || isUpdating}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      icon={<FiZap className="w-3.5 h-3.5" />}
                     >
-                      <FiZap className="w-3.5 h-3.5" />
                       {isRefining ? 'Refining...' : 'Refine with AI'}
-                    </button>
+                    </Button>
                   )}
-                  <button
-                    type="button"
+                  <Button
+                    variant="text"
+                    size="small"
                     onClick={handleAddCancel}
-                    className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
                     disabled={isRefining}
                   >
                     Cancel
-                  </button>
-                  <button
-                    type="button"
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="small"
                     onClick={handleAddSave}
                     disabled={!newContent.trim() || isUpdating || isRefining}
-                    className="px-3 py-1.5 text-xs bg-[var(--primary)] text-white rounded hover:opacity-90 transition-opacity disabled:opacity-50"
                   >
                     Add
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -254,21 +255,22 @@ export function FactorsList({
           <div className="py-6 text-center text-sm text-[var(--text-muted)] border border-dashed border-[var(--border)] rounded-sm">
             No {title.toLowerCase()} defined yet.
             <br />
-            <button
-              type="button"
+            <Button
+              variant="link"
+              size="small"
               onClick={onGenerateClick}
-              className="mt-2 text-[var(--primary)] hover:underline"
+              className="mt-2"
             >
               Generate with AI
-            </button>{' '}
+            </Button>{' '}
             or{' '}
-            <button
-              type="button"
+            <Button
+              variant="link"
+              size="small"
               onClick={() => setIsAddingNew(true)}
-              className="text-[var(--primary)] hover:underline"
             >
               add manually
-            </button>
+            </Button>
           </div>
         )}
       </div>

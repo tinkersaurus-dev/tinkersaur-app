@@ -3,6 +3,7 @@
  */
 
 import { MarkdownContent } from '~/core/components/ui/MarkdownContent';
+import { Button } from '~/core/components/ui';
 
 interface RefinementPreviewProps {
   original: string;
@@ -59,30 +60,30 @@ export function RefinementPreview({
 
       {/* Actions */}
       <div className="flex justify-end gap-2">
-        <button
-          type="button"
+        <Button
+          variant="text"
+          size="small"
           onClick={onKeepOriginal}
           disabled={isSaving}
-          className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors disabled:opacity-50"
         >
           Keep Original
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="text"
+          size="small"
           onClick={onEditRefined}
           disabled={isSaving}
-          className="px-3 py-1.5 text-xs text-[var(--text)] hover:text-[var(--primary)] transition-colors disabled:opacity-50"
         >
           Edit Refined
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="primary"
+          size="small"
           onClick={onUseRefined}
           disabled={isSaving}
-          className="px-3 py-1.5 text-xs bg-[var(--primary)] text-white rounded hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {isSaving ? 'Saving...' : 'Use Refined'}
-        </button>
+        </Button>
       </div>
     </div>
   );
