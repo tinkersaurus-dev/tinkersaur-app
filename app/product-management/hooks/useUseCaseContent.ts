@@ -6,6 +6,8 @@ import type { DesignWork } from '~/core/entities/design-studio';
 import { queryKeys } from '~/core/query/queryKeys';
 import { STALE_TIMES } from '~/core/query/queryClient';
 import { diagramApi, documentApi } from '~/core/entities/design-studio/api';
+import { requirementApi } from '~/core/entities/product-management/api';
+import type { Requirement } from '~/core/entities/product-management/types';
 
 interface ContentItem {
   type: 'diagram' | 'document';
@@ -91,6 +93,28 @@ export function useUseCaseContent(solutionId: string | undefined, useCaseId: str
     return items;
   }, [allFolderIds, designWorks]);
 
+  // Collect all requirement refs from all folders
+  const requirementItems = useMemo(() => {
+    const items: Array<{ requirementId: string; folderId: string; order: number }> = [];
+    for (const folderId of allFolderIds) {
+      const folder = designWorks.find((dw) => dw.id === folderId);
+      if (!folder?.requirementRefs) continue;
+      for (const ref of folder.requirementRefs) {
+        items.push({
+          requirementId: ref.requirementId,
+          folderId,
+          order: ref.order,
+        });
+      }
+    }
+    return items;
+  }, [allFolderIds, designWorks]);
+
+  // Get unique requirement IDs for querying
+  const uniqueRequirementIds = useMemo(() => {
+    return [...new Set(requirementItems.map((item) => item.requirementId))];
+  }, [requirementItems]);
+
   // Create queries for diagrams (only fetch if not already in store)
   const diagramQueries = useQueries({
     queries: contentItems
@@ -114,6 +138,27 @@ export function useUseCaseContent(solutionId: string | undefined, useCaseId: str
         enabled: !!solutionId && !!useCaseId,
       })),
   });
+
+  // Create queries for requirements
+  const requirementQueries = useQueries({
+    queries: uniqueRequirementIds.map((reqId) => ({
+      queryKey: queryKeys.requirements.detail(reqId),
+      queryFn: () => requirementApi.get(reqId),
+      staleTime: STALE_TIMES.requirements,
+      enabled: !!solutionId && !!useCaseId,
+    })),
+  });
+
+  // Build requirements map from query results
+  const requirements = useMemo(() => {
+    const result: Record<string, Requirement> = {};
+    requirementQueries.forEach((query) => {
+      if (query.data) {
+        result[query.data.id] = query.data;
+      }
+    });
+    return result;
+  }, [requirementQueries]);
 
   // Sync fetched data to Zustand stores (matches useFolderContent pattern)
   const diagramData = diagramQueries.map((q) => q.data).filter(Boolean);
@@ -189,6 +234,22 @@ export function useUseCaseContent(solutionId: string | undefined, useCaseId: str
       const contentHeaderLevel = Math.min(depth + 3, 5); // Cap at h5
       const contentHeaderPrefix = '#'.repeat(contentHeaderLevel);
 
+      // Render requirements for this folder (if any)
+      const folderRequirementRefs = folder.requirementRefs || [];
+      if (folderRequirementRefs.length > 0) {
+        const reqLines = folderRequirementRefs
+          .sort((a, b) => a.order - b.order)
+          .map((ref) => {
+            const req = requirements[ref.requirementId];
+            return req ? `- ${req.text}` : null;
+          })
+          .filter(Boolean);
+
+        if (reqLines.length > 0) {
+          sections.push(`${contentHeaderPrefix} Requirements\n\n${reqLines.join('\n')}`);
+        }
+      }
+
       // Render each item in order
       for (const item of folderItems) {
         if (item.type === 'diagram') {
@@ -215,12 +276,13 @@ export function useUseCaseContent(solutionId: string | undefined, useCaseId: str
     }
 
     return sections.length > 0 ? sections.join('\n\n') : '*No content in designworks*';
-  }, [solutionId, useCaseId, rootFolders, designWorks, diagrams, documents]);
+  }, [solutionId, useCaseId, rootFolders, designWorks, diagrams, documents, requirements]);
 
   // Check loading state
   const isLoading =
     diagramQueries.some((q) => q.isLoading) ||
-    documentQueries.some((q) => q.isLoading);
+    documentQueries.some((q) => q.isLoading) ||
+    requirementQueries.some((q) => q.isLoading);
 
   // Check if all content is loaded
   const allLoaded = useMemo(() => {
@@ -228,17 +290,22 @@ export function useUseCaseContent(solutionId: string | undefined, useCaseId: str
       if (item.type === 'diagram' && !diagrams[item.id]) return false;
       if (item.type === 'document' && !documents[item.id]) return false;
     }
+    for (const reqId of uniqueRequirementIds) {
+      if (!requirements[reqId]) return false;
+    }
     return true;
-  }, [contentItems, diagrams, documents]);
+  }, [contentItems, diagrams, documents, uniqueRequirementIds, requirements]);
 
   // Collect errors
   const error = useMemo(() => {
     const diagramError = diagramQueries.find((q) => q.error)?.error;
     const documentError = documentQueries.find((q) => q.error)?.error;
+    const requirementError = requirementQueries.find((q) => q.error)?.error;
     if (diagramError) return diagramError instanceof Error ? diagramError : new Error('Failed to fetch diagram');
     if (documentError) return documentError instanceof Error ? documentError : new Error('Failed to fetch document');
+    if (requirementError) return requirementError instanceof Error ? requirementError : new Error('Failed to fetch requirement');
     return null;
-  }, [diagramQueries, documentQueries]);
+  }, [diagramQueries, documentQueries, requirementQueries]);
 
   return {
     content,

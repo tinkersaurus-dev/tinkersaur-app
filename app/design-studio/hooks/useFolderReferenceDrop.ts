@@ -49,6 +49,7 @@ export function useFolderReferenceDrop(solutionId: string | undefined) {
         interfaces: [],
         documents: [],
         references: [],
+        requirementRefs: [],
       });
 
       return newFolder.id;

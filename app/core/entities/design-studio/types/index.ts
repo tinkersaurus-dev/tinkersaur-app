@@ -134,5 +134,8 @@ export {
   type ReferenceRef,
 } from './Reference';
 
+// RequirementRef
+export { RequirementRefSchema, type RequirementRef } from './RequirementRef';
+
 // Re-export common type for content type identification
 export type DesignContentType = 'diagram' | 'interface' | 'document';

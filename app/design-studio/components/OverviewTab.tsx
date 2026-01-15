@@ -1,55 +1,69 @@
 /**
  * OverviewTab Component
- * Displays solution information and lists all use cases
+ * Displays requirements for use cases in the current design studio context
+ * Requirements can be dragged to folders in the sidebar to create references
  */
 
-import { Card, Descriptions, VStack } from '~/core/components/ui';
-import { useSolutionQuery, useUseCasesQuery } from '~/product-management/queries';
+import { useMemo } from 'react';
+import { Card } from '~/core/components/ui';
+import { useUseCasesQuery } from '~/product-management/queries';
+import { useRequirementsBySolutionQuery } from '~/product-management/queries/useRequirementsBySolutionQuery';
+import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
+import { RequirementsList } from './RequirementsList';
 
 interface OverviewTabProps {
   solutionId: string;
+  useCaseId?: string;
 }
 
-export function OverviewTab({ solutionId }: OverviewTabProps) {
-  const { data: solution, isLoading, isError } = useSolutionQuery(solutionId);
-  const { data: useCases = [] } = useUseCasesQuery(solutionId);
+export function OverviewTab({ solutionId, useCaseId }: OverviewTabProps) {
+  // Fetch all use cases for the solution
+  const { data: allUseCases = [], isLoading: isLoadingUseCases } = useUseCasesQuery(solutionId);
+  const designWorks = useDesignWorkStore((state) => state.designWorks);
 
-  if (isLoading) {
-    return <div style={{ padding: '24px' }}>Loading solution...</div>;
-  }
+  // Filter use cases based on context (single use case or all)
+  const relevantUseCases = useCaseId
+    ? allUseCases.filter((uc) => uc.id === useCaseId)
+    : allUseCases;
 
-  if (isError || !solution) {
-    return <div style={{ padding: '24px' }}>Solution not found</div>;
-  }
+  // Fetch requirements for the relevant use cases
+  const { data: requirements, isLoading: isLoadingRequirements } = useRequirementsBySolutionQuery(
+    relevantUseCases,
+    relevantUseCases.length > 0
+  );
+
+  // Build a map of requirement ID -> folder names that reference it
+  const requirementFolderMap = useMemo(() => {
+    const map: Record<string, string[]> = {};
+
+    for (const dw of designWorks) {
+      if (!dw.requirementRefs || dw.requirementRefs.length === 0) continue;
+
+      for (const ref of dw.requirementRefs) {
+        if (!map[ref.requirementId]) {
+          map[ref.requirementId] = [];
+        }
+        map[ref.requirementId].push(dw.name);
+      }
+    }
+
+    return map;
+  }, [designWorks]);
+
+  const isLoading = isLoadingUseCases || isLoadingRequirements;
 
   return (
-    <div className='bg-[var(--bg)]' style={{ padding: '24px' }}>
-      <Card style={{ marginBottom: '16px' }}>
-        <Descriptions title="Solution" bordered column={1}>
-          <Descriptions.Item label="Name">{solution.name}</Descriptions.Item>
-          <Descriptions.Item label="Type">{solution.type.charAt(0).toUpperCase() + solution.type.slice(1)}</Descriptions.Item>
-          <Descriptions.Item label="Description">{solution.description}</Descriptions.Item>
-          <Descriptions.Item label="Created">
-            {new Date(solution.createdAt).toLocaleDateString()}
-          </Descriptions.Item>
-          <Descriptions.Item label="Last Updated">
-            {new Date(solution.updatedAt).toLocaleDateString()}
-          </Descriptions.Item>
-        </Descriptions>
-      </Card>
-
+    <div className="bg-[var(--bg)]" style={{ padding: '24px' }}>
       <Card>
-        <h3 style={{ marginBottom: '16px' }}>Use Cases</h3>
-        <VStack gap="lg">
-          {useCases.map((useCase) => (
-            <div key={useCase.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '8px' }}>{useCase.name}</div>
-              <div style={{ color: 'var(--text-secondary)' }}>
-                {useCase.description}
-              </div>
-            </div>
-          ))}
-        </VStack>
+        <h3 style={{ marginBottom: '16px' }}>Requirements</h3>
+        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+          Drag requirements to folders in the sidebar to include them in the compiled context.
+        </p>
+        <RequirementsList
+          requirements={requirements}
+          isLoading={isLoading}
+          requirementFolderMap={requirementFolderMap}
+        />
       </Card>
     </div>
   );

@@ -144,16 +144,22 @@ export function useSidebarDragDrop({
       event.preventDefault();
 
       // Only handle drops on folder nodes
-      if (!nodeKey.startsWith('folder-')) return;
+      if (!nodeKey.startsWith('folder-')) {
+        return;
+      }
 
       try {
         const jsonData = event.dataTransfer.getData('application/json');
-        if (!jsonData) return;
+        if (!jsonData) {
+          return;
+        }
 
         const dragData = JSON.parse(jsonData);
 
         // Verify this is a folder-droppable reference
-        if (!canDropOnFolder(dragData)) return;
+        if (!canDropOnFolder(dragData)) {
+          return;
+        }
 
         // Extract folder ID from node key
         const folderId = nodeKey.replace('folder-', '');

@@ -6,6 +6,7 @@ import type {
   InterfaceRef,
   DocumentRef,
   Reference,
+  RequirementRef,
 } from '../types';
 import { httpClient, deserializeDates } from '~/core/api/httpClient';
 
@@ -54,6 +55,7 @@ interface DesignWorkWithContentDto {
   interfaces: ContentMetadataDto[];
   documents: ContentMetadataDto[];
   references: ReferenceDto[];
+  requirementRefs?: RequirementRef[];
 }
 
 /**
@@ -158,6 +160,7 @@ function transformDesignWorkWithContent(dto: DesignWorkWithContentDto): DesignWo
     interfaces: (dto.interfaces || []).map(toInterfaceRef),
     documents: (dto.documents || []).map(toDocumentRef),
     references: (dto.references || []).map(toReferenceRef),
+    requirementRefs: dto.requirementRefs || [],
   };
 }
 

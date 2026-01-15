@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { DesignWork, CreateDesignWorkDto, DiagramRef, InterfaceRef, DocumentRef } from '../../types';
+import { v4 as uuidv4 } from 'uuid';
+import type { DesignWork, CreateDesignWorkDto, DiagramRef, InterfaceRef, DocumentRef, RequirementRef } from '../../types';
 import type { ReferenceRef } from '../../types/Reference';
 import { designWorkApi, diagramApi, interfaceApi, documentApi } from '../../api';
 import type { ReorderItemDto } from '../../api/designWorkApi';
@@ -32,6 +33,10 @@ interface DesignWorkStore {
     contentType: 'diagram' | 'interface' | 'document' | 'reference',
     contentId: string
   ) => Promise<void>;
+
+  // Requirement reference actions
+  addRequirementRef: (designWorkId: string, requirementId: string) => Promise<void>;
+  removeRequirementRef: (designWorkId: string, requirementRefId: string) => Promise<void>;
 }
 
 export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
@@ -357,6 +362,64 @@ export const useDesignWorkStore = create<DesignWorkStore>((set, get) => ({
       interfaces: contentType === 'interface' ? designWork.interfaces.filter((i) => i.id !== contentId) : designWork.interfaces,
       documents: contentType === 'document' ? designWork.documents.filter((d) => d.id !== contentId) : designWork.documents,
       references: contentType === 'reference' ? (designWork.references || []).filter((r) => r.id !== contentId) : (designWork.references || []),
+    };
+
+    // Persist to API
+    await designWorkApi.update(designWorkId, updatedDesignWork);
+
+    // Update local state
+    set((state) => ({
+      designWorks: state.designWorks.map((dw) => (dw.id === designWorkId ? updatedDesignWork : dw)),
+    }));
+  },
+
+  // Add a requirement reference to a design work
+  addRequirementRef: async (designWorkId: string, requirementId: string) => {
+    const designWork = get().designWorks.find((dw) => dw.id === designWorkId);
+    if (!designWork) {
+      throw new Error(`DesignWork ${designWorkId} not found`);
+    }
+
+    // Check if requirement is already referenced
+    const existingRefs = designWork.requirementRefs || [];
+    if (existingRefs.some((ref) => ref.requirementId === requirementId)) {
+      return; // Already referenced, skip
+    }
+
+    // Calculate next order value
+    const maxOrder = existingRefs.reduce((max, ref) => Math.max(max, ref.order), -1);
+
+    const newRef: RequirementRef = {
+      id: uuidv4(),
+      requirementId,
+      order: maxOrder + 1,
+    };
+
+    const updatedDesignWork = {
+      ...designWork,
+      requirementRefs: [...existingRefs, newRef],
+    };
+
+    // Persist to API
+    await designWorkApi.update(designWorkId, updatedDesignWork);
+
+    // Update local state
+    set((state) => ({
+      designWorks: state.designWorks.map((dw) => (dw.id === designWorkId ? updatedDesignWork : dw)),
+    }));
+  },
+
+  // Remove a requirement reference from a design work
+  removeRequirementRef: async (designWorkId: string, requirementRefId: string) => {
+    const designWork = get().designWorks.find((dw) => dw.id === designWorkId);
+    if (!designWork) {
+      return; // DesignWork might have been deleted
+    }
+
+    const existingRefs = designWork.requirementRefs || [];
+    const updatedDesignWork = {
+      ...designWork,
+      requirementRefs: existingRefs.filter((ref) => ref.id !== requirementRefId),
     };
 
     // Persist to API

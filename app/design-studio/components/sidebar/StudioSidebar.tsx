@@ -76,6 +76,7 @@ export function StudioSidebar({ solutionId, useCaseId }: StudioSidebarProps) {
         interfaces: [],
         documents: [],
         references: [],
+        requirementRefs: [],
       });
     } catch (error) {
       console.error('Failed to create folder:', error);
@@ -95,6 +96,7 @@ export function StudioSidebar({ solutionId, useCaseId }: StudioSidebarProps) {
           interfaces: [],
           documents: [],
           references: [],
+          requirementRefs: [],
         });
 
         // Immediately trigger inline rename for the new folder

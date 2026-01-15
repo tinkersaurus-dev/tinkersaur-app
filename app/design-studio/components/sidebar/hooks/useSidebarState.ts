@@ -10,6 +10,7 @@ import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-w
 import { useReferenceStore } from '~/core/entities/design-studio/store/reference/useReferenceStore';
 import { useDesignStudioCRUD } from '../../../hooks/useDesignStudioCRUD';
 import { useFolderReferenceDrop } from '../../../hooks/useFolderReferenceDrop';
+import { useRequirementReferenceDrop } from '../../../hooks/useRequirementReferenceDrop';
 import { useSolutionQuery } from '~/product-management/queries';
 import type { UseSidebarStateReturn, ReorderUpdate } from '../types';
 import type { DiagramType } from '~/core/entities/design-studio';
@@ -48,6 +49,26 @@ export function useSidebarState({ solutionId }: UseSidebarStateProps): UseSideba
 
   // Folder reference drop handlers
   const { canDropOnFolder, handleFolderDrop } = useFolderReferenceDrop(solutionId);
+  const { canDropRequirementOnFolder, handleRequirementFolderDrop } = useRequirementReferenceDrop(solutionId);
+
+  // Combined folder drop handlers
+  const combinedCanDropOnFolder = useCallback(
+    (dragData: Record<string, unknown>): boolean => {
+      return canDropOnFolder(dragData) || canDropRequirementOnFolder(dragData);
+    },
+    [canDropOnFolder, canDropRequirementOnFolder]
+  );
+
+  const combinedHandleFolderDrop = useCallback(
+    async (folderId: string, dragData: Record<string, unknown>) => {
+      if (canDropRequirementOnFolder(dragData)) {
+        await handleRequirementFolderDrop(folderId, dragData);
+      } else {
+        await handleFolderDrop(folderId, dragData);
+      }
+    },
+    [canDropRequirementOnFolder, handleRequirementFolderDrop, handleFolderDrop]
+  );
 
   // Wrap createDiagram to match expected signature
   const wrappedCreateDiagram = useCallback(
@@ -82,8 +103,8 @@ export function useSidebarState({ solutionId }: UseSidebarStateProps): UseSideba
       reorderItems: wrappedReorderItems,
     },
     folderDropHandlers: {
-      canDropOnFolder,
-      handleFolderDrop,
+      canDropOnFolder: combinedCanDropOnFolder,
+      handleFolderDrop: combinedHandleFolderDrop,
     },
     openTab,
   };

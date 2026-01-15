@@ -47,7 +47,7 @@ export function DesignStudioContent({ solutionId, useCaseId, className }: Design
 
   const renderTabContent = (type: string, contentId?: string) => {
     if (type === 'overview') {
-      return <OverviewTab solutionId={solutionId} />;
+      return <OverviewTab solutionId={solutionId} useCaseId={useCaseId} />;
     }
 
     if (!contentId) return null;
