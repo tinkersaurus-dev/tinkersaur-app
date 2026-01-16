@@ -24,8 +24,11 @@ import {
   UseCaseSupportingQuotes,
   UseCaseFeedbackTab,
   UseCasePersonasSidebar,
+  UseCaseVersionsSidebar,
+  UseCaseVersionDetailModal,
   useUseCaseFeedback,
 } from '../components/use-case-detail';
+import type { UseCaseVersion } from '~/core/entities/product-management/types/UseCaseVersion';
 import { DesignStudioContent } from '~/design-studio/components/DesignStudioContent';
 import { useUseCaseContent } from '../hooks/useUseCaseContent';
 import '~/design-studio/styles/markdown-content.css';
@@ -51,6 +54,8 @@ function UseCaseDetailContent() {
   const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
   const [topLevelTab, setTopLevelTab] = useState('overview');
   const [activeTab, setActiveTab] = useState('requirements');
+  const [selectedVersion, setSelectedVersion] = useState<UseCaseVersion | null>(null);
+  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
 
   // Solution store for auto-select
   const selectSolution = useSolutionStore((state) => state.selectSolution);
@@ -342,11 +347,22 @@ function UseCaseDetailContent() {
                       </Card>
                     </div>
 
-                    {/* Sidebar - Personas */}
+                    {/* Sidebar - Personas and Versions */}
                     <div className="space-y-6">
                       <UseCasePersonasSidebar
                         useCaseId={useCaseId!}
                         teamId={useCase.teamId}
+                      />
+                      <UseCaseVersionsSidebar
+                        useCaseId={useCaseId!}
+                        onViewVersion={(version) => {
+                          setSelectedVersion(version);
+                          setIsVersionModalOpen(true);
+                        }}
+                        onVersionReverted={() => {
+                          // Refetch the use case data after revert
+                          // The queries will automatically refetch due to query invalidation
+                        }}
                       />
                     </div>
                   </div>
@@ -468,6 +484,17 @@ function UseCaseDetailContent() {
           </div>
         </Form>
       </Modal>
+
+      {/* Version Detail Modal */}
+      <UseCaseVersionDetailModal
+        useCaseId={useCaseId!}
+        version={selectedVersion}
+        open={isVersionModalOpen}
+        onClose={() => {
+          setIsVersionModalOpen(false);
+          setSelectedVersion(null);
+        }}
+      />
     </MainLayout>
   );
 }

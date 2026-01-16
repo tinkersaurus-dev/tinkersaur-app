@@ -9,3 +9,5 @@ export { UseCaseSupportingQuotes } from './UseCaseSupportingQuotes';
 export { UseCaseFeedbackTab } from './UseCaseFeedbackTab';
 export { UseCaseBasicInfo } from './UseCaseBasicInfo';
 export { UseCasePersonasSidebar } from './UseCasePersonasSidebar';
+export { UseCaseVersionsSidebar } from './UseCaseVersionsSidebar';
+export { UseCaseVersionDetailModal } from './UseCaseVersionDetailModal';

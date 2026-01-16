@@ -13,3 +13,4 @@ export { requirementApi } from './requirementApi';
 export { personaApi } from './personaApi';
 export { personaUseCaseApi } from './personaUseCaseApi';
 export { solutionFactorApi } from './solutionFactorApi';
+export { useCaseVersionApi } from './useCaseVersionApi';

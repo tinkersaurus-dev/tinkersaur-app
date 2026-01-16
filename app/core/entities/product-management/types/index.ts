@@ -91,3 +91,36 @@ export {
   FACTOR_TYPE_LABELS,
   groupFactorsByType,
 } from './SolutionFactor';
+
+// UseCaseVersion
+export type {
+  UseCaseVersion,
+  UseCaseVersionDetail,
+  UseCaseSnapshot,
+  RequirementSnapshot,
+  DesignWorkSnapshot,
+  DiagramSnapshot,
+  DocumentSnapshot,
+  InterfaceSnapshot,
+  ReferenceSnapshot,
+  CreateUseCaseVersionDto,
+  UpdateUseCaseVersionDto,
+  TransitionVersionStatusDto,
+  VersionDiff,
+  VersionComparison,
+} from './UseCaseVersion';
+export {
+  UseCaseVersionStatus,
+  UseCaseVersionSchema,
+  UseCaseVersionDetailSchema,
+  UseCaseSnapshotSchema,
+  CreateUseCaseVersionSchema,
+  UpdateUseCaseVersionSchema,
+  TransitionVersionStatusSchema,
+  VersionDiffSchema,
+  VersionComparisonSchema,
+  getStatusColor,
+  getValidTransitions,
+  formatVersionNumber,
+  formatVersionDisplay,
+} from './UseCaseVersion';

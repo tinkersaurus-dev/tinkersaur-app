@@ -60,3 +60,11 @@ export {
   useReorderSolutionFactors,
   useDeleteSolutionFactorsByType,
 } from './useSolutionFactorMutations';
+
+export {
+  useCreateUseCaseVersion,
+  useUpdateUseCaseVersion,
+  useDeleteUseCaseVersion,
+  useTransitionUseCaseVersionStatus,
+  useRevertToUseCaseVersion,
+} from './useUseCaseVersionMutations';
