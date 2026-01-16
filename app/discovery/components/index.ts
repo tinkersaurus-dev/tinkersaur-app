@@ -1,4 +1,5 @@
 export { IntakeForm } from './IntakeForm';
+export type { IntakeFormValues } from './IntakeForm';
 export { QuoteHighlight, QuotesList } from './QuoteHighlight';
 export { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
 export { PersonaResultCard } from './PersonaResultCard';

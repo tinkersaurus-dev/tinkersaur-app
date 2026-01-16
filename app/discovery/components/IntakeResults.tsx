@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { FiUsers, FiClipboard, FiMessageSquare, FiClock, FiRefreshCw, FiHash, FiSave, FiTarget } from 'react-icons/fi';
+import { FiUsers, FiClipboard, FiMessageSquare, FiRefreshCw, FiSave, FiTarget } from 'react-icons/fi';
 import { Card } from '~/core/components/ui/Card';
 import { Button } from '~/core/components/ui/Button';
 import { Tabs } from '~/core/components/ui/Tabs';
@@ -20,10 +20,6 @@ import { IntakePersonaMergeModal, type PendingMerge } from './IntakePersonaMerge
 import { IntakeUseCaseMergeModal, type PendingUseCaseMerge } from './IntakeUseCaseMergeModal';
 import { IntakeFeedbackMergeModal, type PendingFeedbackMerge } from './IntakeFeedbackMergeModal';
 
-function formatProcessingTime(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
-}
 
 function generateItemKey(
   item: { name?: string; content?: string; description?: string },
@@ -37,11 +33,12 @@ interface IntakeResultsProps {
   result: IntakeResult;
   onNewAnalysis: () => void;
   defaultSolutionId: string | null;
+  onEditInput?: () => void;
 }
 
 type TabKey = 'personas' | 'useCases' | 'feedback' | 'outcomes';
 
-export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: IntakeResultsProps) {
+export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEditInput }: IntakeResultsProps) {
   const navigate = useNavigate();
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const { saveIntakeResult, isSaving } = useSaveIntakeResult();
@@ -341,29 +338,11 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
 
   return (
     <div className="space-y-6">
-      {/* Header with processing time */}
-      <Card>
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-[var(--text)]">
-            Parsing Results
-          </h2>
-          <div className="flex items-center gap-4 text-sm text-[var(--text-muted)]">
-            {(result.inputTokens || result.outputTokens) && (
-              <span className="flex items-center gap-1">
-                <FiHash className="w-4 h-4" />
-                {((result.inputTokens ?? 0) + (result.outputTokens ?? 0)).toLocaleString()} tokens
-              </span>
-            )}
-            <span className="flex items-center gap-1">
-              <FiClock className="w-4 h-4" />
-              {formatProcessingTime(result.processingTime)}
-            </span>
-          </div>
-        </div>
-      </Card>
+
+
 
       {/* Tabs for detailed results */}
-      <Card>
+      <Card bordered={false} shadow={false}>
         <Tabs
           activeKey={activeTab}
           onChange={(key) => setActiveTab(key as TabKey)}
@@ -535,7 +514,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
         <Button
           variant="default"
           icon={<FiRefreshCw />}
-          onClick={onNewAnalysis}
+          onClick={onEditInput ?? onNewAnalysis}
           disabled={isSaving}
         >
           Analyze Another Transcript

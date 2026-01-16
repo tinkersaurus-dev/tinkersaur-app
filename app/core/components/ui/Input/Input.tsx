@@ -28,8 +28,8 @@ export function Input({
   // Size styles
   const sizeStyles = {
     small: 'px-2 py-1 text-xs leading-normal h-6',
-    medium: 'px-3 py-1.5 text-base leading-normal h-9',
-    large: 'px-4 py-2 text-lg leading-normal h-11',
+    medium: 'px-3 py-1.5 text-sm leading-normal h-9',
+    large: 'px-4 py-2 text-md leading-normal h-11',
   };
 
   // State styles
@@ -73,9 +73,9 @@ function TextArea({
 
   // Size styles (affects padding and text size, not height - that's controlled by rows)
   const sizeStyles = {
-    small: 'px-2 py-1 text-sm leading-normal',
-    medium: 'px-3 py-1.5 text-base leading-normal',
-    large: 'px-4 py-2 text-lg leading-normal',
+    small: 'px-2 py-1 text-xs leading-normal',
+    medium: 'px-3 py-1.5 text-sm leading-normal',
+    large: 'px-4 py-2 text-md leading-normal',
   };
 
   // State styles

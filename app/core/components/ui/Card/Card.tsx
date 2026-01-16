@@ -8,16 +8,20 @@ import type { ReactNode, HTMLAttributes } from 'react';
 export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   title?: ReactNode;
   bordered?: boolean;
+  shadow?: boolean;
   hoverable?: boolean;
   children?: ReactNode;
+  contentClassName?: string;
 }
 
 export function Card({
   title,
   bordered = true,
+  shadow = true,
   hoverable = false,
   children,
   className = '',
+  contentClassName = 'p-6',
   style,
   ...props
 }: CardProps) {
@@ -28,7 +32,7 @@ export function Card({
   const borderStyles = bordered ? 'border border-[var(--border-muted)]' : '';
 
   // Shadow styles
-  const shadowStyles = '[box-shadow:var(--shadow)]';
+  const shadowStyles = shadow ? '[box-shadow:var(--shadow)]' : '';
 
   // Hover styles
   const hoverStyles = hoverable ? 'hover:[box-shadow:var(--shadow-hover)] hover:border-[var(--border)] cursor-pointer' : '';
@@ -64,7 +68,7 @@ export function Card({
           </div>
         </div>
       )}
-      <div className="p-6">
+      <div className={contentClassName}>
         {children}
       </div>
     </div>

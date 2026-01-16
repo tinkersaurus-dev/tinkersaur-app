@@ -52,7 +52,24 @@ export async function parseTranscript(
       { sourceType, content, metadata }
     );
 
+    // Debug logging to diagnose parsing issues
+    logger.info('Raw API response received', {
+      hasData: !!data,
+      dataKeys: data ? Object.keys(data) : [],
+      success: data?.success,
+      hasResult: !!data?.result,
+      resultKeys: data?.result ? Object.keys(data.result) : [],
+      error: data?.error,
+      rawDataPreview: JSON.stringify(data).substring(0, 500),
+    });
+
     if (!data.success || !data.result) {
+      logger.error('Parse transcript validation failed', {
+        success: data?.success,
+        hasResult: !!data?.result,
+        error: data?.error,
+        fullResponse: JSON.stringify(data),
+      });
       throw new ParseTranscriptAPIError(
         data.error || 'Failed to parse transcript',
         500

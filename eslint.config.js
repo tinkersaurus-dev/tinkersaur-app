@@ -92,6 +92,7 @@ export default tseslint.config(
   {
     files: [
       '**/Select/Select.tsx',
+      '**/DatePicker/DatePicker.tsx',
       '**/Table/Table.tsx',
     ],
     rules: {

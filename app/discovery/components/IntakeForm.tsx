@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { FiLoader, FiZap } from 'react-icons/fi';
+import { GiComb } from "react-icons/gi";
 import { Button } from '~/core/components/ui/Button';
 import { Input } from '~/core/components/ui/Input';
 import { Select } from '~/core/components/ui/Select';
-import { Card } from '~/core/components/ui/Card';
 import { DatePicker } from '~/core/components/ui/DatePicker';
 import {
   SOURCE_TYPES,
@@ -11,6 +10,13 @@ import {
 } from '~/core/entities/discovery';
 import { useAuthStore } from '~/core/auth';
 import { useSolutionsQuery } from '~/product-management/queries';
+
+export interface IntakeFormValues {
+  sourceType: SourceTypeKey;
+  content: string;
+  metadata: Record<string, string>;
+  solutionId: string | null;
+}
 
 interface IntakeFormProps {
   isLoading: boolean;
@@ -21,6 +27,7 @@ interface IntakeFormProps {
     solutionId: string | null
   ) => void;
   sourceType: SourceTypeKey;
+  initialValues?: IntakeFormValues;
 }
 
 const MIN_CONTENT_LENGTH = 50;
@@ -31,14 +38,18 @@ const sourceTypeOptions = Object.values(SOURCE_TYPES).map((sourceType) => ({
   label: sourceType.label,
 }));
 
-export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType }: IntakeFormProps) {
+export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType, initialValues }: IntakeFormProps) {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const { data: solutions = [], isLoading: isSolutionsLoading } = useSolutionsQuery(selectedTeam?.teamId);
 
-  const [selectedSourceType, setSelectedSourceType] = useState<SourceTypeKey>(initialSourceType);
-  const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null);
-  const [content, setContent] = useState('');
-  const [metadata, setMetadata] = useState<Record<string, string>>({});
+  const [selectedSourceType, setSelectedSourceType] = useState<SourceTypeKey>(
+    initialValues?.sourceType ?? initialSourceType
+  );
+  const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(
+    initialValues?.solutionId ?? null
+  );
+  const [content, setContent] = useState(initialValues?.content ?? '');
+  const [metadata, setMetadata] = useState<Record<string, string>>(initialValues?.metadata ?? {});
 
   const sourceTypeConfig = SOURCE_TYPES[selectedSourceType];
 
@@ -67,13 +78,12 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
   const characterCount = content.length;
 
   return (
-    <Card>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 p-6">
         {/* Source Type Selector */}
         <div>
           <label
             htmlFor="source-type"
-            className="block text-xs font-medium text-[var(--text)] mb-1"
+            className="block text-xs font-medium text-[var(--primary)] mb-1"
           >
             Source Type
           </label>
@@ -82,9 +92,8 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
             onChange={handleSourceTypeChange}
             options={sourceTypeOptions}
             disabled={isLoading}
-            className='text-xs'
           />
-          <p className="text-xs text-[var(--text-muted)] mt-1">
+          <p className="text-xs text-[var(--text-muted)] italic mt-1">
             {sourceTypeConfig.description}
           </p>
         </div>
@@ -93,18 +102,17 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
         <div>
           <label
             htmlFor="solution"
-            className="block text-xs font-medium text-[var(--text)] mb-1"
+            className="block text-xs font-medium text-[var(--primary)] mb-1"
           >
-            Solution <span className="text-[var(--text-muted)] font-normal">(optional)</span>
+            Solution <span className="text-[var(--primary)] italic font-normal">(optional)</span>
           </label>
           <Select
             value={selectedSolutionId ?? ''}
             onChange={(value) => setSelectedSolutionId(value || null)}
             options={solutionOptions}
             disabled={isLoading || isSolutionsLoading}
-            className='text-xs'
           />
-          <p className="text-xs text-[var(--text-muted)] mt-1">
+          <p className="text-xs text-[var(--text-muted)] italic mt-1">
             Associate extracted items with a solution. You can change this per-item after parsing.
           </p>
         </div>
@@ -116,7 +124,7 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
               <div key={field.name}>
                 <label
                   htmlFor={field.name}
-                  className="block text-xs font-medium text-[var(--text)] mb-1"
+                  className="block text-xs font-medium text-[var(--primary)] mb-1"
                 >
                   {field.label}
                   {field.required && (
@@ -128,17 +136,17 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
                     id={field.name}
                     showTime
                     value={metadata[field.name] || ''}
-                    onChange={(e) => handleMetadataChange(field.name, e.target.value)}
+                    onChange={(value) => handleMetadataChange(field.name, value)}
                     disabled={isLoading}
-                    size="small"
+                    size="medium"
                   />
                 ) : field.type === 'date' ? (
                   <DatePicker
                     id={field.name}
                     value={metadata[field.name] || ''}
-                    onChange={(e) => handleMetadataChange(field.name, e.target.value)}
+                    onChange={(value) => handleMetadataChange(field.name, value)}
                     disabled={isLoading}
-                    size="small"
+                    size="medium"
                   />
                 ) : (
                   <Input
@@ -148,7 +156,6 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
                     value={metadata[field.name] || ''}
                     onChange={(e) => handleMetadataChange(field.name, e.target.value)}
                     disabled={isLoading}
-                    className='text-xs'
                   />
                 )}
               </div>
@@ -161,14 +168,14 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
           <div className="flex items-center justify-between mb-1">
             <label
               htmlFor="source-content"
-              className="block text-xs font-medium text-[var(--text)]"
+              className="block text-xs font-medium text-[var(--primary)]"
             >
               Content
-              <span className="text-[var(--danger)] ml-1">*</span>
+              <span className="text-[var(--primary)] ml-1">*</span>
             </label>
             <span
               className={`text-xs ${
-                isContentValid ? 'text-[var(--text-muted)]' : 'text-[var(--danger)]'
+                isContentValid ? 'text-[var(--primary)]' : 'text-[var(--danger)]'
               }`}
             >
               {characterCount} characters
@@ -183,7 +190,6 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
             onChange={(e) => setContent(e.target.value)}
             disabled={isLoading}
             error={content.length > 0 && !isContentValid}
-            className='text-xs'
           />
           {content.length > 0 && !isContentValid && (
             <p className="text-xs text-[var(--danger)] mt-1">
@@ -198,12 +204,11 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType 
             type="submit"
             variant="primary"
             disabled={!isContentValid || isLoading}
-            icon={isLoading ? <FiLoader className="animate-spin" /> : <FiZap />}
+            icon={isLoading ? <GiComb className="animate-spin" /> : <GiComb />}
           >
-            {isLoading ? 'Parsing...' : 'Parse'}
+            {isLoading ? 'Combing through the details...' : ''}
           </Button>
         </div>
-      </form>
-    </Card>
+    </form>
   );
 }
