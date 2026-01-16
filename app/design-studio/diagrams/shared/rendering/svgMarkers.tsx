@@ -77,7 +77,7 @@ export function getClassDiagramMarker(
           markerHeight={markerSize}
           orient="auto-start-reverse"
         >
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="white" stroke={color} strokeWidth={strokeWidth} />
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--canvas-marker-fill)" stroke={color} strokeWidth={strokeWidth} />
         </marker>
       );
 
@@ -108,7 +108,7 @@ export function getClassDiagramMarker(
           markerHeight={markerSize}
           orient="auto"
         >
-          <path d="M 5 0 L 10 5 L 5 10 L 0 5 z" fill="white" stroke={color} strokeWidth={strokeWidth} />
+          <path d="M 5 0 L 10 5 L 5 10 L 0 5 z" fill="var(--canvas-marker-fill)" stroke={color} strokeWidth={strokeWidth} />
         </marker>
       );
 
@@ -174,7 +174,7 @@ export function getClassDiagramMarker(
           markerHeight={markerSize}
           orient="auto-start-reverse"
         >
-          <circle cx="5" cy="6" r="3" fill="white" stroke={color} strokeWidth={strokeWidth} />
+          <circle cx="5" cy="6" r="3" fill="var(--canvas-marker-fill)" stroke={color} strokeWidth={strokeWidth} />
           <line x1="12" y1="2" x2="12" y2="10" stroke={color} strokeWidth={strokeWidth} />
           <line x1="14" y1="2" x2="14" y2="10" stroke={color} strokeWidth={strokeWidth} />
         </marker>
@@ -214,7 +214,7 @@ export function getClassDiagramMarker(
           orient="auto-start-reverse"
         >
           {/* Circle for "zero" */}
-          <circle cx="13" cy="6" r="3" fill="white" stroke={color} strokeWidth={strokeWidth} />
+          <circle cx="13" cy="6" r="3" fill="var(--canvas-marker-fill)" stroke={color} strokeWidth={strokeWidth} />
           {/* Crow's foot (three lines meeting at a point) */}
           <line x1="1" y1="1" x2="8" y2="6" stroke={color} strokeWidth={strokeWidth} />
           <line x1="1" y1="6" x2="8" y2="6" stroke={color} strokeWidth={strokeWidth} />

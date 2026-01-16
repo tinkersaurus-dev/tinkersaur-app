@@ -4,13 +4,13 @@
   border-radius: 2px;
   padding: 2px 4px;
   cursor: pointer;
-  color: var(--canvas-label-color, #000);
+  color: var(--canvas-label-editing-text);
 }
 
 .shape-dropdown:hover {
-  border-color: var(--canvas-label-editing-border-hover, #aaa);
+  border-color: var(--canvas-label-editing-border-hover);
 }
 
 .shape-dropdown:focus {
-  border-color: var(--canvas-label-editing-border-focus, #0066cc);
+  border-color: var(--canvas-label-editing-border-focus);
 }

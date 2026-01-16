@@ -133,7 +133,7 @@ function ShapeRendererComponent(props: ShapeRendererProps) {
         width={shape.width}
         height={shape.height}
         fill="none"
-        stroke="red"
+        stroke="var(--canvas-debug-stroke)"
         strokeWidth={2}
         strokeDasharray="4 4"
       />

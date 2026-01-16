@@ -82,6 +82,8 @@
 
   --canvas-label-editing-fill: var(--canvas-label-editing-fill);
   --canvas-label-editing-border: var(--canvas-label-editing-border);
+  --canvas-label-editing-border-hover: var(--canvas-label-editing-border-hover);
+  --canvas-label-editing-border-focus: var(--canvas-label-editing-border-focus);
   --canvas-label-editing-text: var(--canvas-label-editing-text);
 
   --canvas-label-display-fill: var(--canvas-label-display-fill);
@@ -95,6 +97,10 @@
   --canvas-selection-box-bg: var(--canvas-selection-box-bg);
 
   --canvas-preview-stroke: var(--canvas-preview-stroke);
+
+  --canvas-suggestion-color: var(--canvas-suggestion-color);
+  --canvas-marker-fill: var(--canvas-marker-fill);
+  --canvas-debug-stroke: var(--canvas-debug-stroke);
 
 }
 
@@ -182,6 +188,8 @@
 
   --canvas-label-editing-fill: oklch(1 0.005 213);
   --canvas-label-editing-border: oklch(0.4 0.1 213);
+  --canvas-label-editing-border-hover: oklch(0.7 0.01 213);
+  --canvas-label-editing-border-focus: oklch(0.5 0.15 250);
   --canvas-label-editing-text: oklch(0.15 0.01 213);
 
   --canvas-label-display-fill: transparent;
@@ -195,6 +203,10 @@
   --canvas-selection-box-bg: oklch(0.4 0.1 213 / 0.1);
 
   --canvas-preview-stroke: oklch(0.4 0.1 213);
+
+  --canvas-suggestion-color: oklch(0.55 0.2 25);
+  --canvas-marker-fill: oklch(1 0 0);
+  --canvas-debug-stroke: oklch(0.6 0.2 25);
 }
 
 /* Theme Variables - Dark Mode */
@@ -264,11 +276,13 @@
 
   --canvas-label-editing-fill: oklch(0.2 0.005 213);
   --canvas-label-editing-border: oklch(0.76 0.1 213);
-  --canvas-label-editing-text: oklch(0% 0 0);
+  --canvas-label-editing-border-hover: oklch(0.5 0.01 213);
+  --canvas-label-editing-border-focus: oklch(0.65 0.15 250);
+  --canvas-label-editing-text: oklch(0.96 0.01 213);
 
   --canvas-label-display-fill: transparent;
   --canvas-label-display-border: transparent;
-  --canvas-label-display-text: oklch(0% 0 0);
+  --canvas-label-display-text: oklch(0.96 0.01 213);
 
   --canvas-connection-point-fill: oklch(0.76 0.1 213);
   --canvas-connection-point-border: oklch(0.2 0.005 213);
@@ -277,6 +291,10 @@
   --canvas-selection-box-bg: oklch(0.76 0.1 213 / 0.1);
 
   --canvas-preview-stroke: oklch(0.76 0.1 213);
+
+  --canvas-suggestion-color: oklch(0.7 0.15 25);
+  --canvas-marker-fill: oklch(0.2 0 0);
+  --canvas-debug-stroke: oklch(0.7 0.15 25);
 }
 
 html,

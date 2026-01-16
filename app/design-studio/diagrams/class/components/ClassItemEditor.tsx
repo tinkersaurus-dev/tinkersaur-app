@@ -88,11 +88,11 @@ export function ClassItemEditor({
           style={{
             fontSize: fontSize,
             width: '100%',
-            border: `${1 / zoom}px solid var(--canvas-label-editing-border, #ddd)`,
+            border: `${1 / zoom}px solid var(--canvas-label-editing-border)`,
             borderRadius: `${2 / zoom}px`,
             padding: `4px 8px`,
             outline: 'none',
-            background: 'var(--canvas-label-editing-fill, #fff)',
+            background: 'var(--canvas-label-editing-fill)',
           }}
         />
       ) : (

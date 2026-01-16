@@ -273,7 +273,7 @@ function SolutionDetailContent() {
 
       <PageContent>
         <div style={{ marginBottom: '16px' }}>
-          <p style={{ color: '#666' }}>{solution.description}</p>
+          <p style={{ color: 'var(--text-muted)' }}>{solution.description}</p>
         </div>
 
         <Table

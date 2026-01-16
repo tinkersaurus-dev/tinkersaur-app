@@ -11,7 +11,7 @@ import { useSolutionStore } from '~/core/solution';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
-import { Button, Tag, HStack, Table, Form, useForm, Modal, Select, Input, Card, Tabs, MarkdownContent } from '~/core/components/ui';
+import { Button, Tag, HStack, Table, Form, useForm, Modal, Select, Input, Card, Tabs, MarkdownContent, Checkbox } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { Requirement, RequirementType } from '~/core/entities/product-management';
 import { useSolutionQuery, useUseCaseQuery, useRequirementsQuery } from '../queries';
@@ -24,13 +24,14 @@ import {
   UseCaseSupportingQuotes,
   UseCaseFeedbackTab,
   UseCasePersonasSidebar,
-  UseCaseVersionsSidebar,
-  UseCaseVersionDetailModal,
+  UseCaseVersionsTab,
   useUseCaseFeedback,
+  SpecificationDiffView,
 } from '../components/use-case-detail';
-import type { UseCaseVersion } from '~/core/entities/product-management/types/UseCaseVersion';
 import { DesignStudioContent } from '~/design-studio/components/DesignStudioContent';
 import { useUseCaseContent } from '../hooks/useUseCaseContent';
+import { useUseCaseVersionStore } from '~/core/entities/product-management/store/useUseCaseVersionStore';
+import { formatVersionDisplay } from '~/core/entities/product-management/types/UseCaseVersion';
 import '~/design-studio/styles/markdown-content.css';
 
 // Loader function for SSR data fetching
@@ -54,8 +55,10 @@ function UseCaseDetailContent() {
   const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
   const [topLevelTab, setTopLevelTab] = useState('overview');
   const [activeTab, setActiveTab] = useState('requirements');
-  const [selectedVersion, setSelectedVersion] = useState<UseCaseVersion | null>(null);
-  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+
+  // Version comparison state
+  const [compareEnabled, setCompareEnabled] = useState(false);
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
 
   // Solution store for auto-select
   const selectSolution = useSolutionStore((state) => state.selectSolution);
@@ -85,8 +88,34 @@ function UseCaseDetailContent() {
   // Use case content compilation for Specification tab
   const { content: specificationContent, loading: specificationLoading } = useUseCaseContent(
     solutionId,
-    useCaseId
+    useCaseId,
+    useCase?.name,
+    useCase?.description
   );
+
+  // Version store for specification comparison
+  const {
+    versions,
+    versionDetails,
+    fetchVersions,
+    fetchVersionDetail,
+  } = useUseCaseVersionStore();
+  const useCaseVersions = versions[useCaseId!] || [];
+  const selectedVersionDetail = selectedVersionId ? versionDetails[selectedVersionId] : null;
+
+  // Fetch versions on mount for specification comparison
+  useEffect(() => {
+    if (useCaseId) {
+      fetchVersions(useCaseId);
+    }
+  }, [useCaseId, fetchVersions]);
+
+  // Fetch version detail when a version is selected for comparison
+  useEffect(() => {
+    if (selectedVersionId && useCaseId) {
+      fetchVersionDetail(useCaseId, selectedVersionId);
+    }
+  }, [selectedVersionId, useCaseId, fetchVersionDetail]);
 
   const form = useForm<{
     text: string;
@@ -347,22 +376,11 @@ function UseCaseDetailContent() {
                       </Card>
                     </div>
 
-                    {/* Sidebar - Personas and Versions */}
+                    {/* Sidebar - Personas */}
                     <div className="space-y-6">
                       <UseCasePersonasSidebar
                         useCaseId={useCaseId!}
                         teamId={useCase.teamId}
-                      />
-                      <UseCaseVersionsSidebar
-                        useCaseId={useCaseId!}
-                        onViewVersion={(version) => {
-                          setSelectedVersion(version);
-                          setIsVersionModalOpen(true);
-                        }}
-                        onVersionReverted={() => {
-                          // Refetch the use case data after revert
-                          // The queries will automatically refetch due to query invalidation
-                        }}
                       />
                     </div>
                   </div>
@@ -388,24 +406,68 @@ function UseCaseDetailContent() {
               children: (
                 <div className="pt-0 h-[calc(90vh-100px)]">
                   <div className="h-full flex flex-col overflow-hidden bg-[var(--bg)]">
-                    {/* Toolbar placeholder */}
-                    <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--border)] bg-[var(--surface)]" />
                     {/* Content area */}
-                    <div className="flex-1 overflow-auto p-4 bg-[var(--bg-light)]">
-                      {specificationLoading ? (
-                        <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
-                          <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                          Loading specification...
+                    <div className="flex-1 overflow-hidden p-4">
+                      <div className="max-w-6xl mx-auto bg-[var(--bg-light)] h-full overflow-auto">
+                        {/* Version comparison toolbar */}
+                        <div className="flex items-center gap-3 px-6 py-2 border-b border-[var(--border)] bg-[var(--bg-light)] sticky top-0 z-10">
+                          <Checkbox
+                            id="compare-toggle"
+                            checked={compareEnabled}
+                            size="small"
+                            onChange={(e) => {
+                              setCompareEnabled(e.target.checked);
+                              if (!e.target.checked) {
+                                setSelectedVersionId(null);
+                              }
+                            }}
+                            label="Compare with a version"
+                          />
+                          <Select
+                            value={selectedVersionId || ''}
+                            onChange={(value) => setSelectedVersionId(value || null)}
+                            placeholder="Select version..."
+                            size="small"
+                            disabled={!compareEnabled}
+                            options={useCaseVersions.map((v) => ({
+                              value: v.id,
+                              label: formatVersionDisplay(v),
+                            }))}
+                            className="w-64"
+                          />
                         </div>
-                      ) : (
-                        <div className="markdown-content markdown-content--compact">
-                          <MarkdownContent content={specificationContent} />
+                        <div className="p-6">
+                          {specificationLoading ? (
+                            <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
+                              <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                              Loading specification...
+                            </div>
+                          ) : compareEnabled && selectedVersionId && selectedVersionDetail ? (
+                            <SpecificationDiffView
+                              currentSpec={specificationContent}
+                              versionSpec={selectedVersionDetail.compiledSpecification}
+                            />
+                          ) : compareEnabled && selectedVersionId && !selectedVersionDetail ? (
+                            <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
+                              <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                              Loading version...
+                            </div>
+                          ) : (
+                            <div className="markdown-content markdown-content--compact">
+                              <MarkdownContent content={specificationContent} />
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
               ),
+            },
+            {
+              key: 'versions',
+              label: 'Versions',
+              children: <UseCaseVersionsTab useCaseId={useCaseId!} />,
             },
           ]}
         />
@@ -484,17 +546,6 @@ function UseCaseDetailContent() {
           </div>
         </Form>
       </Modal>
-
-      {/* Version Detail Modal */}
-      <UseCaseVersionDetailModal
-        useCaseId={useCaseId!}
-        version={selectedVersion}
-        open={isVersionModalOpen}
-        onClose={() => {
-          setIsVersionModalOpen(false);
-          setSelectedVersion(null);
-        }}
-      />
     </MainLayout>
   );
 }

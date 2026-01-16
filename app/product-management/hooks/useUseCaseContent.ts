@@ -35,7 +35,12 @@ function getDescendantFolderIds(folderId: string, designWorks: DesignWork[]): st
  * Uses Zustand stores as the source of truth (shared with Design Studio's Definition tab)
  * to ensure real-time updates when content is modified.
  */
-export function useUseCaseContent(solutionId: string | undefined, useCaseId: string | undefined) {
+export function useUseCaseContent(
+  solutionId: string | undefined,
+  useCaseId: string | undefined,
+  useCaseName?: string,
+  useCaseDescription?: string
+) {
   // Read from Zustand stores (shared with Definition tab's Design Studio)
   const designWorks = useDesignWorkStore((state) => state.designWorks);
   const storedDiagrams = useDiagramStore((state) => state.diagrams);
@@ -212,6 +217,14 @@ export function useUseCaseContent(solutionId: string | undefined, useCaseId: str
 
     const sections: string[] = [];
 
+    // Add use case name and description at the top
+    if (useCaseName) {
+      sections.push(`# ${useCaseName}`);
+      if (useCaseDescription) {
+        sections.push(useCaseDescription);
+      }
+    }
+
     // Helper to recursively render a folder and its contents
     const renderFolder = (currentFolderId: string, depth: number): void => {
       const folder = designWorks.find((dw) => dw.id === currentFolderId);
@@ -276,7 +289,7 @@ export function useUseCaseContent(solutionId: string | undefined, useCaseId: str
     }
 
     return sections.length > 0 ? sections.join('\n\n') : '*No content in designworks*';
-  }, [solutionId, useCaseId, rootFolders, designWorks, diagrams, documents, requirements]);
+  }, [solutionId, useCaseId, useCaseName, useCaseDescription, rootFolders, designWorks, diagrams, documents, requirements]);
 
   // Check loading state
   const isLoading =

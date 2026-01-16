@@ -31,9 +31,9 @@ export function Checkbox({
 
   // Label size styles
   const labelSizeStyles = {
-    small: 'text-sm',
-    medium: 'text-base',
-    large: 'text-lg',
+    small: 'text-xs',
+    medium: 'text-sm',
+    large: 'text-md',
   };
 
   // Base checkbox styles

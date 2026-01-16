@@ -184,7 +184,7 @@ export function SuggestionCommentRenderer({
       <div
         style={{
           flexShrink: 0,
-          color: '#dc2626', // Red color (Tailwind red-600)
+          color: 'var(--canvas-suggestion-color)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -198,7 +198,7 @@ export function SuggestionCommentRenderer({
       <div
         style={{
           flex: 1,
-          color: '#dc2626', // Red color (Tailwind red-600)
+          color: 'var(--canvas-suggestion-color)',
           fontSize: `${fontSize}px`,
           lineHeight: 1.4,
           whiteSpace: 'pre-wrap',

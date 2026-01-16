@@ -85,16 +85,15 @@
 
 /* Code Blocks */
 .markdown-content pre {
-  background-color: var(--surface);
+  background-color: rgb(249, 249, 14, 0.1);
   padding: 1em;
-  border-radius: 6px;
+  border-radius: 2px;
   overflow-x: auto;
   margin-bottom: 1em;
-  border: 1px solid var(--border);
+  border: 0px solid var(--border);
 }
 
 .markdown-content pre code {
-  background-color: transparent;
   padding: 0;
   color: var(--text);
   font-size: 0.9em;

@@ -1,11 +1,12 @@
 /**
- * Version Detail Modal component
- * Displays the full snapshot and compiled specification for a version
+ * Version Detail Panel component
+ * Displays the full snapshot and compiled specification for a selected version
+ * Used in the Versions tab split-panel layout
  */
 
 import { useState, useEffect } from 'react';
-import { FiFileText, FiDatabase } from 'react-icons/fi';
-import { Modal, Tag, Tabs, MarkdownContent } from '~/core/components/ui';
+import { FiFileText, FiDatabase, FiEye } from 'react-icons/fi';
+import { Card, Tag, Tabs, MarkdownContent } from '~/core/components/ui';
 import { useUseCaseVersionStore } from '~/core/entities/product-management/store/useUseCaseVersionStore';
 import type { UseCaseVersion } from '~/core/entities/product-management/types/UseCaseVersion';
 import {
@@ -14,19 +15,15 @@ import {
 } from '~/core/entities/product-management/types/UseCaseVersion';
 import '~/design-studio/styles/markdown-content.css';
 
-export interface UseCaseVersionDetailModalProps {
+export interface UseCaseVersionDetailPanelProps {
   useCaseId: string;
   version: UseCaseVersion | null;
-  open: boolean;
-  onClose: () => void;
 }
 
-export function UseCaseVersionDetailModal({
+export function UseCaseVersionDetailPanel({
   useCaseId,
   version,
-  open,
-  onClose,
-}: UseCaseVersionDetailModalProps) {
+}: UseCaseVersionDetailPanelProps) {
   const [activeTab, setActiveTab] = useState('specification');
 
   const { fetchVersionDetail, versionDetails, loading } = useUseCaseVersionStore();
@@ -34,25 +31,30 @@ export function UseCaseVersionDetailModal({
   // Get version detail from store (derived state, no local copy needed)
   const versionDetail = version ? versionDetails[version.id] ?? null : null;
 
-  // Fetch version detail when modal opens and not cached
+  // Fetch version detail when version changes and not cached
   useEffect(() => {
-    if (open && version && !versionDetails[version.id]) {
+    if (version && !versionDetails[version.id]) {
       fetchVersionDetail(useCaseId, version.id).catch((error) => {
         console.error('Failed to fetch version detail:', error);
       });
     }
-  }, [open, version, useCaseId, fetchVersionDetail, versionDetails]);
+  }, [version, useCaseId, fetchVersionDetail, versionDetails]);
 
   // Determine loading state from store's loading state when we don't have data yet
   const isLoading = loading && !versionDetail;
 
-  // Reset state when closing
-  const handleClose = () => {
-    setActiveTab('specification');
-    onClose();
-  };
-
-  if (!version) return null;
+  // Empty state - no version selected
+  if (!version) {
+    return (
+      <Card className="h-full flex items-center justify-center">
+        <div className="text-center text-[var(--text-muted)]">
+          <FiEye className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p className="text-lg">Select a version to view details</p>
+          <p className="text-sm mt-2">Click on a row in the table to select</p>
+        </div>
+      </Card>
+    );
+  }
 
   const renderSnapshotContent = () => {
     if (!versionDetail) return null;
@@ -150,33 +152,29 @@ export function UseCaseVersionDetailModal({
   };
 
   return (
-    <Modal
-      title={
+    <Card className="h-full flex flex-col overflow-hidden">
+      {/* Header with version info */}
+      <div className="px-4 py-3 border-b border-[var(--border)]">
         <div className="flex items-center gap-3">
-          <span>{formatVersionDisplay(version)}</span>
+          <span className="font-semibold">{formatVersionDisplay(version)}</span>
           <Tag color={getStatusColor(version.status)}>{version.status}</Tag>
         </div>
-      }
-      open={open}
-      onCancel={handleClose}
-      footer={null}
-      width={800}
-    >
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12 text-[var(--text-muted)]">
-          <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-          Loading version details...
-        </div>
-      ) : (
-        <div className="mt-4">
-          {/* Version metadata */}
-          {version.description && (
-            <p className="text-sm text-[var(--text-muted)] mb-4">{version.description}</p>
-          )}
-          <p className="text-xs text-[var(--text-muted)] mb-4">
-            Created: {new Date(version.createdAt).toLocaleString()}
-          </p>
+        {version.description && (
+          <p className="text-sm text-[var(--text-muted)] mt-1">{version.description}</p>
+        )}
+        <p className="text-xs text-[var(--text-muted)] mt-1">
+          Created: {new Date(version.createdAt).toLocaleString()}
+        </p>
+      </div>
 
+      {/* Content area */}
+      <div className="flex-1 overflow-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
+            <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+            Loading version details...
+          </div>
+        ) : (
           <Tabs
             type="line"
             activeKey={activeTab}
@@ -191,7 +189,7 @@ export function UseCaseVersionDetailModal({
                   </span>
                 ),
                 children: (
-                  <div className="pt-4 max-h-[60vh] overflow-auto">
+                  <div className="p-4">
                     {versionDetail ? (
                       <div className="markdown-content markdown-content--compact">
                         <MarkdownContent content={versionDetail.compiledSpecification} />
@@ -211,15 +209,15 @@ export function UseCaseVersionDetailModal({
                   </span>
                 ),
                 children: (
-                  <div className="pt-4 max-h-[60vh] overflow-auto">
+                  <div className="p-4">
                     {renderSnapshotContent()}
                   </div>
                 ),
               },
             ]}
           />
-        </div>
-      )}
-    </Modal>
+        )}
+      </div>
+    </Card>
   );
 }

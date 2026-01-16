@@ -1,35 +1,30 @@
 /**
- * Versions sidebar component for use case details
- * Displays use case versions with create, view, and status transition functionality
+ * Versions Tab component for the Use Case detail page
+ * Split-panel layout with versions table on the left and detail panel on the right
  */
 
 import { useState, useEffect } from 'react';
-import { FiTag, FiPlus, FiEye, FiTrash2, FiChevronRight, FiRefreshCw } from 'react-icons/fi';
-import { Button, Card, Modal, Tag, Input, Form, useForm } from '~/core/components/ui';
+import { Button, Modal, Tag, Input, Form, useForm } from '~/core/components/ui';
 import { useUseCaseVersionStore } from '~/core/entities/product-management/store/useUseCaseVersionStore';
 import { useRevertToUseCaseVersion } from '../../mutations';
 import type { UseCaseVersion, CreateUseCaseVersionDto } from '~/core/entities/product-management/types/UseCaseVersion';
 import {
   getStatusColor,
   getValidTransitions,
-  formatVersionNumber,
   UseCaseVersionStatus,
 } from '~/core/entities/product-management/types/UseCaseVersion';
+import { UseCaseVersionsTable } from './UseCaseVersionsTable';
+import { UseCaseVersionDetailPanel } from './UseCaseVersionDetailPanel';
 
-export interface UseCaseVersionsSidebarProps {
+export interface UseCaseVersionsTabProps {
   useCaseId: string;
-  onViewVersion?: (version: UseCaseVersion) => void;
-  onVersionReverted?: () => void;
 }
 
-export function UseCaseVersionsSidebar({
-  useCaseId,
-  onViewVersion,
-  onVersionReverted,
-}: UseCaseVersionsSidebarProps) {
+export function UseCaseVersionsTab({ useCaseId }: UseCaseVersionsTabProps) {
+  const [selectedVersion, setSelectedVersion] = useState<UseCaseVersion | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isTransitionModalOpen, setIsTransitionModalOpen] = useState(false);
-  const [selectedVersion, setSelectedVersion] = useState<UseCaseVersion | null>(null);
+  const [transitionVersion, setTransitionVersion] = useState<UseCaseVersion | null>(null);
 
   // Version store
   const {
@@ -83,17 +78,21 @@ export function UseCaseVersionsSidebar({
     }
     try {
       await deleteVersion(useCaseId, version.id);
+      // Clear selection if the deleted version was selected
+      if (selectedVersion?.id === version.id) {
+        setSelectedVersion(null);
+      }
     } catch (error) {
       console.error('Failed to delete version:', error);
     }
   };
 
   const handleTransitionStatus = async (targetStatus: string) => {
-    if (!selectedVersion) return;
+    if (!transitionVersion) return;
     try {
-      await transitionStatus(useCaseId, selectedVersion.id, targetStatus);
+      await transitionStatus(useCaseId, transitionVersion.id, targetStatus);
       setIsTransitionModalOpen(false);
-      setSelectedVersion(null);
+      setTransitionVersion(null);
     } catch (error) {
       console.error('Failed to transition status:', error);
     }
@@ -109,115 +108,45 @@ export function UseCaseVersionsSidebar({
     }
     try {
       await revertMutation.mutateAsync({ useCaseId, versionId: version.id });
-      onVersionReverted?.();
     } catch (error) {
       console.error('Failed to revert to version:', error);
     }
   };
 
   const openTransitionModal = (version: UseCaseVersion) => {
-    setSelectedVersion(version);
+    setTransitionVersion(version);
     setIsTransitionModalOpen(true);
   };
 
-  const validTransitions = selectedVersion ? getValidTransitions(selectedVersion.status) : [];
+  const validTransitions = transitionVersion ? getValidTransitions(transitionVersion.status) : [];
 
   return (
     <>
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <FiTag className="text-[var(--primary)]" />
-            <h3 className="text-md font-semibold text-[var(--text)]">Versions</h3>
+      <div className="pt-4 h-[calc(90vh-160px)]">
+        <div className="grid grid-cols-2 gap-4 h-full">
+          {/* Left: Versions Table */}
+          <div className="h-full overflow-auto">
+            <UseCaseVersionsTable
+              versions={useCaseVersions}
+              loading={loading}
+              selectedVersion={selectedVersion}
+              onSelectVersion={setSelectedVersion}
+              onCreateVersion={() => setIsCreateModalOpen(true)}
+              onTransitionStatus={openTransitionModal}
+              onRevertVersion={handleRevertToVersion}
+              onDeleteVersion={handleDeleteVersion}
+            />
           </div>
-          <Button
-            variant="primary"
-            size="small"
-            icon={<FiPlus />}
-            onClick={() => setIsCreateModalOpen(true)}
-            disabled={loading}
-          >
-            Create
-          </Button>
-        </div>
 
-        {loading && useCaseVersions.length === 0 ? (
-          <div className="text-center py-4 text-[var(--text-muted)]">
-            <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-            Loading...
+          {/* Right: Version Detail Panel */}
+          <div className="h-full overflow-hidden">
+            <UseCaseVersionDetailPanel
+              useCaseId={useCaseId}
+              version={selectedVersion}
+            />
           </div>
-        ) : useCaseVersions.length === 0 ? (
-          <p className="text-[var(--text-muted)] text-sm">
-            No versions created yet. Create a version to snapshot the current state.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {useCaseVersions.map((version) => (
-              <li
-                key={version.id}
-                className="p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-[var(--text-muted)]">
-                        {formatVersionNumber(version.versionNumber)}
-                      </span>
-                      <Tag color={getStatusColor(version.status)}>
-                        {version.status}
-                      </Tag>
-                    </div>
-                    <p className="text-sm text-[var(--text)] truncate mt-1">{version.versionName}</p>
-                  </div>
-                  <div className="flex items-center gap-1 ml-2">
-                    {/* View button */}
-                    <Button
-                      variant="text"
-                      size="small"
-                      icon={<FiEye />}
-                      onClick={() => onViewVersion?.(version)}
-                      title="View version"
-                    />
-                    {/* Status transition button (if transitions available) */}
-                    {getValidTransitions(version.status).length > 0 && (
-                      <Button
-                        variant="text"
-                        size="small"
-                        icon={<FiChevronRight />}
-                        onClick={() => openTransitionModal(version)}
-                        title="Change status"
-                      />
-                    )}
-                    {/* Revert button */}
-                    <Button
-                      variant="text"
-                      size="small"
-                      icon={<FiRefreshCw />}
-                      onClick={() => handleRevertToVersion(version)}
-                      title="Revert to this version"
-                    />
-                    {/* Delete button (only for Drafted) */}
-                    {version.status === UseCaseVersionStatus.Drafted && (
-                      <Button
-                        variant="text"
-                        size="small"
-                        icon={<FiTrash2 />}
-                        onClick={() => handleDeleteVersion(version)}
-                        title="Delete version"
-                      />
-                    )}
-                  </div>
-                </div>
-                {version.description && (
-                  <p className="text-xs text-[var(--text-muted)] mt-1 truncate">
-                    {version.description}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+        </div>
+      </div>
 
       {/* Create Version Modal */}
       <Modal
@@ -276,18 +205,18 @@ export function UseCaseVersionsSidebar({
         open={isTransitionModalOpen}
         onCancel={() => {
           setIsTransitionModalOpen(false);
-          setSelectedVersion(null);
+          setTransitionVersion(null);
         }}
         footer={null}
       >
-        {selectedVersion && (
+        {transitionVersion && (
           <div className="space-y-4 mt-4">
             <p className="text-sm text-[var(--text)]">
               Current status:{' '}
-              <Tag color={getStatusColor(selectedVersion.status)}>{selectedVersion.status}</Tag>
+              <Tag color={getStatusColor(transitionVersion.status)}>{transitionVersion.status}</Tag>
             </p>
             <p className="text-sm text-[var(--text-muted)]">
-              Select a new status for "{selectedVersion.versionName}":
+              Select a new status for "{transitionVersion.versionName}":
             </p>
             <div className="flex flex-col gap-2">
               {validTransitions.map((status) => (
