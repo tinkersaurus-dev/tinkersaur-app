@@ -6,15 +6,15 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
-import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle, FiArchive, FiAlertTriangle } from 'react-icons/fi';
+import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle, FiArchive, FiAlertTriangle, FiMessageCircle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Card, Modal, Tabs, Empty, Table, EditableSection, EditableField } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
-import type { PersonaUseCase } from '~/core/entities/product-management/types';
 import type { Feedback } from '~/core/entities/discovery/types';
-import { usePersonaQuery, usePersonaUseCasesQuery, useUseCaseDetailsQuery } from '../queries';
-import { useDeletePersona, useCreatePersonaUseCase, useDeletePersonaUseCase, useUpdatePersona } from '../mutations';
+import type { UseCase } from '~/core/entities/product-management/types';
+import { usePersonaQuery, useUseCasesByTeamQuery } from '../queries';
+import { useDeletePersona, useUpdatePersona } from '../mutations';
 import { loadPersonaDetail } from '../loaders';
 import type { PersonaDetailLoaderData } from '../loaders';
 import type { Route } from './+types/persona-detail';
@@ -28,6 +28,34 @@ interface FeedbackRow {
   quotes: QuoteWithSource[];
   sourceName: string;
 }
+
+// Quote row type for table display
+interface QuoteRow {
+  id: string;
+  quote: string;
+  source: string;
+}
+
+// Quote table columns
+const quoteColumns: TableColumn<QuoteRow>[] = [
+  {
+    key: 'quote',
+    title: 'Quote',
+    dataIndex: 'quote',
+    render: (value) => (
+      <span className="text-xs italic text-[var(--text)]">"{value as string}"</span>
+    ),
+  },
+  {
+    key: 'source',
+    title: 'Source',
+    dataIndex: 'source',
+    width: 180,
+    render: (value) => (
+      <span className="text-xs text-[var(--text-muted)]">{value as string}</span>
+    ),
+  },
+];
 
 // Loader function for SSR data fetching
 export async function loader({ params }: Route.LoaderArgs) {
@@ -47,11 +75,11 @@ function PersonaDetailContent() {
 
   // TanStack Query hooks
   const { data: persona } = usePersonaQuery(personaId);
-  const { data: personaUseCases = [] } = usePersonaUseCasesQuery(personaId);
   const deletePersona = useDeletePersona();
-  const createPersonaUseCase = useCreatePersonaUseCase();
-  const deletePersonaUseCase = useDeletePersonaUseCase();
   const updatePersona = useUpdatePersona();
+
+  // Fetch use cases for linking
+  const { data: allUseCases = [] } = useUseCasesByTeamQuery(persona?.teamId);
 
   // Basic info edit state
   const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
@@ -77,13 +105,18 @@ function PersonaDetailContent() {
     [feedbackData]
   );
 
-  // Fetch use case details for displaying names
-  const useCaseIds = useMemo(() =>
-    personaUseCases.map((puc: PersonaUseCase) => puc.useCaseId),
-    [personaUseCases]
-  );
+  // Get linked use case IDs from the persona
+  const linkedUseCaseIds = useMemo(() => new Set(persona?.useCaseIds ?? []), [persona?.useCaseIds]);
 
-  const { nameMap: useCaseNameMap } = useUseCaseDetailsQuery(useCaseIds);
+  // Get linked use cases for displaying names
+  const linkedUseCases = useMemo(() => {
+    return allUseCases.filter((uc: UseCase) => linkedUseCaseIds.has(uc.id));
+  }, [allUseCases, linkedUseCaseIds]);
+
+  // Available use cases for linking (filter out already linked ones)
+  const availableUseCases = useMemo(() => {
+    return allUseCases.filter((uc: UseCase) => !linkedUseCaseIds.has(uc.id));
+  }, [allUseCases, linkedUseCaseIds]);
 
   // Get unique intake source IDs from feedback
   const intakeSourceIds = useMemo(() => {
@@ -159,11 +192,6 @@ function PersonaDetailContent() {
       ),
     },
   ];
-
-  // Available use cases for linking (requires fetching use cases from team's solutions)
-  // TODO: To implement, fetch solutions by persona.teamId, then fetch use cases for each solution,
-  // then filter out IDs already in personaUseCases
-  const availableUseCases: Array<{ id: string; name: string; description?: string }> = [];
 
   // Basic info edit handlers
   const handleBasicInfoEditToggle = () => {
@@ -245,21 +273,22 @@ function PersonaDetailContent() {
   };
 
   const handleLinkUseCase = async (useCaseId: string) => {
-    if (personaId) {
-      await createPersonaUseCase.mutateAsync({
-        personaId,
-        useCaseId,
+    if (personaId && persona) {
+      const newUseCaseIds = [...(persona.useCaseIds ?? []), useCaseId];
+      await updatePersona.mutateAsync({
+        id: personaId,
+        updates: { useCaseIds: newUseCaseIds },
       });
     }
   };
 
   const handleUnlinkUseCase = async (useCaseId: string) => {
-    // Find the persona-use case association to delete
-    const association = personaUseCases.find(
-      (puc: PersonaUseCase) => puc.personaId === personaId && puc.useCaseId === useCaseId
-    );
-    if (association) {
-      await deletePersonaUseCase.mutateAsync(association.id);
+    if (personaId && persona) {
+      const newUseCaseIds = (persona.useCaseIds ?? []).filter((id) => id !== useCaseId);
+      await updatePersona.mutateAsync({
+        id: personaId,
+        updates: { useCaseIds: newUseCaseIds },
+      });
     }
   };
 
@@ -445,6 +474,36 @@ function PersonaDetailContent() {
                       </div>
                     ),
                   },
+                  {
+                    key: 'quotes',
+                    label: (
+                      <span className="flex items-center gap-1.5">
+                        <FiMessageCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
+                        Supporting Quotes ({persona.quotes?.length || 0})
+                      </span>
+                    ),
+                    children: (
+                      <div className="pt-4">
+                        {(!persona.quotes || persona.quotes.length === 0) ? (
+                          <Empty
+                            image="simple"
+                            description="No supporting quotes for this persona"
+                          />
+                        ) : (
+                          <Table
+                            columns={quoteColumns}
+                            dataSource={persona.quotes.map((q) => ({
+                              id: q.id,
+                              quote: q.content,
+                              source: q.sourceName ?? 'Unknown source',
+                            }))}
+                            rowKey="id"
+                            pagination={false}
+                          />
+                        )}
+                      </div>
+                    ),
+                  },
                 ]}
               />
             </Card>
@@ -467,24 +526,24 @@ function PersonaDetailContent() {
                 </Button>
               </div>
 
-              {personaUseCases.length === 0 ? (
+              {linkedUseCases.length === 0 ? (
                 <p className="text-[var(--text-muted)] text-sm">
                   No use cases linked to this persona.
                 </p>
               ) : (
                 <ul className="space-y-2">
-                  {personaUseCases.map((puc: PersonaUseCase) => (
+                  {linkedUseCases.map((useCase: UseCase) => (
                     <li
-                      key={puc.id}
+                      key={useCase.id}
                       className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
                     >
                       <span className="text-sm text-[var(--text)] truncate">
-                        {useCaseNameMap[puc.useCaseId] || 'Loading...'}
+                        {useCase.name}
                       </span>
                       <Button
                         variant="text"
                         size="small"
-                        onClick={() => handleUnlinkUseCase(puc.useCaseId)}
+                        onClick={() => handleUnlinkUseCase(useCase.id)}
                       >
                         Unlink
                       </Button>
@@ -526,7 +585,7 @@ function PersonaDetailContent() {
           </p>
         ) : (
           <ul className="space-y-2 max-h-64 overflow-y-auto">
-            {availableUseCases.map((useCase) => (
+            {availableUseCases.map((useCase: UseCase) => (
               <li
                 key={useCase.id}
                 className="flex items-center justify-between p-3 rounded border border-[var(--border)] hover:bg-[var(--bg-secondary)]"

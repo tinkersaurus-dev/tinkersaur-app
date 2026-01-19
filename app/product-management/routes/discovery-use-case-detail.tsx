@@ -175,7 +175,7 @@ function DiscoveryUseCaseDetailContent() {
           {/* Sidebar - Personas */}
           <div className="space-y-6">
             <UseCasePersonasSidebar
-              useCaseId={useCaseId!}
+              useCase={useCase}
               teamId={useCase.teamId}
             />
           </div>

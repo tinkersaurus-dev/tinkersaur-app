@@ -11,7 +11,6 @@ export { solutionApi } from './solutionApi';
 export { useCaseApi } from './useCaseApi';
 export { requirementApi } from './requirementApi';
 export { personaApi } from './personaApi';
-export { personaUseCaseApi } from './personaUseCaseApi';
 export { solutionFactorApi } from './solutionFactorApi';
 export { useCaseVersionApi } from './useCaseVersionApi';
 export { planningApi, epicApi, storyApi, acceptanceCriteriaApi, planningAiApi } from './planningApi';

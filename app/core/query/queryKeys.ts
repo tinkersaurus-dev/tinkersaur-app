@@ -60,12 +60,6 @@ export const queryKeys = {
     list: (teamId: string) => [...queryKeys.users.all, 'list', teamId] as const,
     detail: (id: string) => [...queryKeys.users.all, 'detail', id] as const,
   },
-  personaUseCases: {
-    all: ['personaUseCases'] as const,
-    list: (personaId: string) => [...queryKeys.personaUseCases.all, 'list', personaId] as const,
-    byUseCase: (useCaseId: string) => [...queryKeys.personaUseCases.all, 'byUseCase', useCaseId] as const,
-  },
-
   // Discovery
   feedbacks: {
     all: ['feedbacks'] as const,
@@ -81,16 +75,6 @@ export const queryKeys = {
     listPaginated: <T extends object>(params: T) =>
       [...queryKeys.outcomes.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.outcomes.all, 'detail', id] as const,
-  },
-  feedbackPersonas: {
-    all: ['feedbackPersonas'] as const,
-    byFeedback: (feedbackId: string) => [...queryKeys.feedbackPersonas.all, 'byFeedback', feedbackId] as const,
-    byPersona: (personaId: string) => [...queryKeys.feedbackPersonas.all, 'byPersona', personaId] as const,
-  },
-  feedbackUseCases: {
-    all: ['feedbackUseCases'] as const,
-    byFeedback: (feedbackId: string) => [...queryKeys.feedbackUseCases.all, 'byFeedback', feedbackId] as const,
-    byUseCase: (useCaseId: string) => [...queryKeys.feedbackUseCases.all, 'byUseCase', useCaseId] as const,
   },
   intakeSources: {
     all: ['intakeSources'] as const,

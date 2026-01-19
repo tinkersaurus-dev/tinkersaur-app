@@ -155,10 +155,6 @@ export default function IntakePage() {
     clearError();
   };
 
-  const handleEditInput = () => {
-    setExpandedStep('input');
-  };
-
   function formatProcessingTime(ms: number): string {
     if (ms < 1000) return `${ms}ms`;
     return `${(ms / 1000).toFixed(1)}s`;
@@ -229,7 +225,6 @@ export default function IntakePage() {
                   result={result}
                   onNewAnalysis={handleNewAnalysis}
                   defaultSolutionId={selectedSolutionId}
-                  onEditInput={handleEditInput}
                 />
               </div>
             )}

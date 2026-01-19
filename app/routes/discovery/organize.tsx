@@ -3,9 +3,12 @@
  * Dashboard view showing recently added personas, use cases, feedback, and outcomes.
  */
 
+import { useNavigate } from 'react-router';
+import { FiPlus } from 'react-icons/fi';
 import { MainLayout } from '~/core/components/MainLayout';
 import { PageHeader } from '~/core/components/PageHeader';
 import { PageContent } from '~/core/components/PageContent';
+import { Button } from '~/core/components/ui';
 import { useAuthStore } from '~/core/auth/useAuthStore';
 import { usePersonasQuery } from '~/product-management/queries';
 import { useUseCasesByTeamQuery } from '~/product-management/queries';
@@ -25,6 +28,7 @@ import {
 const MAX_ITEMS = 10;
 
 export default function OrganizePage() {
+  const navigate = useNavigate();
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
 
@@ -45,7 +49,18 @@ export default function OrganizePage() {
   return (
     <MainLayout>
       <div className="h-full flex flex-col">
-        <PageHeader title="Organize" />
+        <PageHeader
+          title="Organize"
+          actions={
+            <Button
+              variant="primary"
+              icon={<FiPlus />}
+              onClick={() => navigate('/discovery/intake')}
+            >
+              Start a New Intake
+            </Button>
+          }
+        />
         <PageContent fillHeight>
           <div className="h-full flex gap-2">
             {/* Left: Personas + Outcomes (1/3 width) */}

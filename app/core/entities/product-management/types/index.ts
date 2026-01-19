@@ -71,10 +71,6 @@ export {
   MergePersonasRequestSchema,
 } from './Persona';
 
-// PersonaUseCase (junction)
-export type { PersonaUseCase, CreatePersonaUseCaseDto } from './PersonaUseCase';
-export { PersonaUseCaseSchema, CreatePersonaUseCaseSchema } from './PersonaUseCase';
-
 // SolutionFactor
 export type {
   SolutionFactor,

@@ -4,80 +4,53 @@
  */
 
 import { useState, useMemo } from 'react';
-import { useQueries } from '@tanstack/react-query';
 import { FiUser } from 'react-icons/fi';
 import { Button, Card, Modal } from '~/core/components/ui';
-import type { PersonaUseCase } from '~/core/entities/product-management/types';
-import { useUseCasePersonasQuery, usePersonasQuery } from '../../queries';
-import { useCreatePersonaUseCase, useDeletePersonaUseCase } from '../../mutations';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { personaApi } from '~/core/entities/product-management/api';
+import type { UseCase, Persona } from '~/core/entities/product-management/types';
+import { usePersonasQuery } from '../../queries';
+import { useUpdateUseCase } from '../../mutations';
 
 export interface UseCasePersonasSidebarProps {
-  useCaseId: string;
+  useCase: UseCase;
   teamId: string | undefined;
 }
 
-export function UseCasePersonasSidebar({ useCaseId, teamId }: UseCasePersonasSidebarProps) {
+export function UseCasePersonasSidebar({ useCase, teamId }: UseCasePersonasSidebarProps) {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
 
-  // Fetch persona-use case associations
-  const { data: useCasePersonas = [] } = useUseCasePersonasQuery(useCaseId);
+  // Fetch all personas for the team
   const { data: allPersonas = [] } = usePersonasQuery(teamId);
 
-  // Mutations
-  const createPersonaUseCase = useCreatePersonaUseCase();
-  const deletePersonaUseCase = useDeletePersonaUseCase();
+  // Mutation for updating use case
+  const updateUseCase = useUpdateUseCase();
 
-  // Get persona IDs for batch fetching names
-  const personaIds = useMemo(() =>
-    useCasePersonas.map((puc: PersonaUseCase) => puc.personaId),
-    [useCasePersonas]
-  );
+  // Get linked persona IDs from the use case
+  const linkedPersonaIds = useMemo(() => new Set(useCase.personaIds), [useCase.personaIds]);
 
-  // Batch fetch persona details for displaying names
-  const personaQueries = useQueries({
-    queries: personaIds.map((id: string) => ({
-      queryKey: queryKeys.personas.detail(id),
-      queryFn: () => personaApi.get(id),
-      staleTime: STALE_TIMES.personas,
-      enabled: !!id,
-    })),
-  });
-
-  // Create a map of personaId -> personaName
-  const personaNameMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    personaQueries.forEach((query, index) => {
-      if (query.data) {
-        map[personaIds[index]] = query.data.name;
-      }
-    });
-    return map;
-  }, [personaQueries, personaIds]);
+  // Create a map of linked personas for displaying names
+  const linkedPersonas = useMemo(() => {
+    return allPersonas.filter((p: Persona) => linkedPersonaIds.has(p.id));
+  }, [allPersonas, linkedPersonaIds]);
 
   // Available personas for linking (filter out already linked ones)
   const availablePersonas = useMemo(() => {
-    const linkedPersonaIds = new Set(personaIds);
-    return allPersonas.filter(p => !linkedPersonaIds.has(p.id));
-  }, [allPersonas, personaIds]);
+    return allPersonas.filter((p: Persona) => !linkedPersonaIds.has(p.id));
+  }, [allPersonas, linkedPersonaIds]);
 
   const handleLinkPersona = async (personaId: string) => {
-    await createPersonaUseCase.mutateAsync({
-      personaId,
-      useCaseId,
+    const newPersonaIds = [...useCase.personaIds, personaId];
+    await updateUseCase.mutateAsync({
+      id: useCase.id,
+      updates: { personaIds: newPersonaIds },
     });
   };
 
   const handleUnlinkPersona = async (personaId: string) => {
-    // Find the persona-use case association to delete
-    const association = useCasePersonas.find(
-      (puc: PersonaUseCase) => puc.useCaseId === useCaseId && puc.personaId === personaId
-    );
-    if (association) {
-      await deletePersonaUseCase.mutateAsync(association.id);
-    }
+    const newPersonaIds = useCase.personaIds.filter((id) => id !== personaId);
+    await updateUseCase.mutateAsync({
+      id: useCase.id,
+      updates: { personaIds: newPersonaIds },
+    });
   };
 
   return (
@@ -97,24 +70,24 @@ export function UseCasePersonasSidebar({ useCaseId, teamId }: UseCasePersonasSid
           </Button>
         </div>
 
-        {useCasePersonas.length === 0 ? (
+        {linkedPersonas.length === 0 ? (
           <p className="text-[var(--text-muted)] text-sm">
             No personas linked to this use case.
           </p>
         ) : (
           <ul className="space-y-2">
-            {useCasePersonas.map((puc: PersonaUseCase) => (
+            {linkedPersonas.map((persona: Persona) => (
               <li
-                key={puc.id}
+                key={persona.id}
                 className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
               >
                 <span className="text-sm text-[var(--text)] truncate">
-                  {personaNameMap[puc.personaId] || 'Loading...'}
+                  {persona.name}
                 </span>
                 <Button
                   variant="text"
                   size="small"
-                  onClick={() => handleUnlinkPersona(puc.personaId)}
+                  onClick={() => handleUnlinkPersona(persona.id)}
                 >
                   Unlink
                 </Button>
@@ -137,7 +110,7 @@ export function UseCasePersonasSidebar({ useCaseId, teamId }: UseCasePersonasSid
           </p>
         ) : (
           <ul className="space-y-2 max-h-64 overflow-y-auto">
-            {availablePersonas.map((persona) => (
+            {availablePersonas.map((persona: Persona) => (
               <li
                 key={persona.id}
                 className="flex items-center justify-between p-3 rounded border border-[var(--border)] hover:bg-[var(--bg-secondary)]"

@@ -11,20 +11,18 @@ import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Card, Modal, Tag, Empty, Tabs, Table, EditableSection, EditableField } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
-import type { FeedbackPersona, FeedbackUseCase } from '~/core/entities/discovery/types';
 import { FEEDBACK_TYPE_CONFIG } from '~/core/entities/discovery/types/Feedback';
 import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
+import type { Persona, UseCase } from '~/core/entities/product-management/types';
 import {
   useFeedbackWithChildrenQuery,
-  useFeedbackPersonasQuery,
-  useFeedbackUseCasesQuery,
   useIntakeSourceDetailsQuery,
 } from '../queries';
 import { useDeleteFeedback, useUpdateFeedback } from '../mutations';
 import { loadFeedbackDetail } from '~/product-management/loaders';
 import type { FeedbackDetailLoaderData } from '~/product-management/loaders';
 import type { Route } from './+types/feedback-detail';
-import { usePersonaDetailsQuery, useUseCaseDetailsQuery } from '~/product-management/queries';
+import { usePersonasQuery, useUseCasesByTeamQuery } from '~/product-management/queries';
 
 // Quote row type for the quotes table
 interface QuoteRow {
@@ -59,25 +57,30 @@ function FeedbackDetailContent() {
 
   // TanStack Query hooks
   const { data: feedback } = useFeedbackWithChildrenQuery(feedbackId);
-  const { data: feedbackPersonas = [] } = useFeedbackPersonasQuery(feedbackId);
-  const { data: feedbackUseCases = [] } = useFeedbackUseCasesQuery(feedbackId);
   const deleteFeedback = useDeleteFeedback();
   const updateFeedback = useUpdateFeedback();
+
+  // Fetch all personas and use cases for the team
+  const { data: allPersonas = [] } = usePersonasQuery(feedback?.teamId);
+  const { data: allUseCases = [] } = useUseCasesByTeamQuery(feedback?.teamId);
 
   // Basic info edit state
   const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
   const [basicInfoForm, setBasicInfoForm] = useState({ content: '' });
   const [basicInfoErrors, setBasicInfoErrors] = useState<Record<string, string>>({});
 
-  // Get IDs for batch loading names
-  const personaIds = useMemo(
-    () => feedbackPersonas.map((fp: FeedbackPersona) => fp.personaId),
-    [feedbackPersonas]
-  );
-  const useCaseIds = useMemo(
-    () => feedbackUseCases.map((fuc: FeedbackUseCase) => fuc.useCaseId),
-    [feedbackUseCases]
-  );
+  // Get linked persona and use case IDs from the feedback
+  const linkedPersonaIds = useMemo(() => new Set(feedback?.personaIds ?? []), [feedback?.personaIds]);
+  const linkedUseCaseIds = useMemo(() => new Set(feedback?.useCaseIds ?? []), [feedback?.useCaseIds]);
+
+  // Get linked personas and use cases for displaying
+  const linkedPersonas = useMemo(() => {
+    return allPersonas.filter((p: Persona) => linkedPersonaIds.has(p.id));
+  }, [allPersonas, linkedPersonaIds]);
+
+  const linkedUseCases = useMemo(() => {
+    return allUseCases.filter((uc: UseCase) => linkedUseCaseIds.has(uc.id));
+  }, [allUseCases, linkedUseCaseIds]);
 
   // Get intake source IDs from parent and children for batch loading
   const allIntakeSourceIds = useMemo(() => {
@@ -95,21 +98,8 @@ function FeedbackDetailContent() {
     return [...new Set(ids)]; // Deduplicate
   }, [feedback]);
 
-  // Batch load persona, use case, and intake source details using dedicated hooks
-  const { dataMap: personaDataMap } = usePersonaDetailsQuery(personaIds);
-  const { dataMap: useCaseDataMap } = useUseCaseDetailsQuery(useCaseIds);
+  // Batch load intake source details
   const { dataMap: intakeSourceMap } = useIntakeSourceDetailsQuery(allIntakeSourceIds);
-
-  // Filter personas and use cases to only show those that still exist (not merged/deleted)
-  const validPersonas = useMemo(
-    () => feedbackPersonas.filter((fp: FeedbackPersona) => personaDataMap[fp.personaId]),
-    [feedbackPersonas, personaDataMap]
-  );
-
-  const validUseCases = useMemo(
-    () => feedbackUseCases.filter((fuc: FeedbackUseCase) => useCaseDataMap[fuc.useCaseId]),
-    [feedbackUseCases, useCaseDataMap]
-  );
 
   // Helper to get source display name
   const getSourceDisplayName = useCallback((intakeSourceId: string | null): string => {
@@ -433,22 +423,22 @@ function FeedbackDetailContent() {
                 </div>
               </div>
 
-              {validPersonas.length === 0 ? (
+              {linkedPersonas.length === 0 ? (
                 <p className="text-[var(--text-muted)] text-xs">
                   No personas linked to this feedback.
                 </p>
               ) : (
                 <ul className="space-y-2">
-                  {validPersonas.map((fp: FeedbackPersona) => (
+                  {linkedPersonas.map((persona: Persona) => (
                     <li
-                      key={fp.id}
+                      key={persona.id}
                       className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
                     >
                       <Link
-                        to={`/discovery/organize/personas/${fp.personaId}`}
+                        to={`/discovery/organize/personas/${persona.id}`}
                         className="text-sm text-[var(--text)] hover:text-[var(--primary)] truncate"
                       >
-                        {personaDataMap[fp.personaId]?.name}
+                        {persona.name}
                       </Link>
                     </li>
                   ))}
@@ -465,22 +455,22 @@ function FeedbackDetailContent() {
                 </div>
               </div>
 
-              {validUseCases.length === 0 ? (
+              {linkedUseCases.length === 0 ? (
                 <p className="text-[var(--text-muted)] text-sm">
                   No use cases linked to this feedback.
                 </p>
               ) : (
                 <ul className="space-y-2">
-                  {validUseCases.map((fuc: FeedbackUseCase) => (
+                  {linkedUseCases.map((useCase: UseCase) => (
                     <li
-                      key={fuc.id}
+                      key={useCase.id}
                       className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
                     >
                       <Link
-                        to={`/discovery/organize/use-cases/${fuc.useCaseId}`}
+                        to={`/discovery/organize/use-cases/${useCase.id}`}
                         className="text-sm text-[var(--text)] hover:text-[var(--primary)] truncate"
                       >
-                        {useCaseDataMap[fuc.useCaseId]?.name}
+                        {useCase.name}
                       </Link>
                     </li>
                   ))}

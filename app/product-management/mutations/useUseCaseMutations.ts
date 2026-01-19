@@ -58,8 +58,8 @@ export function useDeleteUseCase() {
       queryClient.removeQueries({ queryKey: queryKeys.useCases.detail(id) });
       // Invalidate related requirements (cascade effect)
       queryClient.invalidateQueries({ queryKey: queryKeys.requirements.all });
-      // Invalidate persona-use case associations
-      queryClient.invalidateQueries({ queryKey: queryKeys.personaUseCases.all });
+      // Invalidate personas since they have useCaseIds
+      queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
       toast.success('Use case deleted successfully');
     },
     onError: (error: Error) => {
@@ -98,10 +98,9 @@ export function useMergeUseCases() {
     onSuccess: () => {
       // Invalidate all use case queries since source use cases are now merged
       queryClient.invalidateQueries({ queryKey: queryKeys.useCases.all });
-      // Invalidate persona-use case associations
-      queryClient.invalidateQueries({ queryKey: queryKeys.personaUseCases.all });
-      // Invalidate feedback-use case associations
-      queryClient.invalidateQueries({ queryKey: queryKeys.feedbackUseCases.all });
+      // Invalidate personas and feedbacks since they have useCaseIds
+      queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.all });
       // Invalidate requirements (they've been transferred)
       queryClient.invalidateQueries({ queryKey: queryKeys.requirements.all });
       toast.success('Use cases merged successfully');

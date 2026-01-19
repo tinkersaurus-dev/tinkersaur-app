@@ -4,6 +4,7 @@
  */
 
 import { useMemo } from 'react';
+import { Link } from 'react-router';
 import { FiPlus } from 'react-icons/fi';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
@@ -71,10 +72,13 @@ export default function OutcomesListPage() {
       dataIndex: 'description',
       sorter: true,
       sortField: 'description',
-      render: (value) => (
-        <span className="line-clamp-2 text-sm">
-          {value as string}
-        </span>
+      render: (_, record) => (
+        <Link
+          to={`/discovery/organize/outcomes/${record.id}`}
+          className="text-[var(--primary)] hover:underline line-clamp-2 text-sm"
+        >
+          {record.description}
+        </Link>
       ),
     },
     {

@@ -10,9 +10,6 @@ import { useCaseApi } from '~/core/entities/product-management/api/useCaseApi';
 import { feedbackApi } from '~/core/entities/discovery/api/feedbackApi';
 import { outcomeApi } from '~/core/entities/discovery/api/outcomeApi';
 import { intakeSourceApi } from '~/core/entities/discovery/api/intakeSourceApi';
-import { personaUseCaseApi } from '~/core/entities/product-management/api/personaUseCaseApi';
-import { feedbackPersonaApi } from '~/core/entities/discovery/api/feedbackPersonaApi';
-import { feedbackUseCaseApi } from '~/core/entities/discovery/api/feedbackUseCaseApi';
 
 export interface PendingMerge {
   intakePersonaIndex: number;
@@ -134,6 +131,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               goals: persona.goals,
               painPoints: persona.painPoints,
               demographics: persona.demographics,
+              quotes: persona.quotes,
             };
             return personaApi.create(dto);
           })
@@ -145,7 +143,20 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           personaIdMap.set(filteredIndex, persona.id);
         });
 
-        // Step 2: Create all use cases and build ID map
+        // Helper to resolve persona ID from original index
+        const resolvePersonaId = (originalPersonaIndex: number): string | null => {
+          // First check if this persona was merged
+          const mergedPersonaId = mergedPersonaIdMap.get(originalPersonaIndex);
+          if (mergedPersonaId) return mergedPersonaId;
+
+          // Otherwise, check created personas
+          const filteredPersonaIndex = personaIndexMap.get(originalPersonaIndex);
+          if (filteredPersonaIndex === undefined) return null; // Persona was deleted
+
+          return personaIdMap.get(filteredPersonaIndex) ?? null;
+        };
+
+        // Step 2: Create all use cases with linked persona IDs
         // Build reverse map: filtered index -> original index
         const useCaseFilteredToOriginal = new Map<number, number>();
         for (const [original, filtered] of useCaseIndexMap.entries()) {
@@ -159,6 +170,11 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               ? useCaseSolutionIds.get(originalIndex) ?? null
               : null;
 
+            // Resolve linked persona IDs
+            const personaIds = useCase.linkedPersonaIndexes
+              .map(resolvePersonaId)
+              .filter((id): id is string => id !== null);
+
             const dto: CreateUseCaseDto = {
               teamId,
               intakeSourceId: intakeSource.id,
@@ -166,6 +182,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               description: useCase.description,
               solutionId: solutionId ?? undefined,
               quotes: useCase.quotes,
+              personaIds: personaIds.length > 0 ? personaIds : undefined,
             };
             return useCaseApi.create(dto);
           })
@@ -177,37 +194,20 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           useCaseIdMap.set(filteredIndex, useCase.id);
         });
 
-        // Step 3: Create PersonaUseCase junction entries
-        const personaUseCasePromises: Promise<unknown>[] = [];
-        useCases.forEach((useCase, filteredUseCaseIndex) => {
-          const useCaseId = useCaseIdMap.get(filteredUseCaseIndex);
-          if (!useCaseId) return;
+        // Helper to resolve use case ID from original index
+        const resolveUseCaseId = (originalUseCaseIndex: number): string | null => {
+          // First check if this use case was merged
+          const mergedUseCaseId = mergedUseCaseIdMap.get(originalUseCaseIndex);
+          if (mergedUseCaseId) return mergedUseCaseId;
 
-          useCase.linkedPersonaIndexes.forEach((originalPersonaIndex) => {
-            // First check if this persona was merged
-            const mergedPersonaId = mergedPersonaIdMap.get(originalPersonaIndex);
-            if (mergedPersonaId) {
-              personaUseCasePromises.push(
-                personaUseCaseApi.create({ personaId: mergedPersonaId, useCaseId })
-              );
-              return;
-            }
+          // Otherwise, check created use cases
+          const filteredUseCaseIndex = useCaseIndexMap.get(originalUseCaseIndex);
+          if (filteredUseCaseIndex === undefined) return null; // Use case was deleted
 
-            // Otherwise, check created personas
-            const filteredPersonaIndex = personaIndexMap.get(originalPersonaIndex);
-            if (filteredPersonaIndex === undefined) return; // Persona was deleted
+          return useCaseIdMap.get(filteredUseCaseIndex) ?? null;
+        };
 
-            const personaId = personaIdMap.get(filteredPersonaIndex);
-            if (!personaId) return;
-
-            personaUseCasePromises.push(
-              personaUseCaseApi.create({ personaId, useCaseId })
-            );
-          });
-        });
-        await Promise.all(personaUseCasePromises);
-
-        // Step 4: Create all feedbacks and build ID map
+        // Step 3: Create all feedbacks with linked persona and use case IDs
         // Build reverse map: filtered index -> original index
         const feedbackFilteredToOriginal = new Map<number, number>();
         for (const [original, filtered] of feedbackIndexMap.entries()) {
@@ -221,6 +221,16 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               ? feedbackSolutionIds.get(originalIndex) ?? null
               : null;
 
+            // Resolve linked persona IDs
+            const personaIds = fb.linkedPersonaIndexes
+              .map(resolvePersonaId)
+              .filter((id): id is string => id !== null);
+
+            // Resolve linked use case IDs
+            const useCaseIds = fb.linkedUseCaseIndexes
+              .map(resolveUseCaseId)
+              .filter((id): id is string => id !== null);
+
             const dto: CreateFeedbackDto = {
               teamId,
               solutionId,
@@ -228,83 +238,35 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               type: fb.type,
               content: fb.content,
               quotes: fb.quotes,
+              personaIds: personaIds.length > 0 ? personaIds : undefined,
+              useCaseIds: useCaseIds.length > 0 ? useCaseIds : undefined,
             };
             return feedbackApi.create(dto);
           })
         );
 
-        // Map from filtered index to created feedback ID
+        // Map from filtered index to created feedback ID (for reference if needed)
         const feedbackIdMap = new Map<number, string>();
         createdFeedbacks.forEach((fb, filteredIndex) => {
           feedbackIdMap.set(filteredIndex, fb.id);
         });
 
-        // Step 5: Create FeedbackPersona junction entries
-        const feedbackPersonaPromises: Promise<unknown>[] = [];
-        feedback.forEach((fb, filteredFeedbackIndex) => {
-          const feedbackId = feedbackIdMap.get(filteredFeedbackIndex);
-          if (!feedbackId) return;
-
-          fb.linkedPersonaIndexes.forEach((originalPersonaIndex) => {
-            // First check if this persona was merged
-            const mergedPersonaId = mergedPersonaIdMap.get(originalPersonaIndex);
-            if (mergedPersonaId) {
-              feedbackPersonaPromises.push(
-                feedbackPersonaApi.create({ feedbackId, personaId: mergedPersonaId })
-              );
-              return;
-            }
-
-            // Otherwise, check created personas
-            const filteredPersonaIndex = personaIndexMap.get(originalPersonaIndex);
-            if (filteredPersonaIndex === undefined) return; // Persona was deleted
-
-            const personaId = personaIdMap.get(filteredPersonaIndex);
-            if (!personaId) return;
-
-            feedbackPersonaPromises.push(
-              feedbackPersonaApi.create({ feedbackId, personaId })
-            );
-          });
-        });
-        await Promise.all(feedbackPersonaPromises);
-
-        // Step 6: Create FeedbackUseCase junction entries
-        const feedbackUseCasePromises: Promise<unknown>[] = [];
-        feedback.forEach((fb, filteredFeedbackIndex) => {
-          const feedbackId = feedbackIdMap.get(filteredFeedbackIndex);
-          if (!feedbackId) return;
-
-          fb.linkedUseCaseIndexes.forEach((originalUseCaseIndex) => {
-            // First check if this use case was merged
-            const mergedUseCaseId = mergedUseCaseIdMap.get(originalUseCaseIndex);
-            if (mergedUseCaseId) {
-              feedbackUseCasePromises.push(
-                feedbackUseCaseApi.create({ feedbackId, useCaseId: mergedUseCaseId })
-              );
-              return;
-            }
-
-            // Otherwise, check created use cases
-            const filteredUseCaseIndex = useCaseIndexMap.get(originalUseCaseIndex);
-            if (filteredUseCaseIndex === undefined) return; // Use case was deleted
-
-            const useCaseId = useCaseIdMap.get(filteredUseCaseIndex);
-            if (!useCaseId) return;
-
-            feedbackUseCasePromises.push(
-              feedbackUseCaseApi.create({ feedbackId, useCaseId })
-            );
-          });
-        });
-        await Promise.all(feedbackUseCasePromises);
-
-        // Step 6.5: Execute pending feedback merges (create feedback, link to personas/use-cases, then merge as child)
+        // Step 4: Execute pending feedback merges (create feedback with links, then merge as child)
         for (const pendingMerge of pendingFeedbackMerges) {
           const fb = pendingMerge.intakeFeedback;
           const solutionId = feedbackSolutionIds.get(pendingMerge.intakeFeedbackIndex) ?? null;
 
-          // Create the feedback
+          // Resolve linked persona IDs
+          const personaIds = fb.linkedPersonaIndexes
+            .map(resolvePersonaId)
+            .filter((id): id is string => id !== null);
+
+          // Resolve linked use case IDs
+          const useCaseIds = fb.linkedUseCaseIndexes
+            .map(resolveUseCaseId)
+            .filter((id): id is string => id !== null);
+
+          // Create the feedback with linked IDs
           const createdFeedback = await feedbackApi.create({
             teamId,
             solutionId,
@@ -312,39 +274,9 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
             type: fb.type,
             content: fb.content,
             quotes: fb.quotes,
+            personaIds: personaIds.length > 0 ? personaIds : undefined,
+            useCaseIds: useCaseIds.length > 0 ? useCaseIds : undefined,
           });
-
-          // Link to personas
-          const personaLinkPromises = fb.linkedPersonaIndexes.map((originalPersonaIndex) => {
-            // First check if this persona was merged
-            const mergedPersonaId = mergedPersonaIdMap.get(originalPersonaIndex);
-            if (mergedPersonaId) {
-              return feedbackPersonaApi.create({ feedbackId: createdFeedback.id, personaId: mergedPersonaId });
-            }
-            // Otherwise, check created personas
-            const filteredPersonaIndex = personaIndexMap.get(originalPersonaIndex);
-            if (filteredPersonaIndex === undefined) return null;
-            const personaId = personaIdMap.get(filteredPersonaIndex);
-            if (!personaId) return null;
-            return feedbackPersonaApi.create({ feedbackId: createdFeedback.id, personaId });
-          }).filter(Boolean);
-          await Promise.all(personaLinkPromises);
-
-          // Link to use cases
-          const useCaseLinkPromises = fb.linkedUseCaseIndexes.map((originalUseCaseIndex) => {
-            // First check if this use case was merged
-            const mergedUseCaseId = mergedUseCaseIdMap.get(originalUseCaseIndex);
-            if (mergedUseCaseId) {
-              return feedbackUseCaseApi.create({ feedbackId: createdFeedback.id, useCaseId: mergedUseCaseId });
-            }
-            // Otherwise, check created use cases
-            const filteredUseCaseIndex = useCaseIndexMap.get(originalUseCaseIndex);
-            if (filteredUseCaseIndex === undefined) return null;
-            const useCaseId = useCaseIdMap.get(filteredUseCaseIndex);
-            if (!useCaseId) return null;
-            return feedbackUseCaseApi.create({ feedbackId: createdFeedback.id, useCaseId });
-          }).filter(Boolean);
-          await Promise.all(useCaseLinkPromises);
 
           // Merge as child of existing feedback
           await feedbackApi.merge({
@@ -354,7 +286,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           });
         }
 
-        // Step 7: Create all outcomes
+        // Step 5: Create all outcomes
         // Build reverse map: filtered index -> original index
         const outcomeFilteredToOriginal = new Map<number, number>();
         for (const [original, filtered] of outcomeIndexMap.entries()) {
@@ -374,6 +306,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               intakeSourceId: intakeSource.id,
               description: outcome.description,
               target: outcome.target,
+              quotes: outcome.quotes,
             };
             return outcomeApi.create(dto);
           })

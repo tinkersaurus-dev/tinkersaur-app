@@ -63,12 +63,6 @@ export {
 } from './useUsersQuery';
 
 export {
-  usePersonaUseCasesQuery,
-  useUseCasePersonasQuery,
-  prefetchPersonaUseCases,
-} from './usePersonaUseCasesQuery';
-
-export {
   useSolutionFactorsQuery,
   useSolutionFactorsByTypeQuery,
   prefetchSolutionFactors,

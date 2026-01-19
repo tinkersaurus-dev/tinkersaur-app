@@ -48,11 +48,6 @@ export {
 } from './useUserMutations';
 
 export {
-  useCreatePersonaUseCase,
-  useDeletePersonaUseCase,
-} from './usePersonaUseCaseMutations';
-
-export {
   useCreateSolutionFactor,
   useUpdateSolutionFactor,
   useDeleteSolutionFactor,

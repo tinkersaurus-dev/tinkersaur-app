@@ -19,6 +19,7 @@ export default [
   route("discovery/organize/feedback", "discovery/routes/feedback-list.tsx"),
   route("discovery/organize/feedback/:feedbackId", "discovery/routes/feedback-detail.tsx"),
   route("discovery/organize/outcomes", "discovery/routes/outcomes-list.tsx"),
+  route("discovery/organize/outcomes/:outcomeId", "discovery/routes/outcome-detail.tsx"),
 
   // Solutions routes
   route("solutions/strategy/overview", "routes/overview.tsx"),

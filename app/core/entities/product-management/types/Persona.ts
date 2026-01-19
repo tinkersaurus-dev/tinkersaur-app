@@ -27,6 +27,8 @@ export const PersonaSchema = z.object({
   painPoints: z.array(z.string()).default([]),
   demographics: DemographicsSchema.default({}),
   quotes: z.array(QuoteWithSourceSchema).default([]),
+  useCaseIds: z.array(z.string().uuid()).default([]),
+  feedbackIds: z.array(z.string().uuid()).default([]),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -39,11 +41,14 @@ export type Persona = z.infer<typeof PersonaSchema>;
 export const CreatePersonaSchema = PersonaSchema.omit({
   id: true,
   quotes: true,
+  useCaseIds: true,
+  feedbackIds: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
   intakeSourceIds: z.array(z.string().uuid()).optional(),
-  quotes: z.array(QuoteWithSourceSchema).optional(),
+  quotes: z.array(z.string()).optional(),
+  useCaseIds: z.array(z.string().uuid()).optional(),
 });
 
 export type CreatePersonaDto = z.infer<typeof CreatePersonaSchema>;

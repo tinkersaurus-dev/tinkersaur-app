@@ -33,12 +33,11 @@ interface IntakeResultsProps {
   result: IntakeResult;
   onNewAnalysis: () => void;
   defaultSolutionId: string | null;
-  onEditInput?: () => void;
 }
 
 type TabKey = 'personas' | 'useCases' | 'feedback' | 'outcomes';
 
-export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEditInput }: IntakeResultsProps) {
+export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: IntakeResultsProps) {
   const navigate = useNavigate();
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const { saveIntakeResult, isSaving } = useSaveIntakeResult();
@@ -314,7 +313,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
 
     if (success) {
       toast.success('Intake results saved successfully');
-      navigate('/discovery/intake');
+      navigate('/discovery/organize');
     } else {
       toast.error('Failed to save intake results. Please try again.');
     }
@@ -549,10 +548,10 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
         <Button
           variant="default"
           icon={<FiRefreshCw />}
-          onClick={onEditInput ?? onNewAnalysis}
+          onClick={onNewAnalysis}
           disabled={isSaving}
         >
-          Analyze Another Transcript
+          Start Over
         </Button>
       </div>
 

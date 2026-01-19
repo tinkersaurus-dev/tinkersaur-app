@@ -50,6 +50,8 @@ export const FeedbackSchema = z.object({
   type: FeedbackTypeSchema,
   content: z.string().max(2000),
   quotes: z.array(QuoteWithSourceSchema),
+  personaIds: z.array(z.string().uuid()).default([]),
+  useCaseIds: z.array(z.string().uuid()).default([]),
   parentFeedbackId: z.string().uuid().nullable(),
   weight: z.number().default(0),
   createdAt: z.date(),
@@ -70,12 +72,16 @@ export type FeedbackWithChildren = z.infer<typeof FeedbackWithChildrenSchema>;
 export const CreateFeedbackSchema = FeedbackSchema.omit({
   id: true,
   quotes: true,
+  personaIds: true,
+  useCaseIds: true,
   parentFeedbackId: true,
   weight: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
   quotes: z.array(z.string()),
+  personaIds: z.array(z.string().uuid()).optional(),
+  useCaseIds: z.array(z.string().uuid()).optional(),
 });
 
 export type CreateFeedbackDto = z.infer<typeof CreateFeedbackSchema>;

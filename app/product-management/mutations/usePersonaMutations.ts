@@ -75,8 +75,8 @@ export function useDeletePersona() {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
       queryClient.removeQueries({ queryKey: queryKeys.personas.detail(id) });
-      // Invalidate persona-use case associations
-      queryClient.invalidateQueries({ queryKey: queryKeys.personaUseCases.all });
+      // Invalidate use cases since they have personaIds
+      queryClient.invalidateQueries({ queryKey: queryKeys.useCases.all });
       toast.success('Persona deleted successfully');
     },
     onError: (error: Error) => {
@@ -96,10 +96,9 @@ export function useMergePersonas() {
     onSuccess: () => {
       // Invalidate all persona queries since source personas are now merged
       queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
-      // Invalidate persona-use case associations
-      queryClient.invalidateQueries({ queryKey: queryKeys.personaUseCases.all });
-      // Invalidate feedback-persona associations
-      queryClient.invalidateQueries({ queryKey: queryKeys.feedbackPersonas.all });
+      // Invalidate use cases and feedbacks since they have personaIds
+      queryClient.invalidateQueries({ queryKey: queryKeys.useCases.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.all });
       toast.success('Personas merged successfully');
     },
     onError: (error: Error) => {
