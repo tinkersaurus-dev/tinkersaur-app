@@ -142,7 +142,7 @@ export function useSidebarTree({
       const folderIcon = designWork.useCaseId ? (
         <span className="flex items-center gap-0.5">
           <MdFolder />
-          <MdLinkIcon className="text-[10px] text-[var(--text-secondary)]" />
+          <MdLinkIcon className="text-xs text-[var(--text-secondary)]" />
         </span>
       ) : (
         <MdFolder />

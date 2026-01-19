@@ -140,7 +140,7 @@ export function MermaidEditorRenderer({
       {/* Header */}
       <div
         style={{
-          fontSize: '12px',
+          fontSize: 'var(--font-size-sm)',
           fontWeight: 'bold',
           color: 'var(--text)',
           textAlign: 'center',
@@ -161,7 +161,7 @@ export function MermaidEditorRenderer({
           width: '100%',
           height:'300px',
           padding: '8px',
-          fontSize: '11px',
+          fontSize: 'var(--font-size-base)',
           fontFamily: 'monospace',
           color: 'var(--text)',
           backgroundColor: 'var(--bg)',
@@ -186,7 +186,7 @@ export function MermaidEditorRenderer({
       {error && (
         <div
           style={{
-            fontSize: '10px',
+            fontSize: 'var(--font-size-xs)',
             color: 'var(--error)',
             backgroundColor: 'var(--error-bg)',
             padding: '6px',
@@ -206,7 +206,7 @@ export function MermaidEditorRenderer({
         style={{
           width: '100%',
           padding: '8px',
-          fontSize: '12px',
+          fontSize: 'var(--font-size-sm)',
           fontWeight: 'bold',
           color: isUpdating || !mermaidSyntax.trim() ? 'var(--text-muted)' : 'var(--bg)',
           backgroundColor: isUpdating || !mermaidSyntax.trim() ? 'var(--bg-muted)' : 'var(--primary)',

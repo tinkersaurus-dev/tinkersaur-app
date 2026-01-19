@@ -30,7 +30,7 @@ export const ReferencedDiagramsList = memo(function ReferencedDiagramsList({
         display: 'flex',
         flexDirection: 'column',
         gap: '4px',
-        fontSize: '8px',
+        fontSize: 'var(--font-size-xs)',
         color: 'var(--text-muted)',
       }}
     >

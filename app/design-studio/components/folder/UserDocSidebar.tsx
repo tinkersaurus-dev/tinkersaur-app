@@ -37,7 +37,7 @@ export function UserDocSidebar({ documents, selectedId, onSelect }: UserDocSideb
             `}
           >
             <div className="font-medium truncate text-xs">{doc.title}</div>
-            <div className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
+            <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
               {doc.steps.length} step{doc.steps.length !== 1 ? 's' : ''}
             </div>
           </div>

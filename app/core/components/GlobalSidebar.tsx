@@ -55,7 +55,7 @@ function FlyoutMenu({
   return createPortal(
     <div
       data-flyout-menu
-      className="fixed bg-[var(--bg-light)] border border-[var(--border)] rounded-sm shadow-lg py-2 min-w-[200px] z-50"
+      className="fixed bg-[var(--bg-light)] border border-[var(--border)] rounded-sm shadow-lg py-2 min-w-[clamp(180px,12vw,240px)] z-50"
       style={{
         top: position.top,
         left: position.left,
@@ -230,12 +230,12 @@ export function GlobalSidebar() {
       <nav className="flex-1 overflow-hidden py-2">
         {navSections.map((section) => (
           <div key={section.key} className="mb-1">
-            {/* Section Header - same structure, uses overflow to hide label */}
+            {/* Section Header */}
             <div
               data-section={section.key}
               className={`
-                flex items-center gap-2 px-4 py-2
-                cursor-pointer text-sm transition-colors whitespace-nowrap
+                flex items-center py-2 cursor-pointer text-sm transition-colors whitespace-nowrap
+                ${isCollapsed ? 'justify-center px-0' : 'gap-2 px-4'}
                 ${
                   isActive(section.path)
                     ? 'text-[var(--primary)] bg-[var(--bg-light)]'
@@ -249,7 +249,7 @@ export function GlobalSidebar() {
               title={isCollapsed ? section.label : undefined}
             >
               <span className="flex-shrink-0">{section.icon}</span>
-              <span className="flex-1 overflow-hidden">{section.label}</span>
+              {!isCollapsed && <span className="flex-1 overflow-hidden">{section.label}</span>}
             </div>
 
             {/* Subsection Items - only shown when NOT collapsed and route is active */}

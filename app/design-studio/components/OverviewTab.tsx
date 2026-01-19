@@ -56,7 +56,7 @@ export function OverviewTab({ solutionId, useCaseId }: OverviewTabProps) {
     <div className="bg-[var(--bg)]" style={{ padding: '24px' }}>
       <Card>
         <h3 style={{ marginBottom: '16px' }}>Requirements</h3>
-        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+        <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: '16px' }}>
           Drag requirements to folders in the sidebar to include them in the compiled context.
         </p>
         <RequirementsList

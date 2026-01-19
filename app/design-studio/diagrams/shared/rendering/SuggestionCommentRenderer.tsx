@@ -230,7 +230,7 @@ export function SuggestionCommentRenderer({
             style={{
               height: `${buttonHeight}px`,
               padding: '0 8px',
-              fontSize: '11px',
+              fontSize: 'var(--font-size-base)',
               fontWeight: 'bold',
               color: 'var(--text)',
               backgroundColor: 'var(--bg)',
@@ -264,7 +264,7 @@ export function SuggestionCommentRenderer({
             style={{
               height: `${buttonHeight}px`,
               padding: '0 8px',
-              fontSize: '11px',
+              fontSize: 'var(--font-size-base)',
               fontWeight: 'bold',
               color: 'var(--bg)',
               backgroundColor: 'var(--primary)',

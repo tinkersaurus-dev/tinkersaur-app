@@ -151,7 +151,7 @@ export function DocumentEditor({
               className="w-[50px] bg-[var(--surface)] border-r border-[var(--border)] overflow-hidden text-right pr-2 pt-3 select-none"
               style={{
                 fontFamily: 'monospace',
-                fontSize: '12px',
+                fontSize: 'var(--font-size-sm)',
                 lineHeight: '1.5',
                 color: 'var(--text-tertiary)',
                 scrollbarWidth: 'none',
@@ -182,7 +182,7 @@ export function DocumentEditor({
                 className="w-full h-full p-3 border-0 outline-none resize-none bg-[var(--bg-light)] text-[var(--text)]"
                 style={{
                   fontFamily: 'monospace',
-                  fontSize: '12px',
+                  fontSize: 'var(--font-size-sm)',
                   lineHeight: '1.5',
                 }}
               />

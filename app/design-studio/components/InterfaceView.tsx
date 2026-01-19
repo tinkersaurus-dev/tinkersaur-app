@@ -38,7 +38,7 @@ export function InterfaceView({ interfaceId }: InterfaceViewProps) {
           description={
             <div>
               <p>Interface Editor Coming Soon</p>
-              <p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
                 This is where the interface/wireframe editor will be displayed
               </p>
             </div>

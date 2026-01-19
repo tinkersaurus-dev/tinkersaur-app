@@ -125,7 +125,7 @@ function StoryEditForm({ story, onChange }: StoryEditFormProps) {
         className="w-full p-3 border border-[var(--border)] rounded bg-[var(--bg-light)] text-[var(--text)] resize-none outline-none focus:border-[var(--primary)]"
         style={{
           fontFamily: 'monospace',
-          fontSize: '12px',
+          fontSize: 'var(--font-size-sm)',
           lineHeight: '1.5',
         }}
         placeholder={`### User Story: [Title]

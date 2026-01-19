@@ -16,7 +16,7 @@ export const styles = {
   }),
 
   header: (): CSSProperties => ({
-    fontSize: '10px',
+    fontSize: 'var(--font-size-xs)',
     fontWeight: 'semibold',
     color: 'var(--text)',
     textAlign: 'left',
@@ -26,7 +26,7 @@ export const styles = {
     width: '100%',
     minHeight: '100px',
     padding: '6px',
-    fontSize: '10px',
+    fontSize: 'var(--font-size-xs)',
     fontFamily: 'inherit',
     color: 'var(--text)',
     backgroundColor: 'var(--bg-light)',
@@ -38,7 +38,7 @@ export const styles = {
   }),
 
   errorDisplay: (zoom: number): CSSProperties => ({
-    fontSize: '8px',
+    fontSize: 'var(--font-size-xs)',
     color: 'var(--error)',
     backgroundColor: 'var(--error-bg)',
     padding: '6px',
@@ -51,7 +51,7 @@ export const styles = {
     width: '100%',
     height: '16px',
     padding: '8px',
-    fontSize: '10px',
+    fontSize: 'var(--font-size-xs)',
     fontWeight: 'semibold',
     color: isDisabled ? 'var(--text-muted)' : 'var(--bg)',
     backgroundColor: isDisabled ? 'var(--bg-muted)' : 'var(--primary)',

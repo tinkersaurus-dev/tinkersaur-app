@@ -316,9 +316,9 @@ function UseCaseDetailContent() {
               label: 'Overview',
               children: (
                 <div className="pt-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 qhd:grid-cols-4 gap-6">
                     {/* Main content */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="lg:col-span-2 qhd:col-span-3 space-y-6">
                       <UseCaseBasicInfo
                         useCase={useCase}
                         onSave={handleSaveBasicInfo}

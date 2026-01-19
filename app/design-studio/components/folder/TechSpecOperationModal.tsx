@@ -99,7 +99,7 @@ function TechSpecEditForm({ section, onChange }: TechSpecEditFormProps) {
           onChange={(e) => updateField('content', e.target.value)}
           rows={8}
           size="small"
-          style={{ fontFamily: 'monospace', fontSize: '11px' }}
+          style={{ fontFamily: 'monospace', fontSize: 'var(--font-size-base)' }}
         />
       </div>
 
@@ -124,7 +124,7 @@ function TechSpecEditForm({ section, onChange }: TechSpecEditFormProps) {
               onChange={(e) => onItemChange({ ...subsection, content: e.target.value })}
               rows={4}
               size="small"
-              style={{ fontFamily: 'monospace', fontSize: '11px' }}
+              style={{ fontFamily: 'monospace', fontSize: 'var(--font-size-base)' }}
               placeholder="Subsection content (Markdown)..."
             />
           </div>

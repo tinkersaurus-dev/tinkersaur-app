@@ -26,7 +26,7 @@ export function RequirementItem({ requirement, folderNames = [] }: RequirementIt
     // Create drag image
     const dragImage = document.createElement('div');
     dragImage.style.cssText =
-      'position:absolute;top:-1000px;padding:4px 8px;background:var(--bg-light);border:1px solid var(--border);border-radius:4px;font-size:10px;max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;';
+      'position:absolute;top:-1000px;padding:4px 8px;background:var(--bg-light);border:1px solid var(--border);border-radius:4px;font-size:var(--font-size-xs);max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;';
     dragImage.textContent = requirement.text.substring(0, 40) + (requirement.text.length > 40 ? '...' : '');
     document.body.appendChild(dragImage);
     event.dataTransfer.setDragImage(dragImage, 0, 0);
@@ -43,12 +43,12 @@ export function RequirementItem({ requirement, folderNames = [] }: RequirementIt
         borderBottom: '1px solid var(--border)',
       }}
     >
-      <div style={{ fontSize: '13px', lineHeight: '1.4', marginBottom: '4px' }}>
+      <div style={{ fontSize: 'var(--font-size-md)', lineHeight: '1.4', marginBottom: '4px' }}>
         {requirement.text}
       </div>
       <div
         style={{
-          fontSize: '11px',
+          fontSize: 'var(--font-size-base)',
           color: 'var(--text-secondary)',
           display: 'flex',
           alignItems: 'center',

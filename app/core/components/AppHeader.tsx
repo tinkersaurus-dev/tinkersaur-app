@@ -83,7 +83,7 @@ export function AppHeader() {
           mode="horizontal"
           selectedKeys={[selectedModule]}
           items={moduleMenuItems}
-          className="min-w-[300px] text-sm"
+          className="text-sm"
           colorScheme='brand'
         />
       </HStack>

@@ -166,7 +166,7 @@ export function PreviewRenderer({
             style={{
               height: `${buttonHeight}px`,
               padding: '0 12px',
-              fontSize: '12px',
+              fontSize: 'var(--font-size-sm)',
               fontWeight: 'bold',
               color: 'var(--text)',
               backgroundColor: 'var(--bg)',
@@ -196,7 +196,7 @@ export function PreviewRenderer({
             style={{
               height: `${buttonHeight}px`,
               padding: '0 12px',
-              fontSize: '12px',
+              fontSize: 'var(--font-size-sm)',
               fontWeight: 'bold',
               color: 'var(--bg)',
               backgroundColor: 'var(--primary)',

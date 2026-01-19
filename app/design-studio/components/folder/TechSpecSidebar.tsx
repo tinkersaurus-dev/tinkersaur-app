@@ -38,7 +38,7 @@ export function TechSpecSidebar({ sections, selectedId, onSelect }: TechSpecSide
             `}
           >
             <div className="font-medium truncate text-xs">{section.title}</div>
-            <div className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
+            <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
               {TECH_SPEC_SECTION_LABELS[section.sectionType] || section.sectionType}
             </div>
           </div>

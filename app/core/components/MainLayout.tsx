@@ -13,7 +13,6 @@ interface MainLayoutProps {
   children: ReactNode;
 }
 
-const SIDEBAR_EXPANDED_WIDTH = 300;
 const SIDEBAR_COLLAPSED_WIDTH = 48;
 
 export function MainLayout({ children }: MainLayoutProps) {
@@ -23,7 +22,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     <AppLayout>
       <div className="flex h-[calc(100vh-88px)]">
         <Layout.Sider
-          width={SIDEBAR_EXPANDED_WIDTH}
+          width="var(--sidebar-width-expanded)"
           collapsedWidth={SIDEBAR_COLLAPSED_WIDTH}
           collapsed={isCollapsed}
         >

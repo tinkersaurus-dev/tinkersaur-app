@@ -19,6 +19,33 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
+  /* Desktop-focused breakpoints */
+  --breakpoint-laptop: 1366px;
+  --breakpoint-desktop: 1920px;
+  --breakpoint-qhd: 2560px;
+  --breakpoint-ultrawide: 3440px;
+
+  /* Override Tailwind font sizes with fluid typography */
+  --text-xs: var(--font-size-xs);
+  --text-sm: var(--font-size-sm);
+  --text-base: var(--font-size-base);
+  --text-lg: var(--font-size-lg);
+  --text-xl: clamp(16px, 0.6vw + 12px, 20px);
+  --text-2xl: clamp(18px, 0.8vw + 14px, 24px);
+  --text-3xl: clamp(22px, 1vw + 16px, 30px);
+
+  /* Override Tailwind spacing/gap with fluid values */
+  --spacing-0: 0px;
+  --spacing-1: clamp(2px, 0.2vw + 2px, 4px);
+  --spacing-2: clamp(4px, 0.3vw + 4px, 8px);
+  --spacing-3: clamp(8px, 0.4vw + 6px, 12px);
+  --spacing-4: clamp(12px, 0.5vw + 8px, 16px);
+  --spacing-5: clamp(16px, 0.6vw + 10px, 20px);
+  --spacing-6: clamp(18px, 0.8vw + 12px, 24px);
+  --spacing-8: clamp(24px, 1vw + 16px, 32px);
+  --spacing-10: clamp(32px, 1.2vw + 20px, 40px);
+  --spacing-12: clamp(40px, 1.5vw + 24px, 48px);
+
   --bg-brand: var(--bg-brand);
   --text-brand: var(--text-brand);
   --text-brand-muted: var(--text-brand-muted);
@@ -156,12 +183,29 @@
   --tag-bg-red: oklch(0.9689 0.0152 22.39);
   --tag-bg-purple: oklch(0.9665 0.022 312.19);
 
-  /* Spacing */
+  /* Spacing - Static */
   --spacing-xs: 8px;
   --spacing-sm: 12px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
+
+  /* Fluid Spacing - Scales with viewport */
+  --spacing-page: clamp(16px, 2vw, 32px);
+  --spacing-section: clamp(12px, 1.5vw, 24px);
+  --spacing-element: clamp(8px, 1vw, 16px);
+
+  /* Fluid Typography - Scales with viewport */
+  --font-size-xs: clamp(8px, 0.4vw + 6px, 12px);
+  --font-size-sm: clamp(10px, 0.4vw + 7px, 14px);
+  --font-size-base: clamp(11px, 0.4vw + 8px, 13px);
+  --font-size-md: clamp(12px, 0.4vw + 9px, 14px);
+  --font-size-lg: clamp(14px, 0.5vw + 10px, 18px);
+
+  /* Responsive Component Sizes */
+  --sidebar-width-expanded: clamp(250px, 15vw, 350px);
+  --sidebar-width-collapsed: 48px;
+  --content-max-width: 2200px;
 
   /* Border Radius */
   --radius-sm: 2px;
@@ -301,6 +345,24 @@ html,
 body {
   background-color: var(--bg-dark);
   color: var(--text-muted);
+  font-size: var(--font-size-base);
+}
+
+/* Fluid text utility classes */
+.text-fluid-xs {
+  font-size: var(--font-size-xs);
+}
+.text-fluid-sm {
+  font-size: var(--font-size-sm);
+}
+.text-fluid-base {
+  font-size: var(--font-size-base);
+}
+.text-fluid-md {
+  font-size: var(--font-size-md);
+}
+.text-fluid-lg {
+  font-size: var(--font-size-lg);
 }
 
 /* Modal animations */

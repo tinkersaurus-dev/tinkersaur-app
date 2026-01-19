@@ -77,7 +77,7 @@ export function ListControlPanel({
       {/* Filters Row */}
       <div className="flex flex-wrap gap-3 items-center">
         {/* Search Input */}
-        <div className="flex-1 min-w-[200px] max-w-[300px]">
+        <div className="flex-1 min-w-[180px] max-w-[clamp(200px,20vw,350px)]">
           <SearchInput
             value={localSearch}
             onChange={handleSearchChange}

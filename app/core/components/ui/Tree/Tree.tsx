@@ -109,7 +109,7 @@ export function Tree({
   };
 
   return (
-    <div className='bg-[var(--bg-dark)]' style={{ fontSize: '10px' }}>
+    <div className='bg-[var(--bg-dark)]' style={{ fontSize: 'var(--font-size-xs)' }}>
       {data.map((node) => (
         <TreeNode
           key={node.key}
