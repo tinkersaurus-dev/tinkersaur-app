@@ -84,23 +84,29 @@ export function useUseCaseFeedback(
     return map;
   }, [feedbackIntakeSourceQueries, feedbackIntakeSourceIds]);
 
-  // Prepare feedback rows for table display
+  // Prepare feedback rows for table display, sorted by weight descending
   const suggestions = useMemo((): FeedbackRow[] => {
-    return rawSuggestions.map((f: Feedback) => ({
-      id: f.id,
-      content: f.content,
-      quotes: f.quotes,
-      sourceName: f.intakeSourceId ? feedbackIntakeSourceNameMap[f.intakeSourceId] || '—' : '—',
-    }));
+    return rawSuggestions
+      .map((f: Feedback) => ({
+        id: f.id,
+        content: f.content,
+        quotes: f.quotes,
+        sourceName: f.intakeSourceId ? feedbackIntakeSourceNameMap[f.intakeSourceId] || '—' : '—',
+        weight: f.weight,
+      }))
+      .sort((a, b) => b.weight - a.weight);
   }, [rawSuggestions, feedbackIntakeSourceNameMap]);
 
   const problems = useMemo((): FeedbackRow[] => {
-    return rawProblems.map((f: Feedback) => ({
-      id: f.id,
-      content: f.content,
-      quotes: f.quotes,
-      sourceName: f.intakeSourceId ? feedbackIntakeSourceNameMap[f.intakeSourceId] || '—' : '—',
-    }));
+    return rawProblems
+      .map((f: Feedback) => ({
+        id: f.id,
+        content: f.content,
+        quotes: f.quotes,
+        sourceName: f.intakeSourceId ? feedbackIntakeSourceNameMap[f.intakeSourceId] || '—' : '—',
+        weight: f.weight,
+      }))
+      .sort((a, b) => b.weight - a.weight);
   }, [rawProblems, feedbackIntakeSourceNameMap]);
 
   const isLoading = isFeedbackLoading || feedbackIntakeSourceQueries.some(q => q.isLoading);

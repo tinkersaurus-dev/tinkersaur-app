@@ -2,7 +2,7 @@
  * Feedback Merge Modal
  * Simple modal for merging feedback items into parent-child relationship.
  * Unlike persona/use-case merge, this does NOT use LLM - it's a simple
- * parent-child assignment where the first selected becomes the parent.
+ * parent-child assignment where the oldest feedback becomes the parent.
  */
 
 import { FiMessageSquare, FiArrowDown } from 'react-icons/fi';
@@ -26,9 +26,12 @@ export function FeedbackMergeModal({
 }: FeedbackMergeModalProps) {
   const mergeMutation = useMergeFeedbacks();
 
-  // First selected is the parent
-  const parent = selectedFeedbacks[0];
-  const children = selectedFeedbacks.slice(1);
+  // Sort by createdAt ascending - oldest becomes the parent
+  const sortedFeedbacks = [...selectedFeedbacks].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+  const parent = sortedFeedbacks[0];
+  const children = sortedFeedbacks.slice(1);
 
   const getTypeColor = (type: string) => {
     const config = FEEDBACK_TYPE_CONFIG[type as keyof typeof FEEDBACK_TYPE_CONFIG];
@@ -81,7 +84,7 @@ export function FeedbackMergeModal({
       <div className="space-y-4">
         {/* Explanation */}
         <div className="text-sm text-[var(--text-muted)]">
-          The first selected feedback will become the parent. All other selected
+          The oldest feedback will become the parent. All other selected
           feedback items will be linked as children and hidden from the main list.
         </div>
 

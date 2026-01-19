@@ -26,7 +26,7 @@ export default function FeedbackListPage() {
   // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
     filterKeys: ['solutionId', 'personaIds', 'useCaseIds'],
-    defaultSortBy: 'createdAt',
+    defaultSortBy: 'weight',
     defaultSortOrder: 'desc',
   });
 

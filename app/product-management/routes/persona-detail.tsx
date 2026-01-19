@@ -27,6 +27,7 @@ interface FeedbackRow {
   content: string;
   quotes: QuoteWithSource[];
   sourceName: string;
+  weight: number;
 }
 
 // Quote row type for table display
@@ -132,23 +133,29 @@ function PersonaDetailContent() {
   // Fetch intake sources for feedback - using batch hook for clean name mapping
   const { nameMap: intakeSourceNameMap } = useIntakeSourceDetailsQuery(intakeSourceIds);
 
-  // Prepare feedback rows for table display
+  // Prepare feedback rows for table display, sorted by weight descending
   const suggestionRows = useMemo((): FeedbackRow[] => {
-    return suggestions.map((f: Feedback) => ({
-      id: f.id,
-      content: f.content,
-      quotes: f.quotes,
-      sourceName: f.intakeSourceId ? intakeSourceNameMap[f.intakeSourceId] || '—' : '—',
-    }));
+    return suggestions
+      .map((f: Feedback) => ({
+        id: f.id,
+        content: f.content,
+        quotes: f.quotes,
+        sourceName: f.intakeSourceId ? intakeSourceNameMap[f.intakeSourceId] || '—' : '—',
+        weight: f.weight,
+      }))
+      .sort((a, b) => b.weight - a.weight);
   }, [suggestions, intakeSourceNameMap]);
 
   const problemRows = useMemo((): FeedbackRow[] => {
-    return problems.map((f: Feedback) => ({
-      id: f.id,
-      content: f.content,
-      quotes: f.quotes,
-      sourceName: f.intakeSourceId ? intakeSourceNameMap[f.intakeSourceId] || '—' : '—',
-    }));
+    return problems
+      .map((f: Feedback) => ({
+        id: f.id,
+        content: f.content,
+        quotes: f.quotes,
+        sourceName: f.intakeSourceId ? intakeSourceNameMap[f.intakeSourceId] || '—' : '—',
+        weight: f.weight,
+      }))
+      .sort((a, b) => b.weight - a.weight);
   }, [problems, intakeSourceNameMap]);
 
   // Table columns for feedback
@@ -160,6 +167,21 @@ function PersonaDetailContent() {
       render: (value) => (
         <span className="text-xs text-[var(--text)]">{value as string}</span>
       ),
+    },
+    {
+      key: 'weight',
+      title: 'Weight',
+      dataIndex: 'weight',
+      width: 80,
+      render: (value) => {
+        const weight = value as number;
+        if (weight === 0) return <span className="text-xs text-[var(--text-muted)]">—</span>;
+        return (
+          <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)]">
+            +{weight}
+          </span>
+        );
+      },
     },
     {
       key: 'quotes',

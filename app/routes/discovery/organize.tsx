@@ -3,13 +3,16 @@
  * Dashboard view showing recently added personas, use cases, feedback, and outcomes.
  */
 
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { FiPlus } from 'react-icons/fi';
 import { MainLayout } from '~/core/components/MainLayout';
 import { PageHeader } from '~/core/components/PageHeader';
 import { PageContent } from '~/core/components/PageContent';
 import { Button } from '~/core/components/ui';
 import { useAuthStore } from '~/core/auth/useAuthStore';
+import { queryKeys } from '~/core/query/queryKeys';
 import { usePersonasQuery } from '~/product-management/queries';
 import { useUseCasesByTeamQuery } from '~/product-management/queries';
 import { useFeedbacksQuery, useOutcomesQuery } from '~/discovery/hooks';
@@ -29,8 +32,19 @@ const MAX_ITEMS = 10;
 
 export default function OrganizePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
+
+  // Refresh all dashboard data when the page is opened
+  useEffect(() => {
+    if (teamId) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.personas.list(teamId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.useCases.listByTeam(teamId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.list(teamId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.outcomes.list(teamId) });
+    }
+  }, [queryClient, teamId]);
 
   const { data: personas = [], isLoading: personasLoading } =
     usePersonasQuery(teamId);

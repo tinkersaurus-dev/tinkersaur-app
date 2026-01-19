@@ -23,6 +23,23 @@ const feedbackColumns: TableColumn<FeedbackRow>[] = [
     ),
   },
   {
+    key: 'weight',
+    title: 'Weight',
+    dataIndex: 'weight',
+    width: 80,
+    render: (value) => {
+      const weight = value as number;
+      if (weight === 0) {
+        return <span className="text-xs text-[var(--text-muted)]">—</span>;
+      }
+      return (
+        <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)]">
+          +{weight}
+        </span>
+      );
+    },
+  },
+  {
     key: 'quotes',
     title: 'Quotes',
     dataIndex: 'quotes',

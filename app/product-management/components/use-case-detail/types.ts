@@ -21,6 +21,7 @@ export interface FeedbackRow {
   content: string;
   quotes: QuoteWithSource[];
   sourceName: string;
+  weight: number;
 }
 
 /**

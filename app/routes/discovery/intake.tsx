@@ -164,7 +164,7 @@ export default function IntakePage() {
     <MainLayout>
       <PageHeader title="Intake" />
       <PageContent>
-        <div className="max-w-5xl mx-auto space-y-4">
+        <div className="max-w-5xl desktop:max-w-none mx-auto space-y-4 desktop:space-y-0 desktop:grid desktop:grid-cols-2 desktop:gap-6 desktop:items-start">
           {/* Error display */}
           {error && (
             <Card className="border-[var(--danger)] bg-red-50 dark:bg-red-900/20">
