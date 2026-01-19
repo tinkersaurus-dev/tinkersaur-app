@@ -129,22 +129,22 @@ function FeedbackDetailContent() {
 
     const quotes: QuoteRow[] = [];
 
-    // Parent quotes
-    feedback.quotes.forEach((quote, index) => {
+    // Parent quotes - now QuoteWithSource objects
+    feedback.quotes.forEach((quote) => {
       quotes.push({
-        id: `parent-${index}`,
-        quote,
-        source: getSourceDisplayName(feedback.intakeSourceId),
+        id: quote.id,
+        quote: quote.content,
+        source: quote.sourceName ?? getSourceDisplayName(feedback.intakeSourceId),
       });
     });
 
-    // Child quotes
+    // Child quotes - also QuoteWithSource objects
     feedback.children?.forEach((child) => {
-      child.quotes.forEach((quote, index) => {
+      child.quotes.forEach((quote) => {
         quotes.push({
-          id: `child-${child.id}-${index}`,
-          quote,
-          source: getSourceDisplayName(child.intakeSourceId),
+          id: quote.id,
+          quote: quote.content,
+          source: quote.sourceName ?? getSourceDisplayName(child.intakeSourceId),
         });
       });
     });

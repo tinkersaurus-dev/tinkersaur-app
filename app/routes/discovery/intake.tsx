@@ -101,6 +101,7 @@ export default function IntakePage() {
   const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null);
   const [expandedStep, setExpandedStep] = useState<WizardStep>('input');
   const [formValues, setFormValues] = useState<IntakeFormValues | null>(null);
+  const [formResetKey, setFormResetKey] = useState(0);
   const { parseTranscript, isLoading, error, clearError } = useParseTranscript();
   const teamId = useAuthStore((state) => state.selectedTeam?.teamId ?? '');
 
@@ -149,6 +150,7 @@ export default function IntakePage() {
     setResult(null);
     setSelectedSolutionId(null);
     setFormValues(null);
+    setFormResetKey((k) => k + 1);
     setExpandedStep('input');
     clearError();
   };
@@ -196,7 +198,7 @@ export default function IntakePage() {
             {step1Expanded && (
               <div className="border-t border-[var(--border)]">
                 <IntakeForm
-                  key={formValues ? 'with-values' : sourceType}
+                  key={formValues ? 'with-values' : `${sourceType}-${formResetKey}`}
                   isLoading={isLoading}
                   onSubmit={handleSubmit}
                   sourceType={sourceType}

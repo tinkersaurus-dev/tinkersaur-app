@@ -1,14 +1,14 @@
 /**
  * Intake Persona Merge Modal
  * Merges a new intake persona with an existing database persona
- * Uses LLM to combine both personas into a single merged persona
+ * Uses LLM to combine both personas - the existing persona is the TARGET (merged into)
  *
  * Note: This modal does NOT execute the merge immediately. Instead, it
  * returns the merge configuration to the parent, which will execute it
  * when the intake results are saved (to ensure data integrity if abandoned).
  */
 
-import { FiUser, FiTarget, FiAlertCircle } from 'react-icons/fi';
+import { FiUser, FiTarget, FiAlertCircle, FiArrowRight } from 'react-icons/fi';
 import { Card } from '~/core/components/ui';
 import { useAuthStore } from '~/core/auth';
 import type { ExtractedPersona } from '~/core/entities/discovery';
@@ -24,7 +24,7 @@ interface IntakePersonaMergeModalProps {
   onClose: () => void;
   intakePersona: ExtractedPersona;
   intakePersonaIndex: number;
-  existingPersonaId: string;
+  existingPersonaId: string;  // This is the TARGET persona (merged into)
   onMergeConfirmed: (pendingMerge: PendingMerge) => void;
 }
 
@@ -64,9 +64,11 @@ export function IntakePersonaMergeModal({
     if (!llmResult) return;
 
     // Return the merge configuration to the parent - don't execute yet
+    // The existing persona is the TARGET (merged into), no source personas for intake merge
     onMergeConfirmed({
       intakePersonaIndex,
-      existingPersonaId,
+      targetPersonaId: existingPersonaId,
+      sourcePersonaIds: [],  // No source personas - intake data is merged via LLM
       mergedPersona: llmResult,
     });
     onClose();
@@ -88,17 +90,44 @@ export function IntakePersonaMergeModal({
       renderConfirmStep={() => (
         <>
           <div className="text-sm text-[var(--text-muted)]">
-            Merge the new intake persona with an existing persona:
+            Merge the new intake persona into an existing persona:
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* New persona from intake */}
+          {/* Target persona (existing - will be updated) */}
+          <div>
+            <div className="text-sm font-medium text-[var(--text)] mb-2">
+              Target Persona (will be updated)
+            </div>
+            <Card className="p-3 border-2 border-blue-500">
+              {existingLoading ? (
+                <div className="text-sm text-[var(--text-muted)]">Loading...</div>
+              ) : existingPersona ? (
+                <div className="flex items-center gap-3">
+                  <FiUser className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-[var(--text)] truncate">
+                      {existingPersona.name}
+                    </div>
+                    <div className="text-sm text-[var(--text-muted)] truncate">
+                      {existingPersona.role || 'No role specified'}
+                    </div>
+                  </div>
+                  <FiArrowRight className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" />
+                </div>
+              ) : (
+                <div className="text-sm text-[var(--danger)]">Persona not found</div>
+              )}
+            </Card>
+          </div>
+
+          {/* Merging in (intake persona data) */}
+          <div>
+            <div className="text-sm font-medium text-[var(--text)] mb-2">
+              Merging In (from intake)
+            </div>
             <Card className="p-3">
-              <div className="text-xs font-medium text-[var(--text-muted)] mb-2">
-                New (from intake)
-              </div>
               <div className="flex items-center gap-3">
-                <FiUser className="w-5 h-5 text-[var(--primary)] flex-shrink-0" />
+                <FiUser className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" />
                 <div className="min-w-0">
                   <div className="font-medium text-[var(--text)] truncate">
                     {intakePersona.name}
@@ -108,30 +137,6 @@ export function IntakePersonaMergeModal({
                   </div>
                 </div>
               </div>
-            </Card>
-
-            {/* Existing persona */}
-            <Card className="p-3 border-[var(--primary)]">
-              <div className="text-xs font-medium text-[var(--text-muted)] mb-2">
-                Existing
-              </div>
-              {existingLoading ? (
-                <div className="text-sm text-[var(--text-muted)]">Loading...</div>
-              ) : existingPersona ? (
-                <div className="flex items-center gap-3">
-                  <FiUser className="w-5 h-5 text-[var(--primary)] flex-shrink-0" />
-                  <div className="min-w-0">
-                    <div className="font-medium text-[var(--text)] truncate">
-                      {existingPersona.name}
-                    </div>
-                    <div className="text-sm text-[var(--text-muted)] truncate">
-                      {existingPersona.role || 'No role specified'}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-sm text-[var(--danger)]">Persona not found</div>
-              )}
             </Card>
           </div>
         </>
@@ -207,7 +212,7 @@ export function IntakePersonaMergeModal({
         </Card>
       )}
       previewWarning={
-        <DeferredExecutionWarning message="The merge will be executed when you save the intake results. The existing persona will be marked as merged and hidden, with all its associations transferred to the new merged persona." />
+        <DeferredExecutionWarning message="The merge will be executed when you save the intake results. The existing persona will be updated with the merged data and linked to the new intake source." />
       }
     />
   );

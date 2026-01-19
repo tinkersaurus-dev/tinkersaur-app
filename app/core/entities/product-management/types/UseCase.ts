@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { QuoteWithSourceSchema } from '~/core/entities/discovery/types/Quote';
 
 /**
  * UseCase domain model
@@ -11,9 +12,10 @@ export const UseCaseSchema = z.object({
   teamId: z.string().uuid(),
   solutionId: z.string().uuid().nullable(),
   intakeSourceId: z.string().uuid().nullable(),
+  mergedIntoId: z.string().uuid().nullable().optional(),
   name: z.string().min(1, 'Use case name is required').max(200),
   description: z.string().max(2000),
-  quotes: z.array(z.string()),
+  quotes: z.array(QuoteWithSourceSchema),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -70,8 +72,9 @@ export type MergedUseCaseData = z.infer<typeof MergedUseCaseDataSchema>;
 // Schema for merge use cases request (to backend API)
 export const MergeUseCasesRequestSchema = z.object({
   teamId: z.string().uuid(),
-  useCaseIds: z.array(z.string().uuid()).min(2),
-  mergedUseCase: MergedUseCaseDataSchema,
+  targetUseCaseId: z.string().uuid(),
+  sourceUseCaseIds: z.array(z.string().uuid()).min(1),
+  mergedUseCase: MergedUseCaseDataSchema.optional(),
   additionalIntakeSourceIds: z.array(z.string().uuid()).optional(),
 });
 

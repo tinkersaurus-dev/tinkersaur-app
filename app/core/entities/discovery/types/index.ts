@@ -83,3 +83,9 @@ export {
   type FindSimilarOutcomesRequest,
   type SimilarOutcomeResult,
 } from './Outcome';
+
+// Quote exports
+export {
+  QuoteWithSourceSchema,
+  type QuoteWithSource,
+} from './Quote';

@@ -68,7 +68,7 @@ export function EditableSection({
                 title="Save"
                 icon={
                   isSaving ? (
-                    <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent animate-spin" />
                   ) : (
                     <LuCheck className="w-4 h-4" />
                   )

@@ -121,8 +121,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
   // After merge is confirmed, track it for execution on save
   const handleMergeConfirmed = useCallback((pendingMerge: PendingMerge) => {
     setPendingMerges(prev => [...prev, pendingMerge]);
-    // Mark the intake persona as deleted (it will be merged instead of created)
-    setDeletedPersonaIndexes(prev => new Set([...prev, pendingMerge.intakePersonaIndex]));
+    // Don't add to deletedPersonaIndexes - we want to show it with a merge indicator
     setMergeContext(null);
   }, []);
 
@@ -134,8 +133,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
   // After use case merge is confirmed, track it for execution on save
   const handleUseCaseMergeConfirmed = useCallback((pendingMerge: PendingUseCaseMerge) => {
     setPendingUseCaseMerges(prev => [...prev, pendingMerge]);
-    // Mark the intake use case as deleted (it will be merged instead of created)
-    setDeletedUseCaseIndexes(prev => new Set([...prev, pendingMerge.intakeUseCaseIndex]));
+    // Don't add to deletedUseCaseIndexes - we want to show it with a merge indicator
     setUseCaseMergeContext(null);
   }, []);
 
@@ -147,8 +145,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
   // After feedback merge is confirmed, track it for execution on save
   const handleFeedbackMergeConfirmed = useCallback((pendingMerge: PendingFeedbackMerge) => {
     setPendingFeedbackMerges(prev => [...prev, pendingMerge]);
-    // Mark the intake feedback as deleted (it will be merged instead of created standalone)
-    setDeletedFeedbackIndexes(prev => new Set([...prev, pendingMerge.intakeFeedbackIndex]));
+    // Don't add to deletedFeedbackIndexes - we want to show it with a merge indicator
     setFeedbackMergeContext(null);
   }, []);
 
@@ -165,20 +162,52 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
     setOutcomeSolutionIds(prev => new Map(prev).set(index, solutionId));
   }, []);
 
-  // Compute filtered arrays (items that haven't been deleted)
+  // Build sets of indexes with pending merges (for quick lookup)
+  const pendingPersonaMergeIndexes = useMemo(() =>
+    new Set(pendingMerges.map(m => m.intakePersonaIndex)),
+    [pendingMerges]
+  );
+
+  const pendingUseCaseMergeIndexes = useMemo(() =>
+    new Set(pendingUseCaseMerges.map(m => m.intakeUseCaseIndex)),
+    [pendingUseCaseMerges]
+  );
+
+  const pendingFeedbackMergeIndexes = useMemo(() =>
+    new Set(pendingFeedbackMerges.map(m => m.intakeFeedbackIndex)),
+    [pendingFeedbackMerges]
+  );
+
+  // Helper to find pending merge info by index
+  const getPendingPersonaMerge = useCallback((index: number) =>
+    pendingMerges.find(m => m.intakePersonaIndex === index),
+    [pendingMerges]
+  );
+
+  const getPendingUseCaseMerge = useCallback((index: number) =>
+    pendingUseCaseMerges.find(m => m.intakeUseCaseIndex === index),
+    [pendingUseCaseMerges]
+  );
+
+  const getPendingFeedbackMerge = useCallback((index: number) =>
+    pendingFeedbackMerges.find(m => m.intakeFeedbackIndex === index),
+    [pendingFeedbackMerges]
+  );
+
+  // Compute filtered arrays (items that haven't been deleted or merged)
   const filteredPersonas = useMemo(() =>
-    result.personas.filter((_, idx) => !deletedPersonaIndexes.has(idx)),
-    [result.personas, deletedPersonaIndexes]
+    result.personas.filter((_, idx) => !deletedPersonaIndexes.has(idx) && !pendingPersonaMergeIndexes.has(idx)),
+    [result.personas, deletedPersonaIndexes, pendingPersonaMergeIndexes]
   );
 
   const filteredUseCases = useMemo(() =>
-    result.useCases.filter((_, idx) => !deletedUseCaseIndexes.has(idx)),
-    [result.useCases, deletedUseCaseIndexes]
+    result.useCases.filter((_, idx) => !deletedUseCaseIndexes.has(idx) && !pendingUseCaseMergeIndexes.has(idx)),
+    [result.useCases, deletedUseCaseIndexes, pendingUseCaseMergeIndexes]
   );
 
   const filteredFeedback = useMemo(() =>
-    result.feedback.filter((_, idx) => !deletedFeedbackIndexes.has(idx)),
-    [result.feedback, deletedFeedbackIndexes]
+    result.feedback.filter((_, idx) => !deletedFeedbackIndexes.has(idx) && !pendingFeedbackMergeIndexes.has(idx)),
+    [result.feedback, deletedFeedbackIndexes, pendingFeedbackMergeIndexes]
   );
 
   const filteredOutcomes = useMemo(() =>
@@ -186,42 +215,42 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
     [result.outcomes, deletedOutcomeIndexes]
   );
 
-  // Build index maps: original index -> new filtered index
+  // Build index maps: original index -> new filtered index (excludes deleted and merged items)
   const personaIndexMap = useMemo(() => {
     const map = new Map<number, number>();
     let newIndex = 0;
     result.personas.forEach((_, originalIndex) => {
-      if (!deletedPersonaIndexes.has(originalIndex)) {
+      if (!deletedPersonaIndexes.has(originalIndex) && !pendingPersonaMergeIndexes.has(originalIndex)) {
         map.set(originalIndex, newIndex);
         newIndex++;
       }
     });
     return map;
-  }, [result.personas, deletedPersonaIndexes]);
+  }, [result.personas, deletedPersonaIndexes, pendingPersonaMergeIndexes]);
 
   const useCaseIndexMap = useMemo(() => {
     const map = new Map<number, number>();
     let newIndex = 0;
     result.useCases.forEach((_, originalIndex) => {
-      if (!deletedUseCaseIndexes.has(originalIndex)) {
+      if (!deletedUseCaseIndexes.has(originalIndex) && !pendingUseCaseMergeIndexes.has(originalIndex)) {
         map.set(originalIndex, newIndex);
         newIndex++;
       }
     });
     return map;
-  }, [result.useCases, deletedUseCaseIndexes]);
+  }, [result.useCases, deletedUseCaseIndexes, pendingUseCaseMergeIndexes]);
 
   const feedbackIndexMap = useMemo(() => {
     const map = new Map<number, number>();
     let newIndex = 0;
     result.feedback.forEach((_, originalIndex) => {
-      if (!deletedFeedbackIndexes.has(originalIndex)) {
+      if (!deletedFeedbackIndexes.has(originalIndex) && !pendingFeedbackMergeIndexes.has(originalIndex)) {
         map.set(originalIndex, newIndex);
         newIndex++;
       }
     });
     return map;
-  }, [result.feedback, deletedFeedbackIndexes]);
+  }, [result.feedback, deletedFeedbackIndexes, pendingFeedbackMergeIndexes]);
 
   const outcomeIndexMap = useMemo(() => {
     const map = new Map<number, number>();
@@ -353,10 +382,11 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
           {/* Personas Tab */}
           {activeTab === 'personas' && (
             <>
-              {filteredPersonas.length > 0 ? (
+              {filteredPersonas.length > 0 || pendingMerges.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
                   {result.personas.map((persona, index) => {
                     if (deletedPersonaIndexes.has(index)) return null;
+                    const pendingMerge = getPendingPersonaMerge(index);
                     return (
                       <PersonaResultCard
                         key={generateItemKey(persona, index)}
@@ -366,6 +396,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
                         similarPersonas={similarPersonas.find((s: SimilarPersonaInfo) => s.personaIndex === index)?.similarResults}
                         isCheckingSimilarity={isChecking}
                         onMerge={handleMergePersona}
+                        pendingMerge={pendingMerge}
                       />
                     );
                   })}
@@ -387,10 +418,11 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
           {/* Use Cases Tab */}
           {activeTab === 'useCases' && (
             <>
-              {filteredUseCases.length > 0 ? (
+              {filteredUseCases.length > 0 || pendingUseCaseMerges.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {result.useCases.map((useCase, index) => {
                     if (deletedUseCaseIndexes.has(index)) return null;
+                    const pendingMerge = getPendingUseCaseMerge(index);
                     return (
                       <UseCaseResultCard
                         key={generateItemKey(useCase, index)}
@@ -403,6 +435,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
                         selectedSolutionId={useCaseSolutionIds.get(index) ?? null}
                         onSolutionChange={handleUseCaseSolutionChange}
                         onMerge={handleMergeUseCase}
+                        pendingMerge={pendingMerge}
                       />
                     );
                   })}
@@ -424,10 +457,11 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
           {/* Feedback Tab */}
           {activeTab === 'feedback' && (
             <>
-              {filteredFeedback.length > 0 ? (
+              {filteredFeedback.length > 0 || pendingFeedbackMerges.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {result.feedback.map((feedback, index) => {
                     if (deletedFeedbackIndexes.has(index)) return null;
+                    const pendingMerge = getPendingFeedbackMerge(index);
                     return (
                       <FeedbackResultCard
                         key={generateItemKey(feedback, index)}
@@ -444,6 +478,7 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId, onEdit
                         selectedSolutionId={feedbackSolutionIds.get(index) ?? null}
                         onSolutionChange={handleFeedbackSolutionChange}
                         onMerge={handleMergeFeedback}
+                        pendingMerge={pendingMerge}
                       />
                     );
                   })}

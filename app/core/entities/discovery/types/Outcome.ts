@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { QuoteWithSourceSchema } from './Quote';
 
 /**
  * Outcome Entity
@@ -23,6 +24,7 @@ export const OutcomeSchema = z.object({
   intakeSourceId: z.string().uuid().nullable(),
   description: z.string().max(2000),
   target: z.string().max(500),
+  quotes: z.array(QuoteWithSourceSchema).default([]),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -30,10 +32,14 @@ export const OutcomeSchema = z.object({
 export type Outcome = z.infer<typeof OutcomeSchema>;
 
 // Schema for creating a new outcome (without generated fields)
+// Quotes on create are plain strings - they'll be converted to QuoteWithSource by the backend
 export const CreateOutcomeSchema = OutcomeSchema.omit({
   id: true,
+  quotes: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  quotes: z.array(z.string()).optional(),
 });
 
 export type CreateOutcomeDto = z.infer<typeof CreateOutcomeSchema>;

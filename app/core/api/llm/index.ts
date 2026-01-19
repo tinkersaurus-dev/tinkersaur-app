@@ -95,3 +95,11 @@ export {
   type UseCaseInput,
   type MergeUseCasesResponse,
 } from './merge-use-cases-api';
+
+// Requirement APIs
+export {
+  generateEarsRequirement,
+  EarsGenerationAPIError,
+  type GenerateEarsResponse,
+  type EarsGenerationResult,
+} from './ears-generator-api';

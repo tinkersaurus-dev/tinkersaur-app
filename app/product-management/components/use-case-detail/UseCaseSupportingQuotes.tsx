@@ -7,11 +7,10 @@ import { useMemo } from 'react';
 import { Table, Empty } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
 import type { QuoteRow } from './types';
-import { useSourceDisplayName } from './useSourceDisplayName';
+import type { QuoteWithSource } from '~/core/entities/discovery/types/Quote';
 
 export interface UseCaseSupportingQuotesProps {
-  quotes: string[];
-  intakeSourceId: string | null | undefined;
+  quotes: QuoteWithSource[];
 }
 
 const quoteColumns: TableColumn<QuoteRow>[] = [
@@ -34,17 +33,15 @@ const quoteColumns: TableColumn<QuoteRow>[] = [
   },
 ];
 
-export function UseCaseSupportingQuotes({ quotes, intakeSourceId }: UseCaseSupportingQuotesProps) {
-  const sourceName = useSourceDisplayName(intakeSourceId);
-
+export function UseCaseSupportingQuotes({ quotes }: UseCaseSupportingQuotesProps) {
   const quoteRows = useMemo((): QuoteRow[] => {
     if (!quotes || quotes.length === 0) return [];
-    return quotes.map((quote, index) => ({
-      id: `quote-${index}`,
-      quote,
-      source: sourceName,
+    return quotes.map((quote) => ({
+      id: quote.id,
+      quote: quote.content,
+      source: quote.sourceName ?? 'Unknown source',
     }));
-  }, [quotes, sourceName]);
+  }, [quotes]);
 
   if (quoteRows.length === 0) {
     return <Empty image="simple" description="No supporting quotes" />;

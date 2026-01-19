@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { QuoteWithSourceSchema } from '~/core/entities/discovery/types/Quote';
 
 /**
  * Persona domain model
@@ -25,6 +26,7 @@ export const PersonaSchema = z.object({
   goals: z.array(z.string()).default([]),
   painPoints: z.array(z.string()).default([]),
   demographics: DemographicsSchema.default({}),
+  quotes: z.array(QuoteWithSourceSchema).default([]),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -33,12 +35,15 @@ export const PersonaSchema = z.object({
 export type Persona = z.infer<typeof PersonaSchema>;
 
 // Schema for creating a new persona (without generated fields)
+// Quotes are optional on create - they'll be stored separately and linked
 export const CreatePersonaSchema = PersonaSchema.omit({
   id: true,
+  quotes: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
   intakeSourceIds: z.array(z.string().uuid()).optional(),
+  quotes: z.array(QuoteWithSourceSchema).optional(),
 });
 
 export type CreatePersonaDto = z.infer<typeof CreatePersonaSchema>;
@@ -82,10 +87,12 @@ export const MergedPersonaDataSchema = z.object({
 export type MergedPersonaData = z.infer<typeof MergedPersonaDataSchema>;
 
 // Schema for merge personas request (to backend API)
+// Merges source personas INTO the target persona (first selected)
 export const MergePersonasRequestSchema = z.object({
   teamId: z.string().uuid(),
-  personaIds: z.array(z.string().uuid()).min(2),
-  mergedPersona: MergedPersonaDataSchema,
+  targetPersonaId: z.string().uuid(),
+  sourcePersonaIds: z.array(z.string().uuid()),
+  mergedPersona: MergedPersonaDataSchema.optional(), // Optional for simple merge mode
   additionalIntakeSourceIds: z.array(z.string().uuid()).optional(),
 });
 

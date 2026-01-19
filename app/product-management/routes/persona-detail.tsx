@@ -19,12 +19,13 @@ import { loadPersonaDetail } from '../loaders';
 import type { PersonaDetailLoaderData } from '../loaders';
 import type { Route } from './+types/persona-detail';
 import { useFeedbacksPaginatedQuery, useIntakeSourceDetailsQuery } from '~/discovery/queries';
+import type { QuoteWithSource } from '~/core/entities/discovery/types/Quote';
 
 // Feedback row type for table display
 interface FeedbackRow {
   id: string;
   content: string;
-  quotes: string[];
+  quotes: QuoteWithSource[];
   sourceName: string;
 }
 
@@ -132,16 +133,16 @@ function PersonaDetailContent() {
       title: 'Quotes',
       dataIndex: 'quotes',
       render: (value) => {
-        const quotes = value as string[];
+        const quotes = value as QuoteWithSource[];
         if (quotes.length === 0) return <span className="text-sm text-[var(--text-muted)]">—</span>;
         return (
           <div className="space-y-1">
-            {quotes.map((quote, i) => (
+            {quotes.map((quote) => (
               <span
-                key={i}
+                key={quote.id}
                 className="text-xs text-[var(--text-muted)] italic"
               >
-                "{quote}"
+                "{quote.content}"
               </span>
             ))}
           </div>

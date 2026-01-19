@@ -5,15 +5,16 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiMessageCircle, FiArchive, FiAlertTriangle } from 'react-icons/fi';
-import { useParams, useLoaderData } from 'react-router';
+import { FiEdit2, FiTrash2, FiMessageCircle, FiArchive, FiAlertTriangle, FiArrowLeft, FiPlus } from 'react-icons/fi';
+import { useParams, useLoaderData, useNavigate } from 'react-router';
 import { useSolutionStore } from '~/core/solution';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '~/core/components';
 import { MainLayout } from '~/core/components/MainLayout';
 import { Button, Tag, HStack, Table, Form, useForm, Modal, Select, Input, Card, Tabs, MarkdownContent, Checkbox } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
-import type { Requirement, RequirementType } from '~/core/entities/product-management';
+import type { Requirement, RequirementType, RequirementStatus } from '~/core/entities/product-management';
+import { REQUIREMENT_TYPE_CONFIG, REQUIREMENT_STATUS_CONFIG } from '~/core/entities/product-management';
 import { useSolutionQuery, useUseCaseQuery, useRequirementsQuery } from '../queries';
 import { useCreateRequirement, useUpdateRequirement, useDeleteRequirement, useUpdateUseCase } from '../mutations';
 import { loadUseCaseDetail } from '../loaders';
@@ -27,8 +28,10 @@ import {
   UseCaseVersionsTab,
   useUseCaseFeedback,
   SpecificationDiffView,
+  AddRequirementModal,
 } from '../components/use-case-detail';
 import { DesignStudioContent } from '~/design-studio/components/DesignStudioContent';
+import { useDesignWorksForContext } from '~/design-studio/hooks/useDesignWorksForContext';
 import { useUseCaseContent } from '../hooks/useUseCaseContent';
 import { useUseCaseVersionStore } from '~/core/entities/product-management/store/useUseCaseVersionStore';
 import { formatVersionDisplay } from '~/core/entities/product-management/types/UseCaseVersion';
@@ -43,15 +46,12 @@ export async function loader({ params }: Route.LoaderArgs) {
   return loadUseCaseDetail(solutionId, useCaseId);
 }
 
-const TYPE_COLORS: Record<RequirementType, string> = {
-  functional: 'blue',
-  'non-functional': 'orange',
-  constraint: 'default',
-};
 
 function UseCaseDetailContent() {
   const { solutionId, useCaseId } = useParams();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingRequirement, setEditingRequirement] = useState<Requirement | null>(null);
   const [topLevelTab, setTopLevelTab] = useState('overview');
   const [activeTab, setActiveTab] = useState('requirements');
@@ -71,6 +71,12 @@ function UseCaseDetailContent() {
   const updateRequirement = useUpdateRequirement();
   const deleteRequirement = useDeleteRequirement();
   const updateUseCase = useUpdateUseCase();
+
+  // Load designworks at page level for both Definition and Specification tabs
+  const { loading: designWorksLoading } = useDesignWorksForContext({
+    solutionId: solutionId!,
+    useCaseId,
+  });
 
   // Auto-select solution when viewing this page
   useEffect(() => {
@@ -117,14 +123,14 @@ function UseCaseDetailContent() {
     }
   }, [selectedVersionId, useCaseId, fetchVersionDetail]);
 
-  const form = useForm<{
+  const requirementForm = useForm<{
     text: string;
     type: RequirementType;
-    priority: number;
+    status: RequirementStatus;
   }>({
     text: '',
     type: 'functional',
-    priority: 1,
+    status: 'Todo',
   });
 
   const handleSaveBasicInfo = async (updates: { name: string; description?: string }) => {
@@ -135,19 +141,13 @@ function UseCaseDetailContent() {
     });
   };
 
-  const handleAdd = () => {
-    setEditingRequirement(null);
-    form.reset();
-    setIsModalOpen(true);
-  };
-
   const handleEdit = useCallback((requirement: Requirement) => {
     setEditingRequirement(requirement);
-    form.setValue('text', requirement.text);
-    form.setValue('type', requirement.type);
-    form.setValue('priority', requirement.priority);
+    requirementForm.setValue('text', requirement.text);
+    requirementForm.setValue('type', requirement.type);
+    requirementForm.setValue('status', requirement.status);
     setIsModalOpen(true);
-  }, [form]);
+  }, [requirementForm]);
 
   const handleDeleteClick = useCallback(async (requirement: Requirement) => {
     await deleteRequirement.mutateAsync(requirement.id);
@@ -155,10 +155,10 @@ function UseCaseDetailContent() {
 
   const handleOk = async () => {
     try {
-      const isValid = await form.trigger();
+      const isValid = await requirementForm.trigger();
       if (!isValid) return;
 
-      const values = form.getValues();
+      const values = requirementForm.getValues();
 
       if (editingRequirement) {
         await updateRequirement.mutateAsync({
@@ -173,7 +173,7 @@ function UseCaseDetailContent() {
       }
 
       setIsModalOpen(false);
-      form.reset();
+      requirementForm.reset();
       setEditingRequirement(null);
     } catch (error) {
       console.error('Operation failed:', error);
@@ -182,7 +182,11 @@ function UseCaseDetailContent() {
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    form.reset();
+    requirementForm.reset();
+  };
+
+  const handleBack = () => {
+    navigate('/discovery/organize/use-cases');
   };
 
   // Memoized handlers for table actions to prevent unnecessary re-renders
@@ -196,14 +200,19 @@ function UseCaseDetailContent() {
     }
   }, [handleDeleteClick]);
 
-  const columns: TableColumn<Requirement>[] = [
-    {
-      title: 'Priority',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: 80,
-      render: (value) => <span style={{ fontWeight: 600 }}>{value as number}</span>,
-    },
+  const handleAddRequirement = useCallback(async (data: {
+    text: string;
+    type: RequirementType;
+    status: RequirementStatus;
+  }) => {
+    await createRequirement.mutateAsync({
+      useCaseId: useCaseId!,
+      ...data,
+    });
+    setIsAddModalOpen(false);
+  }, [createRequirement, useCaseId]);
+
+  const requirementColumns: TableColumn<Requirement>[] = [
     {
       title: 'Requirement',
       dataIndex: 'text',
@@ -216,7 +225,19 @@ function UseCaseDetailContent() {
       width: 140,
       render: (value: unknown) => {
         const type = value as RequirementType;
-        return <Tag color={TYPE_COLORS[type] as 'default' | 'blue' | 'orange'}>{type}</Tag>;
+        const config = REQUIREMENT_TYPE_CONFIG[type];
+        return <Tag color={config.color}>{config.label}</Tag>;
+      },
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      width: 120,
+      render: (value: unknown) => {
+        const status = value as RequirementStatus;
+        const config = REQUIREMENT_STATUS_CONFIG[status];
+        return <Tag color={config.color}>{config.label}</Tag>;
       },
     },
     {
@@ -227,9 +248,20 @@ function UseCaseDetailContent() {
       width: 120,
     },
     {
-      title: 'Actions',
+      title: (
+        <HStack gap="sm">
+          <span>Actions</span>
+          <Button
+            variant="text"
+            size="small"
+            icon={<FiPlus />}
+            onClick={() => setIsAddModalOpen(true)}
+            title="Add requirement"
+          />
+        </HStack>
+      ),
       key: 'actions',
-      width: 120,
+      width: 150,
       render: (_, record) => (
         <HStack gap="sm">
           <Button
@@ -265,6 +297,11 @@ function UseCaseDetailContent() {
       <PageHeader
         titlePrefix='Use Case: '
         title={useCase.name}
+        extra={
+          <Button variant="default" icon={<FiArrowLeft />} onClick={handleBack}>
+            Back to Use Cases
+          </Button>
+        }
       />
 
       <PageContent>
@@ -304,14 +341,8 @@ function UseCaseDetailContent() {
                               children: (
                                 <div className="pt-4">
                                   <Table
-                                    header={{
-                                      title: 'Requirements',
-                                      actions: (
-                                        <Button variant="primary" icon={<FiPlus />} onClick={handleAdd}>
-                                        </Button>
-                                      ),
-                                    }}
-                                    columns={columns}
+                 
+                                    columns={requirementColumns}
                                     dataSource={requirements}
                                     rowKey="id"
                                     pagination={{ pageSize: 10 }}
@@ -332,7 +363,6 @@ function UseCaseDetailContent() {
                                 <div className="pt-4">
                                   <UseCaseSupportingQuotes
                                     quotes={useCase.quotes || []}
-                                    intakeSourceId={useCase.intakeSourceId}
                                   />
                                 </div>
                               ),
@@ -437,7 +467,7 @@ function UseCaseDetailContent() {
                           />
                         </div>
                         <div className="p-6">
-                          {specificationLoading ? (
+                          {(specificationLoading || designWorksLoading) ? (
                             <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
                               <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                               Loading specification...
@@ -480,7 +510,7 @@ function UseCaseDetailContent() {
         onCancel={handleCancel}
         okText={editingRequirement ? 'Update' : 'Create'}
       >
-        <Form form={form} layout="vertical">
+        <Form form={requirementForm} layout="vertical">
           <div className="space-y-4 mt-6">
             <Form.Item
               name="text"
@@ -524,28 +554,38 @@ function UseCaseDetailContent() {
             </Form.Item>
 
             <Form.Item
-              name="priority"
-              label="Priority"
+              name="status"
+              label="Status"
               required
               rules={{
-                required: 'Please enter a priority',
+                required: 'Please select a status',
               }}
             >
               {({ field, error }) => (
-                <Input
-                  {...field}
-                  type="number"
-                  min={0}
-                  max={100}
-                  placeholder="Enter priority (0-100)"
+                <Select
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select status"
                   error={!!error}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  options={[
+                    { value: 'Todo', label: 'To Do' },
+                    { value: 'InProgress', label: 'In Progress' },
+                    { value: 'Done', label: 'Done' },
+                  ]}
                 />
               )}
             </Form.Item>
           </div>
         </Form>
       </Modal>
+
+      <AddRequirementModal
+        open={isAddModalOpen}
+        onCancel={() => setIsAddModalOpen(false)}
+        onSave={handleAddRequirement}
+        teamId={useCase.teamId}
+        isSaving={createRequirement.isPending}
+      />
     </MainLayout>
   );
 }

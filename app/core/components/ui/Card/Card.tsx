@@ -26,7 +26,7 @@ export function Card({
   ...props
 }: CardProps) {
   // Base styles
-  const baseStyles = 'bg-[var(--bg-light)] rounded-[5px] overflow-hidden transition-all duration-base';
+  const baseStyles = 'bg-[var(--bg-light)] rounded-[2px] overflow-hidden transition-all duration-base';
 
   // Border styles
   const borderStyles = bordered ? 'border border-[var(--border-muted)]' : '';

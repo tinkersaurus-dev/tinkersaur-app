@@ -5,6 +5,7 @@
 
 import { Table, Empty } from '~/core/components/ui';
 import type { TableColumn } from '~/core/components/ui';
+import type { QuoteWithSource } from '~/core/entities/discovery/types/Quote';
 import type { FeedbackRow } from './types';
 
 export interface UseCaseFeedbackTabProps {
@@ -26,18 +27,18 @@ const feedbackColumns: TableColumn<FeedbackRow>[] = [
     title: 'Quotes',
     dataIndex: 'quotes',
     render: (value) => {
-      const quotes = value as string[];
+      const quotes = value as QuoteWithSource[];
       if (quotes.length === 0) {
         return <span className="text-sm text-[var(--text-muted)]">—</span>;
       }
       return (
         <div className="space-y-1">
-          {quotes.map((quote, i) => (
+          {quotes.map((quote) => (
             <span
-              key={i}
+              key={quote.id}
               className="text-xs text-[var(--text-muted)] italic"
             >
-              "{quote}"
+              "{quote.content}"
             </span>
           ))}
         </div>

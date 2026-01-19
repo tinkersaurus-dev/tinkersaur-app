@@ -12,7 +12,7 @@ interface PageContentProps {
 export function PageContent({ children, fillHeight = false }: PageContentProps) {
   return (
     <div
-      className={fillHeight ? 'flex-1 min-h-0 flex flex-col' : ''}
+      className={fillHeight ? 'flex-1 min-h-0 flex flex-col' : 'flex-1 overflow-y-auto'}
       style={{
         padding: '24px',
       }}

@@ -2,6 +2,8 @@
  * Shared types for use case detail components
  */
 
+import type { QuoteWithSource } from '~/core/entities/discovery/types/Quote';
+
 /**
  * Quote row type for the quotes table
  */
@@ -17,7 +19,7 @@ export interface QuoteRow {
 export interface FeedbackRow {
   id: string;
   content: string;
-  quotes: string[];
+  quotes: QuoteWithSource[];
   sourceName: string;
 }
 

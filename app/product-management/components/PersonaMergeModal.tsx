@@ -1,16 +1,17 @@
 /**
  * Persona Merge Modal
- * Two-step modal for merging multiple personas using LLM assistance
- * Step 1: Confirm personas and provide optional instructions
- * Step 2: Preview merged persona and confirm merge
+ * Supports both Simple Merge (keep target name/description) and LLM Merge (AI-generated)
+ * First selected persona is the target; others are merged into it
  */
 
 import { useState } from 'react';
-import { FiUser, FiTarget, FiAlertCircle, FiZap } from 'react-icons/fi';
+import { FiUser, FiTarget, FiAlertCircle, FiZap, FiArrowRight } from 'react-icons/fi';
 import { Modal, Button, Card, Input } from '~/core/components/ui';
 import type { Persona } from '~/core/entities/product-management/types';
 import { useMergePersonasLLM } from '../hooks/useMergePersonasLLM';
 import { useMergePersonas } from '../mutations';
+
+type MergeMode = 'simple' | 'llm';
 
 interface PersonaMergeModalProps {
   open: boolean;
@@ -25,67 +26,86 @@ export function PersonaMergeModal({
   selectedPersonas,
   teamId,
 }: PersonaMergeModalProps) {
+  const [mergeMode, setMergeMode] = useState<MergeMode>('simple');
   const [instructions, setInstructions] = useState('');
 
   const { merge: llmMerge, isLoading: llmLoading, result: llmResult, error: llmError, reset } = useMergePersonasLLM();
   const mergeMutation = useMergePersonas();
 
-  // Derive step from whether we have a result
-  const step = llmResult ? 'preview' : 'confirm';
+  // First persona is the target, rest are sources
+  const targetPersona = selectedPersonas[0];
+  const sourcePersonas = selectedPersonas.slice(1);
+
+  // Derive step: for LLM mode, show preview after generation
+  const step = mergeMode === 'llm' && llmResult ? 'preview' : 'confirm';
 
   const handleGeneratePreview = () => {
     llmMerge(selectedPersonas, teamId, instructions || undefined);
   };
 
   const handleConfirmMerge = async () => {
-    if (!llmResult) return;
-
     try {
       await mergeMutation.mutateAsync({
         teamId,
-        personaIds: selectedPersonas.map((p) => p.id),
-        mergedPersona: llmResult,
+        targetPersonaId: targetPersona.id,
+        sourcePersonaIds: sourcePersonas.map((p) => p.id),
+        // For LLM merge, include the generated data
+        // For simple merge, omit mergedPersona to keep target's data
+        mergedPersona: mergeMode === 'llm' && llmResult ? llmResult : undefined,
       });
-      setInstructions('');
-      reset();
-      onClose();
+      handleClose();
     } catch {
       // Error is handled by mutation hook
     }
   };
 
   const handleClose = () => {
+    setMergeMode('simple');
     setInstructions('');
     reset();
     onClose();
   };
 
-  // Custom footer for each step
+  const isLoading = llmLoading || mergeMutation.isPending;
+  const canMerge = selectedPersonas.length >= 2;
+
+  // Footer for confirm step
   const confirmFooter = (
     <div className="flex justify-end gap-3">
       <Button variant="default" onClick={handleClose}>
         Cancel
       </Button>
-      <Button
-        variant="primary"
-        onClick={handleGeneratePreview}
-        disabled={llmLoading || selectedPersonas.length < 2}
-      >
-        {llmLoading ? (
-          <>
-            <FiZap className="animate-pulse mr-2" />
-            Generating...
-          </>
-        ) : (
-          <>
-            <FiZap className="mr-2" />
-            Generate Merged Persona
-          </>
-        )}
-      </Button>
+      {mergeMode === 'simple' ? (
+        <Button
+          variant="primary"
+          onClick={handleConfirmMerge}
+          disabled={!canMerge || isLoading}
+        >
+          {mergeMutation.isPending ? 'Merging...' : 'Merge Personas'}
+        </Button>
+      ) : (
+        <Button
+          variant="primary"
+          onClick={handleGeneratePreview}
+          disabled={!canMerge || isLoading}
+        >
+          {llmLoading ? (
+            <>
+              <FiZap className="animate-pulse mr-2" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <FiZap className="mr-2" />
+              Generate Merged Persona
+            </>
+          )}
+        </Button>
+      )}
     </div>
   );
 
+  // Footer for LLM preview step
   const previewFooter = (
     <div className="flex justify-end gap-3">
       <Button variant="default" onClick={handleClose}>
@@ -111,41 +131,103 @@ export function PersonaMergeModal({
     >
       {step === 'confirm' && (
         <div className="space-y-4">
-          {/* Summary of personas being merged */}
-          <div className="text-sm text-[var(--text-muted)]">
-            The following personas will be merged into a single persona:
+          {/* Merge mode toggle */}
+          <div className="flex gap-2">
+            <Button
+              variant={mergeMode === 'simple' ? 'primary' : 'default'}
+              onClick={() => setMergeMode('simple')}
+              size="small"
+            >
+              Simple Merge
+            </Button>
+            <Button
+              variant={mergeMode === 'llm' ? 'primary' : 'default'}
+              onClick={() => setMergeMode('llm')}
+              size="small"
+            >
+              <FiZap className="mr-1" />
+              AI Merge
+            </Button>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 max-h-[250px] overflow-y-auto">
-            {selectedPersonas.map((persona) => (
-              <Card key={persona.id} className="p-3">
-                <div className="flex items-center gap-3">
-                  <FiUser className="w-5 h-5 text-[var(--primary)] flex-shrink-0" />
-                  <div className="min-w-0">
-                    <div className="font-medium text-[var(--text)] truncate">
-                      {persona.name}
-                    </div>
-                    <div className="text-sm text-[var(--text-muted)] truncate">
-                      {persona.role || 'No role specified'}
-                    </div>
+          {/* Target persona (first selected) */}
+          <div>
+            <div className="text-sm font-medium text-[var(--text)] mb-2">
+              Target Persona
+            </div>
+            <Card className="p-3 border-2 border-blue-500">
+              <div className="flex items-center gap-3">
+                <FiUser className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-[var(--text)] truncate">
+                    {targetPersona?.name}
+                  </div>
+                  <div className="text-sm text-[var(--text-muted)] truncate">
+                    {targetPersona?.role || 'No role specified'}
                   </div>
                 </div>
-              </Card>
-            ))}
+                <FiArrowRight className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" />
+              </div>
+            </Card>
           </div>
 
-          {/* Optional instructions */}
+          {/* Source personas (to be merged in) */}
           <div>
-            <label className="block text-sm font-medium text-[var(--text)] mb-2">
-              Additional Instructions (optional)
-            </label>
-            <Input.TextArea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="E.g., Focus on enterprise users, emphasize security concerns..."
-              rows={4}
-              size="small"
-            />
+            <div className="text-sm font-medium text-[var(--text)] mb-2">
+              Merging In ({sourcePersonas.length} persona{sourcePersonas.length !== 1 ? 's' : ''})
+            </div>
+            <div className="grid grid-cols-1 gap-2 max-h-[180px] overflow-y-auto">
+              {sourcePersonas.map((persona) => (
+                <Card key={persona.id} className="p-3">
+                  <div className="flex items-center gap-3">
+                    <FiUser className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" />
+                    <div className="min-w-0">
+                      <div className="font-medium text-[var(--text)] truncate">
+                        {persona.name}
+                      </div>
+                      <div className="text-sm text-[var(--text-muted)] truncate">
+                        {persona.role || 'No role specified'}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* LLM mode: instructions input */}
+          {mergeMode === 'llm' && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--text)] mb-2">
+                Additional Instructions (optional)
+              </label>
+              <Input.TextArea
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                placeholder="E.g., Focus on enterprise users, emphasize security concerns..."
+                rows={3}
+                size="small"
+              />
+            </div>
+          )}
+
+          {/* Mode-specific info */}
+          <div className="p-3 bg-[var(--info)]/10 border border-[var(--info)] rounded">
+            <p className="text-sm text-[var(--text)]">
+              {mergeMode === 'simple' ? (
+                <>
+                  <strong>Simple Merge:</strong> The target persona will keep its name, description,
+                  role, goals, and pain points. All use case and feedback associations from the other
+                  personas will be transferred to it.
+                </>
+              ) : (
+                <>
+                  <strong>AI Merge:</strong> AI will generate a new name, description, role, goals,
+                  and pain points that combines all selected personas. All use case and feedback
+                  associations will be transferred to the target.
+                </>
+              )}
+            </p>
           </div>
 
           {/* LLM Error */}
@@ -251,9 +333,9 @@ export function PersonaMergeModal({
 
           <div className="p-3 bg-[var(--warning)]/10 border border-[var(--warning)] rounded">
             <p className="text-sm text-[var(--text)]">
-              <strong>Note:</strong> The original {selectedPersonas.length} personas will be
-              marked as merged and hidden from lists. All their use case and feedback
-              associations will be transferred to the new persona.
+              <strong>Note:</strong> The {sourcePersonas.length} source persona{sourcePersonas.length !== 1 ? 's' : ''} will be
+              marked as merged. All their use case and feedback associations will be transferred
+              to the target persona.
             </p>
           </div>
         </div>

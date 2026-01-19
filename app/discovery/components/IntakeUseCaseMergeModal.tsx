@@ -10,7 +10,7 @@
 
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { FiClipboard, FiAlertTriangle } from 'react-icons/fi';
+import { FiClipboard, FiAlertTriangle, FiArrowRight } from 'react-icons/fi';
 import { Card } from '~/core/components/ui';
 import { useAuthStore } from '~/core/auth';
 import type { ExtractedUseCase } from '~/core/entities/discovery';
@@ -23,7 +23,8 @@ import { TwoStepMergeModal, MergeInstructionsField, DeferredExecutionWarning } f
 
 export interface PendingUseCaseMerge {
   intakeUseCaseIndex: number;
-  existingUseCaseIds: string[];
+  targetUseCaseId: string;
+  sourceUseCaseIds: string[];
   mergedUseCase: MergedUseCaseData;
 }
 
@@ -107,12 +108,17 @@ export function IntakeUseCaseMergeModal({
   };
 
   const handleConfirmMerge = () => {
-    if (!llmResult) return;
+    if (!llmResult || existingUseCases.length === 0) return;
+
+    // First existing use case is the target, others become sources
+    const targetUseCaseId = existingUseCases[0].id;
+    const sourceUseCaseIds = existingUseCases.slice(1).map(uc => uc.id);
 
     // Return the merge configuration to the parent - don't execute yet
     onMergeConfirmed({
       intakeUseCaseIndex,
-      existingUseCaseIds,
+      targetUseCaseId,
+      sourceUseCaseIds,
       mergedUseCase: llmResult,
     });
     onClose();
@@ -167,18 +173,21 @@ export function IntakeUseCaseMergeModal({
               </div>
             </Card>
 
-            {/* Existing use cases */}
+            {/* Existing use cases - first one is the target */}
             {existingLoading ? (
               <div className="text-sm text-[var(--text-muted)]">Loading existing use cases...</div>
             ) : existingUseCases.length > 0 ? (
-              existingUseCases.map((useCase) => (
-                <Card key={useCase.id} className="p-3 border-[var(--primary)]">
+              existingUseCases.map((useCase, index) => (
+                <Card
+                  key={useCase.id}
+                  className={`p-3 ${index === 0 ? 'border-2 border-blue-500' : ''}`}
+                >
                   <div className="text-xs font-medium text-[var(--text-muted)] mb-2">
-                    Existing
+                    {index === 0 ? 'Target (existing)' : 'Merging in (existing)'}
                   </div>
                   <div className="flex items-center gap-3">
-                    <FiClipboard className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                    <div className="min-w-0">
+                    <FiClipboard className={`w-5 h-5 flex-shrink-0 ${index === 0 ? 'text-blue-500' : 'text-[var(--text-muted)]'}`} />
+                    <div className="min-w-0 flex-1">
                       <div className="font-medium text-[var(--text)] truncate">
                         {useCase.name}
                       </div>
@@ -186,6 +195,7 @@ export function IntakeUseCaseMergeModal({
                         {useCase.description || 'No description'}
                       </div>
                     </div>
+                    {index === 0 && <FiArrowRight className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" />}
                   </div>
                 </Card>
               ))
@@ -229,7 +239,7 @@ export function IntakeUseCaseMergeModal({
         </Card>
       )}
       previewWarning={
-        <DeferredExecutionWarning message="The merge will be executed when you save the intake results. The existing use cases will be marked as merged and hidden, with all their requirements, design work, persona associations, and feedback associations transferred to the new merged use case." />
+        <DeferredExecutionWarning message="The merge will be executed when you save the intake results. The target use case will receive the AI-generated name and description, and all quotes from the intake. Other existing use cases will be marked as merged, with their requirements, design work, persona associations, and feedback transferred to the target." />
       }
     />
   );

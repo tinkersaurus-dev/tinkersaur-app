@@ -1,23 +1,19 @@
 /**
- * Plan Page (Placeholder)
- * Coming soon page for Plan section
+ * Plan Page
+ * Agile planning view for generating epics and stories from use case versions
  */
 
 import { MainLayout } from '~/core/components/MainLayout';
+import { PageHeader, PageContent } from '~/core/components';
+import { PlanView } from '~/product-management/components/plan';
 
 export default function PlanPage() {
   return (
     <MainLayout>
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-[var(--text)] mb-2">
-            Plan
-          </h1>
-          <p className="text-[var(--text-muted)]">
-            Coming Soon
-          </p>
-        </div>
-      </div>
+      <PageHeader title="Refinement" />
+      <PageContent fillHeight>
+        <PlanView />
+      </PageContent>
     </MainLayout>
   );
 }

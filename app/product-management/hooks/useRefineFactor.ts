@@ -116,12 +116,12 @@ export function useRefineFactor({ solution, teamId }: UseRefineFactorOptions) {
           useCases: useCases.map((uc) => ({
             name: uc.name,
             description: uc.description,
-            quotes: uc.quotes,
+            quotes: uc.quotes.map((q) => q.content),
           })),
           feedback: (feedbackData?.items || []).map((f) => ({
             type: f.type,
             content: f.content,
-            quotes: f.quotes,
+            quotes: f.quotes.map((q) => q.content),
           })),
           outcomes: (outcomesData?.items || []).map((o) => ({
             description: o.description,

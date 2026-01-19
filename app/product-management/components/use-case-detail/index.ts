@@ -13,3 +13,4 @@ export { UseCaseVersionsTab } from './UseCaseVersionsTab';
 export { UseCaseVersionsTable } from './UseCaseVersionsTable';
 export { UseCaseVersionDetailPanel } from './UseCaseVersionDetailPanel';
 export { SpecificationDiffView } from './SpecificationDiffView';
+export { AddRequirementModal } from './AddRequirementModal';

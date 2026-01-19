@@ -20,7 +20,7 @@ export const RequirementSnapshotSchema = z.object({
   originalId: z.string().uuid(),
   text: z.string(),
   type: z.string(),
-  priority: z.number(),
+  status: z.string(),
 });
 
 export type RequirementSnapshot = z.infer<typeof RequirementSnapshotSchema>;

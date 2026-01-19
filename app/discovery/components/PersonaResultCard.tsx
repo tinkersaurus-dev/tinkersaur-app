@@ -6,6 +6,7 @@ import type { SimilarPersonaResult } from '~/core/entities/product-management/ty
 import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
+import type { PendingMerge } from '~/discovery/hooks/useSaveIntakeResult';
 
 interface PersonaResultCardProps {
   persona: ExtractedPersona;
@@ -14,19 +15,31 @@ interface PersonaResultCardProps {
   similarPersonas?: SimilarPersonaResult[];
   isCheckingSimilarity?: boolean;
   onMerge?: (intakePersonaIndex: number, existingPersonaId: string) => void;
+  pendingMerge?: PendingMerge;
 }
 
-export const PersonaResultCard = memo(function PersonaResultCard({ persona, index, onDelete, similarPersonas, isCheckingSimilarity, onMerge }: PersonaResultCardProps) {
+export const PersonaResultCard = memo(function PersonaResultCard({ persona, index, onDelete, similarPersonas, isCheckingSimilarity, onMerge, pendingMerge }: PersonaResultCardProps) {
   const [selectedMatch, setSelectedMatch] = useState<SimilarPersonaResult | null>(null);
 
   const hasGoals = persona.goals.length > 0;
   const hasPainPoints = persona.painPoints.length > 0;
+  const isMerging = !!pendingMerge;
 
   return (
     <>
-      <Card className="h-full flex flex-col">
+      <Card className={`h-full flex flex-col ${isMerging ? 'border-[var(--primary)] bg-[var(--primary)]/5' : ''}`}>
+        {/* Pending merge indicator */}
+        {isMerging && (
+          <div className="mb-3 px-3 py-2 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded-lg flex items-center gap-2">
+            <FiGitMerge className="w-4 h-4 text-[var(--primary)]" />
+            <span className="text-sm text-[var(--primary)] font-medium">
+              Will be merged with existing persona
+            </span>
+          </div>
+        )}
+
         {/* Similarity Notices */}
-        {isCheckingSimilarity && (
+        {!isMerging && isCheckingSimilarity && (
           <div className="mb-2 px-3 py-1.5 bg-[var(--bg-secondary)] rounded text-xs text-[var(--text-muted)]">
             Checking for similar personas...
           </div>
@@ -101,7 +114,8 @@ export const PersonaResultCard = memo(function PersonaResultCard({ persona, inde
 
         {/* Footer with similar match indicator and delete button */}
         <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between gap-2">
-          {similarPersonas && similarPersonas.length > 0 ? (
+          {/* Show similarity indicator only when not already merging */}
+          {!isMerging && similarPersonas && similarPersonas.length > 0 ? (
             <button
               onClick={() => setSelectedMatch(similarPersonas[0])}
               className="px-3 py-1.5 bg-[var(--warning)]/10 border border-[var(--warning)] rounded-lg text-left hover:bg-[var(--warning)]/20 transition-colors flex items-center gap-1.5"
@@ -115,7 +129,8 @@ export const PersonaResultCard = memo(function PersonaResultCard({ persona, inde
             <div />
           )}
 
-          {onDelete && (
+          {/* Show delete button only when not merging */}
+          {!isMerging && onDelete && (
             <button
               type="button"
               onClick={() => onDelete(index)}

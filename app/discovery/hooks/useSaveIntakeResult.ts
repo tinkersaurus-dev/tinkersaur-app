@@ -16,13 +16,15 @@ import { feedbackUseCaseApi } from '~/core/entities/discovery/api/feedbackUseCas
 
 export interface PendingMerge {
   intakePersonaIndex: number;
-  existingPersonaId: string;
+  targetPersonaId: string;  // The existing persona being merged INTO
+  sourcePersonaIds: string[];  // Usually empty for intake merge (no source personas)
   mergedPersona: MergedPersonaData;
 }
 
 export interface PendingUseCaseMerge {
   intakeUseCaseIndex: number;
-  existingUseCaseIds: string[];
+  targetUseCaseId: string;
+  sourceUseCaseIds: string[];
   mergedUseCase: MergedUseCaseData;
 }
 
@@ -91,13 +93,14 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
         const intakeSource = await intakeSourceApi.create(intakeSourceDto);
 
         // Step 0.5: Execute pending persona merges (merges from intake flow that were deferred until save)
-        // This merges existing personas with intake data, adding this intake source to the merged persona
+        // This merges intake data INTO the existing persona (target), adding this intake source
         // Build map from original intake persona index → merged persona ID for linking use cases/feedback
         const mergedPersonaIdMap = new Map<number, string>();
         for (const pendingMerge of pendingMerges) {
           const mergedPersona = await personaApi.merge({
             teamId,
-            personaIds: [pendingMerge.existingPersonaId],
+            targetPersonaId: pendingMerge.targetPersonaId,
+            sourcePersonaIds: pendingMerge.sourcePersonaIds,
             mergedPersona: pendingMerge.mergedPersona,
             additionalIntakeSourceIds: [intakeSource.id],
           });
@@ -111,7 +114,8 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
         for (const pendingMerge of pendingUseCaseMerges) {
           const mergedUseCase = await useCaseApi.merge({
             teamId,
-            useCaseIds: pendingMerge.existingUseCaseIds,
+            targetUseCaseId: pendingMerge.targetUseCaseId,
+            sourceUseCaseIds: pendingMerge.sourceUseCaseIds,
             mergedUseCase: pendingMerge.mergedUseCase,
             additionalIntakeSourceIds: [intakeSource.id],
           });

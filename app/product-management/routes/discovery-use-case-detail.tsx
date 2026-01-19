@@ -129,7 +129,6 @@ function DiscoveryUseCaseDetailContent() {
                       <div className="pt-4">
                         <UseCaseSupportingQuotes
                           quotes={useCase.quotes || []}
-                          intakeSourceId={useCase.intakeSourceId}
                         />
                       </div>
                     ),

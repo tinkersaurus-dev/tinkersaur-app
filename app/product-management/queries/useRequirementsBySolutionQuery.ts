@@ -50,10 +50,12 @@ export function useRequirementsBySolutionQuery(
       }
     });
 
-    // Sort by priority (descending) then by use case name
+    // Sort by status (Todo first, then InProgress, then Done) then by use case name
+    const statusOrder: Record<string, number> = { Todo: 0, InProgress: 1, Done: 2 };
     return requirements.sort((a, b) => {
-      if (b.priority !== a.priority) {
-        return b.priority - a.priority;
+      const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+      if (statusDiff !== 0) {
+        return statusDiff;
       }
       return a.useCaseName.localeCompare(b.useCaseName);
     });

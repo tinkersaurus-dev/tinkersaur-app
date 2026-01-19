@@ -38,12 +38,15 @@ export {
 } from './UseCase';
 
 // Requirement
-export type { Requirement, RequirementType, CreateRequirementDto, UpdateRequirementDto } from './Requirement';
+export type { Requirement, RequirementType, RequirementStatus, CreateRequirementDto, UpdateRequirementDto } from './Requirement';
 export {
   RequirementSchema,
   RequirementTypeSchema,
+  RequirementStatusSchema,
   CreateRequirementSchema,
   UpdateRequirementSchema,
+  REQUIREMENT_TYPE_CONFIG,
+  REQUIREMENT_STATUS_CONFIG,
 } from './Requirement';
 
 // Persona

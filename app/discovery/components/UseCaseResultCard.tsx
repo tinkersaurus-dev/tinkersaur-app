@@ -7,6 +7,7 @@ import type { SimilarUseCaseResult, Solution } from '~/core/entities/product-man
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
 import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import type { PendingUseCaseMerge } from '~/discovery/hooks/useSaveIntakeResult';
 
 interface UseCaseResultCardProps {
   useCase: ExtractedUseCase;
@@ -18,6 +19,7 @@ interface UseCaseResultCardProps {
   selectedSolutionId: string | null;
   onSolutionChange: (index: number, solutionId: string | null) => void;
   onMerge?: (intakeUseCaseIndex: number, existingUseCaseIds: string[]) => void;
+  pendingMerge?: PendingUseCaseMerge;
 }
 
 export const UseCaseResultCard = memo(function UseCaseResultCard({
@@ -30,8 +32,10 @@ export const UseCaseResultCard = memo(function UseCaseResultCard({
   selectedSolutionId,
   onSolutionChange,
   onMerge,
+  pendingMerge,
 }: UseCaseResultCardProps) {
   const [selectedMatch, setSelectedMatch] = useState<SimilarUseCaseResult | null>(null);
+  const isMerging = !!pendingMerge;
 
   const solutionOptions = useMemo(() => [
     { value: '', label: 'No solution' },
@@ -40,9 +44,19 @@ export const UseCaseResultCard = memo(function UseCaseResultCard({
 
   return (
     <>
-      <Card className="h-full flex flex-col">
+      <Card className={`h-full flex flex-col ${isMerging ? 'border-[var(--primary)] bg-[var(--primary)]/5' : ''}`}>
+        {/* Pending merge indicator */}
+        {isMerging && (
+          <div className="mb-3 px-3 py-2 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded-lg flex items-center gap-2">
+            <FiGitMerge className="w-4 h-4 text-[var(--primary)]" />
+            <span className="text-sm text-[var(--primary)] font-medium">
+              Will be merged with existing use case
+            </span>
+          </div>
+        )}
+
         {/* Checking state */}
-        {isCheckingSimilarity && (
+        {!isMerging && isCheckingSimilarity && (
           <div className="mb-3 px-4 py-2.5 bg-[var(--bg-secondary)] rounded-lg text-xs text-[var(--text-muted)]">
             Checking for similar use cases...
           </div>
@@ -68,8 +82,8 @@ export const UseCaseResultCard = memo(function UseCaseResultCard({
 
         {/* Footer */}
         <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between gap-2">
-          {/* Similarity indicator */}
-          {similarUseCases && similarUseCases.length > 0 ? (
+          {/* Similarity indicator - hide when merging */}
+          {!isMerging && similarUseCases && similarUseCases.length > 0 ? (
             <button
               onClick={() => setSelectedMatch(similarUseCases[0])}
               className="px-3 py-1.5 bg-[var(--warning)]/10 border border-[var(--warning)] rounded-lg text-left hover:bg-[var(--warning)]/20 transition-colors flex items-center gap-1.5"
@@ -83,28 +97,31 @@ export const UseCaseResultCard = memo(function UseCaseResultCard({
             <div />
           )}
 
-          <div className="flex items-center gap-2">
-            {/* Solution selector */}
-            <Select
-              value={selectedSolutionId ?? ''}
-              onChange={(value) => onSolutionChange(index, value || null)}
-              options={solutionOptions}
-              className="w-36 text-xs"
-              size='small'
-            />
+          {/* Hide controls when merging */}
+          {!isMerging && (
+            <div className="flex items-center gap-2">
+              {/* Solution selector */}
+              <Select
+                value={selectedSolutionId ?? ''}
+                onChange={(value) => onSolutionChange(index, value || null)}
+                options={solutionOptions}
+                className="w-36 text-xs"
+                size='small'
+              />
 
-            {/* Delete button */}
-            {onDelete && (
-              <button
-                type="button"
-                onClick={() => onDelete(index)}
-                className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
-                title="Remove use case"
-              >
-                <FiTrash2 className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+              {/* Delete button */}
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(index)}
+                  className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
+                  title="Remove use case"
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </Card>
 

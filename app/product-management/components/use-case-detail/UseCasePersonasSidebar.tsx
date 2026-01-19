@@ -86,7 +86,7 @@ export function UseCasePersonasSidebar({ useCaseId, teamId }: UseCasePersonasSid
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <FiUser className="text-[var(--primary)]" />
-            <h3 className="text-md font-semibold text-[var(--text)]">Personas</h3>
+            <h3 className="text-sm font-semibold text-[var(--text)]">Personas</h3>
           </div>
           <Button
             variant="default"

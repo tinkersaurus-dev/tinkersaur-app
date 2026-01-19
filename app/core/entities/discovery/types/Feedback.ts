@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { QuoteWithSourceSchema } from './Quote';
 
 /**
  * Feedback Entity
@@ -48,7 +49,7 @@ export const FeedbackSchema = z.object({
   intakeSourceId: z.string().uuid().nullable(),
   type: FeedbackTypeSchema,
   content: z.string().max(2000),
-  quotes: z.array(z.string()),
+  quotes: z.array(QuoteWithSourceSchema),
   parentFeedbackId: z.string().uuid().nullable(),
   weight: z.number().default(0),
   createdAt: z.date(),
@@ -65,12 +66,16 @@ export const FeedbackWithChildrenSchema = FeedbackSchema.extend({
 export type FeedbackWithChildren = z.infer<typeof FeedbackWithChildrenSchema>;
 
 // Schema for creating a new feedback (without generated/computed fields)
+// Quotes on create are plain strings - they'll be converted to QuoteWithSource by the backend
 export const CreateFeedbackSchema = FeedbackSchema.omit({
   id: true,
+  quotes: true,
   parentFeedbackId: true,
   weight: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  quotes: z.array(z.string()),
 });
 
 export type CreateFeedbackDto = z.infer<typeof CreateFeedbackSchema>;

@@ -103,12 +103,9 @@ export function UseCaseVersionDetailPanel({
                 <div key={req.originalId || index} className="bg-[var(--bg-secondary)] rounded p-3">
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm text-[var(--text)] flex-1">{req.text}</p>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Tag color={req.type === 'Functional' ? 'blue' : req.type === 'NonFunctional' ? 'orange' : 'default'}>
-                        {req.type}
-                      </Tag>
-                      <span className="text-xs text-[var(--text-muted)]">P{req.priority}</span>
-                    </div>
+                    <Tag color={req.type === 'Functional' ? 'blue' : req.type === 'NonFunctional' ? 'orange' : 'default'}>
+                      {req.type}
+                    </Tag>
                   </div>
                 </div>
               ))}

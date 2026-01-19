@@ -127,6 +127,26 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.references.all, 'detail', id] as const,
   },
 
+  // Planning
+  planning: {
+    all: ['planning'] as const,
+    versions: (solutionId: string) => [...queryKeys.planning.all, 'versions', solutionId] as const,
+  },
+  epics: {
+    all: ['epics'] as const,
+    byVersion: (versionId: string) => [...queryKeys.epics.all, 'byVersion', versionId] as const,
+    detail: (id: string) => [...queryKeys.epics.all, 'detail', id] as const,
+  },
+  stories: {
+    all: ['stories'] as const,
+    byEpic: (epicId: string) => [...queryKeys.stories.all, 'byEpic', epicId] as const,
+    detail: (id: string) => [...queryKeys.stories.all, 'detail', id] as const,
+  },
+  acceptanceCriteria: {
+    all: ['acceptanceCriteria'] as const,
+    byStory: (storyId: string) => [...queryKeys.acceptanceCriteria.all, 'byStory', storyId] as const,
+  },
+
   // Auth
   auth: {
     currentUser: ['auth', 'currentUser'] as const,

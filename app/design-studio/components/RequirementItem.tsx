@@ -3,20 +3,14 @@
  * A single draggable requirement row for the Overview tab
  */
 
-import { Tag, type TagColor } from '~/core/components/ui';
+import { Tag } from '~/core/components/ui';
 import type { RequirementWithUseCase } from '~/product-management/queries/useRequirementsBySolutionQuery';
-import type { RequirementType } from '~/core/entities/product-management/types';
+import { REQUIREMENT_TYPE_CONFIG, REQUIREMENT_STATUS_CONFIG } from '~/core/entities/product-management/types';
 
 interface RequirementItemProps {
   requirement: RequirementWithUseCase;
   folderNames?: string[];
 }
-
-const typeColorMap: Record<RequirementType, TagColor> = {
-  functional: 'blue',
-  'non-functional': 'orange',
-  constraint: 'default',
-};
 
 export function RequirementItem({ requirement, folderNames = [] }: RequirementItemProps) {
   const handleDragStart = (event: React.DragEvent) => {
@@ -62,8 +56,8 @@ export function RequirementItem({ requirement, folderNames = [] }: RequirementIt
           flexWrap: 'wrap',
         }}
       >
-        <Tag color={typeColorMap[requirement.type]}>{requirement.type}</Tag>
-        <span>Priority: {requirement.priority}</span>
+        <Tag color={REQUIREMENT_TYPE_CONFIG[requirement.type].color}>{REQUIREMENT_TYPE_CONFIG[requirement.type].label}</Tag>
+        <Tag color={REQUIREMENT_STATUS_CONFIG[requirement.status].color}>{REQUIREMENT_STATUS_CONFIG[requirement.status].label}</Tag>
         <span style={{ color: 'var(--text-muted)' }}>|</span>
         <span>{requirement.useCaseName}</span>
         {folderNames.length > 0 && (

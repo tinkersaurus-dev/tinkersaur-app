@@ -29,7 +29,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         >
           <GlobalSidebar />
         </Layout.Sider>
-        <div className="flex-1 overflow-auto">{children}</div>
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">{children}</div>
       </div>
     </AppLayout>
   );
