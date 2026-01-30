@@ -186,7 +186,7 @@ function UseCaseDetailContent() {
   };
 
   const handleBack = () => {
-    navigate('/discovery/organize/use-cases');
+    navigate('/solutions/scope/');
   };
 
   // Memoized handlers for table actions to prevent unnecessary re-renders
