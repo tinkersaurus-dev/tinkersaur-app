@@ -9,7 +9,7 @@ import { SequenceMermaidImporter } from '@/features/diagram-rendering/sequence/m
 import { ArchitectureMermaidImporter } from '@/features/diagram-rendering/architecture/mermaid/importer';
 import { EntityRelationshipMermaidImporter } from '@/features/diagram-rendering/entity-relationship/mermaid/importer';
 import { isLLMPreviewShapeData } from '@/entities/shape';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 
 /**
  * Command to update a preview shape from a mermaid editor shape

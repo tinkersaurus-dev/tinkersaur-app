@@ -10,8 +10,8 @@ import type { ShapeRendererProps } from '../../shared/rendering/types';
 import { ConnectionPointRenderer } from '../../shared/rendering/ConnectionPointRenderer';
 import { EditableLabel } from '@/widgets/canvas/ui/editors/EditableLabel';
 import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
-import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
-import { useShapeInteractivity } from '~/design-studio/hooks';
+import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '@/widgets/canvas/lib/utils/connectionPoints';
+import { useShapeInteractivity } from '@/features/diagram-rendering';
 
 export function BpmnTaskRenderer({
   shape,

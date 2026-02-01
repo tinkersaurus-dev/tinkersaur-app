@@ -7,17 +7,21 @@ import { useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, useLoaderData, Link } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiMessageCircle, FiTarget } from 'react-icons/fi';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Card, Modal, Empty, Tabs, Table, EditableSection, EditableField } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
-import { useOutcomeQuery, useIntakeSourceDetailsQuery } from '~/discovery/queries';
-import { useDeleteOutcome, useUpdateOutcome } from '~/discovery/mutations';
+import type { LoaderFunctionArgs } from 'react-router';
+import {
+  useOutcomeQuery,
+  useIntakeSourceDetailsQuery,
+  useDeleteOutcome,
+  useUpdateOutcome,
+} from '@/features/intake-analysis';
 import { loadOutcomeDetail } from './loader';
 import type { OutcomeDetailLoaderData } from './loader';
-import type { Route } from './+types/page';
-import { useSolutionsQuery } from '~/product-management/queries';
+import { useSolutionsQuery } from '@/entities/solution';
 
 // Quote row type for the quotes table
 interface QuoteRow {
@@ -27,8 +31,8 @@ interface QuoteRow {
 }
 
 // Loader function for SSR data fetching
-export async function loader({ params }: Route.LoaderArgs) {
-  const { outcomeId } = params;
+export async function loader({ params }: LoaderFunctionArgs) {
+  const outcomeId = params.outcomeId;
   if (!outcomeId) {
     throw new Response('Outcome ID required', { status: 400 });
   }

@@ -8,9 +8,9 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { useSolutionQuery } from '~/product-management/queries';
+import { useSolutionQuery } from '@/entities/solution';
 import { useSolutionStore } from '@/app/model/stores/solution';
-import { DesignStudioContent } from '~/design-studio/components/DesignStudioContent';
+import { DesignStudioContent } from '@/widgets/studio-content';
 
 export default function StudioPage() {
   const { solutionId } = useParams();

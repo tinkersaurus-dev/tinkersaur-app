@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useDiagramQuery } from '@/entities/diagram/api/queries';
 import { queryKeys } from '@/shared/lib/query';
 

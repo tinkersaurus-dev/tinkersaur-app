@@ -14,10 +14,10 @@ import { ConnectionPointRenderer } from '../../shared/rendering/ConnectionPointR
 import { EditableLabel } from '@/widgets/canvas/ui/editors/EditableLabel';
 import { EntityAttributeEditor } from '../components/EntityAttributeEditor';
 import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
-import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
+import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '@/widgets/canvas/lib/utils/connectionPoints';
 import { THEME_CONFIG } from '@/shared/lib/config/theme-config';
 import { useCanvasEvents } from '@/widgets/canvas/ui/contexts/CanvasEventsContext';
-import { useShapeInteractivity } from '~/design-studio/hooks';
+import { useShapeInteractivity } from '@/features/diagram-rendering';
 
 export function EntityRenderer({
   shape,

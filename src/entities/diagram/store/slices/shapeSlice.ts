@@ -4,7 +4,7 @@ import { commandManager } from '@/features/canvas-commands/model/CommandManager'
 import {
   canShapeBeReferenceSource,
   canShapeBeFolderReferenceSource,
-} from '~/design-studio/config/reference-types';
+} from '@/shared/config/reference-types';
 import { handleStoreError } from '../utils/errorHandler';
 import { syncShapeToCanvas, syncShapesToCanvas } from '../utils/canvasSync';
 import type { DiagramSlice, ShapeSlice } from '../types';

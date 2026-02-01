@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react';
 import type { ConnectorRendererProps } from './connector-types';
 import { EditableLabel } from '@/widgets/canvas/ui/editors/EditableLabel';
-import { getPathMidpoint } from '~/design-studio/utils/pathUtils';
-import { findOptimalConnectionPoints } from '~/design-studio/utils/canvas';
-import { getConnectionPointsForShape } from '~/design-studio/utils/connectionPoints';
+import { getPathMidpoint } from '@/widgets/canvas/lib/utils/pathUtils';
+import { findOptimalConnectionPoints } from '@/widgets/canvas/lib/utils/canvas';
+import { getConnectionPointsForShape } from '@/widgets/canvas/lib/utils/connectionPoints';
 import { getPathData } from './pathUtils';
 import { getStrokeDasharray } from './strokeStyles';
 import { getClassDiagramMarker } from './svgMarkers';
 import { calculateCardinalityLabelPosition } from './labelPositioning';
 import { THEME_CONFIG } from '@/shared/lib/config/theme-config';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 import { getClassConnectorToolByType } from '@/features/diagram-rendering/class/connectors';
 import { getERConnectorToolByType } from '@/features/diagram-rendering/entity-relationship/connectors';
 

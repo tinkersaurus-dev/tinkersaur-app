@@ -6,13 +6,13 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge } from 'react-icons/fi';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent, ListControlPanel } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { ListControlPanel } from '~/core/components/ListControlPanel';
 import { Button, Table, Empty, Checkbox } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import type { Persona } from '@/entities/persona';
-import { usePersonasPaginatedQuery, useSolutionsQuery } from '~/product-management/queries';
+import { usePersonasPaginatedQuery } from '@/entities/persona';
+import { useSolutionsQuery } from '@/entities/solution';
 import { useListSelection, useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
 import { PersonaMergeModal } from '@/features/entity-merging';

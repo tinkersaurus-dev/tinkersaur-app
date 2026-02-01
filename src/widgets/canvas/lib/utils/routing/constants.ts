@@ -2,7 +2,7 @@
  * Constants for orthogonal connector routing
  */
 
-export { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+export { DESIGN_STUDIO_CONFIG } from '../../config/design-studio-config';
 
 /** Magic numbers and configuration constants */
 export const ROUTING_CONSTANTS = {

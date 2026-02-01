@@ -5,18 +5,19 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { useSolutionQuery, useSolutionFactorsQuery } from '~/product-management/queries';
+import { useSolutionQuery } from '@/entities/solution';
 import {
+  useSolutionFactorsQuery,
   useCreateSolutionFactor,
   useUpdateSolutionFactor,
   useDeleteSolutionFactor,
   useCreateSolutionFactorsBulk,
-} from '~/product-management/mutations';
+} from '@/entities/solution-factor';
 import { useSolutionStore } from '@/app/model/stores/solution';
-import { useGenerateFactors, useRefineFactor } from '~/product-management/hooks';
-import { FactorsList, FactorGenerateModal } from '~/product-management/components';
+import { useGenerateFactors, useRefineFactor, FactorGenerateModal } from '@/features/llm-generation';
+import { FactorsList } from '@/entities/solution-factor';
 import {
   groupFactorsByType,
   type SolutionFactorType,

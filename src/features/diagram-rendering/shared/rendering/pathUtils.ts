@@ -1,10 +1,10 @@
-import type { Point } from '~/design-studio/utils/pathUtils';
+import type { Point } from '@/widgets/canvas/lib/utils/pathUtils';
 import type { Shape } from '@/entities/shape';
 import {
   findOrthogonalRoute,
   type Direction
-} from '~/design-studio/utils/routing';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+} from '@/widgets/canvas/lib/utils/routing';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 
 // Connection point direction for routing
 export type ConnectionPointDirection = 'N' | 'S' | 'E' | 'W';

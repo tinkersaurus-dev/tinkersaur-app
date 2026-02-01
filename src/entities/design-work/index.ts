@@ -24,5 +24,15 @@ export type {
 export { designWorkApi } from './api/designWorkApi';
 export type { DesignWorksWithReferences, ReorderItemDto } from './api/designWorkApi';
 
+// Query hooks
+export {
+  useDesignWorksQuery,
+  useDesignWorksWithContentQuery,
+  useDesignWorksWithContentByUseCaseQuery,
+  useDesignWorkQuery,
+  prefetchDesignWorks,
+  prefetchDesignWork,
+} from './api/queries';
+
 // Store
 export { useDesignWorkStore } from './store/useDesignWorkStore';

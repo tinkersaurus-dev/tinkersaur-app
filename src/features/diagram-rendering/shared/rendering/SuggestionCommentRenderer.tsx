@@ -13,7 +13,7 @@ import { FaCheck, FaTimes } from 'react-icons/fa';
 import { ImSpinner8 } from 'react-icons/im';
 import type { ShapeRendererProps } from './types';
 import { isSuggestionCommentShapeData } from '@/entities/shape';
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/widgets/canvas/ui/contexts/CanvasDiagramContext';
 import { commandManager } from '@/features/canvas-commands/model/CommandManager';
 import { RejectSuggestionCommand } from '@/features/canvas-commands/commands/suggestions/RejectSuggestionCommand';

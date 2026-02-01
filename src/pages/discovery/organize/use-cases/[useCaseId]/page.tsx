@@ -7,25 +7,24 @@ import { useState } from 'react';
 import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiMessageCircle, FiArchive, FiAlertTriangle } from 'react-icons/fi';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Card, Modal, Tabs } from '@/shared/ui';
-import { useUseCaseQuery } from '~/product-management/queries';
-import { useDeleteUseCase, useUpdateUseCase } from '~/product-management/mutations';
+import type { LoaderFunctionArgs } from 'react-router';
+import { useUseCaseQuery, useDeleteUseCase, useUpdateUseCase } from '@/entities/use-case';
 import { loadDiscoveryUseCaseDetail } from './loader';
 import type { DiscoveryUseCaseDetailLoaderData } from './loader';
-import type { Route } from './+types/page';
 import {
   UseCaseBasicInfo,
   UseCaseSupportingQuotes,
   UseCaseFeedbackTab,
-  UseCasePersonasSidebar,
-  useUseCaseFeedback,
-} from '~/product-management/components/use-case-detail';
+} from '@/entities/use-case';
+import { UseCasePersonasSidebar } from '@/entities/use-case/ui/use-case-detail/UseCasePersonasSidebar';
+import { useUseCaseFeedback } from '@/entities/use-case/ui/use-case-detail/useUseCaseFeedback';
 
 // Loader function for SSR data fetching
-export async function loader({ params }: Route.LoaderArgs) {
-  const { useCaseId } = params;
+export async function loader({ params }: LoaderFunctionArgs) {
+  const useCaseId = params.useCaseId;
   if (!useCaseId) {
     throw new Response('Use Case ID required', { status: 400 });
   }

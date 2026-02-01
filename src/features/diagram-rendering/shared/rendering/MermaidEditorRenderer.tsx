@@ -13,7 +13,7 @@ import type { ShapeRendererProps } from './types';
 import { getMermaidEditorShapeData } from '@/entities/shape';
 import type { DiagramType } from '@/entities/diagram';
 import { ShapeWrapper } from './ShapeWrapper';
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/widgets/canvas/ui/contexts/CanvasDiagramContext';
 import { commandManager } from '@/features/canvas-commands/model/CommandManager';
 import { UpdatePreviewCommand } from '@/features/canvas-commands/commands/preview-import/UpdatePreviewCommand';

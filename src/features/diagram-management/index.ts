@@ -30,3 +30,7 @@ export { useCanvasReferenceDrop } from './lib/useCanvasReferenceDrop';
 
 // Diagram sync
 export { useMermaidSync } from './lib/useMermaidSync';
+
+// UI components
+export { CreateDiagramModal, LinkUseCaseModal } from './ui';
+export type { CreateDiagramFormData, CreateDiagramModalProps, LinkUseCaseFormData, LinkUseCaseModalProps } from './ui';

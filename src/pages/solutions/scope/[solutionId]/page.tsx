@@ -8,17 +8,17 @@ import { FiPlus, FiEdit2, FiTrash2, FiSettings } from 'react-icons/fi';
 import { MdDesignServices } from 'react-icons/md';
 import { useParams, Link, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Input, HStack, Table, Form, useForm, Modal, Select, Tabs } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import type { UseCase } from '@/entities/use-case';
 import type { SolutionType } from '@/entities/solution';
-import { useSolutionQuery, useUseCasesBySolutionQuery } from '~/product-management/queries';
-import { useCreateUseCase, useUpdateUseCase, useDeleteUseCase, useUpdateSolution, useDeleteSolution } from '~/product-management/mutations';
+import type { LoaderFunctionArgs } from 'react-router';
+import { useSolutionQuery, useUpdateSolution, useDeleteSolution } from '@/entities/solution';
+import { useUseCasesBySolutionQuery, useCreateUseCase, useUpdateUseCase, useDeleteUseCase } from '@/entities/use-case';
 import { loadSolutionDetail } from './loader';
 import type { SolutionDetailLoaderData } from './loader';
-import type { Route } from './+types/page';
 import { useSolutionStore } from '@/app/model/stores/solution';
 
 const solutionTypeOptions = [
@@ -30,8 +30,8 @@ const solutionTypeOptions = [
 ];
 
 // Loader function for SSR data fetching
-export async function loader({ params }: Route.LoaderArgs) {
-  const { solutionId } = params;
+export async function loader({ params }: LoaderFunctionArgs) {
+  const solutionId = params.solutionId;
   if (!solutionId) {
     throw new Response('Solution ID required', { status: 400 });
   }

@@ -16,3 +16,16 @@ export type {
 } from './model/types';
 
 export { userApi } from './api/userApi';
+
+export {
+  useUsersQuery,
+  useUserQuery,
+  prefetchUsers,
+  prefetchUser,
+} from './api/queries';
+
+export {
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+} from './api/mutations';

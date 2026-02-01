@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { useDesignWorkStore } from '@/entities/design-work';
-import { useDiagramStore } from '@/entities/diagram';
-import { useDocumentStore } from '@/entities/document';
+import { useDesignWorkStore } from '@/entities/design-work/store/useDesignWorkStore';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
+import { useDocumentStore } from '@/entities/document/store/useDocumentStore';
 import type { DesignWork } from '@/entities/design-work';
 import { useUseCaseQuery } from '@/entities/use-case/api/queries';
 import { queryKeys } from '@/shared/lib/query';

@@ -16,3 +16,16 @@ export type {
 } from './model/types';
 
 export { organizationApi } from './api/organizationApi';
+
+export {
+  useOrganizationsQuery,
+  useOrganizationQuery,
+  prefetchOrganizations,
+  prefetchOrganization,
+} from './api/queries';
+
+export {
+  useCreateOrganization,
+  useUpdateOrganization,
+  useDeleteOrganization,
+} from './api/mutations';

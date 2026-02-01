@@ -7,7 +7,7 @@
 
 import { useLocation } from 'react-router';
 import { HStack } from '@/shared/ui';
-import { InlineTeamSelector } from '~/core/components/InlineTeamSelector';
+import { InlineTeamSelector } from '@/widgets/team-selector';
 import { InlineSolutionSelector } from '@/widgets/solution-selector';
 
 export function ContextualSubHeader() {

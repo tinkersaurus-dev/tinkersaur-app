@@ -7,19 +7,19 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle, FiArchive, FiAlertTriangle, FiMessageCircle } from 'react-icons/fi';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Card, Modal, Tabs, Empty, Table, EditableSection, EditableField } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import type { Feedback } from '@/entities/feedback';
 import type { QuoteWithSource } from '@/entities/quote';
 import type { UseCase } from '@/entities/use-case';
-import { usePersonaQuery, useUseCasesByTeamQuery } from '~/product-management/queries';
-import { useDeletePersona, useUpdatePersona } from '~/product-management/mutations';
+import type { LoaderFunctionArgs } from 'react-router';
+import { usePersonaQuery, useDeletePersona, useUpdatePersona } from '@/entities/persona';
+import { useUseCasesByTeamQuery } from '@/entities/use-case';
 import { loadPersonaDetail } from './loader';
 import type { PersonaDetailLoaderData } from './loader';
-import type { Route } from './+types/page';
-import { useFeedbacksPaginatedQuery, useIntakeSourceDetailsQuery } from '~/discovery/queries';
+import { useFeedbacksPaginatedQuery, useIntakeSourceDetailsQuery } from '@/features/intake-analysis';
 
 // Feedback row type for table display
 interface FeedbackRow {
@@ -59,8 +59,8 @@ const quoteColumns: TableColumn<QuoteRow>[] = [
 ];
 
 // Loader function for SSR data fetching
-export async function loader({ params }: Route.LoaderArgs) {
-  const { personaId } = params;
+export async function loader({ params }: LoaderFunctionArgs) {
+  const personaId = params.personaId;
   if (!personaId) {
     throw new Response('Persona ID required', { status: 400 });
   }

@@ -12,8 +12,7 @@
 import { FiMessageSquare, FiArrowDown } from 'react-icons/fi';
 import { Modal, Button, Card, Tag } from '@/shared/ui';
 import { FEEDBACK_TYPE_CONFIG, type Feedback, type ExtractedFeedback } from '@/entities/feedback';
-import { FEEDBACK_TAG_COLORS } from '~/discovery/constants';
-import { useFeedbackQuery } from '~/discovery/queries';
+import { FEEDBACK_TAG_COLORS, useFeedbackQuery } from '@/features/intake-analysis';
 
 export interface PendingFeedbackMerge {
   intakeFeedbackIndex: number;

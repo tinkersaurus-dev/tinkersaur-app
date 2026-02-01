@@ -2,8 +2,8 @@ import type { Result } from '@/shared/lib/utils';
 import type { CreateShapeDTO, SequenceLifelineData } from '@/entities/shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../../shared/mermaid/importer';
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
-import { DEFAULT_SHAPE_SUBTYPES } from '~/design-studio/config/default-shape-subtypes';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { DEFAULT_SHAPE_SUBTYPES } from '@/features/diagram-rendering/config/shape-subtypes';
 
 /**
  * Parsed participant information from Mermaid syntax

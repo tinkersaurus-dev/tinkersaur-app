@@ -9,7 +9,7 @@ import { MarkdownContent } from '../MarkdownContent';
 import { Input } from '../Input';
 
 // Import markdown styles
-import '~/design-studio/styles/markdown-content.css';
+import '@/shared/styles/markdown-content.css';
 
 export interface EditableMarkdownSectionProps {
   /** Section title */

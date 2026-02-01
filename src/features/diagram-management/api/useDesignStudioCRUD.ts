@@ -7,10 +7,10 @@ import type {
 import type { Diagram, CreateDiagramDto } from '@/entities/diagram';
 import type { Interface, CreateInterfaceDto } from '@/entities/interface';
 import type { Document, CreateDocumentDto } from '@/entities/document';
-import { useDiagramStore } from '@/entities/diagram';
-import { useInterfaceStore } from '@/entities/interface';
-import { useDocumentStore } from '@/entities/document';
-import { useDesignWorkStore } from '@/entities/design-work';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
+import { useInterfaceStore } from '@/entities/interface/store/useInterfaceStore';
+import { useDocumentStore } from '@/entities/document/store/useDocumentStore';
+import { useDesignWorkStore } from '@/entities/design-work/store/useDesignWorkStore';
 import { queryKeys } from '@/shared/lib/query';
 
 /**

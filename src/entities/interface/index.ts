@@ -19,5 +19,13 @@ export type {
 
 export { interfaceApi } from './api/interfaceApi';
 
+// Query hooks
+export {
+  useInterfacesQuery,
+  useInterfaceQuery,
+  prefetchInterfaces,
+  prefetchInterface,
+} from './api/queries';
+
 // Store
 export { useInterfaceStore } from './store/useInterfaceStore';

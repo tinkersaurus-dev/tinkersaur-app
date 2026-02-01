@@ -4,7 +4,7 @@ import type { Connector } from '@/entities/connector';
 import type { DiagramType } from '@/entities/diagram';
 import { getMermaidExporter } from '@/features/diagram-rendering/shared/mermaid';
 import { useMermaidViewerStore } from '@/shared/store/mermaid/mermaidViewerStore';
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 
 /**
  * Debounce time in milliseconds for mermaid syntax generation

@@ -6,10 +6,10 @@
 
 import { useCallback } from 'react';
 import { useDesignStudioUIStore } from '@/app/model/stores/design-studio-ui';
-import { useDesignWorkStore } from '@/entities/design-work';
-import { useReferenceStore } from '@/entities/reference';
+import { useDesignWorkStore } from '@/entities/design-work/store/useDesignWorkStore';
+import { useReferenceStore } from '@/entities/reference/store/useReferenceStore';
 import { useDesignStudioCRUD, useFolderReferenceDrop, useRequirementReferenceDrop } from '@/features/diagram-management';
-import { useSolutionQuery } from '~/product-management/queries';
+import { useSolutionQuery } from '@/entities/solution';
 import type { UseSidebarStateReturn, ReorderUpdate } from '../../model/types';
 import type { DiagramType } from '@/entities/diagram';
 

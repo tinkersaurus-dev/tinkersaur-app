@@ -1,0 +1,36 @@
+.entity-attribute-editor {
+  user-select: none;
+}
+
+.entity-attribute-editor:hover .entity-attribute-delete {
+  opacity: 1;
+}
+
+.entity-attribute-input {
+  font-family: inherit;
+  color: var(--canvas-label-editing-text);
+}
+
+.entity-attribute-input:focus {
+  border-color: var(--canvas-label-editing-border-focus) !important;
+}
+
+.entity-attribute-text {
+  color: var(--canvas-label-editing-text);
+}
+
+.entity-attribute-delete {
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: var(--canvas-label-editing-text);
+}
+
+.entity-attribute-delete:hover {
+  background: var(--canvas-label-editing-border-hover) !important;
+  border-color: var(--canvas-label-editing-border-focus) !important;
+}
+
+.entity-attribute-key {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

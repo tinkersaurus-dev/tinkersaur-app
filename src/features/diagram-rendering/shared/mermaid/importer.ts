@@ -1,7 +1,7 @@
 import type { Result } from '@/shared/lib/utils';
 import type { Shape, CreateShapeDTO } from '@/entities/shape';
 import type { CreateConnectorDTO } from '@/entities/connector';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 
 /**
  * Connector reference that uses shape indices instead of IDs

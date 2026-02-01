@@ -17,5 +17,13 @@ export type {
 
 export { documentApi } from './api/documentApi';
 
+// Query hooks
+export {
+  useDocumentsQuery,
+  useDocumentQuery,
+  prefetchDocuments,
+  prefetchDocument,
+} from './api/queries';
+
 // Store
 export { useDocumentStore } from './store/useDocumentStore';

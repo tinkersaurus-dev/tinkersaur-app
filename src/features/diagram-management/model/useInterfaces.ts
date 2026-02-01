@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useInterfaceStore } from '@/entities/interface';
+import { useInterfaceStore } from '@/entities/interface/store/useInterfaceStore';
 import { useInterfaceQuery } from '@/entities/interface/api/queries';
 import { queryKeys } from '@/shared/lib/query';
 

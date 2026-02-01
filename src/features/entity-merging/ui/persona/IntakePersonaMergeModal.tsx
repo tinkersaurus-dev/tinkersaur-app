@@ -13,11 +13,11 @@ import { Card } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import type { ExtractedPersona } from '@/entities/intake-result';
 import { useMergePersonasLLM } from '../../api/hooks/useMergePersonasLLM';
-import { usePersonaQuery } from '~/product-management/queries';
+import { usePersonaQuery } from '@/entities/persona';
 import { TwoStepMergeModal } from '../shared/TwoStepMergeModal';
 import { MergeInstructionsField } from '../shared/MergeInstructionsField';
 import { DeferredExecutionWarning } from '../shared/DeferredExecutionWarning';
-import type { PendingMerge } from '~/discovery/hooks/useSaveIntakeResult';
+import type { PendingMerge } from '@/features/intake-analysis';
 
 export type PendingPersonaMerge = PendingMerge;
 

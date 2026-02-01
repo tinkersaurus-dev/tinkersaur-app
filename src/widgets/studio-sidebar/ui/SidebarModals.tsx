@@ -3,8 +3,7 @@
  * Renders the CreateDiagramModal and LinkUseCaseModal for the sidebar.
  */
 
-import { CreateDiagramModal } from '~/design-studio/components/CreateDiagramModal';
-import { LinkUseCaseModal } from '~/design-studio/components/LinkUseCaseModal';
+import { CreateDiagramModal, LinkUseCaseModal } from '@/features/diagram-management';
 import type { SidebarModalsProps } from '../model/types';
 
 export function SidebarModals({

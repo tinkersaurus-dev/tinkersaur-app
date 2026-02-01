@@ -1,7 +1,7 @@
 import React from 'react';
-import type { ConnectionPoint } from '~/design-studio/utils/connectionPoints';
-import { calculateAbsolutePosition } from '~/design-studio/utils/connectionPoints';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import type { ConnectionPoint } from '@/widgets/canvas/lib/utils/connectionPoints';
+import { calculateAbsolutePosition } from '@/widgets/canvas/lib/utils/connectionPoints';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 import { THEME_CONFIG } from '@/shared/lib/config/theme-config';
 
 /**

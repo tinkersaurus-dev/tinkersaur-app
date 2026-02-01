@@ -2,7 +2,7 @@ import type { Result } from '@/shared/lib/utils';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef, MermaidShapeRef } from '../../shared/mermaid/importer';
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
 import { layoutArchitectureGraph } from '../layout';
-import { DEFAULT_SHAPE_SUBTYPES } from '~/design-studio/config/default-shape-subtypes';
+import { DEFAULT_SHAPE_SUBTYPES } from '@/features/diagram-rendering/config/shape-subtypes';
 
 /**
  * Parsed node information from Mermaid architecture syntax

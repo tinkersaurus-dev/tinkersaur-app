@@ -1,7 +1,7 @@
 import type { Command } from '../../model/command.types';
 import type { Shape } from '@/entities/shape';
 import type { Diagram } from '@/entities/diagram';
-import type { Bounds } from '~/design-studio/utils/resize';
+import type { Bounds } from '@/widgets/canvas/lib/utils/resize';
 
 /**
  * Shape bounds update for resize operations

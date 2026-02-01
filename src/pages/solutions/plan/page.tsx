@@ -4,7 +4,7 @@
  */
 
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { PlanView } from '@/features/planning';
 
 export default function PlanPage() {

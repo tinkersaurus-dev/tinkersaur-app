@@ -5,7 +5,7 @@ import type { CommandFactory } from '@/features/canvas-commands/model/CommandFac
 import { commandManager } from '@/features/canvas-commands/model/CommandManager';
 import { toast } from '@/shared/lib/utils';
 import { CreatePreviewFromPasteCommand } from '@/features/canvas-commands/commands/preview-import/CreatePreviewFromPasteCommand';
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 
 interface UseCanvasPasteHandlerProps {
   diagramId: string;

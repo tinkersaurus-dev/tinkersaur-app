@@ -77,3 +77,11 @@ export type { DatePickerProps } from './DatePicker';
 
 export { Tree, TreeNode } from './Tree';
 export type { TreeNodeData, DropPosition } from './Tree';
+
+export { PageHeader } from './PageHeader';
+
+export { PageContent } from './PageContent';
+
+export { ListControlPanel } from './ListControlPanel';
+
+export { ErrorBoundary } from './ErrorBoundary';

@@ -26,3 +26,21 @@ export type {
 } from './model/types';
 
 export { personaApi } from './api/personaApi';
+
+export {
+  usePersonasQuery,
+  usePersonaQuery,
+  prefetchPersonas,
+  prefetchPersona,
+  usePersonasPaginatedQuery,
+  useSimilarPersonasQuery,
+  usePersonaDetailsQuery,
+} from './api/queries';
+
+export {
+  useCreatePersona,
+  useUpdatePersona,
+  useDeletePersona,
+} from './api/mutations';
+
+export { PersonaCard } from './ui/PersonaCard';

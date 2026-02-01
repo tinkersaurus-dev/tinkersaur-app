@@ -24,3 +24,21 @@ export type {
 } from './model/types';
 
 export { solutionFactorApi } from './api/solutionFactorApi';
+
+export {
+  useSolutionFactorsQuery,
+  useSolutionFactorsByTypeQuery,
+  prefetchSolutionFactors,
+} from './api/queries';
+
+export {
+  useCreateSolutionFactor,
+  useUpdateSolutionFactor,
+  useDeleteSolutionFactor,
+  useCreateSolutionFactorsBulk,
+  useReorderSolutionFactors,
+  useDeleteSolutionFactorsByType,
+} from './api/mutations';
+
+export { FactorCard } from './ui/FactorCard';
+export { FactorsList } from './ui/FactorsList';

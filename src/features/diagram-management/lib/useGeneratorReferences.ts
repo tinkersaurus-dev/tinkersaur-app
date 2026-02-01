@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useCallback } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/shared/contexts/CanvasDiagramContext';
 import { useCanvasInstance } from '@/shared/store/content/useCanvasInstance';
 import { queryKeys } from '@/shared/lib/query';

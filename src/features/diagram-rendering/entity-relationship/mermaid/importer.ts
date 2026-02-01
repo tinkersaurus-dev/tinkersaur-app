@@ -2,7 +2,7 @@ import type { Result } from '@/shared/lib/utils';
 import type { CreateShapeDTO, EntityShapeData, EntityAttributeData } from '@/entities/shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../../shared/mermaid/importer';
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 import type { ArrowType } from '@/entities/connector';
 
 /**

@@ -7,12 +7,12 @@
 import { redirect } from 'react-router';
 import { getSelectedSolutionId } from '@/app/model/stores/solution';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { Empty, Button } from '@/shared/ui';
 import { FiPlus } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { CreateSolutionModal } from '@/widgets/solution-selector';
+import { SolutionSelectorModal } from '@/widgets/solution-selector';
 import { useSolutionStore } from '@/app/model/stores/solution';
 
 export function clientLoader() {
@@ -61,10 +61,11 @@ export default function OverviewIndex() {
         </div>
       </PageContent>
 
-      <CreateSolutionModal
+      <SolutionSelectorModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={handleCreateSuccess}
+        onSelect={handleCreateSuccess}
+        initialView="create"
       />
     </MainLayout>
   );

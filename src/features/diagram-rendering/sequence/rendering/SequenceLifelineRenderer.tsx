@@ -13,7 +13,7 @@ import type { SequenceLifelineData } from '@/entities/shape';
 import { ConnectionPointRenderer } from '../../shared/rendering/ConnectionPointRenderer';
 import { EditableLabel } from '@/widgets/canvas/ui/editors/EditableLabel';
 import { ShapeWrapper } from '../../shared/rendering/ShapeWrapper';
-import { generateSequenceLifelineConnectionPoints } from '~/design-studio/utils/connectionPoints';
+import { generateSequenceLifelineConnectionPoints } from '@/widgets/canvas/lib/utils/connectionPoints';
 import { useShapeInteractivity } from '@/features/diagram-rendering';
 
 const PARTICIPANT_BOX_HEIGHT = 40; // Fixed height for the participant box at the top

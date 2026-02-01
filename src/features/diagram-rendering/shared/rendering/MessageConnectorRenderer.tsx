@@ -13,7 +13,7 @@
 import React from 'react';
 import type { ConnectorRendererProps } from './connector-types';
 import { EditableLabel } from '@/widgets/canvas/ui/editors/EditableLabel';
-import { getConnectionPointsForShape, calculateAbsolutePosition } from '~/design-studio/utils/connectionPoints';
+import { getConnectionPointsForShape, calculateAbsolutePosition } from '@/widgets/canvas/lib/utils/connectionPoints';
 import { getStrokeDasharray } from './strokeStyles';
 import { getSequenceDiagramMarker } from './svgMarkers';
 import { THEME_CONFIG } from '@/shared/lib/config/theme-config';

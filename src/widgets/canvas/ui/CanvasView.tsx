@@ -4,8 +4,7 @@ import { useCanvasViewport } from './contexts/CanvasViewportContext';
 import { useCanvasSelection } from './contexts/CanvasSelectionContext';
 import { useCanvasEvents } from './contexts/CanvasEventsContext';
 import { useCanvasReferenceDrop, useSuggestionsGenerator } from '@/features/diagram-management';
-import { MermaidViewer } from '~/design-studio/components/mermaid/MermaidViewer';
-import { OverlayControlPanel } from '~/design-studio/components/overlay/OverlayControlPanel';
+import { MermaidViewer, OverlayControlPanel } from './panels';
 import { RoutingDebugOverlay } from './debug/RoutingDebugOverlay';
 import { setDebugGraph } from './debug/routingDebugState';
 

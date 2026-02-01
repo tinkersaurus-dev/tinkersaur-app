@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useDesignWorkStore } from '@/entities/design-work';
+import { useDesignWorkStore } from '@/entities/design-work/store/useDesignWorkStore';
 
 /**
  * Hook for handling requirement drops onto folders

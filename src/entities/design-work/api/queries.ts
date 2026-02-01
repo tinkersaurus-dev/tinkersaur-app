@@ -1,13 +1,96 @@
 /**
- * Re-export TanStack Query hooks for DesignWork entity
- * These hooks are defined in the app layer but re-exported here for convenience
+ * TanStack Query hooks for DesignWork entity
+ * @module entities/design-work/api/queries
  */
 
-export {
-  useDesignWorksQuery,
-  useDesignWorksWithContentQuery,
-  useDesignWorksWithContentByUseCaseQuery,
-  useDesignWorkQuery,
-  prefetchDesignWorks,
-  prefetchDesignWork,
-} from '~/design-studio/queries';
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES, REFETCH_INTERVALS } from '@/shared/lib/query';
+import { designWorkApi, type DesignWorksWithReferences } from './designWorkApi';
+
+/**
+ * Query hook for fetching design works by solution with content metadata.
+ * Returns both design works and full reference objects.
+ */
+export function useDesignWorksWithContentQuery(solutionId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.designWorks.list(solutionId!),
+    queryFn: () => designWorkApi.listWithContent(solutionId!),
+    enabled: !!solutionId,
+    staleTime: STALE_TIMES.designWorks,
+    refetchInterval: REFETCH_INTERVALS.designWorks,
+    refetchOnWindowFocus: 'always',
+    select: (data: DesignWorksWithReferences) => data,
+  });
+}
+
+/**
+ * Query hook for fetching design works by solution (backwards compatible).
+ * Note: This internally uses listWithContent but only returns design works.
+ */
+export function useDesignWorksQuery(solutionId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.designWorks.list(solutionId!),
+    queryFn: () => designWorkApi.listWithContent(solutionId!),
+    enabled: !!solutionId,
+    staleTime: STALE_TIMES.designWorks,
+    refetchInterval: REFETCH_INTERVALS.designWorks,
+    refetchOnWindowFocus: 'always',
+    select: (data: DesignWorksWithReferences) => data.designWorks,
+  });
+}
+
+/**
+ * Query hook for fetching design works filtered by use case.
+ * Used in embedded design studio view within use case detail page.
+ */
+export function useDesignWorksWithContentByUseCaseQuery(
+  solutionId: string | undefined,
+  useCaseId: string | undefined
+) {
+  return useQuery({
+    queryKey: queryKeys.designWorks.listByUseCase(solutionId!, useCaseId!),
+    queryFn: () => designWorkApi.listWithContentByUseCase(solutionId!, useCaseId!),
+    enabled: !!solutionId && !!useCaseId,
+    staleTime: STALE_TIMES.designWorks,
+    refetchInterval: REFETCH_INTERVALS.designWorks,
+    refetchOnWindowFocus: 'always',
+    select: (data: DesignWorksWithReferences) => data,
+  });
+}
+
+/**
+ * Query hook for fetching a single design work
+ */
+export function useDesignWorkQuery(designWorkId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.designWorks.detail(designWorkId!),
+    queryFn: () => designWorkApi.get(designWorkId!),
+    enabled: !!designWorkId,
+    staleTime: STALE_TIMES.designWorks,
+    refetchInterval: REFETCH_INTERVALS.designWorks,
+    refetchOnWindowFocus: 'always',
+  });
+}
+
+/**
+ * Prefetch design works for SSR
+ */
+export function prefetchDesignWorks(solutionId: string) {
+  return {
+    queryKey: queryKeys.designWorks.list(solutionId),
+    queryFn: () => designWorkApi.listWithContent(solutionId),
+    staleTime: STALE_TIMES.designWorks,
+  };
+}
+
+/**
+ * Prefetch a single design work for SSR
+ */
+export function prefetchDesignWork(designWorkId: string) {
+  return {
+    queryKey: queryKeys.designWorks.detail(designWorkId),
+    queryFn: () => designWorkApi.get(designWorkId),
+    staleTime: STALE_TIMES.designWorks,
+  };
+}

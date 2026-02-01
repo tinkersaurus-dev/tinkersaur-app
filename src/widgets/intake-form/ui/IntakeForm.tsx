@@ -6,7 +6,7 @@ import { Select } from '@/shared/ui/Select';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 import { useAuthStore } from '@/features/auth';
-import { useSolutionsQuery } from '~/product-management/queries';
+import { useSolutionsQuery } from '@/entities/solution';
 
 export interface IntakeFormValues {
   sourceType: SourceTypeKey;

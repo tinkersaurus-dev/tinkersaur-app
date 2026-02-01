@@ -7,4 +7,4 @@ export {
   findSuggestionPosition,
   SUGGESTION_SHAPE_WIDTH,
   SUGGESTION_SHAPE_HEIGHT,
-} from '~/design-studio/utils/suggestionPositioning';
+} from '@/widgets/canvas/lib/utils/suggestionPositioning';

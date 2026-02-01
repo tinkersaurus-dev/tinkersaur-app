@@ -11,7 +11,7 @@ import { FaEdit, FaCheck } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import { getLLMPreviewShapeData, type LLMPreviewShapeData } from '@/entities/shape';
 import { ShapeWrapper } from './ShapeWrapper';
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/widgets/canvas/ui/contexts/CanvasDiagramContext';
 import { commandManager } from '@/features/canvas-commands/model/CommandManager';
 import { ReplaceWithEditorCommand } from '@/features/canvas-commands/commands/preview-import/ReplaceWithEditorCommand';

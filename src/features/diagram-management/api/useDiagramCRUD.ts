@@ -1,4 +1,4 @@
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import type { Shape, CreateShapeDTO } from '@/entities/shape';
 import type { CreateConnectorDTO } from '@/entities/connector';
 

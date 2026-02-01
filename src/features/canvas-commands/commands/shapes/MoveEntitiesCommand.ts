@@ -2,7 +2,7 @@ import type { Command } from '../../model/command.types';
 import type { Shape } from '@/entities/shape';
 import type { Diagram } from '@/entities/diagram';
 import { isLLMPreviewShapeData } from '@/entities/shape';
-import { getAllDescendantIds } from '~/design-studio/utils/containment-utils';
+import { getAllDescendantIds } from '@/widgets/canvas/lib/utils/containment-utils';
 
 /**
  * Command for moving multiple shapes together as a single atomic operation

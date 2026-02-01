@@ -11,7 +11,7 @@
  * - Order is preserved from the mermaid syntax (input array order)
  */
 
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 
 export interface LayoutNode {
   id: string;

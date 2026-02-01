@@ -103,3 +103,9 @@ export {
   type GenerateEarsResponse,
   type EarsGenerationResult,
 } from './api/ears-generator-api';
+
+// UI Components
+export { RefinementPreview } from './ui/RefinementPreview';
+export { FactorGenerateModal } from './ui/FactorGenerateModal';
+export { useGenerateFactors } from './lib/useGenerateFactors';
+export { useRefineFactor } from './lib/useRefineFactor';

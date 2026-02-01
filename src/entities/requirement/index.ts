@@ -22,3 +22,19 @@ export type {
 } from './model/types';
 
 export { requirementApi } from './api/requirementApi';
+
+export {
+  useRequirementsQuery,
+  useRequirementQuery,
+  prefetchRequirements,
+  prefetchRequirement,
+  useRequirementsBySolutionQuery,
+} from './api/queries';
+
+export type { RequirementWithUseCase } from './api/queries';
+
+export {
+  useCreateRequirement,
+  useUpdateRequirement,
+  useDeleteRequirement,
+} from './api/mutations';

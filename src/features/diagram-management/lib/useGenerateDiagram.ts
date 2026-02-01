@@ -10,7 +10,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/shared/contexts/CanvasDiagramContext';
 import { generateMermaid, MermaidGeneratorAPIError } from '@/features/llm-generation';
 import { commandManager } from '@/features/canvas-commands/model/CommandManager';

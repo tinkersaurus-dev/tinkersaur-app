@@ -25,5 +25,13 @@ export type {
 
 export { referenceApi } from './api/referenceApi';
 
+// Query hooks
+export {
+  useReferencesQuery,
+  useReferenceQuery,
+  prefetchReferences,
+  prefetchReference,
+} from './api/queries';
+
 // Store
 export { useReferenceStore } from './store/useReferenceStore';

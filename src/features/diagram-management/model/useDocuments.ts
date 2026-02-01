@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useDocumentStore } from '@/entities/document';
+import { useDocumentStore } from '@/entities/document/store/useDocumentStore';
 import { useDocumentQuery } from '@/entities/document/api/queries';
 import { queryKeys } from '@/shared/lib/query';
 

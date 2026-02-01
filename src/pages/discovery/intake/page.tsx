@@ -12,15 +12,13 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import { FiAlertCircle, FiChevronDown, FiChevronRight, FiCheck } from 'react-icons/fi';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { PageHeader } from '~/core/components/PageHeader';
-import { PageContent } from '~/core/components/PageContent';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { Card } from '@/shared/ui/Card';
 import { useAuthStore } from '@/features/auth';
 import { SourceTypeKeySchema, SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 import type { IntakeResult } from '@/entities/intake-result';
 import { IntakeForm, type IntakeFormValues } from '@/widgets/intake-form';
-import { IntakeResults } from '~/discovery/components';
-import { useParseTranscript } from '~/discovery/hooks';
+import { IntakeResults, useParseTranscript } from '@/features/intake-analysis';
 
 type WizardStep = 'input' | 'results';
 

@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import { useDiagram, useDiagramCRUD } from '@/features/diagram-management';
-import { useReferenceStore } from '@/entities/reference';
-import { getReferenceConfigForShape, canReferenceBeDroppedInContent } from '~/design-studio/config/reference-types';
-import { useDiagramStore } from '@/entities/diagram';
+import { useReferenceStore } from '@/entities/reference/store/useReferenceStore';
+import { getReferenceConfigForShape, canReferenceBeDroppedInContent } from '@/shared/config/reference-types';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 
 /**
  * Hook for handling reference drops onto the canvas

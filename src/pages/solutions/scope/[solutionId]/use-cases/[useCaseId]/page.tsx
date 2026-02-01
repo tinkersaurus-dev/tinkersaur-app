@@ -9,37 +9,39 @@ import { FiEdit2, FiTrash2, FiMessageCircle, FiArchive, FiAlertTriangle, FiArrow
 import { useParams, useLoaderData, useNavigate } from 'react-router';
 import { useSolutionStore } from '@/app/model/stores/solution';
 import { HydrationBoundary } from '@tanstack/react-query';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Tag, HStack, Table, Form, useForm, Modal, Select, Input, Card, Tabs, MarkdownContent, Checkbox } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import type { Requirement, RequirementType, RequirementStatus } from '@/entities/requirement';
 import { REQUIREMENT_TYPE_CONFIG, REQUIREMENT_STATUS_CONFIG } from '@/entities/requirement';
-import { useSolutionQuery, useUseCaseQuery, useRequirementsQuery } from '~/product-management/queries';
-import { useCreateRequirement, useUpdateRequirement, useDeleteRequirement, useUpdateUseCase } from '~/product-management/mutations';
+import type { LoaderFunctionArgs } from 'react-router';
+import { useSolutionQuery } from '@/entities/solution';
+import { useUseCaseQuery, useUpdateUseCase } from '@/entities/use-case';
+import { useRequirementsQuery, useCreateRequirement, useUpdateRequirement, useDeleteRequirement } from '@/entities/requirement';
 import { loadUseCaseDetail } from './loader';
 import type { UseCaseDetailLoaderData } from './loader';
-import type { Route } from './+types/page';
 import {
   UseCaseBasicInfo,
   UseCaseSupportingQuotes,
   UseCaseFeedbackTab,
-  UseCasePersonasSidebar,
   UseCaseVersionsTab,
-  useUseCaseFeedback,
-  SpecificationDiffView,
   AddRequirementModal,
-} from '~/product-management/components/use-case-detail';
-import { DesignStudioContent } from '~/design-studio/components/DesignStudioContent';
+} from '@/entities/use-case';
+import { UseCasePersonasSidebar } from '@/entities/use-case/ui/use-case-detail/UseCasePersonasSidebar';
+import { useUseCaseFeedback } from '@/entities/use-case/ui/use-case-detail/useUseCaseFeedback';
+import { SpecificationDiffView } from '@/entities/use-case-version';
+import { DesignStudioContent } from '@/widgets/studio-content';
 import { useDesignWorksForContext } from '@/features/diagram-management';
-import { useUseCaseContent } from '~/product-management/hooks/useUseCaseContent';
-import { useUseCaseVersionStore } from '@/entities/use-case-version';
+import { useUseCaseContent } from '@/entities/use-case';
+import { useUseCaseVersionStore } from '@/entities/use-case-version/store/useUseCaseVersionStore';
 import { formatVersionDisplay } from '@/entities/use-case-version';
-import '~/design-studio/styles/markdown-content.css';
+import '@/shared/styles/markdown-content.css';
 
 // Loader function for SSR data fetching
-export async function loader({ params }: Route.LoaderArgs) {
-  const { solutionId, useCaseId } = params;
+export async function loader({ params }: LoaderFunctionArgs) {
+  const solutionId = params.solutionId;
+  const useCaseId = params.useCaseId;
   if (!solutionId || !useCaseId) {
     throw new Response('Solution ID and Use Case ID required', { status: 400 });
   }

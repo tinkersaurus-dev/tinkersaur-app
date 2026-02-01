@@ -6,9 +6,20 @@
 
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import type { FolderUIState } from '~/design-studio/models/Folder';
 import { canvasInstanceRegistry } from './canvas';
 import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+
+/**
+ * Folder UI state model
+ * Represents the UI state for folders in the tree view.
+ * Note: Folders are now just a UI representation of DesignWork entities.
+ * The actual data is stored in DesignWork with nesting via parentDesignWorkId.
+ */
+export interface FolderUIState {
+  designWorkId: string;
+  isExpanded: boolean;
+  isSelected: boolean;
+}
 
 // Union type for design content types
 export type DesignContentType = 'diagram' | 'interface' | 'document';

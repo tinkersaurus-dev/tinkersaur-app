@@ -16,3 +16,16 @@ export type {
 } from './model/types';
 
 export { teamApi } from './api/teamApi';
+
+export {
+  useTeamsQuery,
+  useTeamQuery,
+  prefetchTeams,
+  prefetchTeam,
+} from './api/queries';
+
+export {
+  useCreateTeam,
+  useUpdateTeam,
+  useDeleteTeam,
+} from './api/mutations';

@@ -7,7 +7,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, useLoaderData, Link } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiUser, FiLink, FiMessageCircle, FiCopy } from 'react-icons/fi';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Card, Modal, Tag, Empty, Tabs, Table, EditableSection, EditableField } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
@@ -18,12 +18,14 @@ import type { UseCase } from '@/entities/use-case';
 import {
   useFeedbackWithChildrenQuery,
   useIntakeSourceDetailsQuery,
-} from '~/discovery/queries';
-import { useDeleteFeedback, useUpdateFeedback } from '~/discovery/mutations';
+  useDeleteFeedback,
+  useUpdateFeedback,
+} from '@/features/intake-analysis';
+import type { LoaderFunctionArgs } from 'react-router';
 import { loadFeedbackDetail } from './loader';
 import type { FeedbackDetailLoaderData } from './loader';
-import type { Route } from './+types/page';
-import { usePersonasQuery, useUseCasesByTeamQuery } from '~/product-management/queries';
+import { usePersonasQuery } from '@/entities/persona';
+import { useUseCasesByTeamQuery } from '@/entities/use-case';
 
 // Quote row type for the quotes table
 interface QuoteRow {
@@ -42,8 +44,8 @@ interface DuplicateRow {
 }
 
 // Loader function for SSR data fetching
-export async function loader({ params }: Route.LoaderArgs) {
-  const { feedbackId } = params;
+export async function loader({ params }: LoaderFunctionArgs) {
+  const feedbackId = params.feedbackId;
   if (!feedbackId) {
     throw new Response('Feedback ID required', { status: 400 });
   }

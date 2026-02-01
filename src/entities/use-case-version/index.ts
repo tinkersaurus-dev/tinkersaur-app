@@ -48,5 +48,18 @@ export {
 
 export { useCaseVersionApi } from './api/useCaseVersionApi';
 
+export {
+  useCreateUseCaseVersion,
+  useUpdateUseCaseVersion,
+  useDeleteUseCaseVersion,
+  useTransitionUseCaseVersionStatus,
+  useRevertToUseCaseVersion,
+} from './api/mutations';
+
 // Store
 export { useUseCaseVersionStore } from './store/useUseCaseVersionStore';
+
+// UI Components
+export { SpecificationDiffView } from './ui/SpecificationDiffView';
+export { UseCaseVersionDetailPanel } from './ui/UseCaseVersionDetailPanel';
+export { UseCaseVersionsTable } from './ui/UseCaseVersionsTable';

@@ -3,7 +3,7 @@ import { useCanvasDiagram } from '../contexts/CanvasDiagramContext';
 import { useCanvasSelection } from '../contexts/CanvasSelectionContext';
 import { useCanvasEvents } from '../contexts/CanvasEventsContext';
 import { useShapeSubtypeManager } from '../../lib/hooks/useShapeSubtypeManager';
-import { useDiagramStore } from '@/entities/diagram';
+import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { MENU_IDS } from '../../lib/hooks/useContextMenuManager';
 import { ContextMenu } from '../menus/ContextMenu';
 import { BpmnToolsetPopover } from '@/features/diagram-rendering/bpmn/components/ToolsetPopover';

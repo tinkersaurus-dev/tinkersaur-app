@@ -13,8 +13,8 @@ import {
   FaStickyNote,
 } from 'react-icons/fa';
 import { DEFAULT_LIFELINE_HEIGHT } from './constants';
-import { globalToolGroup } from '~/design-studio/config/global-tools';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { globalToolGroup } from '@/features/diagram-rendering/config/tools';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 
 /**
  * Tool definition interface

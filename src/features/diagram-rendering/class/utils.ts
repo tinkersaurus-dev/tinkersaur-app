@@ -6,7 +6,7 @@
  */
 
 import type { ClassShapeData, EnumerationShapeData } from '@/entities/shape';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 
 /**
  * Constants matching the ClassRenderer component layout

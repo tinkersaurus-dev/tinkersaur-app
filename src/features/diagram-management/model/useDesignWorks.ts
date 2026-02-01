@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
-import { useDesignWorkStore } from '@/entities/design-work';
-import { useReferenceStore } from '@/entities/reference';
+import { useDesignWorkStore } from '@/entities/design-work/store/useDesignWorkStore';
+import { useReferenceStore } from '@/entities/reference/store/useReferenceStore';
 import { useDesignWorksWithContentQuery } from '@/entities/design-work/api/queries';
 
 /**

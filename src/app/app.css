@@ -1,0 +1,449 @@
+@import "tailwindcss";
+
+/* Inter font-face declarations */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter/InterVariable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter/InterVariable-Italic.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* Desktop-focused breakpoints */
+  --breakpoint-laptop: 1366px;
+  --breakpoint-desktop: 1920px;
+  --breakpoint-qhd: 2560px;
+  --breakpoint-ultrawide: 3440px;
+
+  /* Override Tailwind font sizes with fluid typography */
+  --text-xs: var(--font-size-xs);
+  --text-sm: var(--font-size-sm);
+  --text-base: var(--font-size-base);
+  --text-lg: var(--font-size-lg);
+  --text-xl: clamp(16px, 0.6vw + 12px, 20px);
+  --text-2xl: clamp(18px, 0.8vw + 14px, 24px);
+  --text-3xl: clamp(22px, 1vw + 16px, 30px);
+
+  /* Override Tailwind spacing/gap with fluid values */
+  --spacing-0: 0px;
+  --spacing-1: clamp(2px, 0.2vw + 2px, 4px);
+  --spacing-2: clamp(4px, 0.3vw + 4px, 8px);
+  --spacing-3: clamp(8px, 0.4vw + 6px, 12px);
+  --spacing-4: clamp(12px, 0.5vw + 8px, 16px);
+  --spacing-5: clamp(16px, 0.6vw + 10px, 20px);
+  --spacing-6: clamp(18px, 0.8vw + 12px, 24px);
+  --spacing-8: clamp(24px, 1vw + 16px, 32px);
+  --spacing-10: clamp(32px, 1.2vw + 20px, 40px);
+  --spacing-12: clamp(40px, 1.5vw + 24px, 48px);
+
+  --bg-brand: var(--bg-brand);
+  --text-brand: var(--text-brand);
+  --text-brand-muted: var(--text-brand-muted);
+  --text-brand-hover: var(--text-brand-hover);
+
+
+  /* Extend Tailwind with custom theme colors */
+  --bg-dark: var(--bg-dark);
+  --bg: var(--bg);
+  --bg-light: var(--bg-light);
+
+  --text: var(--text);
+  --text-muted: var(--text-muted);
+  --text-disabled: var(--text-disabled);
+
+  --primary: var(--primary);
+  --secondary: var(--secondary);
+
+  --text-button: var(--text-button);
+
+  --danger: var(--danger);
+  --warning: var(--warning);
+  --success: var(--success);
+  --info: var(--info);
+
+  --border: var(--border);
+  --border-muted: var(--border-muted);
+
+  --highlight: var(--highlight);
+
+  --gradient: var(--gradient);
+  --gradient-hover: var(--gradient-hover);
+
+  --shadow: var(--shadow);
+  --shadow-hover: var(--shadow-hover);
+
+  --tag-blue: var(--tag-blue);
+  --tag-green: var(--tag-green);
+  --tag-orange: var(--tag-orange);
+  --tag-red: var(--tag-red);
+  --tag-purple: var(--tag-purple);
+
+  --tag-bg-blue: var(--tag-bg-blue);
+  --tag-bg-green: var(--tag-bg-green);
+  --tag-bg-orange: var(--tag-bg-orange);
+  --tag-bg-red: var(--tag-bg-red);
+  --tag-bg-purple: var(--tag-bg-purple);
+
+  /* Canvas Elements */
+  --canvas-shape-border-default: var(--canvas-shape-border-default);
+  --canvas-shape-border-hover: var(--canvas-shape-border-hover);
+  --canvas-shape-border-selected: var(--canvas-shape-border-selected);
+  --canvas-shape-fill-default: var(--canvas-shape-fill-default);
+  --canvas-shape-fill-hover: var(--canvas-shape-fill-hover);
+  --canvas-shape-fill-selected: var(--canvas-shape-fill-selected);
+  --canvas-shape-text: var(--canvas-shape-text);
+
+  --canvas-connector-stroke-default: var(--canvas-connector-stroke-default);
+  --canvas-connector-stroke-hover: var(--canvas-connector-stroke-hover);
+  --canvas-connector-stroke-selected: var(--canvas-connector-stroke-selected);
+
+  --canvas-label-editing-fill: var(--canvas-label-editing-fill);
+  --canvas-label-editing-border: var(--canvas-label-editing-border);
+  --canvas-label-editing-border-hover: var(--canvas-label-editing-border-hover);
+  --canvas-label-editing-border-focus: var(--canvas-label-editing-border-focus);
+  --canvas-label-editing-text: var(--canvas-label-editing-text);
+
+  --canvas-label-display-fill: var(--canvas-label-display-fill);
+  --canvas-label-display-border: var(--canvas-label-display-border);
+  --canvas-label-display-text: var(--canvas-label-display-text);
+
+  --canvas-connection-point-fill: var(--canvas-connection-point-fill);
+  --canvas-connection-point-border: var(--canvas-connection-point-border);
+
+  --canvas-selection-box-border: var(--canvas-selection-box-border);
+  --canvas-selection-box-bg: var(--canvas-selection-box-bg);
+
+  --canvas-preview-stroke: var(--canvas-preview-stroke);
+
+  --canvas-suggestion-color: var(--canvas-suggestion-color);
+  --canvas-marker-fill: var(--canvas-marker-fill);
+  --canvas-debug-stroke: var(--canvas-debug-stroke);
+
+}
+
+/* Theme Variables - Light Mode (Default) */
+:root {
+  --bg-brand: oklch(0.5151 0.0294 117.1);
+  --bg-brand-hover: oklch(0.7446 0.0665 100.97);
+  --text-brand: oklch(95.989% 0.01329 116.035);
+  --text-brand-muted: oklch(0.4 0.01 213);
+  --text-brand-selected: oklch(0.9338 0.0396 80.89);
+  --text-brand-hover: oklch(100% 0.00011 271.152);
+
+  --bg-dark: oklch(95.213% 0.00011 271.152);
+  --bg: oklch(97.015% 0.00011 271.152);
+  --bg-light: oklch(100% 0.00011 271.152);
+
+  --text: oklch(0.15 0.01 213);
+  --text-muted: oklch(0.4 0.01 213);
+  --text-disabled: oklch(.55 0.01 213);
+
+  --primary: oklch(0.4 0.1 213);
+  --secondary: oklch(0.4 0.1 33);
+
+  --text-button: oklch(0.92 0.005 213);
+
+  --danger: oklch(48.481% 0.11561 32.532);
+  --warning: oklch(81.641% 0.15416 85.308);
+  --success: oklch(0.5 0.05 160);
+  --info: oklch(0.5 0.05 260);
+
+  --border: oklch(0.6 0.01 213);
+  --border-muted: oklch(0.7 0.01 213);
+  --grid-lines: oklch(88.832% 0.02012 212.798);
+  --grid-dots: oklch(0.7 0.01 213);
+
+ --highlight: oklch(0.76 0.1 33);
+
+  --gradient: linear-gradient(0deg, var (--color-bg) 95%, var (var(--color-bg-light)));
+  --gradient-hover: linear-gradient(0deg, var (--color-bg), var (var(--color-bg-light)));
+
+  --shadow: 0px 1px 1px hsla(0, 0%, 0%, 0.07), 0px 2px 2px hsla(0, 0%, 0%, 0.15);
+  --shadow-hover: 0px 2px 2px hsla(0, 0%, 0%, 0.07), 0px 4px 4px hsla(0, 0%, 0%, 0.15);
+
+  --tag-blue: oklch(0.5044 0.2095 260.97);
+  --tag-green: oklch(0.6154 0.1912 139.42);
+  --tag-orange: oklch(0.6396 0.1596 53.28);
+  --tag-red: oklch(0.5434 0.2132 25.86);
+  --tag-purple: oklch(59.516% 0.24402 307.905);
+
+  --tag-bg-blue: oklch(0.96 0.021 241.35);
+  --tag-bg-green: oklch(0.9884 0.0254 128.75);
+  --tag-bg-orange: oklch(0.9778 0.0239 85.79);
+  --tag-bg-red: oklch(0.9689 0.0152 22.39);
+  --tag-bg-purple: oklch(0.9665 0.022 312.19);
+
+  /* Spacing - Static */
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Fluid Spacing - Scales with viewport */
+  --spacing-page: clamp(16px, 2vw, 32px);
+  --spacing-section: clamp(12px, 1.5vw, 24px);
+  --spacing-element: clamp(8px, 1vw, 16px);
+
+  /* Fluid Typography - Scales with viewport */
+  --font-size-xs: clamp(8px, 0.4vw + 6px, 12px);
+  --font-size-sm: clamp(10px, 0.4vw + 7px, 14px);
+  --font-size-base: clamp(11px, 0.4vw + 8px, 13px);
+  --font-size-md: clamp(12px, 0.4vw + 9px, 14px);
+  --font-size-lg: clamp(14px, 0.5vw + 10px, 18px);
+
+  /* Responsive Component Sizes */
+  --sidebar-width-expanded: clamp(250px, 15vw, 350px);
+  --sidebar-width-collapsed: 48px;
+  --content-max-width: 2200px;
+
+  /* Border Radius */
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Canvas Elements */
+  --canvas-shape-border-default: oklch(0.6 0.01 213);
+  --canvas-shape-border-hover: oklch(0.4 0.1 33);
+  --canvas-shape-border-selected: oklch(0.4 0.1 213);
+  --canvas-shape-fill-default: oklch(0.96 0.005 213);
+  --canvas-shape-fill-hover: oklch(1 0.005 213);
+  --canvas-shape-fill-selected: oklch(0.96 0.005 213);
+  --canvas-shape-text: oklch(0.15 0.01 213);
+
+  --canvas-connector-stroke-default: oklch(0.7342 0.1655 60.62);
+  --canvas-connector-stroke-hover: oklch(0.4 0.01 213);
+  --canvas-connector-stroke-selected: oklch(0.4 0.1 213);
+
+  --canvas-label-editing-fill: oklch(1 0.005 213);
+  --canvas-label-editing-border: oklch(0.4 0.1 213);
+  --canvas-label-editing-border-hover: oklch(0.7 0.01 213);
+  --canvas-label-editing-border-focus: oklch(0.5 0.15 250);
+  --canvas-label-editing-text: oklch(0.15 0.01 213);
+
+  --canvas-label-display-fill: transparent;
+  --canvas-label-display-border: transparent;
+  --canvas-label-display-text: oklch(0.15 0.01 213);
+
+  --canvas-connection-point-fill: oklch(0.4 0.1 213);
+  --canvas-connection-point-border: oklch(1 0.005 213);
+
+  --canvas-selection-box-border: oklch(0.4 0.1 213);
+  --canvas-selection-box-bg: oklch(0.4 0.1 213 / 0.1);
+
+  --canvas-preview-stroke: oklch(0.4 0.1 213);
+
+  --canvas-suggestion-color: oklch(0.55 0.2 25);
+  --canvas-marker-fill: oklch(1 0 0);
+  --canvas-debug-stroke: oklch(0.6 0.2 25);
+}
+
+/* Theme Variables - Dark Mode */
+[data-theme="dark"] {
+  --bg-brand: oklch(.22 0.05 262);
+  --bg-brand-hover: oklch(38.024% 0.15934 261.641);
+  --text-brand: oklch(0.9952 0.0235 106.82);
+  --text-brand-muted: oklch(0.4 0.01 213);
+  --text-brand-selected: oklch(72.948% 0.10378 214.881);
+  --text-brand-hover: oklch(0.4 0.01 213);
+
+  --bg-dark: oklch(22.645% 0.00003 271.152);
+  --bg: oklch(51.028% 0.00006 271.152);
+  --bg-light: oklch(23.929% 0.00003 271.152);
+
+  --text: oklch(0.96 0.01 213);
+  --text-muted: oklch(0.76 0.01 213);
+  --text-disabled: oklch(.55 0.01 213);
+
+  --primary: oklch(0.76 0.1 213);
+  --secondary: oklch(0.76 0.1 33);
+
+  --text-button: oklch(0.1 0.005 213);
+
+  --danger: oklch(0.7 0.05 30);
+  --warning: oklch(0.7 0.05 100);
+  --success: oklch(0.7 0.05 160);
+  --info: oklch(0.7 0.05 260);
+
+  --border: oklch(0.4 0.01 213);
+  --border-muted: oklch(0.3 0.01 213);
+  --grid-lines: oklch(0.3 0.01 213);
+  --grid-dots: oklch(0.3 0.01 213);
+
+  --highlight: oklch(0.4 0.1 33);
+
+  --gradient: linear-gradient(0deg, var (--bg) 95%, var (var(--bg-light)));
+  --gradient-hover: linear-gradient(0deg, var (--bg), var (var(--bg-light)));
+
+  --shadow: 0px 1px 1px hsla(0, 4%, 80%, 0.07), 0px 2px 2px hsla(0, 0%, 85%, 0.15);
+  --shadow-hover: 0px 2px 2px hsla(0, 0%, 50%, 0.07), 0px 4px 4px hsla(0, 0%, 50%, 0.15);
+
+  --tag-blue: oklch(0.5044 0.2095 260.97);
+  --tag-green: oklch(0.6154 0.1912 139.42);
+  --tag-orange: oklch(0.6396 0.1596 53.28);
+  --tag-red: oklch(0.5434 0.2132 25.86);
+  --tag-purple: oklch(59.516% 0.24402 307.905);
+
+  --tag-bg-blue: oklch(0.96 0.021 241.35);
+  --tag-bg-green: oklch(0.9884 0.0254 128.75);
+  --tag-bg-orange: oklch(0.9778 0.0239 85.79);
+  --tag-bg-red: oklch(0.9689 0.0152 22.39);
+  --tag-bg-purple: oklch(0.9665 0.022 312.19);
+
+  /* Canvas Elements */
+  --canvas-shape-border-default: oklch(0.4 0.01 213);
+  --canvas-shape-border-hover: oklch(0.76 0.1 33);
+  --canvas-shape-border-selected: oklch(0.76 0.1 213);
+  --canvas-shape-fill-default: oklch(0.15 0.005 213);
+  --canvas-shape-fill-hover: oklch(0.2 0.005 213);
+  --canvas-shape-fill-selected: oklch(0.15 0.005 213);
+  --canvas-shape-text: oklch(0.96 0.01 213);
+
+  --canvas-connector-stroke-default: oklch(0.96 0.01 213);
+  --canvas-connector-stroke-hover: oklch(0.76 0.01 213);
+  --canvas-connector-stroke-selected: oklch(0.76 0.1 213);
+
+  --canvas-label-editing-fill: oklch(0.2 0.005 213);
+  --canvas-label-editing-border: oklch(0.76 0.1 213);
+  --canvas-label-editing-border-hover: oklch(0.5 0.01 213);
+  --canvas-label-editing-border-focus: oklch(0.65 0.15 250);
+  --canvas-label-editing-text: oklch(0.96 0.01 213);
+
+  --canvas-label-display-fill: transparent;
+  --canvas-label-display-border: transparent;
+  --canvas-label-display-text: oklch(0.96 0.01 213);
+
+  --canvas-connection-point-fill: oklch(0.76 0.1 213);
+  --canvas-connection-point-border: oklch(0.2 0.005 213);
+
+  --canvas-selection-box-border: oklch(0.76 0.1 213);
+  --canvas-selection-box-bg: oklch(0.76 0.1 213 / 0.1);
+
+  --canvas-preview-stroke: oklch(0.76 0.1 213);
+
+  --canvas-suggestion-color: oklch(0.7 0.15 25);
+  --canvas-marker-fill: oklch(0.2 0 0);
+  --canvas-debug-stroke: oklch(0.7 0.15 25);
+}
+
+html,
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-muted);
+  font-size: var(--font-size-base);
+}
+
+/* Fluid text utility classes */
+.text-fluid-xs {
+  font-size: var(--font-size-xs);
+}
+.text-fluid-sm {
+  font-size: var(--font-size-sm);
+}
+.text-fluid-base {
+  font-size: var(--font-size-base);
+}
+.text-fluid-md {
+  font-size: var(--font-size-md);
+}
+.text-fluid-lg {
+  font-size: var(--font-size-lg);
+}
+
+/* Modal animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--transition-base) ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in var(--transition-base) ease-out;
+}
+
+/* Slide animations for modal view transitions */
+.slide-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.slide-view {
+  position: absolute;
+  inset: 0;
+  transition: transform 250ms ease-out, opacity 300ms ease-out;
+}
+
+.slide-view-left {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.slide-view-center {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.slide-view-right {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Custom scrollbar styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-muted) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--border-muted);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border);
+}

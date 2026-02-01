@@ -8,7 +8,7 @@ import { ClassMermaidImporter } from '@/features/diagram-rendering/class/mermaid
 import { SequenceMermaidImporter} from '@/features/diagram-rendering/sequence/mermaid/importer';
 import { ArchitectureMermaidImporter } from '@/features/diagram-rendering/architecture/mermaid/importer';
 import { EntityRelationshipMermaidImporter } from '@/features/diagram-rendering/entity-relationship/mermaid/importer';
-import { DESIGN_STUDIO_CONFIG } from '~/design-studio/config/design-studio-config';
+import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
 
 /**
  * Command to replace a generator shape with a preview shape

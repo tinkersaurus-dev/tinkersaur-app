@@ -6,17 +6,19 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge } from 'react-icons/fi';
-import { PageHeader, PageContent } from '~/core/components';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { ListControlPanel } from '~/core/components/ListControlPanel';
+import { ListControlPanel } from '@/shared/ui';
 import { Button, Table, Empty, Checkbox } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import type { UseCase } from '@/entities/use-case';
-import { useUseCasesPaginatedQuery, useSolutionsQuery, usePersonasQuery } from '~/product-management/queries';
+import { useUseCasesPaginatedQuery } from '@/entities/use-case';
+import { useSolutionsQuery } from '@/entities/solution';
+import { usePersonasQuery } from '@/entities/persona';
 import { useListSelection, useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
 import { UseCaseMergeModal } from '@/features/entity-merging';
-import { CreateUseCaseModal } from '~/product-management/components/CreateUseCaseModal';
+import { CreateUseCaseModal } from '@/features/use-case-management';
 
 export default function UseCasesListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);

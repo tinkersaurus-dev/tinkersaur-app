@@ -3,7 +3,7 @@ import type { Shape } from '@/entities/shape';
 import type { Connector } from '@/entities/connector';
 import type { Diagram } from '@/entities/diagram';
 import { isLLMPreviewShapeData } from '@/entities/shape';
-import { getAllDescendantIds } from '~/design-studio/utils/containment-utils';
+import { getAllDescendantIds } from '@/widgets/canvas/lib/utils/containment-utils';
 
 /**
  * Command to delete a shape from a diagram

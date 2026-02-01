@@ -8,15 +8,15 @@ import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { FiPlus } from 'react-icons/fi';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { PageHeader } from '~/core/components/PageHeader';
-import { PageContent } from '~/core/components/PageContent';
+import { PageHeader, PageContent } from '@/shared/ui';
 import { Button } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import { queryKeys } from '@/shared/lib/query';
-import { usePersonasQuery } from '~/product-management/queries';
-import { useUseCasesByTeamQuery } from '~/product-management/queries';
-import { useFeedbacksQuery, useOutcomesQuery } from '~/discovery/hooks';
+import { usePersonasQuery } from '@/entities/persona';
+import { useUseCasesByTeamQuery } from '@/entities/use-case';
 import {
+  useFeedbacksQuery,
+  useOutcomesQuery,
   DashboardListSection,
   PersonaRow,
   UseCaseRow,
@@ -26,7 +26,7 @@ import {
   UseCaseIcon,
   FeedbackIcon,
   OutcomeIcon,
-} from '~/discovery/components';
+} from '@/features/intake-analysis';
 
 const MAX_ITEMS = 10;
 

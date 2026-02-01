@@ -1,7 +1,7 @@
 import type { ShapeRendererProps } from './types';
 import { ConnectionPointRenderer } from './ConnectionPointRenderer';
 import { EditableLabel } from '@/widgets/canvas/ui/editors/EditableLabel';
-import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '~/design-studio/utils/connectionPoints';
+import { STANDARD_RECTANGLE_CONNECTION_POINTS } from '@/widgets/canvas/lib/utils/connectionPoints';
 
 /**
  * Rectangle Shape Renderer
