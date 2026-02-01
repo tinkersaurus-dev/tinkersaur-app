@@ -21,7 +21,7 @@ export function PasswordInput({
   const [showPassword, setShowPassword] = useState(false);
 
   // Base styles
-  const baseStyles = 'w-full border rounded-sm transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)] pr-10';
+  const baseStyles = 'w-full border rounded-sm transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)] placeholder:italic pr-10';
 
   // Size styles
   const sizeStyles = {
@@ -33,12 +33,12 @@ export function PasswordInput({
   // State styles
   const stateStyles = error
     ? 'border-[var(--danger)] text-[var(--danger)] focus:ring-[var(--danger)] focus:border-[var(--danger)]'
-    : 'border-[var(--border-muted)] hover:border-[var(--border)] text-[var(--text)] focus:ring-[var(--border-muted)] focus:border-[var(--border)]';
+    : 'border-[var(--border-muted)] hover:border-[var(--primary)] text-[var(--text)] focus:ring-[var(--border-muted)] focus:border-[var(--border)]';
 
   // Disabled styles
   const disabledStyles = disabled
     ? 'bg-[var(--bg)] cursor-not-allowed opacity-60'
-    : 'bg-[var(--bg-light)]';
+    : 'bg-[var(--bg-form)]';
 
   // Combine styles
   const inputClassName = [

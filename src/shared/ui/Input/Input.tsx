@@ -23,7 +23,7 @@ export function Input({
   ...props
 }: InputProps) {
   // Base styles
-  const baseStyles = 'w-full border rounded-sm transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)]';
+  const baseStyles = 'w-full border rounded-sm transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)] placeholder:italic';
 
   // Size styles
   const sizeStyles = {
@@ -40,7 +40,7 @@ export function Input({
   // Disabled styles
   const disabledStyles = disabled
     ? 'bg-[var(--bg)] cursor-not-allowed opacity-60'
-    : 'bg-[var(--bg-light)]';
+    : 'bg-[var(--bg-form)]';
 
   // Combine styles
   const inputClassName = [
@@ -69,7 +69,7 @@ function TextArea({
   ...props
 }: TextAreaProps) {
   // Base styles
-  const baseStyles = 'w-full border rounded-sm transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)] resize-y';
+  const baseStyles = 'w-full border rounded-sm transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)] placeholder:italic resize-y';
 
   // Size styles (affects padding and text size, not height - that's controlled by rows)
   const sizeStyles = {
@@ -86,7 +86,7 @@ function TextArea({
   // Disabled styles
   const disabledStyles = disabled
     ? 'bg-[var(--bg)] cursor-not-allowed opacity-60'
-    : 'bg-[var(--bg-light)]';
+    : 'bg-[var(--bg-form)]';
 
   // Combine styles
   const textareaClassName = [

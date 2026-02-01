@@ -14,7 +14,7 @@ export function LayoutContent({
   const classes = [
     'flex-1',
     'overflow-auto',
-    'bg-[var(--bg-dark)]',
+    'bg-[var(--bg)]',
     className,
   ]
     .filter(Boolean)

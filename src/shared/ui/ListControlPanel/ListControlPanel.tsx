@@ -75,7 +75,7 @@ export function ListControlPanel({
   }, [onSearchChange]);
 
   return (
-    <div className="bg-[var(--bg-light)] border border-[var(--border-muted)] rounded-md p-4 mb-4">
+    <div className="bg-[var(--bg-light)] border border-[var(--border)] rounded-sm p-4 mb-4">
       {/* Filters Row */}
       <div className="flex flex-wrap gap-3 items-center">
         {/* Search Input */}
@@ -85,7 +85,7 @@ export function ListControlPanel({
             onChange={handleSearchChange}
             onClear={handleClearSearch}
             placeholder={searchPlaceholder}
-            size="medium"
+            size="small"
           />
         </div>
 

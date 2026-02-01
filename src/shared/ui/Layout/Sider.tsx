@@ -19,9 +19,6 @@ export function LayoutSider({
 }: LayoutSiderProps) {
   const classes = [
     'flex-shrink-0',
-    'bg-[var(--bg-dark)]',
-    'border-r',
-    'border-[var(--border)]',
     'overflow-hidden',
     className,
   ]

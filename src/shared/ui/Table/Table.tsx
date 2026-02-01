@@ -171,7 +171,7 @@ export function Table<T = Record<string, unknown>>({
   if (loading) {
     return (
       <div className={`w-full ${className}`}>
-        <div className="w-full border border-[var(--border-muted)] rounded-sm overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
+        <div className="w-full border border-[var(--border)] rounded-sm overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
           {sectionHeader}
           <table className="w-full border-collapse">
             <TableHeader headers={table.getHeaderGroups()[0].headers} />
@@ -198,7 +198,7 @@ export function Table<T = Record<string, unknown>>({
   if (dataSource.length === 0) {
     return (
       <div className={`w-full ${className}`}>
-        <div className="w-full border border-[var(--border-muted)] rounded-sm overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
+        <div className="w-full border border-[var(--border)] rounded-sm overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
           {sectionHeader}
           <table className="w-full border-collapse">
             <TableHeader headers={table.getHeaderGroups()[0].headers} />
@@ -219,7 +219,7 @@ export function Table<T = Record<string, unknown>>({
 
   return (
     <div className={`w-full ${className}`}>
-      <div className="w-full border border-[var(--border-muted)] rounded-sm overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
+      <div className="w-full border border-[var(--border)] rounded-sm overflow-hidden bg-[var(--bg-light)] [box-shadow:var(--shadow)]">
         {sectionHeader}
         <table className="w-full border-collapse">
           <TableHeader headers={table.getHeaderGroups()[0].headers} />

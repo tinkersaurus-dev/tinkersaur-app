@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { FiPlus } from 'react-icons/fi';
-import { PageHeader, PageContent } from '@/shared/ui';
+import { PageHeader, PageContent, Card } from '@/shared/ui';
 import { Button } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import { queryKeys } from '@/shared/lib/query';
@@ -78,7 +78,7 @@ export default function OrganizePage() {
           {/* Left: Personas + Outcomes (1/3 width) */}
           <div className="w-1/3 flex flex-col gap-6 min-h-0">
             {/* Personas (1/2 height) */}
-            <div className="h-1/2 min-h-0">
+            <Card className="h-1/2 min-h-0 flex flex-col" contentClassName="flex-1 min-h-0 p-0">
               <DashboardListSection
                 title="Recent Personas"
                 icon={<PersonaIcon />}
@@ -91,10 +91,10 @@ export default function OrganizePage() {
                   <PersonaRow key={persona.id} persona={persona} />
                 ))}
               </DashboardListSection>
-            </div>
+            </Card>
 
             {/* Outcomes (1/2 height) */}
-            <div className="h-1/2 min-h-0">
+            <Card className="h-1/2 min-h-0 flex flex-col" contentClassName="flex-1 min-h-0 p-0">
               <DashboardListSection
                 title="Recent Outcomes"
                 icon={<OutcomeIcon />}
@@ -107,13 +107,13 @@ export default function OrganizePage() {
                   <OutcomeRow key={outcome.id} outcome={outcome} />
                 ))}
               </DashboardListSection>
-            </div>
+            </Card>
           </div>
 
           {/* Right: Use Cases + Feedback (2/3 width) */}
           <div className="w-2/3 flex flex-col gap-6 min-h-0">
             {/* Use Cases (1/3 height) */}
-            <div className="h-1/3 min-h-0">
+            <Card className="h-1/3 min-h-0 flex flex-col" contentClassName="flex-1 min-h-0 p-0">
               <DashboardListSection
                 title="Recent Use Cases"
                 icon={<UseCaseIcon />}
@@ -126,10 +126,10 @@ export default function OrganizePage() {
                   <UseCaseRow key={useCase.id} useCase={useCase} />
                 ))}
               </DashboardListSection>
-            </div>
+            </Card>
 
             {/* Feedback (2/3 height) */}
-            <div className="flex-1 min-h-0">
+            <Card className="flex-1 min-h-0 flex flex-col" contentClassName="flex-1 min-h-0 p-0">
               <DashboardListSection
                 title="Recent Feedback"
                 icon={<FeedbackIcon />}
@@ -142,7 +142,7 @@ export default function OrganizePage() {
                   <FeedbackRow key={feedback.id} feedback={feedback} />
                 ))}
               </DashboardListSection>
-            </div>
+            </Card>
           </div>
         </div>
       </PageContent>

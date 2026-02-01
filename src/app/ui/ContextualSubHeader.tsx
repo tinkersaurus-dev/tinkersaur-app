@@ -19,7 +19,7 @@ export function ContextualSubHeader() {
     location.pathname.startsWith('/design');
 
   return (
-    <div className="h-10 flex items-center px-6 bg-[var(--bg)] border-b border-[var(--border)] flex-shrink-0">
+    <div className="h-10 flex items-center px-6 bg-[var(--bg-light)] border-b border-[var(--border-muted)] flex-shrink-0">
       <HStack gap="lg" align="center">
         <InlineTeamSelector />
         {showSolutionSelector && (

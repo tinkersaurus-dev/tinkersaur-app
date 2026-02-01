@@ -51,12 +51,12 @@ export function SearchInput({
   };
 
   // Base styles
-  const baseStyles = 'w-full border rounded-[var(--radius-sm)] transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)]';
+  const baseStyles = 'w-full border rounded-[var(--radius-sm)] transition-all duration-base focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-[var(--text-disabled)] placeholder:italic placeholder:text-xs';
 
   // State styles
   const stateStyles = error
     ? 'border-[var(--danger)] text-[var(--danger)] focus:ring-[var(--danger)] focus:border-[var(--danger)]'
-    : 'border-[var(--border-muted)] hover:border-[var(--border)] text-[var(--text)] focus:ring-[var(--primary)] focus:ring-opacity-20 focus:border-[var(--primary)]';
+    : 'border-[var(--border)] hover:border-[var(--primary)] text-[var(--text)] focus:ring-[var(--primary)] focus:ring-opacity-20 focus:border-[var(--primary)]';
 
   // Disabled styles
   const disabledStyles = disabled

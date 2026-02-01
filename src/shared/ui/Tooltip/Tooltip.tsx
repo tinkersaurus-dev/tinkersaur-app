@@ -80,9 +80,9 @@ export function Tooltip({
           <div
             // eslint-disable-next-line react-hooks/refs
             ref={setFloating}
-            style={{ ...floatingStyles, boxShadow: 'var(--shadow)' }}
+            style={{ ...floatingStyles }}
             {...getFloatingProps()}
-            className="z-50 px-2 py-1 text-xs font-medium text-[var(--text)] bg-[var(--bg-dark)] border border-[var(--border-muted)] rounded"
+            className="z-50 px-2 py-1 text-xs font-medium text-[var(--text-contrast)] bg-[var(--bg-dark)] border border-[var(--border-muted)] rounded"
           >
             {content}
           </div>

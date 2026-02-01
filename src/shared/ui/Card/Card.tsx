@@ -29,13 +29,13 @@ export function Card({
   const baseStyles = 'bg-[var(--bg-light)] rounded-[2px] overflow-hidden transition-all duration-base';
 
   // Border styles
-  const borderStyles = bordered ? 'border border-[var(--border-muted)]' : '';
+  const borderStyles = bordered ? 'border border-[var(--border)]' : '';
 
   // Shadow styles
   const shadowStyles = shadow ? '[box-shadow:var(--shadow)]' : '';
 
   // Hover styles
-  const hoverStyles = hoverable ? 'hover:[box-shadow:var(--shadow-hover)] hover:border-[var(--border)] cursor-pointer' : '';
+  const hoverStyles = hoverable ? 'hover:[box-shadow:var(--shadow-hover)] hover:border-[var(--primary)] cursor-pointer' : '';
 
   // Combine card styles
   const cardClassName = [

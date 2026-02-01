@@ -29,7 +29,7 @@ export function GlobalSidebar() {
   const navSections: NavSection[] = activeModule ? MODULE_NAVIGATION[activeModule] : [];
 
   return (
-    <div className="h-full flex flex-col bg-[var(--bg-light)] overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--bg-light)] overflow-hidden border-r border-[var(--border-muted)]">
       {/* Header with Logo - full width */}
       <SidebarHeader isCollapsed={isCollapsed} />
 
@@ -41,6 +41,13 @@ export function GlobalSidebar() {
         {/* Content sections - hidden when collapsed */}
         {!isCollapsed && (
           <nav className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
+            {/* Current Module Label */}
+            {activeModule && (
+              <div className="px-2 py-2 text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
+                {activeModule}
+              </div>
+            )}
+
             {navSections.map((section) => (
               <div key={section.key}>
                 {/* Section Header */}
@@ -67,7 +74,7 @@ export function GlobalSidebar() {
                       <div
                         key={child.key}
                         className={`
-                          flex items-center gap-2 px-2 py-1.5 cursor-pointer text-xs transition-colors
+                          flex items-center gap-2 px-2 py-1.5 cursor-pointer text-[11px] transition-colors
                           ${
                             isExactActive(child.path)
                               ? 'text-[var(--primary)]'

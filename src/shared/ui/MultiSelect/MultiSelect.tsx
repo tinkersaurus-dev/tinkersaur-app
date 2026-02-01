@@ -128,9 +128,9 @@ export function MultiSelect({
   };
 
   const sizeStyles = {
-    small: 'min-h-8 text-xs px-2',
-    medium: 'min-h-10 text-sm px-3',
-    large: 'min-h-12 text-base px-4',
+    small: 'h-6 text-xs px-2',
+    medium: 'h-9 text-sm px-3',
+    large: 'h-11 text-md px-4',
   };
 
   const baseStyles = `

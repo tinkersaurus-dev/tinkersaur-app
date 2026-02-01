@@ -53,8 +53,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-secondary)]">
-      <div className="w-full max-w-md p-8 bg-[var(--bg-primary)] rounded-lg shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-light)]">
+      <div className="w-full max-w-md p-8 bg-[var(--bg)] rounded-lg shadow-sm">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-[var(--text)]">Tinkersaur</h1>
           <p className="text-[var(--text-muted)] mt-2">Sign in to your account</p>

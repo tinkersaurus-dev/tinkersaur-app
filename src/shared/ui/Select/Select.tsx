@@ -123,8 +123,8 @@ export function Select({
 
   const baseStyles = `
     flex items-center justify-between
-    bg-[var(--bg-light)]
-    border border-[var(--border-muted)]
+    bg-[var(--bg-form)]
+    border border-[var(--border)]
     rounded-sm
     cursor-pointer
     transition-all duration-[var(--transition-base)]
@@ -136,10 +136,9 @@ export function Select({
   `.trim();
 
   const dropdownStyles = `
-    bg-[var(--bg-light)]
-    border border-[var(--border-muted)]
+    bg-[var(--bg-form)]
+    border border-[var(--border-primay)]
     rounded-sm
-    shadow-[var(--shadow)]
     max-h-64
     overflow-y-auto
     py-1
@@ -151,8 +150,8 @@ export function Select({
     cursor-pointer
     transition-colors duration-[var(--transition-fast)]
     ${sizeStyles[size]}
-    ${optionDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--bg-dark)]'}
-    ${isSelected ? 'bg-[var(--bg-dark)] text-[var(--primary)] font-medium' : 'text-[var(--text)]'}
+    ${optionDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--highlight)]'}
+    ${isSelected ? 'bg-[var(--primary)] text-[var(--text-contrast)]' : 'text-[var(--text-muted)]'}
   `.trim();
 
   return (

@@ -188,7 +188,7 @@ export function DatePicker({
 
   const triggerStyles = `
     w-full flex items-center justify-between
-    bg-[var(--bg-light)]
+    bg-[var(--bg-form)]
     border border-[var(--border-muted)]
     rounded-sm
     cursor-pointer
@@ -201,10 +201,9 @@ export function DatePicker({
   `.trim();
 
   const dropdownStyles = `
-    bg-[var(--bg-light)]
+    bg-[var(--bg-form)]
     border border-[var(--border-muted)]
     rounded-sm
-    shadow-[var(--shadow)]
     z-50
   `.trim();
 
@@ -223,7 +222,7 @@ export function DatePicker({
         role="button"
         tabIndex={disabled ? -1 : 0}
       >
-        <span className={displayValue ? 'text-[var(--text)]' : 'text-[var(--text-muted)]'}>
+        <span className={displayValue ? 'text-[var(--text)]' : 'text-[var(--text-disabled)] italic'}>
           {displayValue || placeholder}
         </span>
         <LuCalendar className="w-4 h-4 text-[var(--text-muted)]" />
