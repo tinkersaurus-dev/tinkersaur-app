@@ -3,7 +3,7 @@
  */
 
 import type { Shape, Point } from '@/entities/shape';
-import { DESIGN_STUDIO_CONFIG } from './constants';
+import { CANVAS_CONFIG } from './constants';
 
 /**
  * Refine route by nudging segments away from shape boundaries
@@ -17,7 +17,7 @@ import { DESIGN_STUDIO_CONFIG } from './constants';
 export function refineRoute(route: Point[], shapes: Shape[]): Point[] {
   if (route.length < 3) return route;
 
-  const NUDGE_DISTANCE = DESIGN_STUDIO_CONFIG.routing.nudgeDistance;
+  const NUDGE_DISTANCE = CANVAS_CONFIG.routing.nudgeDistance;
 
   const refined: Point[] = [route[0]]; // Keep start point
 

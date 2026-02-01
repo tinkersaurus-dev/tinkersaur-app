@@ -6,7 +6,7 @@
 import type { ComponentType } from 'react';
 import { LuCloud, LuDatabase, LuServer, LuHardDrive, LuGlobe, LuBox, LuMonitor, LuSmartphone, LuCode, LuTvMinimal, LuTablet } from "react-icons/lu";
 import { globalToolGroup } from '@/features/diagram-rendering/config/tools';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
  * Tool definition interface
@@ -50,7 +50,7 @@ export interface ToolGroup {
   tools: Tool[];
 }
 
-const { service: serviceSize, group: groupSize } = DESIGN_STUDIO_CONFIG.shapes.architecture;
+const { service: serviceSize, group: groupSize } = CANVAS_CONFIG.shapes.architecture;
 
 /**
  * Architecture Service Tools

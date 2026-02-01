@@ -35,3 +35,19 @@ export {
 
 // Store
 export { useReferenceStore } from './store/useReferenceStore';
+
+// Reference type configs
+export {
+  getReferenceConfigForShape,
+  canReferenceBeDroppedInContent,
+  getAllReferenceConfigs,
+  getFolderReferenceConfigForShape,
+  canShapeBeFolderReferenceSource,
+  getAllFolderReferenceConfigs,
+  canShapeBeReferenceSource,
+} from './lib/reference-type-configs';
+
+export type {
+  ReferenceTypeConfig,
+  FolderReferenceTypeConfig,
+} from './lib/reference-type-configs';

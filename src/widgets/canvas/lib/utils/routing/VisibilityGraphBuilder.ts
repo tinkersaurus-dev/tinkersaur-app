@@ -15,7 +15,7 @@ import type {
   BboxBounds,
   Segment,
 } from './types';
-import { DESIGN_STUDIO_CONFIG } from './constants';
+import { CANVAS_CONFIG } from './constants';
 import {
   DirectionHelpers,
   manhattanDistance,
@@ -38,8 +38,8 @@ export class VisibilityGraphBuilder {
   constructor(shapes: Shape[], connectionPoints?: ConnectionPoint[]) {
     this.shapes = shapes;
     this.connectionPoints = connectionPoints ?? [];
-    this.nudgeDistance = DESIGN_STUDIO_CONFIG.routing.nudgeDistance;
-    this.maxExtensionDistance = DESIGN_STUDIO_CONFIG.routing.maxGraphConnectionDistance;
+    this.nudgeDistance = CANVAS_CONFIG.routing.nudgeDistance;
+    this.maxExtensionDistance = CANVAS_CONFIG.routing.maxGraphConnectionDistance;
   }
 
   /**

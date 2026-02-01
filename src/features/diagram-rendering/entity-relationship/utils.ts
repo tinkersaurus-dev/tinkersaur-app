@@ -4,18 +4,18 @@
  */
 
 import type { EntityShapeData } from '@/entities/shape';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
  * Constants matching the EntityRenderer component layout
  */
-const ITEM_LINE_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.itemLineHeight;
+const ITEM_LINE_HEIGHT = CANVAS_CONFIG.classLayout.itemLineHeight;
 
 /**
  * Section heights
  */
-const ENTITY_NAME_SECTION_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.classNameSectionHeight;
-const EMPTY_SECTION_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.emptySectionHeight;
+const ENTITY_NAME_SECTION_HEIGHT = CANVAS_CONFIG.classLayout.classNameSectionHeight;
+const EMPTY_SECTION_HEIGHT = CANVAS_CONFIG.classLayout.emptySectionHeight;
 
 /**
  * Calculate the total height of an entity shape based on its content.
@@ -39,7 +39,7 @@ export function calculateEntityHeight(entityData: EntityShapeData): number {
   }
 
   // Add a small buffer for borders
-  totalHeight += DESIGN_STUDIO_CONFIG.classLayout.borderBuffer;
+  totalHeight += CANVAS_CONFIG.classLayout.borderBuffer;
 
-  return Math.max(totalHeight, DESIGN_STUDIO_CONFIG.classLayout.minHeight);
+  return Math.max(totalHeight, CANVAS_CONFIG.classLayout.minHeight);
 }

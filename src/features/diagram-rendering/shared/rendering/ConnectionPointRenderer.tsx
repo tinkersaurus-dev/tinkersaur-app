@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ConnectionPoint } from '@/widgets/canvas/lib/utils/connectionPoints';
 import { calculateAbsolutePosition } from '@/widgets/canvas/lib/utils/connectionPoints';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 import { THEME_CONFIG } from '@/shared/lib/config/theme-config';
 
 /**
@@ -56,7 +56,7 @@ export const ConnectionPointRenderer: React.FC<ConnectionPointRendererProps> = (
     y: absolutePos.y,
   };
 
-  const size = DESIGN_STUDIO_CONFIG.connectionPoint.visualSize;
+  const size = CANVAS_CONFIG.connectionPoint.visualSize;
   const borderWidth = 3.5; // 2px border compensated for zoom
 
   const handleMouseDown = (e: React.MouseEvent) => {

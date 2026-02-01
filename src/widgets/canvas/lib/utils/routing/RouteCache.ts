@@ -4,7 +4,7 @@
 
 import type { Shape } from '@/entities/shape';
 import type { OrthogonalVisibilityGraph } from './types';
-import { DESIGN_STUDIO_CONFIG } from './constants';
+import { CANVAS_CONFIG } from './constants';
 
 interface CacheEntry {
   graph: OrthogonalVisibilityGraph;
@@ -20,8 +20,8 @@ export class RouteCache {
   private maxSize: number;
 
   constructor() {
-    this.ttl = DESIGN_STUDIO_CONFIG.cache.visibilityGraphTTL;
-    this.maxSize = DESIGN_STUDIO_CONFIG.cache.maxCacheSize;
+    this.ttl = CANVAS_CONFIG.cache.visibilityGraphTTL;
+    this.maxSize = CANVAS_CONFIG.cache.maxCacheSize;
   }
 
   /**

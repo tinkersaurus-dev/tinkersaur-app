@@ -24,7 +24,6 @@ import { UserStoriesPanel } from './panels/UserStoriesPanel';
 import { UserDocsPanel } from './panels/UserDocsPanel';
 import { TechSpecPanel } from './panels/TechSpecPanel';
 import { useAsyncGeneration } from '@/features/diagram-management';
-import '@/shared/styles/markdown-content.css';
 
 /**
  * Convert user stories to markdown for clipboard copy

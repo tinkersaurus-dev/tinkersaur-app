@@ -2,7 +2,7 @@ import type { Result } from '@/shared/lib/utils';
 import type { CreateShapeDTO, ClassShapeData, EnumerationShapeData } from '@/entities/shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../../shared/mermaid/importer';
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 import type { CardinalityType } from '@/entities/connector';
 
 /**
@@ -315,8 +315,8 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
           type: 'enumeration',
           x,
           y,
-          width: DESIGN_STUDIO_CONFIG.shapes.class.classBox.width,
-          height: DESIGN_STUDIO_CONFIG.shapes.class.classBox.height,
+          width: CANVAS_CONFIG.shapes.class.classBox.width,
+          height: CANVAS_CONFIG.shapes.class.classBox.height,
           label: cls.name,
           zIndex: 0,
           locked: false,
@@ -335,8 +335,8 @@ export class ClassMermaidImporter extends BaseMermaidImporter {
           type: 'class',
           x,
           y,
-          width: DESIGN_STUDIO_CONFIG.shapes.class.classBox.width,
-          height: DESIGN_STUDIO_CONFIG.shapes.class.classBox.height,
+          width: CANVAS_CONFIG.shapes.class.classBox.width,
+          height: CANVAS_CONFIG.shapes.class.classBox.height,
           label: cls.name,
           zIndex: 0,
           locked: false,

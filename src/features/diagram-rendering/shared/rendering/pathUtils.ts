@@ -4,7 +4,7 @@ import {
   findOrthogonalRoute,
   type Direction
 } from '@/widgets/canvas/lib/utils/routing';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 // Connection point direction for routing
 export type ConnectionPointDirection = 'N' | 'S' | 'E' | 'W';
@@ -73,7 +73,7 @@ export function getCurvedPath(
   startDirection: ConnectionPointDirection,
   endDirection: ConnectionPointDirection
 ): { pathData: string; pathPoints: Point[] } {
-  const offset = DESIGN_STUDIO_CONFIG.routing.curveControlPointOffset;
+  const offset = CANVAS_CONFIG.routing.curveControlPointOffset;
 
   // Calculate control point based on direction
   const getControlOffset = (
@@ -99,7 +99,7 @@ export function getCurvedPath(
 
   // Sample points along the Bezier curve for label positioning
   const pathPoints: Point[] = [];
-  const samples = DESIGN_STUDIO_CONFIG.routing.curveSamples;
+  const samples = CANVAS_CONFIG.routing.curveSamples;
   for (let i = 0; i <= samples; i++) {
     const t = i / samples;
     // Cubic Bezier formula: B(t) = (1-t)³P0 + 3(1-t)²tP1 + 3(1-t)t²P2 + t³P3

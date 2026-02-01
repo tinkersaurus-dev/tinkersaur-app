@@ -55,16 +55,10 @@ export type { ModalProps } from './Modal';
 export { Tabs } from './Tabs';
 export type { TabsProps, TabItem } from './Tabs';
 
-export { Descriptions } from './Descriptions';
-export type { DescriptionsProps, DescriptionsItemProps, DescriptionsItemType } from './Descriptions';
-
 export { MarkdownContent } from './MarkdownContent';
 
 export { EditableSection, EditableField } from './EditableSection';
 export type { EditableSectionProps, EditableFieldProps } from './EditableSection';
-
-export { EditableMarkdownSection } from './EditableMarkdownSection';
-export type { EditableMarkdownSectionProps } from './EditableMarkdownSection';
 
 export { Checkbox } from './Checkbox';
 export type { CheckboxProps } from './Checkbox';
@@ -83,5 +77,8 @@ export { PageHeader } from './PageHeader';
 export { PageContent } from './PageContent';
 
 export { ListControlPanel } from './ListControlPanel';
+
+export { EntityList } from './EntityList';
+export type { EntityListProps, FilterConfig, SelectionState } from './EntityList';
 
 export { ErrorBoundary } from './ErrorBoundary';

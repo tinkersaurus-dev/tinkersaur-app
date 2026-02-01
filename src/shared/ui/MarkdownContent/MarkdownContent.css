@@ -1,9 +1,8 @@
 /**
- * Shared Markdown Content Styles
+ * Markdown Content Styles
  *
- * Base styles for rendering markdown content across design-studio components.
- * Use .markdown-content for full-size (DocumentEditor preview)
- * Use .markdown-content--compact for card-size components
+ * Base styles for rendering markdown content.
+ * Use compact prop for card-size components.
  */
 
 /* =============================================================================
@@ -246,75 +245,7 @@
 }
 
 /* =============================================================================
-   TechSpecCard Modifier
-   ============================================================================= */
-
-.markdown-content--tech-spec .section-type-badge {
-  display: inline-block;
-  font-size: var(--font-size-xs);
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--surface);
-  color: var(--text-muted);
-  margin-bottom: 0.5em;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.markdown-content--tech-spec .subsection {
-  margin-top: 1.5em;
-  padding-top: 1em;
-  border-top: 1px dashed var(--border);
-}
-
-.markdown-content--tech-spec .subsection:first-child {
-  margin-top: 1em;
-  padding-top: 0;
-  border-top: none;
-}
-
-/* =============================================================================
-   UserDocCard Modifier
-   ============================================================================= */
-
-.markdown-content--user-doc .callout {
-  border-left: 3px solid;
-  padding: 0.5em 0.75em;
-  margin: 0.5em 0;
-  background: var(--surface);
-  border-radius: 0 4px 4px 0;
-}
-
-.markdown-content--user-doc .callout-note {
-  border-color: var(--primary);
-}
-
-.markdown-content--user-doc .callout-warning {
-  border-color: var(--warning);
-}
-
-.markdown-content--user-doc .callout-tip {
-  border-color: var(--success);
-}
-
-.markdown-content--user-doc .screenshot-hint {
-  background: var(--surface);
-  padding: 0.5em 0.75em;
-  border-radius: 4px;
-  font-style: italic;
-  margin: 0.5em 0;
-  color: var(--text-muted);
-  border: 1px dashed var(--border);
-}
-
-.markdown-content--user-doc .step-container {
-  margin-bottom: 1em;
-  padding-left: 0.5em;
-  border-left: 2px solid var(--border-muted);
-}
-
-/* =============================================================================
-   UserStoryCard Modifier
+   Story Card Variant (tighter spacing for user stories)
    ============================================================================= */
 
 .markdown-content--story-card h3 {

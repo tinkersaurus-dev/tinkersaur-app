@@ -2,7 +2,7 @@ import type { Result } from '@/shared/lib/utils';
 import type { CreateShapeDTO, EntityShapeData, EntityAttributeData } from '@/entities/shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../../shared/mermaid/importer';
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 import type { ArrowType } from '@/entities/connector';
 
 /**
@@ -296,8 +296,8 @@ export class EntityRelationshipMermaidImporter extends BaseMermaidImporter {
         type: 'entity',
         x,
         y,
-        width: DESIGN_STUDIO_CONFIG.shapes.entityRelationship.entity.width,
-        height: DESIGN_STUDIO_CONFIG.shapes.entityRelationship.entity.height,
+        width: CANVAS_CONFIG.shapes.entityRelationship.entity.width,
+        height: CANVAS_CONFIG.shapes.entityRelationship.entity.height,
         label: entity.name,
         zIndex: 0,
         locked: false,

@@ -8,7 +8,7 @@
 import { getConnectionPointsForShape } from './connectionPoints';
 import { findOrthogonalRoute, type Direction } from './routing';
 import type { Shape } from '@/entities/shape';
-import { DESIGN_STUDIO_CONFIG } from '../config/design-studio-config';
+import { CANVAS_CONFIG } from '../config/design-studio-config';
 
 /**
  * Snap a coordinate to the nearest grid point
@@ -505,7 +505,7 @@ export function findOptimalConnectionPoints(
   );
 
   // Limit the number of pairs we test for performance
-  const maxPairsToTest = DESIGN_STUDIO_CONFIG.routing.maxConnectionPointTrials || 16;
+  const maxPairsToTest = CANVAS_CONFIG.routing.maxConnectionPointTrials || 16;
   const limitedPairs = pairsToTest.slice(0, maxPairsToTest);
   
 

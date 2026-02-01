@@ -1,0 +1,41 @@
+/**
+ * UserDocCard Styles
+ *
+ * Styles for callouts, screenshot hints, and step containers in user doc cards.
+ */
+
+.user-doc-card .callout {
+  border-left: 3px solid;
+  padding: 0.5em 0.75em;
+  margin: 0.5em 0;
+  background: var(--surface);
+  border-radius: 0 4px 4px 0;
+}
+
+.user-doc-card .callout-note {
+  border-color: var(--primary);
+}
+
+.user-doc-card .callout-warning {
+  border-color: var(--warning);
+}
+
+.user-doc-card .callout-tip {
+  border-color: var(--success);
+}
+
+.user-doc-card .screenshot-hint {
+  background: var(--surface);
+  padding: 0.5em 0.75em;
+  border-radius: 4px;
+  font-style: italic;
+  margin: 0.5em 0;
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+}
+
+.user-doc-card .step-container {
+  margin-bottom: 1em;
+  padding-left: 0.5em;
+  border-left: 2px solid var(--border-muted);
+}

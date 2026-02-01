@@ -1,19 +1,19 @@
 /**
  * Outcomes List Page
- * Displays all outcomes in a paginated table with filtering and multi-select
+ * Displays all outcomes in a paginated table with filtering
  */
 
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { FiPlus } from 'react-icons/fi';
-import { PageHeader, PageContent, ListControlPanel } from '@/shared/ui';
+import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { Button, Table, Empty, Checkbox } from '@/shared/ui';
-import type { TableColumn } from '@/shared/ui';
+import { Button } from '@/shared/ui';
+import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Outcome } from '@/entities/outcome';
 import { useOutcomesPaginatedQuery } from '@/features/intake-analysis';
 import { useSolutionsQuery } from '@/entities/solution';
-import { useListSelection, useListUrlState } from '@/shared/hooks';
+import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
 
 export default function OutcomesListPage() {
@@ -45,26 +45,8 @@ export default function OutcomesListPage() {
   const { data, isLoading } = useOutcomesPaginatedQuery(queryParams);
   const { data: solutions = [] } = useSolutionsQuery(teamId);
 
-  // Multi-select for future bulk actions
-  const selection = useListSelection({
-    items: data?.items || [],
-    getItemId: (item) => item.id,
-  });
-
-  // Table columns with checkbox
+  // Table columns (without selection - EntityList adds it)
   const columns: TableColumn<Outcome>[] = useMemo(() => [
-    {
-      key: 'selection',
-      title: '',
-      width: 48,
-      render: (_, record) => (
-        <Checkbox
-          checked={selection.isSelected(record.id)}
-          onChange={() => selection.toggle(record.id)}
-          onClick={(e) => e.stopPropagation()}
-        />
-      ),
-    },
     {
       key: 'description',
       title: 'Description',
@@ -88,7 +70,7 @@ export default function OutcomesListPage() {
       sorter: true,
       sortField: 'target',
       render: (value) => (
-        <span className="line-clamp-2text-[var(--text-muted)]">
+        <span className="line-clamp-2 text-[var(--text-muted)]">
           {value as string || '—'}
         </span>
       ),
@@ -123,40 +105,18 @@ export default function OutcomesListPage() {
         </span>
       ),
     },
-  ], [selection, solutions]);
-
-  // Update first column to have select-all checkbox
-  const columnsWithSelectAll = useMemo(() => {
-    const cols = [...columns];
-    cols[0] = {
-      ...cols[0],
-      title: (
-        <Checkbox
-          checked={selection.isAllSelected}
-          indeterminate={selection.isIndeterminate}
-          onChange={selection.toggleAll}
-        />
-      ),
-    };
-    return cols;
-  }, [columns, selection.isAllSelected, selection.isIndeterminate, selection.toggleAll]);
+  ], [solutions]);
 
   // Filter configuration
-  const filters = useMemo(() => [
+  const filters: FilterConfig[] = useMemo(() => [
     {
       key: 'solutionId',
       label: 'Solutions',
-      type: 'select' as const,
+      type: 'select',
       options: solutions.map((s) => ({ value: s.id, label: s.name })),
       showSearch: true,
     },
   ], [solutions]);
-
-  // Handle page change
-  const handlePageChange = (page: number, pageSize: number) => {
-    urlState.setPageChange(page, pageSize);
-    selection.clear();
-  };
 
   return (
     <MainLayout>
@@ -177,36 +137,16 @@ export default function OutcomesListPage() {
         {!teamId ? (
           <Empty description="No team selected. Please create an organization and team first." />
         ) : (
-          <>
-            <ListControlPanel
-              searchValue={urlState.search}
-              onSearchChange={urlState.setSearch}
-              searchPlaceholder="Search outcomes..."
-              filters={filters}
-              filterValues={urlState.filters}
-              onFilterChange={urlState.setFilter}
-              selectedCount={selection.selectedIds.size}
-            />
-
-            <Table
-              columns={columnsWithSelectAll}
-              dataSource={data?.items || []}
-              rowKey="id"
-              loading={isLoading}
-              pagination={{
-                current: urlState.page,
-                pageSize: urlState.pageSize,
-                total: data?.totalCount,
-                onChange: handlePageChange,
-              }}
-              serverSort={{
-                sortBy: urlState.sortBy,
-                sortOrder: urlState.sortOrder,
-              }}
-              onServerSortChange={urlState.setSort}
-              empty={<Empty description="No outcomes found. Adjust your filters or add new outcomes." />}
-            />
-          </>
+          <EntityList
+            items={data?.items || []}
+            loading={isLoading}
+            totalCount={data?.totalCount || 0}
+            urlState={urlState}
+            columns={columns}
+            filters={filters}
+            searchPlaceholder="Search outcomes..."
+            emptyDescription="No outcomes found. Adjust your filters or add new outcomes."
+          />
         )}
       </PageContent>
     </MainLayout>

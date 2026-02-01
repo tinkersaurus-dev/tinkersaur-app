@@ -17,7 +17,6 @@ import {
   getStatusColor,
   formatVersionDisplay,
 } from '@/entities/use-case-version';
-import '@/shared/styles/markdown-content.css';
 
 export interface UseCaseVersionDetailPanelProps {
   useCaseId: string;

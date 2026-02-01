@@ -8,7 +8,7 @@
 import { MarkdownContent } from '@/shared/ui';
 import type { TechSpecSection } from '@/features/llm-generation';
 import { TECH_SPEC_SECTION_LABELS } from '@/features/llm-generation';
-import '@/shared/styles/markdown-content.css';
+import './TechSpecCard.css';
 
 export interface TechSpecCardProps {
   section: TechSpecSection;
@@ -16,7 +16,7 @@ export interface TechSpecCardProps {
 
 export function TechSpecCard({ section }: TechSpecCardProps) {
   return (
-    <div className="markdown-content markdown-content--compact markdown-content--tech-spec text-[var(--text)] text-xs">
+    <div className="tech-spec-card markdown-content markdown-content--compact text-[var(--text)] text-xs">
       <div className="section-type-badge">
         {TECH_SPEC_SECTION_LABELS[section.sectionType] || section.sectionType}
       </div>

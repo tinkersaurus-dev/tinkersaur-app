@@ -12,8 +12,8 @@
 
 import { useState, useCallback } from 'react';
 import { generateSuggestions } from '@/features/llm-generation';
-import { useMermaidViewerStore } from '@/shared/store/mermaid/mermaidViewerStore';
-import { useOverlayVisibilityStore } from '@/shared/store/overlay/overlayVisibilityStore';
+import { useMermaidViewerStore } from '@/app/model/stores/mermaid';
+import { useOverlayVisibilityStore } from '@/app/model/stores/overlay';
 import { useDiagramCRUD } from '../api/useDiagramCRUD';
 import { useAuthStore } from '@/features/auth';
 import type { Shape, CreateShapeDTO, SuggestionCommentShapeData } from '@/entities/shape';
@@ -22,7 +22,7 @@ import {
   findSuggestionPosition,
   SUGGESTION_SHAPE_WIDTH,
   SUGGESTION_SHAPE_HEIGHT,
-} from '@/shared/lib/suggestionPositioning';
+} from '@/widgets/canvas/lib/utils/suggestionPositioning';
 
 interface UseSuggestionsGeneratorProps {
   diagramId: string | undefined;

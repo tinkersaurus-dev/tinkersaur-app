@@ -6,18 +6,17 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge } from 'react-icons/fi';
-import { PageHeader, PageContent } from '@/shared/ui';
+import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { ListControlPanel } from '@/shared/ui';
-import { Button, Table, Empty, Tag, Checkbox } from '@/shared/ui';
-import type { TableColumn, TagColor } from '@/shared/ui';
+import { Button, Tag } from '@/shared/ui';
+import type { TableColumn, FilterConfig, TagColor } from '@/shared/ui';
 import type { Feedback } from '@/entities/feedback';
 import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
 import { useFeedbacksPaginatedQuery } from '@/features/intake-analysis';
 import { useSolutionsQuery } from '@/entities/solution';
 import { usePersonasQuery } from '@/entities/persona';
 import { useUseCasesByTeamQuery } from '@/entities/use-case';
-import { useListSelection, useListUrlState } from '@/shared/hooks';
+import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
 import { FeedbackMergeModal } from '@/features/entity-merging';
 
@@ -32,7 +31,7 @@ export default function FeedbackListPage() {
     defaultSortOrder: 'desc',
   });
 
-  // Parse multi-select IDs from URL (comma-separated)
+  // Parse multi-select IDs from URL (comma-separated) for API query
   const personaIds = useMemo(() => {
     const ids = urlState.filters.personaIds;
     if (!ids) return undefined;
@@ -67,14 +66,10 @@ export default function FeedbackListPage() {
   const { data: personas = [] } = usePersonasQuery(teamId);
   const { data: useCases = [] } = useUseCasesByTeamQuery(teamId);
 
-  // Multi-select for bulk actions (like merge)
-  const selection = useListSelection({
-    items: data?.items || [],
-    getItemId: (item) => item.id,
-  });
-
   // Merge modal state
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
+  const [selectedFeedbacks, setSelectedFeedbacks] = useState<Feedback[]>([]);
+  const [clearSelection, setClearSelection] = useState<(() => void) | null>(null);
 
   // Map feedback type to tag color
   const getTypeColor = (type: string): TagColor => {
@@ -82,20 +77,8 @@ export default function FeedbackListPage() {
     return (config?.color || 'default') as TagColor;
   };
 
-  // Table columns with checkbox
+  // Table columns (without selection - EntityList adds it)
   const columns: TableColumn<Feedback>[] = useMemo(() => [
-    {
-      key: 'selection',
-      title: '',
-      width: 48,
-      render: (_, record) => (
-        <Checkbox
-          checked={selection.isSelected(record.id)}
-          onChange={() => selection.toggle(record.id)}
-          onClick={(e) => e.stopPropagation()}
-        />
-      ),
-    },
     {
       key: 'type',
       title: 'Type',
@@ -175,69 +158,37 @@ export default function FeedbackListPage() {
         </span>
       ),
     },
-  ], [selection, solutions]);
-
-  // Update first column to have select-all checkbox
-  const columnsWithSelectAll = useMemo(() => {
-    const cols = [...columns];
-    cols[0] = {
-      ...cols[0],
-      title: (
-        <Checkbox
-          checked={selection.isAllSelected}
-          indeterminate={selection.isIndeterminate}
-          onChange={selection.toggleAll}
-        />
-      ),
-    };
-    return cols;
-  }, [columns, selection.isAllSelected, selection.isIndeterminate, selection.toggleAll]);
+  ], [solutions]);
 
   // Filter configuration
-  const filters = useMemo(() => [
+  const filters: FilterConfig[] = useMemo(() => [
     {
       key: 'solutionId',
       label: 'Solutions',
-      type: 'select' as const,
+      type: 'select',
       options: solutions.map((s) => ({ value: s.id, label: s.name })),
       showSearch: true,
     },
     {
       key: 'personaIds',
       label: 'Personas',
-      type: 'multiselect' as const,
+      type: 'multiselect',
       options: personas.map((p) => ({ value: p.id, label: p.name })),
       showSearch: true,
     },
     {
       key: 'useCaseIds',
       label: 'Use Cases',
-      type: 'multiselect' as const,
+      type: 'multiselect',
       options: useCases.map((uc) => ({ value: uc.id, label: uc.name })),
       showSearch: true,
     },
   ], [solutions, personas, useCases]);
 
-  // Handle filter change (special handling for multi-select)
-  const handleFilterChange = (key: string, value: string | string[]) => {
-    if (Array.isArray(value)) {
-      urlState.setFilter(key, value.join(','));
-    } else {
-      urlState.setFilter(key, value);
-    }
-  };
-
-  // Get filter values with arrays for multi-select
-  const filterValues = useMemo(() => ({
-    ...urlState.filters,
-    personaIds: personaIds || [],
-    useCaseIds: useCaseIds || [],
-  }), [urlState.filters, personaIds, useCaseIds]);
-
-  // Handle page change
-  const handlePageChange = (page: number, pageSize: number) => {
-    urlState.setPageChange(page, pageSize);
-    selection.clear();
+  // Handle merge modal close
+  const handleMergeModalClose = () => {
+    setMergeModalOpen(false);
+    clearSelection?.();
   };
 
   return (
@@ -260,55 +211,39 @@ export default function FeedbackListPage() {
           <Empty description="No team selected. Please create an organization and team first." />
         ) : (
           <>
-            <ListControlPanel
-              searchValue={urlState.search}
-              onSearchChange={urlState.setSearch}
-              searchPlaceholder="Search feedback..."
+            <EntityList
+              items={data?.items || []}
+              loading={isLoading}
+              totalCount={data?.totalCount || 0}
+              urlState={urlState}
+              columns={columns}
               filters={filters}
-              filterValues={filterValues}
-              onFilterChange={handleFilterChange}
-              selectedCount={selection.selectedIds.size}
-              actions={
-                selection.selectedIds.size >= 2 ? (
+              multiSelectFilterKeys={['personaIds', 'useCaseIds']}
+              searchPlaceholder="Search feedback..."
+              emptyDescription="No feedback found. Adjust your filters or add new feedback."
+              actions={(selection) =>
+                selection.selectedCount >= 2 ? (
                   <Button
                     variant="default"
                     icon={<FiGitMerge />}
-                    onClick={() => setMergeModalOpen(true)}
+                    onClick={() => {
+                      setSelectedFeedbacks(selection.selectedItems);
+                      setClearSelection(() => selection.clear);
+                      setMergeModalOpen(true);
+                    }}
                   >
-                    Merge ({selection.selectedIds.size})
+                    Merge ({selection.selectedCount})
                   </Button>
-                ) : undefined
+                ) : null
               }
-            />
-
-            <Table
-              columns={columnsWithSelectAll}
-              dataSource={data?.items || []}
-              rowKey="id"
-              loading={isLoading}
-              pagination={{
-                current: urlState.page,
-                pageSize: urlState.pageSize,
-                total: data?.totalCount,
-                onChange: handlePageChange,
-              }}
-              serverSort={{
-                sortBy: urlState.sortBy,
-                sortOrder: urlState.sortOrder,
-              }}
-              onServerSortChange={urlState.setSort}
-              empty={<Empty description="No feedback found. Adjust your filters or add new feedback." />}
             />
 
             {/* Merge Modal */}
             {teamId && (
               <FeedbackMergeModal
                 open={mergeModalOpen}
-                onClose={() => {
-                  setMergeModalOpen(false);
-                  selection.clear();
-                }}
-                selectedFeedbacks={selection.selectedItems}
+                onClose={handleMergeModalClose}
+                selectedFeedbacks={selectedFeedbacks}
                 teamId={teamId}
               />
             )}

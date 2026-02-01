@@ -6,7 +6,7 @@
 import type { ComponentType } from 'react';
 import { FaSquare, FaListOl } from 'react-icons/fa';
 import { globalToolGroup } from '@/features/diagram-rendering/config/tools';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
  * Tool definition interface
@@ -50,7 +50,7 @@ export interface ToolGroup {
   tools: Tool[];
 }
 
-const { toolDefault: classSize, interface: interfaceSize } = DESIGN_STUDIO_CONFIG.shapes.class;
+const { toolDefault: classSize, interface: interfaceSize } = CANVAS_CONFIG.shapes.class;
 
 /**
  * Class Diagram Tools

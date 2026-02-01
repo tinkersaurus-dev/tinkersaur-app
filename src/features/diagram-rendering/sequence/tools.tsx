@@ -14,7 +14,7 @@ import {
 } from 'react-icons/fa';
 import { DEFAULT_LIFELINE_HEIGHT } from './constants';
 import { globalToolGroup } from '@/features/diagram-rendering/config/tools';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
  * Tool definition interface
@@ -58,7 +58,7 @@ export interface ToolGroup {
   tools: Tool[];
 }
 
-const { lifeline: lifelineSize, note: noteSize } = DESIGN_STUDIO_CONFIG.shapes.sequence;
+const { lifeline: lifelineSize, note: noteSize } = CANVAS_CONFIG.shapes.sequence;
 
 /**
  * Sequence Diagram Participant Tools

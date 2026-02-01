@@ -36,7 +36,6 @@ import { useDesignWorksForContext } from '@/features/diagram-management';
 import { useUseCaseContent } from '@/entities/use-case';
 import { useUseCaseVersionStore } from '@/entities/use-case-version/store/useUseCaseVersionStore';
 import { formatVersionDisplay } from '@/entities/use-case-version';
-import '@/shared/styles/markdown-content.css';
 
 // Loader function for SSR data fetching
 export async function loader({ params }: LoaderFunctionArgs) {

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useDiagram, useDiagramCRUD } from '@/features/diagram-management';
 import { useReferenceStore } from '@/entities/reference/store/useReferenceStore';
-import { getReferenceConfigForShape, canReferenceBeDroppedInContent } from '@/shared/config/reference-types';
+import { getReferenceConfigForShape, canReferenceBeDroppedInContent } from '@/entities/reference';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 
 /**

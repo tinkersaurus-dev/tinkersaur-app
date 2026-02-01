@@ -6,19 +6,19 @@
  */
 
 import type { ClassShapeData, EnumerationShapeData } from '@/entities/shape';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
  * Constants matching the ClassRenderer component layout
  */
-const ITEM_LINE_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.itemLineHeight;
+const ITEM_LINE_HEIGHT = CANVAS_CONFIG.classLayout.itemLineHeight;
 
 /**
  * Section heights
  */
-const STEREOTYPE_SECTION_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.stereotypeSectionHeight;
-const CLASS_NAME_SECTION_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.classNameSectionHeight;
-const EMPTY_SECTION_HEIGHT = DESIGN_STUDIO_CONFIG.classLayout.emptySectionHeight;
+const STEREOTYPE_SECTION_HEIGHT = CANVAS_CONFIG.classLayout.stereotypeSectionHeight;
+const CLASS_NAME_SECTION_HEIGHT = CANVAS_CONFIG.classLayout.classNameSectionHeight;
+const EMPTY_SECTION_HEIGHT = CANVAS_CONFIG.classLayout.emptySectionHeight;
 
 /**
  * Calculate the total height of a UML class shape based on its content.
@@ -53,9 +53,9 @@ export function calculateClassHeight(classData: ClassShapeData): number {
   }
 
   // Add a small buffer for borders
-  totalHeight += DESIGN_STUDIO_CONFIG.classLayout.borderBuffer;
+  totalHeight += CANVAS_CONFIG.classLayout.borderBuffer;
 
-  return Math.max(totalHeight, DESIGN_STUDIO_CONFIG.classLayout.minHeight);
+  return Math.max(totalHeight, CANVAS_CONFIG.classLayout.minHeight);
 }
 
 /**
@@ -83,7 +83,7 @@ export function calculateEnumerationHeight(enumerationData: EnumerationShapeData
   }
 
   // Add a small buffer for borders
-  totalHeight += DESIGN_STUDIO_CONFIG.classLayout.borderBuffer;
+  totalHeight += CANVAS_CONFIG.classLayout.borderBuffer;
 
-  return Math.max(totalHeight, DESIGN_STUDIO_CONFIG.classLayout.minHeight);
+  return Math.max(totalHeight, CANVAS_CONFIG.classLayout.minHeight);
 }

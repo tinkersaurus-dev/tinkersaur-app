@@ -9,7 +9,7 @@ import { getStrokeDasharray } from './strokeStyles';
 import { getClassDiagramMarker } from './svgMarkers';
 import { calculateCardinalityLabelPosition } from './labelPositioning';
 import { THEME_CONFIG } from '@/shared/lib/config/theme-config';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 import { getClassConnectorToolByType } from '@/features/diagram-rendering/class/connectors';
 import { getERConnectorToolByType } from '@/features/diagram-rendering/entity-relationship/connectors';
 
@@ -185,7 +185,7 @@ export const LineConnectorRenderer: React.FC<ConnectorRendererProps> = ({
   const supportsCardinality = connectorConfig?.supportsCardinality ?? false;
 
   // Calculate cardinality label positions
-  const cardinalityOffset = DESIGN_STUDIO_CONFIG.connectorLabel.cardinalityOffset / context.zoom;
+  const cardinalityOffset = CANVAS_CONFIG.connectorLabel.cardinalityOffset / context.zoom;
   const sourceLabelPos = calculateCardinalityLabelPosition(start, sourceDirection, cardinalityOffset);
   const targetLabelPos = calculateCardinalityLabelPosition(end, targetDirection, cardinalityOffset);
 

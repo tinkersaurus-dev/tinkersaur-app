@@ -3,7 +3,7 @@ import type { CreateShapeDTO } from '@/entities/shape';
 import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../../shared/mermaid/importer';
 import { BaseMermaidImporter } from '../../shared/mermaid/importer';
 import { layoutBpmnGraph } from '../layout';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 import { DEFAULT_SHAPE_SUBTYPES, getBpmnEventSubtype } from '@/features/diagram-rendering/config/shape-subtypes';
 
 /**
@@ -370,14 +370,14 @@ export class BpmnMermaidImporter extends BaseMermaidImporter {
       }
 
       if (node.shapeType === 'bpmn-event') {
-        width = DESIGN_STUDIO_CONFIG.shapes.bpmn.startEvent.width;
-        height = DESIGN_STUDIO_CONFIG.shapes.bpmn.startEvent.height;
+        width = CANVAS_CONFIG.shapes.bpmn.startEvent.width;
+        height = CANVAS_CONFIG.shapes.bpmn.startEvent.height;
       } else if (node.shapeType === 'bpmn-gateway') {
-        width = DESIGN_STUDIO_CONFIG.shapes.bpmn.gateway.width;
-        height = DESIGN_STUDIO_CONFIG.shapes.bpmn.gateway.height;
+        width = CANVAS_CONFIG.shapes.bpmn.gateway.width;
+        height = CANVAS_CONFIG.shapes.bpmn.gateway.height;
       } else if (node.shapeType === 'bpmn-task') {
-        width = DESIGN_STUDIO_CONFIG.shapes.bpmn.task.width;
-        height = DESIGN_STUDIO_CONFIG.shapes.bpmn.task.height;
+        width = CANVAS_CONFIG.shapes.bpmn.task.width;
+        height = CANVAS_CONFIG.shapes.bpmn.task.height;
       }
 
       return {

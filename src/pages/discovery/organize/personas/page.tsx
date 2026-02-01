@@ -6,14 +6,14 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge } from 'react-icons/fi';
-import { PageHeader, PageContent, ListControlPanel } from '@/shared/ui';
+import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { Button, Table, Empty, Checkbox } from '@/shared/ui';
-import type { TableColumn } from '@/shared/ui';
+import { Button } from '@/shared/ui';
+import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Persona } from '@/entities/persona';
 import { usePersonasPaginatedQuery } from '@/entities/persona';
 import { useSolutionsQuery } from '@/entities/solution';
-import { useListSelection, useListUrlState } from '@/shared/hooks';
+import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
 import { PersonaMergeModal } from '@/features/entity-merging';
 
@@ -46,29 +46,13 @@ export default function PersonasListPage() {
   const { data, isLoading } = usePersonasPaginatedQuery(queryParams);
   const { data: solutions = [] } = useSolutionsQuery(teamId);
 
-  // Multi-select for bulk actions
-  const selection = useListSelection({
-    items: data?.items || [],
-    getItemId: (item) => item.id,
-  });
-
   // Merge modal state
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
+  const [selectedPersonas, setSelectedPersonas] = useState<Persona[]>([]);
+  const [clearSelection, setClearSelection] = useState<(() => void) | null>(null);
 
-  // Table columns with checkbox
+  // Table columns (without selection - EntityList adds it)
   const columns: TableColumn<Persona>[] = useMemo(() => [
-    {
-      key: 'selection',
-      title: '',
-      width: 48,
-      render: (_, record) => (
-        <Checkbox
-          checked={selection.isSelected(record.id)}
-          onChange={() => selection.toggle(record.id)}
-          onClick={(e) => e.stopPropagation()}
-        />
-      ),
-    },
     {
       key: 'name',
       title: 'Name',
@@ -120,39 +104,23 @@ export default function PersonasListPage() {
         </span>
       ),
     },
-  ], [selection]);
-
-  // Update first column to have select-all checkbox
-  const columnsWithSelectAll = useMemo(() => {
-    const cols = [...columns];
-    cols[0] = {
-      ...cols[0],
-      title: (
-        <Checkbox
-          checked={selection.isAllSelected}
-          indeterminate={selection.isIndeterminate}
-          onChange={selection.toggleAll}
-        />
-      ),
-    };
-    return cols;
-  }, [columns, selection.isAllSelected, selection.isIndeterminate, selection.toggleAll]);
+  ], []);
 
   // Filter configuration
-  const filters = useMemo(() => [
+  const filters: FilterConfig[] = useMemo(() => [
     {
       key: 'solutionId',
       label: 'Solutions',
-      type: 'select' as const,
+      type: 'select',
       options: solutions.map((s) => ({ value: s.id, label: s.name })),
       showSearch: true,
     },
   ], [solutions]);
 
-  // Handle page change
-  const handlePageChange = (page: number, pageSize: number) => {
-    urlState.setPageChange(page, pageSize);
-    selection.clear(); // Clear selection on page change
+  // Handle merge modal close
+  const handleMergeModalClose = () => {
+    setMergeModalOpen(false);
+    clearSelection?.();
   };
 
   return (
@@ -174,47 +142,31 @@ export default function PersonasListPage() {
         {!teamId ? (
           <Empty description="No team selected. Please create an organization and team first." />
         ) : (
-          <>
-            <ListControlPanel
-              searchValue={urlState.search}
-              onSearchChange={urlState.setSearch}
-              searchPlaceholder="Search personas..."
-              filters={filters}
-              filterValues={urlState.filters}
-              onFilterChange={urlState.setFilter}
-              selectedCount={selection.selectedIds.size}
-              actions={
-                selection.selectedIds.size >= 2 ? (
-                  <Button
-                    variant="default"
-                    icon={<FiGitMerge />}
-                    onClick={() => setMergeModalOpen(true)}
-                  >
-                    Merge ({selection.selectedIds.size})
-                  </Button>
-                ) : undefined
-              }
-            />
-
-            <Table
-              columns={columnsWithSelectAll}
-              dataSource={data?.items || []}
-              rowKey="id"
-              loading={isLoading}
-              pagination={{
-                current: urlState.page,
-                pageSize: urlState.pageSize,
-                total: data?.totalCount,
-                onChange: handlePageChange,
-              }}
-              serverSort={{
-                sortBy: urlState.sortBy,
-                sortOrder: urlState.sortOrder,
-              }}
-              onServerSortChange={urlState.setSort}
-              empty={<Empty description="No personas found. Adjust your filters or create a new persona." />}
-            />
-          </>
+          <EntityList
+            items={data?.items || []}
+            loading={isLoading}
+            totalCount={data?.totalCount || 0}
+            urlState={urlState}
+            columns={columns}
+            filters={filters}
+            searchPlaceholder="Search personas..."
+            emptyDescription="No personas found. Adjust your filters or create a new persona."
+            actions={(selection) =>
+              selection.selectedCount >= 2 ? (
+                <Button
+                  variant="default"
+                  icon={<FiGitMerge />}
+                  onClick={() => {
+                    setSelectedPersonas(selection.selectedItems);
+                    setClearSelection(() => selection.clear);
+                    setMergeModalOpen(true);
+                  }}
+                >
+                  Merge ({selection.selectedCount})
+                </Button>
+              ) : null
+            }
+          />
         )}
       </PageContent>
 
@@ -222,11 +174,8 @@ export default function PersonasListPage() {
       {teamId && (
         <PersonaMergeModal
           open={mergeModalOpen}
-          onClose={() => {
-            setMergeModalOpen(false);
-            selection.clear();
-          }}
-          selectedPersonas={selection.selectedItems}
+          onClose={handleMergeModalClose}
+          selectedPersonas={selectedPersonas}
           teamId={teamId}
         />
       )}

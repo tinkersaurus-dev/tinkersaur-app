@@ -17,7 +17,7 @@ import {
 } from 'react-icons/fa';
 import { LuSquareUserRound, LuSettings, LuSquareCode } from "react-icons/lu";
 import { globalToolGroup } from '@/features/diagram-rendering/config/tools';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
  * Tool definition interface
@@ -59,7 +59,7 @@ export interface ToolGroup {
   tools: Tool[];
 }
 
-const { task: taskSize, startEvent: eventSize, gateway: gatewaySize } = DESIGN_STUDIO_CONFIG.shapes.bpmn;
+const { task: taskSize, startEvent: eventSize, gateway: gatewaySize } = CANVAS_CONFIG.shapes.bpmn;
 
 /**
  * BPMN Task Tools

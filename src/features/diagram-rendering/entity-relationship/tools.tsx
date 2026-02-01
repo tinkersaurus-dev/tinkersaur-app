@@ -6,7 +6,7 @@
 import type { ComponentType } from 'react';
 import { FaTable } from 'react-icons/fa';
 import { globalToolGroup } from '@/features/diagram-rendering/config/tools';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
  * Tool definition interface
@@ -50,7 +50,7 @@ export interface ToolGroup {
   tools: Tool[];
 }
 
-const entitySize = DESIGN_STUDIO_CONFIG.shapes.entityRelationship.entity;
+const entitySize = CANVAS_CONFIG.shapes.entityRelationship.entity;
 
 /**
  * Entity Relationship Diagram Tools

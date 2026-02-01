@@ -3,7 +3,7 @@ import { useReferenceStore } from '@/entities/reference/store/useReferenceStore'
 import { useDesignWorkStore } from '@/entities/design-work/store/useDesignWorkStore';
 import { useDocumentStore } from '@/entities/document/store/useDocumentStore';
 import { diagramApi } from '@/entities/diagram';
-import { canShapeBeFolderReferenceSource } from '@/shared/config/reference-types';
+import { canShapeBeFolderReferenceSource } from '@/entities/reference';
 import {
   generateClassMermaid,
   generateEnumerationMermaid,

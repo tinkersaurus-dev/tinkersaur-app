@@ -6,7 +6,7 @@
  */
 
 import type { UserDocument } from '@/features/llm-generation';
-import '@/shared/styles/markdown-content.css';
+import './UserDocCard.css';
 
 export interface UserDocCardProps {
   document: UserDocument;
@@ -14,7 +14,7 @@ export interface UserDocCardProps {
 
 export function UserDocCard({ document }: UserDocCardProps) {
   return (
-    <div className="markdown-content markdown-content--compact markdown-content--user-doc text-[var(--text)] text-xs">
+    <div className="user-doc-card markdown-content markdown-content--compact text-[var(--text)] text-xs">
       <h1>{document.title}</h1>
 
       <h2>Overview</h2>

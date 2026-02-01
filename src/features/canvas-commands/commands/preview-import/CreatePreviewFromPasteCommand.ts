@@ -8,7 +8,7 @@ import { ClassMermaidImporter } from '@/features/diagram-rendering/class/mermaid
 import { SequenceMermaidImporter} from '@/features/diagram-rendering/sequence/mermaid/importer';
 import { ArchitectureMermaidImporter } from '@/features/diagram-rendering/architecture/mermaid/importer';
 import { EntityRelationshipMermaidImporter } from '@/features/diagram-rendering/entity-relationship/mermaid/importer';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
  * Command to create a preview from pasted mermaid syntax
@@ -251,8 +251,8 @@ export class CreatePreviewFromPasteCommand implements Command {
       return {
         x: this.pastePosition.x,
         y: this.pastePosition.y,
-        width: DESIGN_STUDIO_CONFIG.shapes.preview.width,
-        height: DESIGN_STUDIO_CONFIG.shapes.preview.height,
+        width: CANVAS_CONFIG.shapes.preview.width,
+        height: CANVAS_CONFIG.shapes.preview.height,
       };
     }
 

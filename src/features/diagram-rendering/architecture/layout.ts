@@ -11,7 +11,7 @@
  * - Order is preserved from the mermaid syntax (input array order)
  */
 
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 export interface LayoutNode {
   id: string;
@@ -63,8 +63,8 @@ export function layoutArchitectureGraph(
     return [];
   }
 
-  const config = DESIGN_STUDIO_CONFIG.architectureLayout;
-  const shapeConfig = DESIGN_STUDIO_CONFIG.shapes.architecture;
+  const config = CANVAS_CONFIG.architectureLayout;
+  const shapeConfig = CANVAS_CONFIG.shapes.architecture;
 
   // Build parent-to-children map preserving input order
   const childrenMap = new Map<string | null, ParsedNode[]>();
@@ -138,8 +138,8 @@ function layoutGroupRecursive(
   nodeMap: Map<string, ParsedNode>,
   x: number,
   y: number,
-  shapeConfig: typeof DESIGN_STUDIO_CONFIG.shapes.architecture,
-  layoutConfig: typeof DESIGN_STUDIO_CONFIG.architectureLayout
+  shapeConfig: typeof CANVAS_CONFIG.shapes.architecture,
+  layoutConfig: typeof CANVAS_CONFIG.architectureLayout
 ): LayoutResult {
   const children = childrenMap.get(group.id) || [];
   const padding = layoutConfig.groupPadding;
@@ -317,7 +317,7 @@ function layoutChildrenInGrid(
  */
 function addDimensions(
   node: ParsedNode,
-  shapeConfig: typeof DESIGN_STUDIO_CONFIG.shapes.architecture
+  shapeConfig: typeof CANVAS_CONFIG.shapes.architecture
 ): SizedNode {
   let width: number;
   let height: number;

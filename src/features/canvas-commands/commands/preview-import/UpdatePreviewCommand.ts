@@ -9,7 +9,7 @@ import { SequenceMermaidImporter } from '@/features/diagram-rendering/sequence/m
 import { ArchitectureMermaidImporter } from '@/features/diagram-rendering/architecture/mermaid/importer';
 import { EntityRelationshipMermaidImporter } from '@/features/diagram-rendering/entity-relationship/mermaid/importer';
 import { isLLMPreviewShapeData } from '@/entities/shape';
-import { DESIGN_STUDIO_CONFIG } from '@/shared/config/design-studio';
+import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
  * Command to update a preview shape from a mermaid editor shape
@@ -319,8 +319,8 @@ export class UpdatePreviewCommand implements Command {
       return {
         x: this.editorPosition.x,
         y: this.editorPosition.y,
-        width: DESIGN_STUDIO_CONFIG.shapes.preview.width,
-        height: DESIGN_STUDIO_CONFIG.shapes.preview.height,
+        width: CANVAS_CONFIG.shapes.preview.width,
+        height: CANVAS_CONFIG.shapes.preview.height,
       };
     }
 

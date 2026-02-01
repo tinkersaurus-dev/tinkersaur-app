@@ -1,14 +1,14 @@
 /**
- * Design Studio Configuration
+ * Canvas Configuration
  *
- * Central configuration for the design studio including:
+ * Central configuration for the canvas including:
  * - Cache settings for performance optimization
  * - Routing algorithm parameters
  * - Default shape dimensions for different diagram types
  * - Layout and spacing constants
  */
 
-export const DESIGN_STUDIO_CONFIG = {
+export const CANVAS_CONFIG = {
   /**
    * Cache Configuration
    */
@@ -232,4 +232,4 @@ export const DESIGN_STUDIO_CONFIG = {
 /**
  * Type-safe access to configuration values
  */
-export type DesignStudioConfig = typeof DESIGN_STUDIO_CONFIG;
+export type CanvasConfig = typeof CANVAS_CONFIG;

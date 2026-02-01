@@ -6,16 +6,15 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge } from 'react-icons/fi';
-import { PageHeader, PageContent } from '@/shared/ui';
+import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
 import { MainLayout } from '@/app/layouts/MainLayout';
-import { ListControlPanel } from '@/shared/ui';
-import { Button, Table, Empty, Checkbox } from '@/shared/ui';
-import type { TableColumn } from '@/shared/ui';
+import { Button } from '@/shared/ui';
+import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { UseCase } from '@/entities/use-case';
 import { useUseCasesPaginatedQuery } from '@/entities/use-case';
 import { useSolutionsQuery } from '@/entities/solution';
 import { usePersonasQuery } from '@/entities/persona';
-import { useListSelection, useListUrlState } from '@/shared/hooks';
+import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
 import { UseCaseMergeModal } from '@/features/entity-merging';
 import { CreateUseCaseModal } from '@/features/use-case-management';
@@ -31,7 +30,7 @@ export default function UseCasesListPage() {
     defaultSortOrder: 'desc',
   });
 
-  // Parse personaIds from URL (comma-separated)
+  // Parse personaIds from URL (comma-separated) for API query
   const personaIds = useMemo(() => {
     const ids = urlState.filters.personaIds;
     if (!ids) return undefined;
@@ -58,37 +57,14 @@ export default function UseCasesListPage() {
   const { data: solutions = [] } = useSolutionsQuery(teamId);
   const { data: personas = [] } = usePersonasQuery(teamId);
 
-  // Multi-select for bulk actions
-  const selection = useListSelection({
-    items: data?.items || [],
-    getItemId: (item) => item.id,
-  });
-
   // Modal state
   const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedUseCases, setSelectedUseCases] = useState<UseCase[]>([]);
+  const [clearSelection, setClearSelection] = useState<(() => void) | null>(null);
 
-  // Get selected use case objects for merge modal
-  const items = data?.items;
-  const selectedUseCases = useMemo(() => {
-    if (!items) return [];
-    return items.filter((uc) => selection.isSelected(uc.id));
-  }, [items, selection]);
-
-  // Table columns with checkbox
+  // Table columns (without selection - EntityList adds it)
   const columns: TableColumn<UseCase>[] = useMemo(() => [
-    {
-      key: 'selection',
-      title: '',
-      width: 48,
-      render: (_, record) => (
-        <Checkbox
-          checked={selection.isSelected(record.id)}
-          onChange={() => selection.toggle(record.id)}
-          onClick={(e) => e.stopPropagation()}
-        />
-      ),
-    },
     {
       key: 'name',
       title: 'Name',
@@ -146,68 +122,30 @@ export default function UseCasesListPage() {
         </span>
       ),
     },
-  ], [selection, solutions]);
-
-  // Update first column to have select-all checkbox
-  const columnsWithSelectAll = useMemo(() => {
-    const cols = [...columns];
-    cols[0] = {
-      ...cols[0],
-      title: (
-        <Checkbox
-          checked={selection.isAllSelected}
-          indeterminate={selection.isIndeterminate}
-          onChange={selection.toggleAll}
-        />
-      ),
-    };
-    return cols;
-  }, [columns, selection.isAllSelected, selection.isIndeterminate, selection.toggleAll]);
+  ], [solutions]);
 
   // Filter configuration
-  const filters = useMemo(() => [
+  const filters: FilterConfig[] = useMemo(() => [
     {
       key: 'solutionId',
       label: 'Solutions',
-      type: 'select' as const,
+      type: 'select',
       options: solutions.map((s) => ({ value: s.id, label: s.name })),
       showSearch: true,
     },
     {
       key: 'personaIds',
       label: 'Personas',
-      type: 'multiselect' as const,
+      type: 'multiselect',
       options: personas.map((p) => ({ value: p.id, label: p.name })),
       showSearch: true,
     },
   ], [solutions, personas]);
 
-  // Handle filter change (special handling for multi-select)
-  const handleFilterChange = (key: string, value: string | string[]) => {
-    if (Array.isArray(value)) {
-      // Convert array to comma-separated string for URL
-      urlState.setFilter(key, value.join(','));
-    } else {
-      urlState.setFilter(key, value);
-    }
-  };
-
-  // Get filter values with personaIds as array
-  const filterValues = useMemo(() => ({
-    ...urlState.filters,
-    personaIds: personaIds || [],
-  }), [urlState.filters, personaIds]);
-
-  // Handle page change
-  const handlePageChange = (page: number, pageSize: number) => {
-    urlState.setPageChange(page, pageSize);
-    selection.clear();
-  };
-
   // Handle merge modal close
   const handleMergeModalClose = () => {
     setIsMergeModalOpen(false);
-    selection.clear();
+    clearSelection?.();
   };
 
   return (
@@ -229,48 +167,33 @@ export default function UseCasesListPage() {
         {!teamId ? (
           <Empty description="No team selected. Please create an organization and team first." />
         ) : (
-          <>
-            <ListControlPanel
-              searchValue={urlState.search}
-              onSearchChange={urlState.setSearch}
-              searchPlaceholder="Search use cases..."
-              filters={filters}
-              filterValues={filterValues}
-              onFilterChange={handleFilterChange}
-              selectedCount={selection.selectedIds.size}
-              actions={
-                selection.selectedIds.size >= 2 && (
-                  <Button
-                    variant="default"
-                    size="small"
-                    icon={<FiGitMerge />}
-                    onClick={() => setIsMergeModalOpen(true)}
-                  >
-                    Merge Selected
-                  </Button>
-                )
-              }
-            />
-
-            <Table
-              columns={columnsWithSelectAll}
-              dataSource={data?.items || []}
-              rowKey="id"
-              loading={isLoading}
-              pagination={{
-                current: urlState.page,
-                pageSize: urlState.pageSize,
-                total: data?.totalCount,
-                onChange: handlePageChange,
-              }}
-              serverSort={{
-                sortBy: urlState.sortBy,
-                sortOrder: urlState.sortOrder,
-              }}
-              onServerSortChange={urlState.setSort}
-              empty={<Empty description="No use cases found. Adjust your filters or create a new use case." />}
-            />
-          </>
+          <EntityList
+            items={data?.items || []}
+            loading={isLoading}
+            totalCount={data?.totalCount || 0}
+            urlState={urlState}
+            columns={columns}
+            filters={filters}
+            multiSelectFilterKeys={['personaIds']}
+            searchPlaceholder="Search use cases..."
+            emptyDescription="No use cases found. Adjust your filters or create a new use case."
+            actions={(selection) =>
+              selection.selectedCount >= 2 ? (
+                <Button
+                  variant="default"
+                  size="small"
+                  icon={<FiGitMerge />}
+                  onClick={() => {
+                    setSelectedUseCases(selection.selectedItems);
+                    setClearSelection(() => selection.clear);
+                    setIsMergeModalOpen(true);
+                  }}
+                >
+                  Merge Selected
+                </Button>
+              ) : null
+            }
+          />
         )}
       </PageContent>
 

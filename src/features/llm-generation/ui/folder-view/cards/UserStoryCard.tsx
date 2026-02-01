@@ -8,7 +8,6 @@
 import { LuChevronUp, LuChevronDown } from 'react-icons/lu';
 import { MarkdownContent } from '@/shared/ui';
 import type { UserStory } from '@/features/llm-generation';
-import '@/shared/styles/markdown-content.css';
 
 export interface UserStoryCardProps {
   story: UserStory;
@@ -134,8 +133,8 @@ export function UserStoryCard({
       </div>
 
       {/* Story content - render markdown content directly */}
-      <div className="p-3 text-[var(--text)] markdown-content markdown-content--compact markdown-content--story-card text-xs">
-        <MarkdownContent content={story.content} />
+      <div className="p-3 text-[var(--text)] text-xs">
+        <MarkdownContent content={story.content} compact className="markdown-content--story-card" />
       </div>
     </div>
   );

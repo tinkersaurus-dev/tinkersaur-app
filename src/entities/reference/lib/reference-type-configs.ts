@@ -1,6 +1,6 @@
 import type { CreateShapeDTO } from '@/entities/shape';
 import type { DiagramType } from '@/entities/diagram';
-import type { ContentType } from '@/entities/reference';
+import type { ContentType } from '../model/types';
 
 // =============================================================================
 // Canvas Reference Types (for BPMN diagrams - drop onto canvas to create shapes)
