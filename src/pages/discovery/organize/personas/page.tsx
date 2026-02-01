@@ -7,7 +7,6 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge } from 'react-icons/fi';
 import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Persona } from '@/entities/persona';
@@ -124,7 +123,7 @@ export default function PersonasListPage() {
   };
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         title="Personas"
         actions={
@@ -179,6 +178,6 @@ export default function PersonasListPage() {
           teamId={teamId}
         />
       )}
-    </MainLayout>
+    </>
   );
 }

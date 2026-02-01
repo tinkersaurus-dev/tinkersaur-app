@@ -7,7 +7,6 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge } from 'react-icons/fi';
 import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Tag } from '@/shared/ui';
 import type { TableColumn, FilterConfig, TagColor } from '@/shared/ui';
 import type { Feedback } from '@/entities/feedback';
@@ -192,7 +191,7 @@ export default function FeedbackListPage() {
   };
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         title="Feedback"
         actions={
@@ -250,6 +249,6 @@ export default function FeedbackListPage() {
           </>
         )}
       </PageContent>
-    </MainLayout>
+    </>
   );
 }

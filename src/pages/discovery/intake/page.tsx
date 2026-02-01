@@ -11,7 +11,6 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import { FiAlertCircle, FiChevronDown, FiChevronRight, FiCheck } from 'react-icons/fi';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { PageHeader, PageContent } from '@/shared/ui';
 import { Card } from '@/shared/ui/Card';
 import { useAuthStore } from '@/features/auth';
@@ -159,7 +158,7 @@ export default function IntakePage() {
   }
 
   return (
-    <MainLayout>
+    <>
       <PageHeader title="Intake" />
       <PageContent>
         <div className="max-w-5xl desktop:max-w-none mx-auto space-y-4 desktop:space-y-0 desktop:grid desktop:grid-cols-2 desktop:gap-6 desktop:items-start">
@@ -229,6 +228,6 @@ export default function IntakePage() {
           </Card>
         </div>
       </PageContent>
-    </MainLayout>
+    </>
   );
 }

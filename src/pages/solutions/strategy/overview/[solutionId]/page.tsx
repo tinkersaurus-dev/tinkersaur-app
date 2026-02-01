@@ -6,7 +6,6 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { PageHeader, PageContent } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { useSolutionQuery } from '@/entities/solution';
 import {
   useSolutionFactorsQuery,
@@ -166,22 +165,18 @@ export default function OverviewDetailPage() {
   // Loading state
   if (solutionLoading || factorsLoading) {
     return (
-      <MainLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
-        </PageContent>
-      </MainLayout>
+      <PageContent>
+        <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+      </PageContent>
     );
   }
 
   // Error state
   if (isError || !solution) {
     return (
-      <MainLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Solution not found</div>
-        </PageContent>
-      </MainLayout>
+      <PageContent>
+        <div className="text-center py-8 text-[var(--text-muted)]">Solution not found</div>
+      </PageContent>
     );
   }
 
@@ -192,7 +187,7 @@ export default function OverviewDetailPage() {
     createFactorsBulk.isPending;
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         titlePrefix={solution.type.charAt(0).toUpperCase() + solution.type.slice(1) + ': '}
         title={solution.name}
@@ -233,6 +228,6 @@ export default function OverviewDetailPage() {
           onReset={resetGeneration}
         />
       )}
-    </MainLayout>
+    </>
   );
 }

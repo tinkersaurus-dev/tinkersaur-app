@@ -8,7 +8,6 @@ import { useParams, useNavigate, useLoaderData, Link } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiMessageCircle, FiTarget } from 'react-icons/fi';
 import { PageHeader, PageContent } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Card, Modal, Empty, Tabs, Table, EditableSection, EditableField } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
@@ -193,11 +192,9 @@ function OutcomeDetailContent() {
   // Handle loading state
   if (!outcome) {
     return (
-      <MainLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
-        </PageContent>
-      </MainLayout>
+      <PageContent>
+        <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+      </PageContent>
     );
   }
 
@@ -207,7 +204,7 @@ function OutcomeDetailContent() {
     : outcome.description;
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         title={`Outcome - ${titleDescription}`}
         extra={
@@ -343,7 +340,7 @@ function OutcomeDetailContent() {
           This action cannot be undone.
         </p>
       </Modal>
-    </MainLayout>
+    </>
   );
 }
 

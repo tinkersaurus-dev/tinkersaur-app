@@ -1,22 +1,19 @@
 /**
  * MainLayout Component
  * Full-height layout with collapsible sidebar and main content area
+ * Used as a layout route - renders child routes via Outlet
  */
 
-import type { ReactNode } from 'react';
+import { Outlet } from 'react-router';
 import { Layout } from '@/shared/ui';
 import { GlobalSidebar } from '@/widgets/global-sidebar';
 import { ContextualSubHeader } from '@/app/ui/ContextualSubHeader';
 import { useSidebarUIStore } from '@/app/model/stores/sidebar-ui';
 
-interface MainLayoutProps {
-  children: ReactNode;
-}
-
 // Module bar width (always visible inside sidebar)
 const MODULE_BAR_WIDTH = 48;
 
-export function MainLayout({ children }: MainLayoutProps) {
+export default function MainLayout() {
   const { isCollapsed } = useSidebarUIStore();
 
   return (
@@ -35,7 +32,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
           <ContextualSubHeader />
           <Layout.Content className="p-0 flex-1 overflow-hidden">
-            {children}
+            <Outlet />
           </Layout.Content>
         </div>
       </div>

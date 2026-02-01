@@ -8,7 +8,6 @@ import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle, FiArchive, FiAlertTriangle, FiMessageCircle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Card, Modal, Tabs, Empty, Table, EditableSection, EditableField } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import type { Feedback } from '@/entities/feedback';
@@ -317,16 +316,14 @@ function PersonaDetailContent() {
   // Handle case where persona is not yet loaded
   if (!persona) {
     return (
-      <MainLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
-        </PageContent>
-      </MainLayout>
+      <PageContent>
+        <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+      </PageContent>
     );
   }
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         title={`Persona - ${persona.name}`}
         extra={
@@ -634,7 +631,7 @@ function PersonaDetailContent() {
           </ul>
         )}
       </Modal>
-    </MainLayout>
+    </>
   );
 }
 

@@ -7,7 +7,6 @@ import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { FiPlus } from 'react-icons/fi';
 import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Outcome } from '@/entities/outcome';
@@ -119,7 +118,7 @@ export default function OutcomesListPage() {
   ], [solutions]);
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         title="Outcomes"
         actions={
@@ -149,6 +148,6 @@ export default function OutcomesListPage() {
           />
         )}
       </PageContent>
-    </MainLayout>
+    </>
   );
 }

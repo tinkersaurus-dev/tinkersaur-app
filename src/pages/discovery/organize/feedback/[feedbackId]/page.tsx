@@ -8,7 +8,6 @@ import { useParams, useNavigate, useLoaderData, Link } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiUser, FiLink, FiMessageCircle, FiCopy } from 'react-icons/fi';
 import { PageHeader, PageContent } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Card, Modal, Tag, Empty, Tabs, Table, EditableSection, EditableField } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
@@ -299,18 +298,16 @@ function FeedbackDetailContent() {
   // Handle loading state
   if (!feedback) {
     return (
-      <MainLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
-        </PageContent>
-      </MainLayout>
+      <PageContent>
+        <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+      </PageContent>
     );
   }
 
   const typeConfig = FEEDBACK_TYPE_CONFIG[feedback.type];
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         title={`Feedback - ${typeConfig.label}`}
         extra={
@@ -499,7 +496,7 @@ function FeedbackDetailContent() {
           This will also remove all links to personas and use cases. This action cannot be undone.
         </p>
       </Modal>
-    </MainLayout>
+    </>
   );
 }
 

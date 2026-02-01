@@ -9,7 +9,6 @@ import { MdDesignServices } from 'react-icons/md';
 import { useParams, Link, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Input, HStack, Table, Form, useForm, Modal, Select, Tabs } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import type { UseCase } from '@/entities/use-case';
@@ -236,27 +235,23 @@ function SolutionDetailContent() {
   // Handle loading state
   if (solutionLoading) {
     return (
-      <MainLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
-        </PageContent>
-      </MainLayout>
+      <PageContent>
+        <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+      </PageContent>
     );
   }
 
   // Handle error or not found state
   if (isError || !solution) {
     return (
-      <MainLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Solution not found</div>
-        </PageContent>
-      </MainLayout>
+      <PageContent>
+        <div className="text-center py-8 text-[var(--text-muted)]">Solution not found</div>
+      </PageContent>
     );
   }
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         titlePrefix={solution.type.charAt(0).toUpperCase() + solution.type.slice(1) + ': '}
         title={solution.name}
@@ -460,7 +455,7 @@ function SolutionDetailContent() {
           ]}
         />
       </Modal>
-    </MainLayout>
+    </>
   );
 }
 

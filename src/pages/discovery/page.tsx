@@ -5,7 +5,6 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { MainLayout } from '@/app/layouts/MainLayout';
 
 export default function DiscoveryPage() {
   const navigate = useNavigate();
@@ -14,9 +13,5 @@ export default function DiscoveryPage() {
     navigate('/discovery/intake', { replace: true });
   }, [navigate]);
 
-  return (
-    <MainLayout>
-      <div />
-    </MainLayout>
-  );
+  return <div />;
 }

@@ -7,7 +7,6 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge } from 'react-icons/fi';
 import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { UseCase } from '@/entities/use-case';
@@ -149,7 +148,7 @@ export default function UseCasesListPage() {
   };
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         title="Use Cases"
         actions={
@@ -217,6 +216,6 @@ export default function UseCasesListPage() {
           solutions={solutions}
         />
       )}
-    </MainLayout>
+    </>
   );
 }

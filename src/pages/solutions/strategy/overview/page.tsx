@@ -6,7 +6,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { redirect } from 'react-router';
 import { getSelectedSolutionId } from '@/app/model/stores/solution';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { PageHeader, PageContent } from '@/shared/ui';
 import { Empty, Button } from '@/shared/ui';
 import { FiPlus } from 'react-icons/fi';
@@ -43,7 +42,7 @@ export default function OverviewIndex() {
   };
 
   return (
-    <MainLayout>
+    <>
       <PageHeader title="Overview" />
       <PageContent>
         <div className="flex flex-col items-center justify-center py-16">
@@ -67,6 +66,6 @@ export default function OverviewIndex() {
         onSelect={handleCreateSuccess}
         initialView="create"
       />
-    </MainLayout>
+    </>
   );
 }

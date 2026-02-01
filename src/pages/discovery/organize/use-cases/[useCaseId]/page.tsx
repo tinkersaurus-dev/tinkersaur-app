@@ -8,7 +8,6 @@ import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiMessageCircle, FiArchive, FiAlertTriangle } from 'react-icons/fi';
 import { PageHeader, PageContent } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Card, Modal, Tabs } from '@/shared/ui';
 import type { LoaderFunctionArgs } from 'react-router';
 import { useUseCaseQuery, useDeleteUseCase, useUpdateUseCase } from '@/entities/use-case';
@@ -71,16 +70,14 @@ function DiscoveryUseCaseDetailContent() {
   // Handle case where use case is not yet loaded
   if (!useCase) {
     return (
-      <MainLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
-        </PageContent>
-      </MainLayout>
+      <PageContent>
+        <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+      </PageContent>
     );
   }
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         title={`Use Case - ${useCase.name}`}
         extra={
@@ -196,7 +193,7 @@ function DiscoveryUseCaseDetailContent() {
           This will also remove all links to personas and requirements. This action cannot be undone.
         </p>
       </Modal>
-    </MainLayout>
+    </>
   );
 }
 

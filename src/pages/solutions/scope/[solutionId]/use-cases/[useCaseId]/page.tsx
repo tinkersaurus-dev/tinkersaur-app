@@ -10,7 +10,6 @@ import { useParams, useLoaderData, useNavigate } from 'react-router';
 import { useSolutionStore } from '@/app/model/stores/solution';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '@/shared/ui';
-import { MainLayout } from '@/app/layouts/MainLayout';
 import { Button, Tag, HStack, Table, Form, useForm, Modal, Select, Input, Card, Tabs, MarkdownContent, Checkbox } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import type { Requirement, RequirementType, RequirementStatus } from '@/entities/requirement';
@@ -285,16 +284,14 @@ function UseCaseDetailContent() {
   // Handle case where data is not yet loaded
   if (!solution || !useCase) {
     return (
-      <MainLayout>
-        <PageContent>
-          <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
-        </PageContent>
-      </MainLayout>
+      <PageContent>
+        <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
+      </PageContent>
     );
   }
 
   return (
-    <MainLayout>
+    <>
       <PageHeader
         titlePrefix='Use Case: '
         title={useCase.name}
@@ -587,7 +584,7 @@ function UseCaseDetailContent() {
         teamId={useCase.teamId}
         isSaving={createRequirement.isPending}
       />
-    </MainLayout>
+    </>
   );
 }
 
