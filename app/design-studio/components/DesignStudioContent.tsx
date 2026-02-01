@@ -5,11 +5,11 @@
  */
 
 import { useEffect } from 'react';
-import { Layout, Tabs } from '~/core/components/ui';
-import { useDesignStudioUIStore } from '../store';
-import { canvasInstanceRegistry } from '../store/content/canvasInstanceRegistry';
-import { useDesignWorksForContext } from '../hooks/useDesignWorksForContext';
-import { StudioSidebar } from './sidebar';
+import { Layout, Tabs } from '@/shared/ui';
+import { useDesignStudioUIStore } from '@/app/model/stores';
+import { canvasInstanceRegistry } from '@/app/model/stores/canvas';
+import { useDesignWorksForContext } from '@/features/diagram-management';
+import { StudioSidebar } from '@/widgets/studio-sidebar';
 import { OverviewTab } from './OverviewTab';
 import { DiagramView } from './DiagramView';
 import { InterfaceView } from './InterfaceView';

@@ -1,13 +1,13 @@
 import { useState, memo, useMemo } from 'react';
 import { FiTarget, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
-import { Card } from '~/core/components/ui/Card';
-import { Tag } from '~/core/components/ui/Tag';
-import { Select } from '~/core/components/ui/Select';
-import type { ExtractedOutcome, SimilarOutcomeResult } from '~/core/entities/discovery';
-import type { Solution } from '~/core/entities/product-management/types';
+import { Card } from '@/shared/ui/Card';
+import { Tag } from '@/shared/ui/Tag';
+import { Select } from '@/shared/ui/Select';
+import type { ExtractedOutcome, SimilarOutcomeResult } from '@/entities/outcome';
+import type { Solution } from '@/entities/solution';
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
-import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import { formatRelativeTime } from '@/shared/lib/utils';
 
 interface OutcomeResultCardProps {
   outcome: ExtractedOutcome;

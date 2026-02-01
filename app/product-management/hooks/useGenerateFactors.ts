@@ -11,8 +11,9 @@ import {
   type GenerateFactorsRequest,
   type GeneratedFactorItem,
   FactorGeneratorAPIError,
-} from '~/core/api/llm';
-import type { Solution, SolutionFactorType } from '~/core/entities/product-management/types';
+} from '@/features/llm-generation';
+import type { Solution } from '@/entities/solution';
+import type { SolutionFactorType } from '@/entities/solution-factor';
 
 interface UseGenerateFactorsOptions {
   solution: Solution | undefined;

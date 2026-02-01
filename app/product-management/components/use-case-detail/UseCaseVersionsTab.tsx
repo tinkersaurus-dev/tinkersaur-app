@@ -4,15 +4,15 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Button, Modal, Tag, Input, Form, useForm } from '~/core/components/ui';
-import { useUseCaseVersionStore } from '~/core/entities/product-management/store/useUseCaseVersionStore';
+import { Button, Modal, Tag, Input, Form, useForm } from '@/shared/ui';
+import { useUseCaseVersionStore } from '@/entities/use-case-version';
 import { useRevertToUseCaseVersion } from '../../mutations';
-import type { UseCaseVersion, CreateUseCaseVersionDto } from '~/core/entities/product-management/types/UseCaseVersion';
+import type { UseCaseVersion, CreateUseCaseVersionDto } from '@/entities/use-case-version';
 import {
   getStatusColor,
   getValidTransitions,
   UseCaseVersionStatus,
-} from '~/core/entities/product-management/types/UseCaseVersion';
+} from '@/entities/use-case-version';
 import { UseCaseVersionsTable } from './UseCaseVersionsTable';
 import { UseCaseVersionDetailPanel } from './UseCaseVersionDetailPanel';
 

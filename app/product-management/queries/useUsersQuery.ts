@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { userApi } from '~/core/entities/product-management/api';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { userApi } from '@/entities/user';
 
 /**
  * Query hook for fetching users by team

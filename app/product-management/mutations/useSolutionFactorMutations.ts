@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '~/core/query/queryKeys';
-import { solutionFactorApi } from '~/core/entities/product-management/api';
+import { queryKeys } from '@/shared/lib/query';
+import { solutionFactorApi } from '@/entities/solution-factor';
 import type {
   CreateSolutionFactorDto,
   UpdateSolutionFactorDto,
   CreateSolutionFactorsBulkDto,
   SolutionFactorType,
-} from '~/core/entities/product-management/types';
+} from '@/entities/solution-factor';
 
 /**
  * Mutation hook for creating a single solution factor

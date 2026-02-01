@@ -13,14 +13,12 @@ export {
   useCreatePersona,
   useUpdatePersona,
   useDeletePersona,
-  useMergePersonas,
 } from './usePersonaMutations';
 
 export {
   useCreateUseCase,
   useUpdateUseCase,
   useDeleteUseCase,
-  useMergeUseCases,
 } from './useUseCaseMutations';
 
 export {

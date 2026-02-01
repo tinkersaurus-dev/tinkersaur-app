@@ -4,15 +4,15 @@
 
 import { useState, useCallback } from 'react';
 import { FiPlus, FiZap } from 'react-icons/fi';
-import { Input, Button } from '~/core/components/ui';
+import { Input, Button } from '@/shared/ui';
 import { FactorCard } from './FactorCard';
 import { RefinementPreview } from './RefinementPreview';
 import type {
   SolutionFactor,
   SolutionFactorType,
   UpdateSolutionFactorDto,
-} from '~/core/entities/product-management/types';
-import { FACTOR_TYPE_LABELS } from '~/core/entities/product-management/types';
+} from '@/entities/solution-factor';
+import { FACTOR_TYPE_LABELS } from '@/entities/solution-factor';
 
 interface FactorsListProps {
   type: SolutionFactorType;

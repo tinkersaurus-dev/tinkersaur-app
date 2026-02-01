@@ -1,8 +1,8 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { outcomeApi } from '~/core/entities/discovery/api';
-import type { OutcomeListParams } from '~/core/api/types';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { outcomeApi } from '@/entities/outcome';
+import type { OutcomeListParams } from '@/shared/api';
 
 /**
  * Query hook for fetching paginated outcomes

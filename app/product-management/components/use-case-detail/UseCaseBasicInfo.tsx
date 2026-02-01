@@ -4,8 +4,8 @@
  */
 
 import { useState } from 'react';
-import { EditableSection, EditableField } from '~/core/components/ui';
-import type { UseCase } from '~/core/entities/product-management';
+import { EditableSection, EditableField } from '@/shared/ui';
+import type { UseCase } from '@/entities/use-case';
 import type { BasicInfoFormState, BasicInfoErrors } from './types';
 
 export interface UseCaseBasicInfoProps {

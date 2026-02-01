@@ -5,7 +5,7 @@ import {
   FiThumbsUp,
   FiHelpCircle,
 } from 'react-icons/fi';
-import type { FeedbackType } from '~/core/entities/discovery';
+import type { FeedbackType } from '@/entities/feedback';
 
 // Icon mapping for feedback types
 export const FEEDBACK_ICONS: Record<FeedbackType, React.ReactNode> = {

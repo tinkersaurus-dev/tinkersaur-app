@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES, REFETCH_INTERVALS } from '~/core/query/queryClient';
-import { interfaceApi } from '~/core/entities/design-studio/api';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES, REFETCH_INTERVALS } from '@/shared/lib/query';
+import { interfaceApi } from '@/entities/interface';
 
 /**
  * Query hook for fetching interfaces by design work

@@ -27,7 +27,7 @@ import {
   FiEdit2,
   FiCheck,
 } from 'react-icons/fi';
-import { Button, Card, Tag, HStack } from '~/core/components/ui';
+import { Button, Card, Tag, HStack } from '@/shared/ui';
 
 // =============================================================================
 // MOCKUP DATA - Shows what real data might look like

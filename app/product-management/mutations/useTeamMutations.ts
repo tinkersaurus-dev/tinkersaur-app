@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '~/core/query/queryKeys';
-import { teamApi } from '~/core/entities/product-management/api';
-import type { CreateTeamDto } from '~/core/entities/product-management/types';
+import { queryKeys } from '@/shared/lib/query';
+import { teamApi } from '@/entities/team';
+import type { CreateTeamDto } from '@/entities/team';
 
 /**
  * Mutation hook for creating a team

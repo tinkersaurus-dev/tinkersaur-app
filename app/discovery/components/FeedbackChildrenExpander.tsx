@@ -6,10 +6,9 @@
 
 import { useState } from 'react';
 import { FiChevronDown, FiChevronRight, FiX, FiMessageSquare } from 'react-icons/fi';
-import { Card, Tag, Button } from '~/core/components/ui';
-import type { Feedback } from '~/core/entities/discovery';
-import { FEEDBACK_TYPE_CONFIG } from '~/core/entities/discovery/types/Feedback';
-import { useUnmergeFeedback } from '../mutations';
+import { Card, Tag, Button } from '@/shared/ui';
+import { FEEDBACK_TYPE_CONFIG, type Feedback } from '@/entities/feedback';
+import { useUnmergeFeedback } from '@/features/entity-merging';
 
 interface FeedbackChildrenExpanderProps {
   children: Feedback[];

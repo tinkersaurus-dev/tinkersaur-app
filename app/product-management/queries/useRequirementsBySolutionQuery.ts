@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { requirementApi } from '~/core/entities/product-management/api';
-import type { Requirement } from '~/core/entities/product-management/types';
-import type { UseCase } from '~/core/entities/product-management/types';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { requirementApi } from '@/entities/requirement';
+import type { Requirement } from '@/entities/requirement';
+import type { UseCase } from '@/entities/use-case';
 
 /**
  * Extended requirement type with use case context

@@ -5,9 +5,9 @@
 
 import { useNavigate } from 'react-router';
 import { FiUser, FiTarget, FiAlertCircle } from 'react-icons/fi';
-import { Card, Tag } from '~/core/components/ui';
-import type { Persona } from '~/core/entities/product-management';
-import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import { Card, Tag } from '@/shared/ui';
+import type { Persona } from '@/entities/persona';
+import { formatRelativeTime } from '@/shared/lib/utils';
 
 interface PersonaCardProps {
   persona: Persona;

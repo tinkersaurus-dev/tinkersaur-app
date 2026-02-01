@@ -4,14 +4,14 @@
 
 import { useState, useCallback } from 'react';
 import { FiEdit2, FiTrash2, FiCheck, FiX, FiCalendar, FiEye, FiEyeOff, FiZap } from 'react-icons/fi';
-import { MarkdownContent } from '~/core/components/ui/MarkdownContent';
-import { Input, Button } from '~/core/components/ui';
+import { MarkdownContent } from '@/shared/ui/MarkdownContent';
+import { Input, Button } from '@/shared/ui';
 import { RefinementPreview } from './RefinementPreview';
 import type {
   SolutionFactor,
   SolutionFactorType,
   UpdateSolutionFactorDto,
-} from '~/core/entities/product-management/types';
+} from '@/entities/solution-factor';
 
 interface FactorCardProps {
   factor: SolutionFactor;

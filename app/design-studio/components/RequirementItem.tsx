@@ -3,9 +3,9 @@
  * A single draggable requirement row for the Overview tab
  */
 
-import { Tag } from '~/core/components/ui';
+import { Tag } from '@/shared/ui';
 import type { RequirementWithUseCase } from '~/product-management/queries/useRequirementsBySolutionQuery';
-import { REQUIREMENT_TYPE_CONFIG, REQUIREMENT_STATUS_CONFIG } from '~/core/entities/product-management/types';
+import { REQUIREMENT_TYPE_CONFIG, REQUIREMENT_STATUS_CONFIG } from '@/entities/requirement';
 
 interface RequirementItemProps {
   requirement: RequirementWithUseCase;

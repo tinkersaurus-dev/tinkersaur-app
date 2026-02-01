@@ -6,13 +6,17 @@
 
 import { useState, useEffect } from 'react';
 import { FiFileText, FiDatabase, FiEye } from 'react-icons/fi';
-import { Card, Tag, Tabs, MarkdownContent } from '~/core/components/ui';
-import { useUseCaseVersionStore } from '~/core/entities/product-management/store/useUseCaseVersionStore';
-import type { UseCaseVersion } from '~/core/entities/product-management/types/UseCaseVersion';
+import { Card, Tag, Tabs, MarkdownContent } from '@/shared/ui';
+import { useUseCaseVersionStore } from '@/entities/use-case-version';
+import type {
+  UseCaseVersion,
+  RequirementSnapshot,
+  DesignWorkSnapshot,
+} from '@/entities/use-case-version';
 import {
   getStatusColor,
   formatVersionDisplay,
-} from '~/core/entities/product-management/types/UseCaseVersion';
+} from '@/entities/use-case-version';
 import '~/design-studio/styles/markdown-content.css';
 
 export interface UseCaseVersionDetailPanelProps {
@@ -81,7 +85,7 @@ export function UseCaseVersionDetailPanel({
               <div className="text-sm">
                 <span className="text-[var(--text-muted)]">Quotes:</span>
                 <ul className="list-disc list-inside mt-1">
-                  {snapshot.quotes.map((quote, index) => (
+                  {snapshot.quotes.map((quote: string, index: number) => (
                     <li key={index} className="text-[var(--text)] italic">"{quote}"</li>
                   ))}
                 </ul>
@@ -99,7 +103,7 @@ export function UseCaseVersionDetailPanel({
             <p className="text-sm text-[var(--text-muted)]">No requirements</p>
           ) : (
             <div className="space-y-2">
-              {snapshot.requirements.map((req, index) => (
+              {snapshot.requirements.map((req: RequirementSnapshot, index: number) => (
                 <div key={req.originalId || index} className="bg-[var(--bg-secondary)] rounded p-3">
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm text-[var(--text)] flex-1">{req.text}</p>
@@ -122,7 +126,7 @@ export function UseCaseVersionDetailPanel({
             <p className="text-sm text-[var(--text-muted)]">No design works</p>
           ) : (
             <div className="space-y-2">
-              {snapshot.designWorks.map((dw, index) => (
+              {snapshot.designWorks.map((dw: DesignWorkSnapshot, index: number) => (
                 <div key={dw.originalId || index} className="bg-[var(--bg-secondary)] rounded p-3">
                   <p className="text-sm font-medium text-[var(--text)]">{dw.name}</p>
                   <div className="flex gap-4 mt-1 text-xs text-[var(--text-muted)]">

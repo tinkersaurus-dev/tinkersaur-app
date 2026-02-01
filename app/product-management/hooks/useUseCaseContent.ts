@@ -1,13 +1,14 @@
 import { useEffect, useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
-import { useDiagramStore, useDocumentStore } from '~/core/entities/design-studio';
-import type { DesignWork } from '~/core/entities/design-studio';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { diagramApi, documentApi } from '~/core/entities/design-studio/api';
-import { requirementApi } from '~/core/entities/product-management/api';
-import type { Requirement } from '~/core/entities/product-management/types';
+import { useDesignWorkStore, type DesignWork } from '@/entities/design-work';
+import { useDiagramStore } from '@/entities/diagram';
+import { useDocumentStore } from '@/entities/document';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { diagramApi } from '@/entities/diagram';
+import { documentApi } from '@/entities/document';
+import { requirementApi } from '@/entities/requirement';
+import type { Requirement } from '@/entities/requirement';
 
 interface ContentItem {
   type: 'diagram' | 'document';

@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '~/core/query/queryKeys';
-import { requirementApi } from '~/core/entities/product-management/api';
-import type { CreateRequirementDto } from '~/core/entities/product-management/types';
+import { queryKeys } from '@/shared/lib/query';
+import { requirementApi } from '@/entities/requirement';
+import type { CreateRequirementDto } from '@/entities/requirement';
 
 /**
  * Mutation hook for creating a requirement

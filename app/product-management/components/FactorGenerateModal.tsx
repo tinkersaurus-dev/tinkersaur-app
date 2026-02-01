@@ -5,11 +5,11 @@
 
 import { useEffect, useCallback, useRef, useState, useMemo } from 'react';
 import { FiCheck, FiZap } from 'react-icons/fi';
-import { Modal } from '~/core/components/ui/Modal';
-import { MarkdownContent } from '~/core/components/ui/MarkdownContent';
-import type { SolutionFactorType } from '~/core/entities/product-management/types';
-import { FACTOR_TYPE_LABELS } from '~/core/entities/product-management/types';
-import type { GeneratedFactorItem } from '~/core/api/llm';
+import { Modal } from '@/shared/ui/Modal';
+import { MarkdownContent } from '@/shared/ui/MarkdownContent';
+import type { SolutionFactorType } from '@/entities/solution-factor';
+import { FACTOR_TYPE_LABELS } from '@/entities/solution-factor';
+import type { GeneratedFactorItem } from '@/features/llm-generation';
 
 interface FactorGenerateModalProps {
   open: boolean;

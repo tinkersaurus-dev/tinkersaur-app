@@ -4,7 +4,7 @@
 
 import { useCallback } from 'react';
 import { useIntakeSourceQuery } from '~/discovery/queries';
-import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
+import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 
 /**
  * Returns a formatted display name for an intake source

@@ -3,7 +3,7 @@
  * Placeholder for interface/wireframe content
  */
 
-import { Card, Tag, Empty } from '~/core/components/ui';
+import { Card, Tag, Empty } from '@/shared/ui';
 import { useInterface } from '../hooks';
 
 interface InterfaceViewProps {

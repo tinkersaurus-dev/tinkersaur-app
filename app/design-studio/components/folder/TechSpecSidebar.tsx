@@ -4,8 +4,8 @@
  * Displays a vertical list of specification section titles for navigation.
  */
 
-import type { TechSpecSection } from '~/core/api/llm';
-import { TECH_SPEC_SECTION_LABELS } from '~/core/api/llm';
+import type { TechSpecSection } from '@/features/llm-generation';
+import { TECH_SPEC_SECTION_LABELS } from '@/features/llm-generation';
 
 export interface TechSpecSidebarProps {
   sections: TechSpecSection[];

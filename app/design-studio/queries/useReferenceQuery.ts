@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { referenceApi } from '~/core/entities/design-studio/api';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { referenceApi } from '@/entities/reference';
 
 /**
  * Query hook for fetching references by design work

@@ -7,9 +7,9 @@
 
 import { useState, useCallback } from 'react';
 import { LuSparkles, LuCopy } from 'react-icons/lu';
-import { MarkdownContent, Tabs } from '~/core/components/ui';
-import { Button } from '~/core/components/ui/Button';
-import { useAuthStore } from '~/core/auth';
+import { MarkdownContent, Tabs } from '@/shared/ui';
+import { Button } from '@/shared/ui/Button';
+import { useAuthStore } from '@/features/auth';
 import {
   generateUserStories,
   generateUserDocsStructured,
@@ -19,7 +19,7 @@ import {
   type UserStory,
   type UserDocument,
   type TechSpecSection,
-} from '~/core/api/llm';
+} from '@/features/llm-generation';
 import { UserStoriesPanel } from './UserStoriesPanel';
 import { UserDocsPanel } from './UserDocsPanel';
 import { TechSpecPanel } from './TechSpecPanel';

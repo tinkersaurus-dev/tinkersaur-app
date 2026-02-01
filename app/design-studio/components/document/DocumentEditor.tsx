@@ -7,8 +7,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { LuEye, LuPencil, LuColumns2 } from 'react-icons/lu';
-import { MarkdownContent } from '~/core/components/ui';
-import { Button } from '~/core/components/ui/Button';
+import { MarkdownContent } from '@/shared/ui';
+import { Button } from '@/shared/ui/Button';
 import '../../styles/markdown-content.css';
 
 export type DocumentViewMode = 'edit' | 'split' | 'preview';

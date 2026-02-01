@@ -11,7 +11,7 @@ import {
   splitUserStory,
   regenerateUserStory,
   type UserStory,
-} from '~/core/api/llm';
+} from '@/features/llm-generation';
 import type { OperationType } from './StoryOperationModal';
 
 // Operation state machine types

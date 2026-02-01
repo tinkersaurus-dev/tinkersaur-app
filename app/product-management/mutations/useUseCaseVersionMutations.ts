@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '~/core/query/queryKeys';
-import { useCaseVersionApi } from '~/core/entities/product-management/api';
+import { queryKeys } from '@/shared/lib/query';
+import { useCaseVersionApi } from '@/entities/use-case-version';
 import type {
   CreateUseCaseVersionDto,
   UpdateUseCaseVersionDto,
-} from '~/core/entities/product-management/types/UseCaseVersion';
+} from '@/entities/use-case-version';
 
 /**
  * Mutation hook for creating a use case version

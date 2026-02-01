@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { feedbackApi } from '~/core/entities/discovery/api';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { feedbackApi } from '@/entities/feedback';
 
 /**
  * Query hook for fetching feedbacks by team

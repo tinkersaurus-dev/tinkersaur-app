@@ -5,10 +5,10 @@
  * Each diagram gets its own isolated canvas instance.
  */
 
-import { Empty } from '~/core/components/ui';
+import { Empty } from '@/shared/ui';
 import { ErrorBoundary } from '~/core/components';
 import { useDiagram } from '../hooks';
-import { Canvas } from './canvas/core/Canvas';
+import { Canvas } from '@/widgets/canvas';
 
 interface DiagramViewProps {
   diagramId: string;

@@ -4,9 +4,9 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { Empty } from '~/core/components/ui';
+import { Empty } from '@/shared/ui';
 import { useDocument } from '../hooks';
-import { useDocumentStore } from '~/core/entities/design-studio';
+import { useDocumentStore } from '@/entities/document';
 import { DocumentEditor } from './document';
 
 interface DocumentViewProps {

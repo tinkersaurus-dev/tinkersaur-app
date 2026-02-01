@@ -4,7 +4,7 @@
  * Displays a vertical list of document titles for navigation.
  */
 
-import type { UserDocument } from '~/core/api/llm';
+import type { UserDocument } from '@/features/llm-generation';
 
 export interface UserDocSidebarProps {
   documents: UserDocument[];

@@ -5,9 +5,9 @@
  */
 
 import { FiUser, FiAlertCircle } from 'react-icons/fi';
-import { Card, Tag, Button } from '~/core/components/ui';
-import type { SimilarPersonaResult } from '~/core/entities/product-management/types';
-import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import { Card, Tag, Button } from '@/shared/ui';
+import type { SimilarPersonaResult } from '@/entities/persona';
+import { formatRelativeTime } from '@/shared/lib/utils';
 
 interface SimilarPersonasPanelProps {
   results: SimilarPersonaResult[];

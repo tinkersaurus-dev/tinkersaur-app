@@ -1,0 +1,176 @@
+import { useCallback } from 'react';
+import type { RefObject, MutableRefObject } from 'react';
+import type { ViewportTransform } from '../utils/viewport';
+import type { DragData } from './useInteractionState';
+import type { Shape } from '@/entities/shape';
+import { isLLMPreviewShapeData } from '@/entities/shape';
+import { getShapeWithDescendants } from '../utils/containment-utils';
+
+interface UseShapeInteractionProps {
+  // Viewport transform for coordinate transformation
+  viewportTransform: ViewportTransform;
+
+  // Selection state management
+  selectedShapeIds: string[];
+  setSelectedShapes: (shapeIds: string[]) => void;
+
+  // Hover state management
+  setHoveredShapeId: (shapeId: string | null) => void;
+
+  // Drag initialization callback
+  startDragging: (canvasX: number, canvasY: number, shapesToDrag: string[]) => DragData;
+  onStartDragging: (dragData: DragData) => void;
+
+  // Shared refs
+  containerRef: RefObject<HTMLDivElement | null>;
+  lastMousePosRef: MutableRefObject<{ x: number; y: number }>;
+
+  // Shapes array for preview container expansion
+  shapes: Shape[];
+
+  // Optional right-click handler for context menu
+  onShapeRightClick?: (shapeId: string, screenX: number, screenY: number) => void;
+}
+
+interface UseShapeInteractionReturn {
+  handleShapeMouseDown: (e: React.MouseEvent, shapeId: string) => void;
+  handleShapeMouseEnter: (e: React.MouseEvent, shapeId: string) => void;
+  handleShapeMouseLeave: (e: React.MouseEvent, shapeId: string) => void;
+}
+
+/**
+ * Hook for managing shape interaction (selection, hover, drag initialization)
+ *
+ * Handles:
+ * - Single and multi-select with modifier keys (Shift/Ctrl/Cmd)
+ * - Hover state tracking
+ * - Drag initialization coordination with useShapeDragging
+ * - Event propagation control
+ *
+ * @param props - Configuration for shape interaction
+ * @returns Event handlers for shape mouse events
+ */
+export function useShapeInteraction({
+  viewportTransform,
+  selectedShapeIds,
+  setSelectedShapes,
+  setHoveredShapeId,
+  startDragging,
+  onStartDragging,
+  containerRef,
+  lastMousePosRef,
+  shapes,
+  onShapeRightClick,
+}: UseShapeInteractionProps): UseShapeInteractionReturn {
+
+  // Helper function to expand shape IDs to include preview shapes and descendants
+  const expandWithPreviewShapes = useCallback((shapeIds: string[]): string[] => {
+    const expanded = new Set(shapeIds);
+
+    for (const shapeId of shapeIds) {
+      const shape = shapes.find(s => s.id === shapeId);
+
+      // Expand llm-preview containers (legacy support)
+      if (shape?.type === 'llm-preview' && isLLMPreviewShapeData(shape.data)) {
+        // Add all preview shape IDs
+        shape.data.previewShapeIds.forEach(id => expanded.add(id));
+      }
+
+      // Expand container descendants (parent-child relationships)
+      // When Shift+clicking a container, include all its children
+      const descendants = getShapeWithDescendants(shapeId, shapes);
+      descendants.forEach(id => expanded.add(id));
+    }
+
+    return Array.from(expanded);
+  }, [shapes]);
+
+  // Handle shape mouse down for selection and drag initialization
+  const handleShapeMouseDown = useCallback(
+    (e: React.MouseEvent, shapeId: string) => {
+      // Stop propagation to prevent canvas background click
+      e.stopPropagation();
+
+      // Handle right-click for context menu
+      if (e.button === 2) {
+        e.preventDefault();
+        onShapeRightClick?.(shapeId, e.clientX, e.clientY);
+        return;
+      }
+
+      // Only handle left mouse button
+      if (e.button !== 0) return;
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      // Get mouse position in screen and canvas coordinates
+      const rect = container.getBoundingClientRect();
+      const screenX = e.clientX - rect.left;
+      const screenY = e.clientY - rect.top;
+      const { x: canvasX, y: canvasY } = viewportTransform.screenToCanvas(
+        screenX,
+        screenY
+      );
+
+      // Check for multi-select modifiers (Shift, Ctrl, or Cmd on Mac)
+      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+
+      // Determine which shapes will be dragged BEFORE modifying selection
+      let shapesToDrag: string[];
+
+      if (isMultiSelect) {
+        // Toggle shape in selection
+        if (selectedShapeIds.includes(shapeId)) {
+          // Remove from selection
+          setSelectedShapes(selectedShapeIds.filter((id) => id !== shapeId));
+          // Don't start dragging if we just deselected
+          return;
+        } else {
+          // Add to selection
+          const newSelection = [...selectedShapeIds, shapeId];
+          setSelectedShapes(newSelection);
+          // Drag all newly selected shapes (expanded to include preview shapes)
+          shapesToDrag = expandWithPreviewShapes(newSelection);
+        }
+      } else {
+        // If clicking on a non-selected shape, select only that shape
+        if (!selectedShapeIds.includes(shapeId)) {
+          setSelectedShapes([shapeId]);
+          shapesToDrag = expandWithPreviewShapes([shapeId]);
+        } else {
+          // Clicking on a selected shape - drag all currently selected shapes (expanded)
+          shapesToDrag = expandWithPreviewShapes(selectedShapeIds);
+        }
+      }
+
+      // Start dragging and transition state machine
+      const dragData = startDragging(canvasX, canvasY, shapesToDrag);
+      onStartDragging(dragData);
+      lastMousePosRef.current = { x: screenX, y: screenY };
+    },
+    [selectedShapeIds, setSelectedShapes, viewportTransform, startDragging, onStartDragging, containerRef, lastMousePosRef, expandWithPreviewShapes, onShapeRightClick]
+  );
+
+  // Handle shape mouse enter for hover state
+  const handleShapeMouseEnter = useCallback(
+    (e: React.MouseEvent, shapeId: string) => {
+      setHoveredShapeId(shapeId);
+    },
+    [setHoveredShapeId]
+  );
+
+  // Handle shape mouse leave for hover state
+  const handleShapeMouseLeave = useCallback(
+    (_e: React.MouseEvent, _shapeId: string) => {
+      setHoveredShapeId(null);
+    },
+    [setHoveredShapeId]
+  );
+
+  return {
+    handleShapeMouseDown,
+    handleShapeMouseEnter,
+    handleShapeMouseLeave,
+  };
+}

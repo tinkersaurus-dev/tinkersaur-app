@@ -3,9 +3,9 @@
  * Displays suggestions or problems in a table format
  */
 
-import { Table, Empty } from '~/core/components/ui';
-import type { TableColumn } from '~/core/components/ui';
-import type { QuoteWithSource } from '~/core/entities/discovery/types/Quote';
+import { Table, Empty } from '@/shared/ui';
+import type { TableColumn } from '@/shared/ui';
+import type { QuoteWithSource } from '@/entities/quote';
 import type { FeedbackRow } from './types';
 
 export interface UseCaseFeedbackTabProps {

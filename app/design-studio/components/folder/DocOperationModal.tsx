@@ -6,8 +6,8 @@
 
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Input } from '~/core/components/ui';
-import type { UserDocument, DocumentStep } from '~/core/api/llm';
+import { Input } from '@/shared/ui';
+import type { UserDocument, DocumentStep } from '@/features/llm-generation';
 import {
   OperationModal,
   ArrayFieldCardEditor,

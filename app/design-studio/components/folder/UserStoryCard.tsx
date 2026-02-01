@@ -6,8 +6,8 @@
  */
 
 import { LuChevronUp, LuChevronDown } from 'react-icons/lu';
-import { MarkdownContent } from '~/core/components/ui';
-import type { UserStory } from '~/core/api/llm';
+import { MarkdownContent } from '@/shared/ui';
+import type { UserStory } from '@/features/llm-generation';
 import '../../styles/markdown-content.css';
 
 export interface UserStoryCardProps {

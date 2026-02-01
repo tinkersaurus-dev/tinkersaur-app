@@ -1,10 +1,11 @@
 import { FiUser, FiClipboard, FiMessageSquare, FiTrendingUp } from 'react-icons/fi';
-import type { Persona } from '~/core/entities/product-management';
-import type { UseCase } from '~/core/entities/product-management';
-import type { Feedback, Outcome } from '~/core/entities/discovery';
-import { FEEDBACK_TYPE_CONFIG } from '~/core/entities/discovery';
-import { Tag } from '~/core/components/ui/Tag';
-import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import type { Persona } from '@/entities/persona';
+import type { UseCase } from '@/entities/use-case';
+import type { Feedback } from '@/entities/feedback';
+import type { Outcome } from '@/entities/outcome';
+import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
+import { Tag } from '@/shared/ui/Tag';
+import { formatRelativeTime } from '@/shared/lib/utils';
 import { FEEDBACK_TAG_COLORS } from '~/discovery/constants';
 
 // Export icons for use in section headers

@@ -3,7 +3,7 @@
  * Container for draggable requirements in the Overview tab
  */
 
-import { VStack, Empty } from '~/core/components/ui';
+import { VStack, Empty } from '@/shared/ui';
 import { RequirementItem } from './RequirementItem';
 import type { RequirementWithUseCase } from '~/product-management/queries/useRequirementsBySolutionQuery';
 

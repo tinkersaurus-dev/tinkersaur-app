@@ -1,12 +1,13 @@
 import { useState, memo, useMemo } from 'react';
 import { FiClipboard, FiTrash2, FiAlertCircle, FiGitMerge } from 'react-icons/fi';
-import { Card, Button } from '~/core/components/ui';
-import { Select } from '~/core/components/ui/Select';
-import type { ExtractedUseCase } from '~/core/entities/discovery';
-import type { SimilarUseCaseResult, Solution } from '~/core/entities/product-management/types';
+import { Card, Button } from '@/shared/ui';
+import { Select } from '@/shared/ui/Select';
+import type { ExtractedUseCase } from '@/entities/intake-result';
+import type { SimilarUseCaseResult } from '@/entities/use-case';
+import type { Solution } from '@/entities/solution';
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
-import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import { formatRelativeTime } from '@/shared/lib/utils';
 import type { PendingUseCaseMerge } from '~/discovery/hooks/useSaveIntakeResult';
 
 interface UseCaseResultCardProps {

@@ -1,15 +1,14 @@
 import { useState, useCallback } from 'react';
-import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback, ExtractedOutcome, SourceTypeKey } from '~/core/entities/discovery';
-import { metadataToIntakeSource } from '~/core/entities/discovery';
-import type { CreatePersonaDto, MergedPersonaData } from '~/core/entities/product-management/types/Persona';
-import type { CreateUseCaseDto, MergedUseCaseData } from '~/core/entities/product-management/types/UseCase';
-import type { CreateFeedbackDto } from '~/core/entities/discovery/types/Feedback';
-import type { CreateOutcomeDto } from '~/core/entities/discovery/types/Outcome';
-import { personaApi } from '~/core/entities/product-management/api/personaApi';
-import { useCaseApi } from '~/core/entities/product-management/api/useCaseApi';
-import { feedbackApi } from '~/core/entities/discovery/api/feedbackApi';
-import { outcomeApi } from '~/core/entities/discovery/api/outcomeApi';
-import { intakeSourceApi } from '~/core/entities/discovery/api/intakeSourceApi';
+import type { ExtractedPersona } from '@/entities/intake-result';
+import type { ExtractedUseCase } from '@/entities/intake-result';
+import type { ExtractedFeedback } from '@/entities/feedback';
+import type { ExtractedOutcome } from '@/entities/outcome';
+import type { SourceTypeKey } from '@/entities/source-type';
+import { metadataToIntakeSource, intakeSourceApi } from '@/entities/intake-source';
+import { personaApi, type CreatePersonaDto, type MergedPersonaData } from '@/entities/persona';
+import { useCaseApi, type CreateUseCaseDto, type MergedUseCaseData } from '@/entities/use-case';
+import { feedbackApi, type CreateFeedbackDto } from '@/entities/feedback';
+import { outcomeApi, type CreateOutcomeDto } from '@/entities/outcome';
 
 export interface PendingMerge {
   intakePersonaIndex: number;

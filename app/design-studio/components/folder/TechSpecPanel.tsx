@@ -7,12 +7,12 @@
  */
 
 import { useCallback } from 'react';
-import { useAuthStore } from '~/core/auth';
+import { useAuthStore } from '@/features/auth';
 import {
   regenerateTechSpecSection,
   techSpecSectionToMarkdown,
   type TechSpecSection,
-} from '~/core/api/llm';
+} from '@/features/llm-generation';
 import { TechSpecCard } from './TechSpecCard';
 import { TechSpecSidebar } from './TechSpecSidebar';
 import { TechSpecOperationModal } from './TechSpecOperationModal';

@@ -1,17 +1,15 @@
 /**
  * Core shared component exports
+ *
+ * NOTE: These components have NOT been migrated to src/shared yet.
+ * They are pending future migration when their proper destination is determined.
+ *
+ * Migrated components:
+ * - UI components (Tree, Dropdown, etc.) → @/shared/ui
+ * - AppLayout, AppHeader, MainLayout, ContextualSubHeader → @/app/*
  */
-export { AppLayout } from './AppLayout';
-export { AppHeader } from './AppHeader';
-export { ContextualSubHeader } from './ContextualSubHeader';
-export { MainLayout } from './MainLayout';
-export { GlobalSidebar } from './GlobalSidebar';
+export { ErrorBoundary } from './ErrorBoundary';
 export { InlineTeamSelector } from './InlineTeamSelector';
-export { InlineSolutionSelector } from './InlineSolutionSelector';
 export { PageHeader } from './PageHeader';
 export { PageContent } from './PageContent';
-export { Tree } from './ui/Tree';
-export type { TreeNodeData, DropPosition } from './ui/Tree';
-export { Dropdown } from './ui/Dropdown';
-export type { DropdownMenuItem, DropdownMenuProps, DropdownProps } from './ui/Dropdown';
-export { ErrorBoundary } from './ErrorBoundary';
+export { ListControlPanel } from './ListControlPanel';

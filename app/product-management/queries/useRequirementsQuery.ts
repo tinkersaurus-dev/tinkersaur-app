@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { requirementApi } from '~/core/entities/product-management/api';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { requirementApi } from '@/entities/requirement';
 
 /**
  * Query hook for fetching requirements by use case

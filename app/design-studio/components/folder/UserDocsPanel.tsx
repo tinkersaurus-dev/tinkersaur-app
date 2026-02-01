@@ -7,12 +7,12 @@
  */
 
 import { useCallback } from 'react';
-import { useAuthStore } from '~/core/auth';
+import { useAuthStore } from '@/features/auth';
 import {
   regenerateUserDocument,
   userDocumentToMarkdown,
   type UserDocument,
-} from '~/core/api/llm';
+} from '@/features/llm-generation';
 import { UserDocCard } from './UserDocCard';
 import { UserDocSidebar } from './UserDocSidebar';
 import { DocOperationModal } from './DocOperationModal';

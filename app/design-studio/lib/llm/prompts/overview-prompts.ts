@@ -3,7 +3,7 @@
  * Each factor type has its own specialized prompt for appropriate formatting
  */
 
-import type { SolutionFactorType } from '~/core/entities/product-management/types';
+import type { SolutionFactorType } from '@/entities/solution-factor';
 
 const COMMON_CONTEXT_INSTRUCTIONS = `
 You will receive context about the solution including:

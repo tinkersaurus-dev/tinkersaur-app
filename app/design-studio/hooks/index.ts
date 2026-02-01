@@ -1,35 +1,38 @@
 /**
  * Design Studio Custom Hooks
  *
- * This module exports all custom hooks for the Design Studio.
- * Use these hooks in components instead of accessing stores directly.
+ * MIGRATION IN PROGRESS:
+ * - Diagram management hooks → @/features/diagram-management
+ * - Shape rendering hooks → @/features/diagram-rendering
+ * - Canvas interaction hooks will move to @/widgets/canvas in Phase 4
  */
 
-// DesignWork hooks
-export { useDesignWorks, useChildDesignWorks, useRootDesignWorks, useDesignWork } from './useDesignWorks';
-export { useDesignWorksForContext } from './useDesignWorksForContext';
+// Re-export from features (temporary, for backwards compatibility)
+export {
+  useDesignWorks,
+  useChildDesignWorks,
+  useRootDesignWorks,
+  useDesignWork,
+  useDesignWorksForContext,
+  useDiagram,
+  useInterface,
+  useDocument,
+  useFolderContent,
+  useDesignStudioCRUD,
+  useDiagramCRUD,
+  useAsyncGeneration,
+  useGeneratorReferences,
+  useGenerateDiagram,
+  useFolderReferenceDrop,
+  useRequirementReferenceDrop,
+  useMermaidSync,
+  useSuggestionsGenerator,
+  type UseAsyncGenerationReturn,
+  type UseGeneratorReferencesReturn,
+  type UseGenerateDiagramReturn,
+} from '@/features/diagram-management';
 
-// Diagram hooks - now lazy loaded
-export { useDiagram } from './useDiagrams';
+export { useShapeInteractivity } from '@/features/diagram-rendering';
 
-// Interface hooks - now lazy loaded
-export { useInterface } from './useInterfaces';
-
-// Document hooks - now lazy loaded
-export { useDocument } from './useDocuments';
-
-// Folder content hooks
-export { useFolderContent } from './useFolderContent';
-
-// CRUD operations hook
-export { useDesignStudioCRUD } from './useDesignStudioCRUD';
-
-// Async generation hook
-export { useAsyncGeneration, type UseAsyncGenerationReturn } from './useAsyncGeneration';
-
-// Generator diagram hooks
-export { useGeneratorReferences, type UseGeneratorReferencesReturn } from './useGeneratorReferences';
-export { useGenerateDiagram, type UseGenerateDiagramReturn } from './useGenerateDiagram';
-
-// Shape rendering hooks
-export { useShapeInteractivity } from './useShapeInteractivity';
+// Canvas interaction hooks (will migrate in Phase 4)
+// These are not exported - they're used internally by canvas components

@@ -2,7 +2,7 @@
  * Shared types for use case detail components
  */
 
-import type { QuoteWithSource } from '~/core/entities/discovery/types/Quote';
+import type { QuoteWithSource } from '@/entities/quote';
 
 /**
  * Quote row type for the quotes table

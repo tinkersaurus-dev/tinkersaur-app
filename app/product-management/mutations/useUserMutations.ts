@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '~/core/query/queryKeys';
-import { userApi } from '~/core/entities/product-management/api';
-import type { CreateUserDto } from '~/core/entities/product-management/types';
+import { queryKeys } from '@/shared/lib/query';
+import { userApi } from '@/entities/user';
+import type { CreateUserDto } from '@/entities/user';
 
 /**
  * Mutation hook for creating a user

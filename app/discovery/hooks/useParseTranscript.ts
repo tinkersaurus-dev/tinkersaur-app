@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { parseTranscript as parseTranscriptApi, ParseTranscriptAPIError } from '~/core/api/llm';
-import type { SourceTypeKey, IntakeResult } from '~/core/entities/discovery';
+import { parseTranscript as parseTranscriptApi, ParseTranscriptAPIError } from '@/features/llm-generation';
+import type { SourceTypeKey } from '@/entities/source-type';
+import type { IntakeResult } from '@/entities/intake-result';
 
 interface UseParseTranscriptReturn {
   parseTranscript: (

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES, REFETCH_INTERVALS } from '~/core/query/queryClient';
-import { designWorkApi, type DesignWorksWithReferences } from '~/core/entities/design-studio/api';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES, REFETCH_INTERVALS } from '@/shared/lib/query';
+import { designWorkApi, type DesignWorksWithReferences } from '@/entities/design-work';
 
 /**
  * Query hook for fetching design works by solution with content metadata.

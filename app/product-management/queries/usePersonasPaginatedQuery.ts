@@ -1,7 +1,7 @@
-import { queryKeys } from '~/core/query/queryKeys';
-import { createPaginatedQueryHook } from '~/core/query/createPaginatedQueryHook';
-import { personaApi } from '~/core/entities/product-management/api';
-import type { PersonaListParams } from '~/core/api/types';
+import { queryKeys } from '@/shared/lib/query';
+import { createPaginatedQueryHook } from '@/shared/lib/query';
+import { personaApi } from '@/entities/persona';
+import type { PersonaListParams } from '@/shared/api';
 
 /**
  * Query hook for fetching paginated personas

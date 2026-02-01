@@ -6,7 +6,7 @@
  */
 
 import { useState, type ReactNode } from 'react';
-import { Modal, Input } from '~/core/components/ui';
+import { Modal, Input } from '@/shared/ui';
 
 // ============================================================================
 // Types

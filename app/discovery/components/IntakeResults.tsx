@@ -2,12 +2,13 @@ import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { FiUsers, FiClipboard, FiMessageSquare, FiRefreshCw, FiSave, FiTarget } from 'react-icons/fi';
-import { Card } from '~/core/components/ui/Card';
-import { Button } from '~/core/components/ui/Button';
-import { Tabs } from '~/core/components/ui/Tabs';
-import { Empty } from '~/core/components/ui/Empty';
-import { useAuthStore } from '~/core/auth';
-import type { IntakeResult, SourceTypeKey } from '~/core/entities/discovery';
+import { Card } from '@/shared/ui/Card';
+import { Button } from '@/shared/ui/Button';
+import { Tabs } from '@/shared/ui/Tabs';
+import { Empty } from '@/shared/ui/Empty';
+import { useAuthStore } from '@/features/auth';
+import type { IntakeResult } from '@/entities/intake-result';
+import type { SourceTypeKey } from '@/entities/source-type';
 import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo, SimilarOutcomeInfo } from '~/discovery/types';
 import { useSaveIntakeResult } from '~/discovery/hooks';
 import { useSimilarPersonasQuery, useSimilarUseCasesQuery, useSimilarFeedbackQuery, useSimilarOutcomesQuery } from '~/discovery/queries';
@@ -16,9 +17,14 @@ import { PersonaResultCard } from './PersonaResultCard';
 import { UseCaseResultCard } from './UseCaseResultCard';
 import { FeedbackResultCard } from './FeedbackResultCard';
 import { OutcomeResultCard } from './OutcomeResultCard';
-import { IntakePersonaMergeModal, type PendingMerge } from './IntakePersonaMergeModal';
-import { IntakeUseCaseMergeModal, type PendingUseCaseMerge } from './IntakeUseCaseMergeModal';
-import { IntakeFeedbackMergeModal, type PendingFeedbackMerge } from './IntakeFeedbackMergeModal';
+import {
+  IntakePersonaMergeModal,
+  type PendingPersonaMerge as PendingMerge,
+  IntakeUseCaseMergeModal,
+  type PendingUseCaseMerge,
+  IntakeFeedbackMergeModal,
+  type PendingFeedbackMerge
+} from '@/features/entity-merging';
 
 
 function generateItemKey(

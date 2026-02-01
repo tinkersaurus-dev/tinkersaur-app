@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { personaApi } from '~/core/entities/product-management/api';
-import type { FindSimilarPersonasRequest } from '~/core/entities/product-management/types';
+import { queryKeys } from '@/shared/lib/query';
+import { personaApi } from '@/entities/persona';
+import type { FindSimilarPersonasRequest } from '@/entities/persona';
 
 /**
  * Query hook for finding similar personas

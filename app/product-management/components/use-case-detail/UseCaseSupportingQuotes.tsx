@@ -4,10 +4,10 @@
  */
 
 import { useMemo } from 'react';
-import { Table, Empty } from '~/core/components/ui';
-import type { TableColumn } from '~/core/components/ui';
+import { Table, Empty } from '@/shared/ui';
+import type { TableColumn } from '@/shared/ui';
 import type { QuoteRow } from './types';
-import type { QuoteWithSource } from '~/core/entities/discovery/types/Quote';
+import type { QuoteWithSource } from '@/entities/quote';
 
 export interface UseCaseSupportingQuotesProps {
   quotes: QuoteWithSource[];

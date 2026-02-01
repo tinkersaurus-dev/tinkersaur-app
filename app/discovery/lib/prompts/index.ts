@@ -3,7 +3,7 @@
  * Each source type has its own specialized prompt for optimal extraction
  */
 
-import type { SourceTypeKey } from '~/core/entities/discovery';
+import type { SourceTypeKey } from '@/entities/source-type';
 
 // Import source-type specific prompts
 import { USER_INTERVIEW_SYSTEM_PROMPT } from './source-types/user-interview-prompts';
@@ -18,8 +18,6 @@ export { STAKEHOLDER_INTERVIEW_SYSTEM_PROMPT } from './source-types/stakeholder-
 export { MEETING_TRANSCRIPT_SYSTEM_PROMPT } from './source-types/meeting-transcript-prompts';
 export { SUPPORT_TICKET_SYSTEM_PROMPT } from './source-types/support-ticket-prompts';
 export { SURVEY_RESPONSE_SYSTEM_PROMPT } from './source-types/survey-response-prompts';
-export { PERSONA_MERGE_SYSTEM_PROMPT } from './persona-merge-prompts';
-export { USE_CASE_MERGE_SYSTEM_PROMPT } from './use-case-merge-prompts';
 
 /**
  * Prompt configuration for each source type

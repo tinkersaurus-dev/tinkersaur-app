@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Select, MultiSelect, SearchInput } from '~/core/components/ui';
-import type { SelectOption } from '~/core/components/ui';
-import type { MultiSelectOption } from '~/core/components/ui/MultiSelect';
+import { Select, MultiSelect, SearchInput } from '@/shared/ui';
+import type { SelectOption } from '@/shared/ui';
+import type { MultiSelectOption } from '@/shared/ui/MultiSelect';
 
 interface FilterConfig {
   key: string;

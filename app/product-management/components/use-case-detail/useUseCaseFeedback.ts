@@ -5,10 +5,10 @@
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { useFeedbacksPaginatedQuery } from '~/discovery/queries';
-import { queryKeys } from '~/core/query/queryKeys';
-import { intakeSourceApi } from '~/core/entities/discovery/api';
-import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
-import type { Feedback } from '~/core/entities/discovery/types';
+import { queryKeys } from '@/shared/lib/query';
+import { intakeSourceApi } from '@/entities/intake-source';
+import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
+import type { Feedback } from '@/entities/feedback';
 import type { FeedbackRow } from './types';
 
 export interface UseCaseFeedbackResult {

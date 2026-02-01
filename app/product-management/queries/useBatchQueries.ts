@@ -1,9 +1,11 @@
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { useCaseApi, personaApi } from '~/core/entities/product-management/api';
-import type { UseCase, Persona } from '~/core/entities/product-management/types';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { useCaseApi } from '@/entities/use-case';
+import { personaApi } from '@/entities/persona';
+import type { UseCase } from '@/entities/use-case';
+import type { Persona } from '@/entities/persona';
 
 /**
  * Hook to fetch multiple use case details in parallel

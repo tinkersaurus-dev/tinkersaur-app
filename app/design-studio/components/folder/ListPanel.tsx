@@ -8,7 +8,7 @@
 
 import { type ReactNode } from 'react';
 import { LuTrash2, LuRefreshCw, LuPencil, LuCopy } from 'react-icons/lu';
-import { Button } from '~/core/components/ui/Button';
+import { Button } from '@/shared/ui/Button';
 import { useListPanel, type ListPanelOperationType } from './useListPanel';
 
 export interface ListPanelModalProps<T> {

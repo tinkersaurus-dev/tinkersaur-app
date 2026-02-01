@@ -1,9 +1,9 @@
 import { useState, memo } from 'react';
 import { FiUser, FiTarget, FiAlertCircle, FiTrash2, FiGitMerge } from 'react-icons/fi';
-import { Card, Button } from '~/core/components/ui';
-import type { ExtractedPersona } from '~/core/entities/discovery';
-import type { SimilarPersonaResult } from '~/core/entities/product-management/types';
-import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import { Card, Button } from '@/shared/ui';
+import type { ExtractedPersona } from '@/entities/intake-result';
+import type { SimilarPersonaResult } from '@/entities/persona';
+import { formatRelativeTime } from '@/shared/lib/utils';
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
 import type { PendingMerge } from '~/discovery/hooks/useSaveIntakeResult';

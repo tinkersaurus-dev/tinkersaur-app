@@ -5,9 +5,9 @@
 
 import { useState, useCallback } from 'react';
 import { FiZap } from 'react-icons/fi';
-import { Modal, Form, useForm, Input, Button, HStack } from '~/core/components/ui';
-import type { RequirementType, RequirementStatus } from '~/core/entities/product-management';
-import { generateEarsRequirement, EarsGenerationAPIError } from '~/core/api/llm';
+import { Modal, Form, useForm, Input, Button, HStack } from '@/shared/ui';
+import type { RequirementType, RequirementStatus } from '@/entities/requirement';
+import { generateEarsRequirement, EarsGenerationAPIError } from '@/features/llm-generation';
 import { toast } from 'sonner';
 
 interface AddRequirementModalProps {

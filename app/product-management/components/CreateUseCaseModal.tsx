@@ -7,8 +7,8 @@
 
 import { useState, useCallback } from 'react';
 import { FiZap } from 'react-icons/fi';
-import { Input, Form, useForm, Modal, Select, Button, Tabs } from '~/core/components/ui';
-import type { Solution } from '~/core/entities/product-management';
+import { Input, Form, useForm, Modal, Select, Button, Tabs } from '@/shared/ui';
+import type { Solution } from '@/entities/solution';
 import { useCreateUseCase } from '../mutations';
 import { useGenerateUseCase } from '../hooks';
 

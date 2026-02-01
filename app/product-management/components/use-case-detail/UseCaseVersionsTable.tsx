@@ -4,15 +4,15 @@
  */
 
 import { FiPlus, FiChevronRight, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
-import { Button, Table, Tag, HStack } from '~/core/components/ui';
-import type { TableColumn } from '~/core/components/ui';
-import type { UseCaseVersion } from '~/core/entities/product-management/types/UseCaseVersion';
+import { Button, Table, Tag, HStack } from '@/shared/ui';
+import type { TableColumn } from '@/shared/ui';
+import type { UseCaseVersion } from '@/entities/use-case-version';
 import {
   getStatusColor,
   getValidTransitions,
   formatVersionNumber,
   UseCaseVersionStatus,
-} from '~/core/entities/product-management/types/UseCaseVersion';
+} from '@/entities/use-case-version';
 
 export interface UseCaseVersionsTableProps {
   versions: UseCaseVersion[];

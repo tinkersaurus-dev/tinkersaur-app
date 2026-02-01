@@ -1,21 +1,16 @@
 import { useState, memo, useMemo } from 'react';
 import { FiAlertCircle, FiTrash2, FiGitMerge } from 'react-icons/fi';
-import { Card } from '~/core/components/ui/Card';
-import { Tag } from '~/core/components/ui/Tag';
-import { Select } from '~/core/components/ui/Select';
-import { Button } from '~/core/components/ui/Button';
-import {
-  FEEDBACK_TYPE_CONFIG,
-  type ExtractedFeedback,
-  type ExtractedPersona,
-  type ExtractedUseCase,
-  type SimilarFeedbackResult,
-} from '~/core/entities/discovery';
-import type { Solution } from '~/core/entities/product-management/types';
+import { Card } from '@/shared/ui/Card';
+import { Tag } from '@/shared/ui/Tag';
+import { Select } from '@/shared/ui/Select';
+import { Button } from '@/shared/ui/Button';
+import { FEEDBACK_TYPE_CONFIG, type SimilarFeedbackResult, type ExtractedFeedback } from '@/entities/feedback';
+import type { ExtractedPersona, ExtractedUseCase } from '@/entities/intake-result';
+import type { Solution } from '@/entities/solution';
 import { FEEDBACK_ICONS, FEEDBACK_ICON_COLORS, FEEDBACK_TAG_COLORS } from '~/discovery/constants';
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
-import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import { formatRelativeTime } from '@/shared/lib/utils';
 import type { PendingFeedbackMerge } from '~/discovery/hooks/useSaveIntakeResult';
 
 interface FeedbackResultCardProps {

@@ -5,10 +5,10 @@
  */
 
 import { useMemo } from 'react';
-import { Card } from '~/core/components/ui';
+import { Card } from '@/shared/ui';
 import { useUseCasesQuery } from '~/product-management/queries';
 import { useRequirementsBySolutionQuery } from '~/product-management/queries/useRequirementsBySolutionQuery';
-import { useDesignWorkStore } from '~/core/entities/design-studio/store/design-work/useDesignWorkStore';
+import { useDesignWorkStore } from '@/entities/design-work';
 import { RequirementsList } from './RequirementsList';
 
 interface OverviewTabProps {

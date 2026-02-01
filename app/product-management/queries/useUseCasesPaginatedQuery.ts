@@ -1,7 +1,7 @@
-import { queryKeys } from '~/core/query/queryKeys';
-import { createPaginatedQueryHook } from '~/core/query/createPaginatedQueryHook';
-import { useCaseApi } from '~/core/entities/product-management/api';
-import type { UseCaseListParams } from '~/core/api/types';
+import { queryKeys } from '@/shared/lib/query';
+import { createPaginatedQueryHook } from '@/shared/lib/query';
+import { useCaseApi } from '@/entities/use-case';
+import type { UseCaseListParams } from '@/shared/api';
 
 /**
  * Query hook for fetching paginated use cases

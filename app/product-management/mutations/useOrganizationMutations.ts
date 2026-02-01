@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '~/core/query/queryKeys';
-import { organizationApi } from '~/core/entities/product-management/api';
-import type { CreateOrganizationDto } from '~/core/entities/product-management/types';
+import { queryKeys } from '@/shared/lib/query';
+import { organizationApi } from '@/entities/organization';
+import type { CreateOrganizationDto } from '@/entities/organization';
 
 /**
  * Mutation hook for creating an organization

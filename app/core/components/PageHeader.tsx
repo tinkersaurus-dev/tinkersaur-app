@@ -3,7 +3,7 @@
  * Consistent page title and action buttons wrapper
  */
 
-import { HStack } from '~/core/components/ui';
+import { HStack } from '@/shared/ui';
 
 interface PageHeaderProps {
   titlePrefix?: string;

@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '~/core/query/queryKeys';
-import { solutionApi } from '~/core/entities/product-management/api';
-import type { CreateSolutionDto } from '~/core/entities/product-management/types';
-import { useSolutionStore } from '~/core/solution';
+import { queryKeys } from '@/shared/lib/query';
+import { solutionApi } from '@/entities/solution';
+import type { CreateSolutionDto } from '@/entities/solution';
+import { useSolutionStore } from '@/app/model/stores/solution';
 
 /**
  * Mutation hook for creating a solution

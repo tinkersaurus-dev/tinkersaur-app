@@ -4,9 +4,9 @@
  * Modal for operations (Regenerate, Edit) on tech spec sections with optional instructions.
  */
 
-import { Input } from '~/core/components/ui';
-import type { TechSpecSection, TechSpecSubsection } from '~/core/api/llm';
-import { TECH_SPEC_SECTION_LABELS } from '~/core/api/llm';
+import { Input } from '@/shared/ui';
+import type { TechSpecSection, TechSpecSubsection } from '@/features/llm-generation';
+import { TECH_SPEC_SECTION_LABELS } from '@/features/llm-generation';
 import {
   OperationModal,
   ArrayFieldCardEditor,

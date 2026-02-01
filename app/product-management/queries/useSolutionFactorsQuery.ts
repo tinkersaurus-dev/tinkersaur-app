@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { solutionFactorApi } from '~/core/entities/product-management/api';
-import type { SolutionFactorType } from '~/core/entities/product-management/types';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { solutionFactorApi } from '@/entities/solution-factor';
+import type { SolutionFactorType } from '@/entities/solution-factor';
 
 /**
  * Query hook for fetching all solution factors by solution ID

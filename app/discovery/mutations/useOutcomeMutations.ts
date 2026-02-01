@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '~/core/query/queryKeys';
-import { outcomeApi } from '~/core/entities/discovery/api';
-import type { CreateOutcomeDto } from '~/core/entities/discovery/types';
+import { queryKeys } from '@/shared/lib/query';
+import { outcomeApi, type CreateOutcomeDto } from '@/entities/outcome';
 
 /**
  * Mutation hook for deleting an outcome

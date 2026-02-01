@@ -5,10 +5,10 @@
 
 import { useNavigate } from 'react-router';
 import { FiBox, FiServer, FiGitBranch, FiGitCommit, FiDatabase } from 'react-icons/fi';
-import { Card, Tag } from '~/core/components/ui';
-import type { TagColor } from '~/core/components/ui';
-import type { Solution, SolutionType } from '~/core/entities/product-management';
-import { formatRelativeTime } from '~/core/utils/formatRelativeTime';
+import { Card, Tag } from '@/shared/ui';
+import type { TagColor } from '@/shared/ui';
+import type { Solution, SolutionType } from '@/entities/solution';
+import { formatRelativeTime } from '@/shared/lib/utils';
 
 interface SolutionCardProps {
   solution: Solution;

@@ -1,7 +1,11 @@
-import { personaApi, useCaseApi } from '~/core/entities/product-management/api';
-import { feedbackApi, outcomeApi } from '~/core/entities/discovery/api';
+import { personaApi } from '@/entities/persona';
+import { useCaseApi } from '@/entities/use-case';
+import { feedbackApi } from '@/entities/feedback';
+import { outcomeApi } from '@/entities/outcome';
 import { createBatchSimilarityQueryHook } from './createBatchSimilarityQueryHook';
-import type { ExtractedPersona, ExtractedUseCase, ExtractedFeedback, ExtractedOutcome } from '~/core/entities/discovery';
+import type { ExtractedPersona, ExtractedUseCase } from '@/entities/intake-result';
+import type { ExtractedFeedback } from '@/entities/feedback';
+import type { ExtractedOutcome } from '@/entities/outcome';
 import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo, SimilarOutcomeInfo } from '~/discovery/types';
 
 /**

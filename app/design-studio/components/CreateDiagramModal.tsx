@@ -4,11 +4,11 @@
  */
 
 import React from 'react';
-import { Modal } from '~/core/components/ui/Modal';
-import { Form, useForm } from '~/core/components/ui/Form';
-import { Input } from '~/core/components/ui/Input';
-import { Select } from '~/core/components/ui/Select';
-import type { DiagramType } from '~/core/entities/design-studio/types/Diagram';
+import { Modal } from '@/shared/ui/Modal';
+import { Form, useForm } from '@/shared/ui/Form';
+import { Input } from '@/shared/ui/Input';
+import { Select } from '@/shared/ui/Select';
+import type { DiagramType } from '@/entities/diagram';
 
 export interface CreateDiagramFormData {
   name: string;

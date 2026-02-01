@@ -1,7 +1,7 @@
-import { queryKeys } from '~/core/query/queryKeys';
-import { createPaginatedQueryHook } from '~/core/query/createPaginatedQueryHook';
-import { feedbackApi } from '~/core/entities/discovery/api';
-import type { FeedbackListParams } from '~/core/api/types';
+import { queryKeys } from '@/shared/lib/query';
+import { createPaginatedQueryHook } from '@/shared/lib/query';
+import { feedbackApi } from '@/entities/feedback';
+import type { FeedbackListParams } from '@/shared/api';
 
 /**
  * Query hook for fetching paginated feedbacks

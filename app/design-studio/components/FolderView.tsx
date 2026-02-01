@@ -3,8 +3,8 @@
  * Displays compiled content from a folder and all its descendants
  */
 
-import { Empty } from '~/core/components/ui';
-import { useFolderContent } from '../hooks/useFolderContent';
+import { Empty } from '@/shared/ui';
+import { useFolderContent } from '@/features/diagram-management';
 import { useDesignWork } from '../hooks';
 import { FolderEditor } from './folder';
 

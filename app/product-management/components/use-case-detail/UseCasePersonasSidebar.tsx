@@ -5,8 +5,9 @@
 
 import { useState, useMemo } from 'react';
 import { FiUser } from 'react-icons/fi';
-import { Button, Card, Modal } from '~/core/components/ui';
-import type { UseCase, Persona } from '~/core/entities/product-management/types';
+import { Button, Card, Modal } from '@/shared/ui';
+import type { UseCase } from '@/entities/use-case';
+import type { Persona } from '@/entities/persona';
 import { usePersonasQuery } from '../../queries';
 import { useUpdateUseCase } from '../../mutations';
 

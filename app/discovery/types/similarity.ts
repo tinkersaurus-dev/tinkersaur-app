@@ -1,5 +1,7 @@
-import type { SimilarPersonaResult, SimilarUseCaseResult } from '~/core/entities/product-management/types';
-import type { SimilarFeedbackResult, SimilarOutcomeResult } from '~/core/entities/discovery/types';
+import type { SimilarPersonaResult } from '@/entities/persona';
+import type { SimilarUseCaseResult } from '@/entities/use-case';
+import type { SimilarFeedbackResult } from '@/entities/feedback';
+import type { SimilarOutcomeResult } from '@/entities/outcome';
 
 export interface SimilarPersonaInfo {
   personaIndex: number;

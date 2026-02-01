@@ -5,9 +5,9 @@
  * Optimized for displaying code blocks, tables, and technical documentation.
  */
 
-import { MarkdownContent } from '~/core/components/ui';
-import type { TechSpecSection } from '~/core/api/llm';
-import { TECH_SPEC_SECTION_LABELS } from '~/core/api/llm';
+import { MarkdownContent } from '@/shared/ui';
+import type { TechSpecSection } from '@/features/llm-generation';
+import { TECH_SPEC_SECTION_LABELS } from '@/features/llm-generation';
 import '../../styles/markdown-content.css';
 
 export interface TechSpecCardProps {

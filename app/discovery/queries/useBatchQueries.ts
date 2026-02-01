@@ -1,10 +1,9 @@
 import { useQueries } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { intakeSourceApi } from '~/core/entities/discovery/api';
-import type { IntakeSource } from '~/core/entities/discovery/types';
-import { SOURCE_TYPES, type SourceTypeKey } from '~/core/entities/discovery/types/SourceType';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { intakeSourceApi, type IntakeSource } from '@/entities/intake-source';
+import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 
 /**
  * Hook to fetch multiple intake source details in parallel

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '~/core/query/queryKeys';
-import { STALE_TIMES } from '~/core/query/queryClient';
-import { intakeSourceApi } from '~/core/entities/discovery/api';
+import { queryKeys } from '@/shared/lib/query';
+import { STALE_TIMES } from '@/shared/lib/query';
+import { intakeSourceApi } from '@/entities/intake-source';
 
 /**
  * Query hook for fetching a single intake source by ID
