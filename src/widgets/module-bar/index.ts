@@ -1,0 +1,1 @@
+export { ModuleBar } from './ui';

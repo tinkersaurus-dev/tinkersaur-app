@@ -1,7 +1,7 @@
 /**
  * ContextualSubHeader Component
  * Secondary header containing contextual selectors (Team, Solution)
- * Sits between AppHeader and main content area
+ * Sits above the main content area
  * Content varies based on the current app module
  */
 

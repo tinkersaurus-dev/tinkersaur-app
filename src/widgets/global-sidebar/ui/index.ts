@@ -1,2 +1,3 @@
 export { GlobalSidebar } from './GlobalSidebar';
-export { FlyoutMenu } from './FlyoutMenu';
+export { SidebarHeader } from './SidebarHeader';
+export { SidebarFooter } from './SidebarFooter';

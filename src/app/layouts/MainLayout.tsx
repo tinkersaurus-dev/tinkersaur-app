@@ -1,35 +1,44 @@
 /**
  * MainLayout Component
- * Global layout wrapper with collapsible sidebar for all main pages
+ * Full-height layout with collapsible sidebar and main content area
  */
 
 import type { ReactNode } from 'react';
-import { AppLayout } from './AppLayout';
 import { Layout } from '@/shared/ui';
 import { GlobalSidebar } from '@/widgets/global-sidebar';
+import { ContextualSubHeader } from '@/app/ui/ContextualSubHeader';
 import { useSidebarUIStore } from '@/app/model/stores/sidebar-ui';
 
 interface MainLayoutProps {
   children: ReactNode;
 }
 
-const SIDEBAR_COLLAPSED_WIDTH = 48;
+// Module bar width (always visible inside sidebar)
+const MODULE_BAR_WIDTH = 48;
 
 export function MainLayout({ children }: MainLayoutProps) {
   const { isCollapsed } = useSidebarUIStore();
 
   return (
-    <AppLayout>
-      <div className="flex h-[calc(100vh-88px)]">
+    <Layout>
+      <div className="flex h-screen">
+        {/* Sidebar Panel - contains ModuleBar and content sections */}
         <Layout.Sider
           width="var(--sidebar-width-expanded)"
-          collapsedWidth={SIDEBAR_COLLAPSED_WIDTH}
+          collapsedWidth={MODULE_BAR_WIDTH}
           collapsed={isCollapsed}
         >
           <GlobalSidebar />
         </Layout.Sider>
-        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">{children}</div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+          <ContextualSubHeader />
+          <Layout.Content className="p-0 flex-1 overflow-hidden">
+            {children}
+          </Layout.Content>
+        </div>
       </div>
-    </AppLayout>
+    </Layout>
   );
 }

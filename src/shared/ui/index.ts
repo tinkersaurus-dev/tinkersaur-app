@@ -84,3 +84,5 @@ export { EntityList } from './EntityList';
 export type { EntityListProps, FilterConfig, SelectionState } from './EntityList';
 
 export { ErrorBoundary } from './ErrorBoundary';
+
+export { Tooltip } from './Tooltip';

@@ -67,6 +67,7 @@ export function Dropdown({
     const frameId = requestAnimationFrame(() => {
       if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
+        const menuHeight = menuRef.current?.getBoundingClientRect().height ?? 0;
         let top = 0;
         let left = 0;
 
@@ -80,11 +81,11 @@ export function Dropdown({
             left = rect.right;
             break;
           case 'topLeft':
-            top = rect.top - 4;
+            top = rect.top - menuHeight - 4;
             left = rect.left;
             break;
           case 'topRight':
-            top = rect.top - 4;
+            top = rect.top - menuHeight - 4;
             left = rect.right;
             break;
         }
