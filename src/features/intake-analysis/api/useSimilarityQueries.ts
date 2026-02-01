@@ -6,7 +6,7 @@ import { createBatchSimilarityQueryHook } from './createBatchSimilarityQueryHook
 import type { ExtractedPersona, ExtractedUseCase } from '@/entities/intake-result';
 import type { ExtractedFeedback } from '@/entities/feedback';
 import type { ExtractedOutcome } from '@/entities/outcome';
-import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo, SimilarOutcomeInfo } from '../lib/types';
+import type { SimilarPersonaInfo, SimilarUseCaseInfo, SimilarFeedbackInfo, SimilarOutcomeInfo } from '../lib/types/similarity';
 
 /**
  * Query hook for finding similar personas

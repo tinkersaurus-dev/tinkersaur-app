@@ -2,35 +2,19 @@
 export { FolderEditor, type FolderEditorProps } from './FolderEditor';
 
 // Panels
-export {
-  ListPanel,
-  type ListPanelProps,
-  type ListPanelModalProps,
-  UserStoriesPanel,
-  type UserStoriesPanelProps,
-  UserDocsPanel,
-  type UserDocsPanelProps,
-  TechSpecPanel,
-  type TechSpecPanelProps,
-} from './panels';
+export { ListPanel, type ListPanelProps, type ListPanelModalProps } from './panels/ListPanel';
+export { UserStoriesPanel, type UserStoriesPanelProps } from './panels/UserStoriesPanel';
+export { UserDocsPanel, type UserDocsPanelProps } from './panels/UserDocsPanel';
+export { TechSpecPanel, type TechSpecPanelProps } from './panels/TechSpecPanel';
 
 // Cards
-export {
-  UserStoryCard,
-  type UserStoryCardProps,
-  TechSpecCard,
-  type TechSpecCardProps,
-  UserDocCard,
-  type UserDocCardProps,
-} from './cards';
+export { UserStoryCard, type UserStoryCardProps } from './cards/UserStoryCard';
+export { TechSpecCard, type TechSpecCardProps } from './cards/TechSpecCard';
+export { UserDocCard, type UserDocCardProps } from './cards/UserDocCard';
 
 // Sidebars
-export {
-  UserDocSidebar,
-  type UserDocSidebarProps,
-  TechSpecSidebar,
-  type TechSpecSidebarProps,
-} from './sidebars';
+export { UserDocSidebar, type UserDocSidebarProps } from './sidebars/UserDocSidebar';
+export { TechSpecSidebar, type TechSpecSidebarProps } from './sidebars/TechSpecSidebar';
 
 // Modals
 export {
@@ -40,16 +24,10 @@ export {
   type OperationConfig,
   type OperationModalConfig,
   type OperationModalProps,
-  StoryOperationModal,
-  type StoryOperationModalProps,
-  type OperationType,
-  DocOperationModal,
-  type DocOperationModalProps,
-  type DocOperationType,
-  TechSpecOperationModal,
-  type TechSpecOperationModalProps,
-  type TechSpecOperationType,
-} from './modals';
+} from './modals/OperationModal';
+export { StoryOperationModal, type StoryOperationModalProps, type OperationType } from './modals/StoryOperationModal';
+export { DocOperationModal, type DocOperationModalProps, type DocOperationType } from './modals/DocOperationModal';
+export { TechSpecOperationModal, type TechSpecOperationModalProps, type TechSpecOperationType } from './modals/TechSpecOperationModal';
 
 // Hooks
 export {
@@ -57,7 +35,9 @@ export {
   type UseListPanelOptions,
   type UseListPanelReturn,
   type ListPanelOperationType,
+} from './hooks/useListPanel';
+export {
   useUserStoriesPanel,
   type UseUserStoriesPanelOptions,
   type UseUserStoriesPanelReturn,
-} from './hooks';
+} from './hooks/useUserStoriesPanel';

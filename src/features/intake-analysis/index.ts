@@ -10,64 +10,63 @@
  */
 
 // API - Query and mutation hooks
+export { createBatchSimilarityQueryHook } from './api/createBatchSimilarityQueryHook';
 export {
-  createBatchSimilarityQueryHook,
-  useFeedbacksPaginatedQuery,
-  useFeedbackQuery,
-  useFeedbackWithChildrenQuery,
-  useIntakeSourceQuery,
-  useOutcomeQuery,
-  useOutcomesPaginatedQuery,
   useSimilarPersonasQuery,
   useSimilarUseCasesQuery,
   useSimilarFeedbackQuery,
   useSimilarOutcomesQuery,
-  useIntakeSourceDetailsQuery,
+} from './api/useSimilarityQueries';
+export { useFeedbacksPaginatedQuery } from './api/useFeedbacksPaginatedQuery';
+export { useFeedbackQuery } from './api/useFeedbackQuery';
+export { useFeedbackWithChildrenQuery } from './api/useFeedbackWithChildrenQuery';
+export { useIntakeSourceQuery } from './api/useIntakeSourceQuery';
+export { useOutcomeQuery } from './api/useOutcomeQuery';
+export { useOutcomesPaginatedQuery } from './api/useOutcomesPaginatedQuery';
+export { useIntakeSourceDetailsQuery } from './api/useBatchQueries';
+export {
   useDeleteOutcome,
   useUpdateOutcome,
   useDeleteFeedback,
   useUpdateFeedback,
-} from './api';
+} from './api/mutations';
 
 // Lib - Hooks and types
-export {
-  useParseTranscript,
-  useSaveIntakeResult,
-  useFeedbacksQuery,
-  useOutcomesQuery,
-} from './lib/hooks';
-
+export { useParseTranscript } from './lib/hooks/useParseTranscript';
+export { useSaveIntakeResult } from './lib/hooks/useSaveIntakeResult';
 export type {
   PendingMerge,
   PendingUseCaseMerge,
   PendingFeedbackMerge,
-} from './lib/hooks';
+} from './lib/hooks/useSaveIntakeResult';
+export { useFeedbacksQuery } from './lib/hooks/useFeedbacksQuery';
+export { useOutcomesQuery } from './lib/hooks/useOutcomesQuery';
 
 export type {
   SimilarPersonaInfo,
   SimilarUseCaseInfo,
   SimilarFeedbackInfo,
   SimilarOutcomeInfo,
-} from './lib/types';
+} from './lib/types/similarity';
 
 // Model - Constants
 export {
   FEEDBACK_ICONS,
   FEEDBACK_ICON_COLORS,
   FEEDBACK_TAG_COLORS,
-} from './model/constants';
+} from './model/constants/feedbackTypeConfig';
 
 // UI - Components
+export { QuoteHighlight, QuotesList } from './ui/QuoteHighlight';
+export { SimilarityComparisonDrawer } from './ui/SimilarityComparisonDrawer';
+export { PersonaResultCard } from './ui/PersonaResultCard';
+export { UseCaseResultCard } from './ui/UseCaseResultCard';
+export { FeedbackResultCard } from './ui/FeedbackResultCard';
+export { OutcomeResultCard } from './ui/OutcomeResultCard';
+export { IntakeResults } from './ui/IntakeResults';
+export { FeedbackChildrenExpander } from './ui/FeedbackChildrenExpander';
+export { DashboardListSection } from './ui/DashboardListSection';
 export {
-  QuoteHighlight,
-  QuotesList,
-  SimilarityComparisonDrawer,
-  PersonaResultCard,
-  UseCaseResultCard,
-  FeedbackResultCard,
-  IntakeResults,
-  FeedbackChildrenExpander,
-  DashboardListSection,
   PersonaRow,
   UseCaseRow,
   FeedbackRow,
@@ -76,4 +75,4 @@ export {
   UseCaseIcon,
   FeedbackIcon,
   OutcomeIcon,
-} from './ui';
+} from './ui/RecentEntityRow';

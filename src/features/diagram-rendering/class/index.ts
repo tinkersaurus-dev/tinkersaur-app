@@ -16,9 +16,6 @@ export * from './hooks';
 export { ClassRenderer } from './rendering/ClassRenderer';
 export { EnumerationRenderer } from './rendering/EnumerationRenderer';
 
-// Commands
-export * from './commands';
-
 // Mermaid Import/Export
 export { ClassMermaidImporter, createClassMermaidImporter } from './mermaid/importer';
 export { ClassMermaidExporter, createClassMermaidExporter } from './mermaid/exporter';

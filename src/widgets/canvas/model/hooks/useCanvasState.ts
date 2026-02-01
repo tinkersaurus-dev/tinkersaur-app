@@ -14,7 +14,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useCanvasInstance } from '@/app/model/stores/canvas';
+import { useCanvasInstance } from '@/app/model/stores/canvas/useCanvasInstance';
 import { useDiagram, useDiagramCRUD } from '@/features/diagram-management';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useViewportTransform } from '../../lib/hooks/useViewportTransform';

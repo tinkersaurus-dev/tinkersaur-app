@@ -18,7 +18,9 @@ export { SequenceLifelineRenderer } from './rendering/SequenceLifelineRenderer';
 export { SequenceNoteRenderer } from './rendering/SequenceNoteRenderer';
 
 // Commands
-export * from './commands';
+export { UpdateLifelineActivationsCommand } from './commands/UpdateLifelineActivationsCommand';
+export { RefreshSequenceActivationsCommand } from './commands/RefreshSequenceActivationsCommand';
+export { UpdateLifelineHeightsCommand } from './commands/UpdateLifelineHeightsCommand';
 
 // Mermaid Import/Export
 export { SequenceMermaidImporter, createSequenceMermaidImporter } from './mermaid/importer';

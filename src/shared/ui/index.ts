@@ -31,8 +31,8 @@ export type { AvatarProps } from './Avatar';
 export { Menu } from './Menu';
 export type { MenuProps, MenuItemType } from './Menu';
 
-export { Dropdown } from './Dropdown';
-export type { DropdownProps, DropdownMenuProps, DropdownMenuItem } from './Dropdown';
+export { Dropdown } from './Dropdown/Dropdown';
+export type { DropdownProps, DropdownMenuProps, DropdownMenuItem } from './Dropdown/Dropdown';
 
 export { Layout } from './Layout';
 export type { LayoutProps, LayoutHeaderProps, LayoutSiderProps, LayoutContentProps } from './Layout';
@@ -52,8 +52,8 @@ export type { MultiSelectProps, MultiSelectOption } from './MultiSelect';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 
-export { Tabs } from './Tabs';
-export type { TabsProps, TabItem } from './Tabs';
+export { Tabs } from './Tabs/Tabs';
+export type { TabsProps, TabItem } from './Tabs/Tabs';
 
 export { MarkdownContent } from './MarkdownContent';
 
@@ -69,8 +69,10 @@ export type { SearchInputProps } from './SearchInput';
 export { DatePicker } from './DatePicker';
 export type { DatePickerProps } from './DatePicker';
 
-export { Tree, TreeNode } from './Tree';
-export type { TreeNodeData, DropPosition } from './Tree';
+export { Tree } from './Tree/Tree';
+export type { DropPosition } from './Tree/Tree';
+export { TreeNode } from './Tree/TreeNode';
+export type { TreeNodeData } from './Tree/TreeNode';
 
 export { PageHeader } from './PageHeader';
 

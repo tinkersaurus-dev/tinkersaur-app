@@ -65,13 +65,9 @@ export const useReferenceStore = create<ReferenceStore>((set, get) => ({
     try {
       const updatedReference = await referenceApi.update(id, { name });
 
-      if (updatedReference) {
-        set((state) => ({
-          references: { ...state.references, [id]: updatedReference },
-        }));
-      } else {
-        throw new Error(`Reference ${id} not found`);
-      }
+      set((state) => ({
+        references: { ...state.references, [id]: updatedReference },
+      }));
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to update reference name');
       set({ error: err });

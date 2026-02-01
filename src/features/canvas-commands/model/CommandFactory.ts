@@ -15,14 +15,14 @@ import { DeleteConnectorCommand } from '../commands/connectors/DeleteConnectorCo
 import { UpdateConnectorLabelCommand } from '../commands/connectors/UpdateConnectorLabelCommand';
 import { ChangeConnectorTypeCommand } from '../commands/connectors/ChangeConnectorTypeCommand';
 // Generic member commands (class attributes/methods, enumeration literals)
+import { AddMemberCommand } from '../commands/members/AddMemberCommand';
+import { DeleteMemberCommand } from '../commands/members/DeleteMemberCommand';
+import { UpdateMemberCommand } from '../commands/members/UpdateMemberCommand';
 import {
-  AddMemberCommand,
-  DeleteMemberCommand,
-  UpdateMemberCommand,
   CLASS_ATTRIBUTE_CONFIG,
   CLASS_METHOD_CONFIG,
   ENUMERATION_LITERAL_CONFIG,
-} from '../commands/members';
+} from '../commands/members/member-configs';
 import type { ClassShapeData, EnumerationShapeData } from '@/entities/shape';
 // Batch operations
 import { BatchDeleteShapesCommand } from '../commands/shapes/BatchDeleteShapesCommand';

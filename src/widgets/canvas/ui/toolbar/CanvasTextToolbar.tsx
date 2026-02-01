@@ -1,7 +1,7 @@
 import React from 'react';
 import { LuFileCode, LuLightbulb, LuLoader } from 'react-icons/lu';
 import { Button } from '@/shared/ui/Button';
-import { useMermaidViewerStore } from '@/app/model/stores/mermaid';
+import { useMermaidViewerStore } from '@/app/model/stores/mermaid/mermaidViewerStore';
 import { hasMermaidExporter } from '@/features/diagram-rendering/shared/mermaid';
 import type { DiagramType } from '@/entities/diagram';
 

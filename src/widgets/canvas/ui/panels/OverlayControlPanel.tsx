@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { LuLayers } from 'react-icons/lu';
 import type { Shape } from '@/entities/shape';
 import type { Connector } from '@/entities/connector';
-import { useOverlayVisibilityStore } from '@/app/model/stores/overlay';
+import { useOverlayVisibilityStore } from '@/app/model/stores/overlay/overlayVisibilityStore';
 import { Checkbox } from '@/shared/ui';
 
 interface OverlayControlPanelProps {

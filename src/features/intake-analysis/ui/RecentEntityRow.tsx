@@ -6,7 +6,7 @@ import type { Outcome } from '@/entities/outcome';
 import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
 import { Tag } from '@/shared/ui/Tag';
 import { formatRelativeTime } from '@/shared/lib/utils';
-import { FEEDBACK_TAG_COLORS } from '../model/constants';
+import { FEEDBACK_TAG_COLORS } from '../model/constants/feedbackTypeConfig';
 
 // Export icons for use in section headers
 export const PersonaIcon = () => (

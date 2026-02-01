@@ -7,7 +7,7 @@
  * - Refreshing activation boxes based on message flow
  */
 
-import { canvasInstanceRegistry } from '@/app/model/stores/canvas';
+import { canvasInstanceRegistry } from '@/app/model/stores/canvas/canvasInstanceRegistry';
 import { commandManager } from '@/features/canvas-commands/model/CommandManager';
 import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
 

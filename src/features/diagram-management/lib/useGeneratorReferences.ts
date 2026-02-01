@@ -10,7 +10,7 @@ import { useQueries } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/widgets/canvas/ui/contexts/CanvasDiagramContext';
-import { useCanvasInstance } from '@/app/model/stores/canvas';
+import { useCanvasInstance } from '@/app/model/stores/canvas/useCanvasInstance';
 import { queryKeys } from '@/shared/lib/query';
 import { STALE_TIMES } from '@/shared/lib/query';
 import { diagramApi } from '@/entities/diagram';

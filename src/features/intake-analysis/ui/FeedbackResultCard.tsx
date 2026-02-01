@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { FEEDBACK_TYPE_CONFIG, type SimilarFeedbackResult, type ExtractedFeedback } from '@/entities/feedback';
 import type { ExtractedPersona, ExtractedUseCase } from '@/entities/intake-result';
 import type { Solution } from '@/entities/solution';
-import { FEEDBACK_ICONS, FEEDBACK_ICON_COLORS, FEEDBACK_TAG_COLORS } from '../model/constants';
+import { FEEDBACK_ICONS, FEEDBACK_ICON_COLORS, FEEDBACK_TAG_COLORS } from '../model/constants/feedbackTypeConfig';
 import { QuotesList } from './QuoteHighlight';
 import { SimilarityComparisonDrawer } from './SimilarityComparisonDrawer';
 import { formatRelativeTime } from '@/shared/lib/utils';

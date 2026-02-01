@@ -18,7 +18,13 @@ export {
 
 export { ssrHttpClient, SsrApiError } from './ssrHttpClient';
 
-export { createEntityApi } from './createEntityApi';
+export {
+  createEntityApi,
+  createPaginatedEntityApi,
+  buildSearchParams,
+} from './createEntityApi';
+
+export type { EntityApi, PaginatedEntityApi } from './createEntityApi';
 
 export type {
   PaginatedResponse,

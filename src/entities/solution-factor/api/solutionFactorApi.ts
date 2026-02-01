@@ -9,6 +9,14 @@ import { httpClient, deserializeDates } from '@/shared/api';
 
 const endpoint = '/api/solution-factors';
 
+/**
+ * SolutionFactor API Client
+ *
+ * Note: This API does NOT use createEntityApi because it has a non-standard
+ * route structure (/solution/{solutionId}/type/{type}) and specialized
+ * operations (bulk create, reorder, deleteByType) that don't fit the
+ * standard CRUD pattern.
+ */
 export const solutionFactorApi = {
   /**
    * Get all factors for a solution

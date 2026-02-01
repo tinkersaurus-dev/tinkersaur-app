@@ -12,8 +12,8 @@
 
 import { useState, useCallback } from 'react';
 import { generateSuggestions } from '@/features/llm-generation';
-import { useMermaidViewerStore } from '@/app/model/stores/mermaid';
-import { useOverlayVisibilityStore } from '@/app/model/stores/overlay';
+import { useMermaidViewerStore } from '@/app/model/stores/mermaid/mermaidViewerStore';
+import { useOverlayVisibilityStore } from '@/app/model/stores/overlay/overlayVisibilityStore';
 import { useDiagramCRUD } from '../api/useDiagramCRUD';
 import { useAuthStore } from '@/features/auth';
 import type { Shape, CreateShapeDTO, SuggestionCommentShapeData } from '@/entities/shape';
