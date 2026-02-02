@@ -84,6 +84,7 @@ export function UseCaseBasicInfo({ useCase, onSave, isSaving = false }: UseCaseB
       onEditToggle={handleEditToggle}
       onSave={handleSave}
       onCancel={handleCancel}
+      shadow={false}
       isSaving={isSaving}
       hasErrors={Object.keys(errors).length > 0}
     >

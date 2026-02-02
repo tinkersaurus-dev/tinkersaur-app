@@ -86,3 +86,6 @@ export type { EntityListProps, FilterConfig, SelectionState } from './EntityList
 export { ErrorBoundary } from './ErrorBoundary';
 
 export { Tooltip } from './Tooltip';
+
+export { CardStack } from './CardStack';
+export type { CardStackProps } from './CardStack';

@@ -138,12 +138,14 @@
   --text-brand: oklch(95.989% 0.01329 116.035);
   --text-brand-muted: oklch(0.4 0.01 213);
   --text-brand-selected: oklch(0.9338 0.0396 80.89);
-  --text-brand-hover: oklch(100% 0.00011 271.152);
+  --text-brand-hover: oklch(96.749% 0.03924 91.204);
 
   --bg-dark: oklch(67.968% 0.00008 271.152);
   --bg: oklch(100% 0.00011 271.152);
   --bg-light: oklch(100% 0.00011 271.152);
   --bg-form: oklch(100% 0.00011 271.152);
+   --bg-persona-card: oklch(97.913% 0.00011 271.152);
+   --bg-use-case-card: oklch(97.913% 0.00011 271.152);
 
   --text: oklch(0.15 0.01 213);
   --text-muted: oklch(0.4 0.01 213);
@@ -172,7 +174,7 @@
   --gradient: linear-gradient(0deg, var (--color-bg) 95%, var (var(--color-bg-light)));
   --gradient-hover: linear-gradient(0deg, var (--color-bg), var (var(--color-bg-light)));
 
-  --shadow: 0px 0px 0px hsla(0, 0%, 16%, 0.281);
+  --shadow: 2px 2px 2px hsla(0, 0%, 16%, 0.281);
   --shadow-hover: 0px 2px 2px hsla(0, 0%, 30%, 0.223), 0px 4px 4px hsla(0, 0%, 0%, 0.15);
 
   --tag-blue: oklch(0.5044 0.2095 260.97);
@@ -271,6 +273,8 @@
   --bg: oklch(21.34% 0 0);
   --bg-light: oklch(23.93% 0 0);
   --bg-form: oklch(0% 0 0);
+  --bg-persona-card: oklch(32.504% 0.00004 271.152);
+   --bg-use-case-card: oklch(32.504% 0.00004 271.152);
 
   --text: oklch(97.34% 0.00453 215.503);
   --text-muted: oklch(88.711% 0.00671 209.546);
@@ -282,7 +286,7 @@
 
   --text-button: oklch(0.1 0.005 213);
 
-  --danger: oklch(59.365% 0.22894 31.356);
+  --danger: oklch(50.113% 0.0746 31.149 / 0.957);
   --warning: oklch(0.7 0.05 100);
   --success: oklch(0.7 0.05 160);
   --info: oklch(0.7 0.05 260);

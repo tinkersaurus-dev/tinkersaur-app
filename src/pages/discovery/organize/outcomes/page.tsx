@@ -55,7 +55,7 @@ export default function OutcomesListPage() {
       render: (_, record) => (
         <Link
           to={`/discovery/organize/outcomes/${record.id}`}
-          className="text-[var(--primary)] hover:underline line-clamp-2 text-sm"
+          className="text-[var(--primary)] hover:underline line-clamp-2 text-xs"
         >
           {record.description}
         </Link>

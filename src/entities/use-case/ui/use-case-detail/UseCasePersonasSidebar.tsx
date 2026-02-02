@@ -5,10 +5,10 @@
 
 import { useState, useMemo } from 'react';
 import { FiUser } from 'react-icons/fi';
-import { Button, Card, Modal } from '@/shared/ui';
+import { Button, Card, CardStack, Modal } from '@/shared/ui';
 import type { UseCase } from '@/entities/use-case';
 import type { Persona } from '@/entities/persona';
-import { usePersonasQuery } from '@/entities/persona';
+import { usePersonasQuery, PersonaCard } from '@/entities/persona';
 import { useUpdateUseCase } from '@/entities/use-case';
 
 export interface UseCasePersonasSidebarProps {
@@ -56,7 +56,7 @@ export function UseCasePersonasSidebar({ useCase, teamId }: UseCasePersonasSideb
 
   return (
     <>
-      <Card>
+      <Card shadow={false}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <FiUser className="text-[var(--primary)]" />
@@ -76,25 +76,23 @@ export function UseCasePersonasSidebar({ useCase, teamId }: UseCasePersonasSideb
             No personas linked to this use case.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <CardStack layout="stack" gap="sm">
             {linkedPersonas.map((persona: Persona) => (
-              <li
+              <PersonaCard
                 key={persona.id}
-                className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
-              >
-                <span className="text-sm text-[var(--text)] truncate">
-                  {persona.name}
-                </span>
-                <Button
-                  variant="text"
-                  size="small"
-                  onClick={() => handleUnlinkPersona(persona.id)}
-                >
-                  Unlink
-                </Button>
-              </li>
+                persona={persona}
+                action={
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => handleUnlinkPersona(persona.id)}
+                  >
+                    Unlink
+                  </Button>
+                }
+              />
             ))}
-          </ul>
+          </CardStack>
         )}
       </Card>
 

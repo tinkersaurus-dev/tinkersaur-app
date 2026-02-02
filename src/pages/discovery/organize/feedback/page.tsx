@@ -104,7 +104,7 @@ export default function FeedbackListPage() {
       render: (_, record) => (
         <Link
           to={`/discovery/organize/feedback/${record.id}`}
-          className="text-[var(--primary)] hover:underline line-clamp-2 text-sm"
+          className="text-[var(--primary)] hover:underline line-clamp-2 text-xs"
         >
           {record.content}
         </Link>

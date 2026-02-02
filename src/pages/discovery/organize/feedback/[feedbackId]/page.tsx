@@ -4,10 +4,10 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { useParams, useNavigate, useLoaderData, Link } from 'react-router';
+import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiUser, FiLink, FiMessageCircle, FiCopy } from 'react-icons/fi';
-import { PageHeader, PageContent } from '@/shared/ui';
+import { PageHeader, PageContent, CardStack } from '@/shared/ui';
 import { Button, Card, Modal, Tag, Empty, Tabs, Table, EditableSection, EditableField } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
@@ -23,8 +23,8 @@ import {
 import type { LoaderFunctionArgs } from 'react-router';
 import { loadFeedbackDetail } from './loader';
 import type { FeedbackDetailLoaderData } from './loader';
-import { usePersonasQuery } from '@/entities/persona';
-import { useUseCasesByTeamQuery } from '@/entities/use-case';
+import { usePersonasQuery, PersonaCard } from '@/entities/persona';
+import { useUseCasesByTeamQuery, UseCaseCard } from '@/entities/use-case';
 
 // Quote row type for the quotes table
 interface QuoteRow {
@@ -355,7 +355,7 @@ function FeedbackDetailContent() {
             </EditableSection>
 
             {/* Tabbed Section: Supporting Quotes, Duplicate Feedback */}
-            <Card>
+            <Card shadow={false}>
               <Tabs
                 type="line"
                 activeKey={activeTab}
@@ -415,7 +415,7 @@ function FeedbackDetailContent() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Linked Personas */}
-            <Card>
+            <Card shadow={false}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <FiUser className="text-[var(--primary)]" />
@@ -428,26 +428,16 @@ function FeedbackDetailContent() {
                   No personas linked to this feedback.
                 </p>
               ) : (
-                <ul className="space-y-2">
+                <CardStack layout="stack" gap="sm">
                   {linkedPersonas.map((persona: Persona) => (
-                    <li
-                      key={persona.id}
-                      className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
-                    >
-                      <Link
-                        to={`/discovery/organize/personas/${persona.id}`}
-                        className="text-sm text-[var(--text)] hover:text-[var(--primary)] truncate"
-                      >
-                        {persona.name}
-                      </Link>
-                    </li>
+                    <PersonaCard key={persona.id} persona={persona} />
                   ))}
-                </ul>
+                </CardStack>
               )}
             </Card>
 
             {/* Linked Use Cases */}
-            <Card>
+            <Card shadow={false}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <FiLink className="text-[var(--primary)]" />
@@ -456,25 +446,15 @@ function FeedbackDetailContent() {
               </div>
 
               {linkedUseCases.length === 0 ? (
-                <p className="text-[var(--text-muted)] text-sm">
+                <p className="text-[var(--text-muted)] text-xs">
                   No use cases linked to this feedback.
                 </p>
               ) : (
-                <ul className="space-y-2">
+                <CardStack layout="grid" gap="sm" minCardWidth="200px">
                   {linkedUseCases.map((useCase: UseCase) => (
-                    <li
-                      key={useCase.id}
-                      className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
-                    >
-                      <Link
-                        to={`/discovery/organize/use-cases/${useCase.id}`}
-                        className="text-sm text-[var(--text)] hover:text-[var(--primary)] truncate"
-                      >
-                        {useCase.name}
-                      </Link>
-                    </li>
+                    <UseCaseCard key={useCase.id} useCase={useCase} />
                   ))}
-                </ul>
+                </CardStack>
               )}
             </Card>
           </div>

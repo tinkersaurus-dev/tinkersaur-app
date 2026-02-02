@@ -323,7 +323,7 @@ function UseCaseDetailContent() {
                         isSaving={updateUseCase.isPending}
                       />
 
-                      <Card>
+                      <Card shadow={false}>
                         <Tabs
                           type="line"
                           activeKey={activeTab}

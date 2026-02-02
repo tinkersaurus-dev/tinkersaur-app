@@ -25,6 +25,7 @@ export interface EditableSectionProps {
   hasErrors?: boolean;
   /** Section content */
   children: ReactNode;
+  shadow?: boolean;
   /** Additional className */
   className?: string;
   /** Handler for generate button click */
@@ -41,6 +42,7 @@ export function EditableSection({
   onCancel,
   isSaving = false,
   hasErrors = false,
+  shadow = false,
   children,
   className = '',
   onGenerateClick,
@@ -52,7 +54,7 @@ export function EditableSection({
   };
 
   return (
-    <Card className={className}>
+    <Card className={className} shadow={shadow}>
       {/* Header with title and action buttons */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-[var(--text)]">{title}</h3>

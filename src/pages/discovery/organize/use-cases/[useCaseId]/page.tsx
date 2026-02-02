@@ -107,7 +107,7 @@ function DiscoveryUseCaseDetailContent() {
             />
 
             {/* Tabbed Section: Quotes, Suggestions, Problems */}
-            <Card>
+            <Card shadow={false}>
               <Tabs
                 type="line"
                 activeKey={activeTab}

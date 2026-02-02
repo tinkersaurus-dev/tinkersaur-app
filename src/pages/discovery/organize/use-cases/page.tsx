@@ -73,7 +73,7 @@ export default function UseCasesListPage() {
       render: (_, record) => (
         <Link
           to={`/discovery/organize/use-cases/${record.id}`}
-          className="text-[var(--primary)] text-sm hover:underline font-medium"
+          className="text-[var(--primary)] text-xs hover:underline font-medium"
         >
           {record.name}
         </Link>

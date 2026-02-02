@@ -261,7 +261,7 @@ function OutcomeDetailContent() {
             </EditableSection>
 
             {/* Tabbed Section: Supporting Quotes */}
-            <Card>
+            <Card shadow={false}>
               <Tabs
                 type="line"
                 activeKey={activeTab}
@@ -298,7 +298,7 @@ function OutcomeDetailContent() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Linked Solution */}
-            <Card>
+            <Card shadow={false}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <FiTarget className="text-[var(--primary)]" />

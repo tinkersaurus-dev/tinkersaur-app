@@ -55,3 +55,5 @@ export { useUseCaseFeedback } from './ui/use-case-detail/useUseCaseFeedback';
 export { useSourceDisplayName } from './ui/use-case-detail/useSourceDisplayName';
 export * from './ui/use-case-detail/types';
 export { useUseCaseContent } from './lib/useUseCaseContent';
+
+export { UseCaseCard } from './ui/UseCaseCard';

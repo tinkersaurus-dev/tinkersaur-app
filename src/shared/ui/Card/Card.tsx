@@ -4,6 +4,7 @@
  */
 
 import type { ReactNode, HTMLAttributes } from 'react';
+import { cn } from '@/shared/lib/utils';
 
 export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   title?: ReactNode;
@@ -20,7 +21,7 @@ export function Card({
   shadow = true,
   hoverable = false,
   children,
-  className = '',
+  className,
   contentClassName = 'p-6',
   style,
   ...props
@@ -37,14 +38,14 @@ export function Card({
   // Hover styles
   const hoverStyles = hoverable ? 'hover:[box-shadow:var(--shadow-hover)] hover:border-[var(--primary)] cursor-pointer' : '';
 
-  // Combine card styles
-  const cardClassName = [
+  // Combine card styles - cn() merges classes intelligently, so className can override defaults
+  const cardClassName = cn(
     baseStyles,
     borderStyles,
     shadowStyles,
     hoverStyles,
     className,
-  ].filter(Boolean).join(' ');
+  );
   
   const titleBaseStyles = 'px-6 py-4 bg-[var(--bg)]';
 

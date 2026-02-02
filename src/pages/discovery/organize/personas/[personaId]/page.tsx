@@ -7,7 +7,7 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { FiArrowLeft, FiTrash2, FiLink, FiTarget, FiAlertCircle, FiArchive, FiAlertTriangle, FiMessageCircle } from 'react-icons/fi';
-import { PageHeader, PageContent } from '@/shared/ui';
+import { PageHeader, PageContent, CardStack } from '@/shared/ui';
 import { Button, Card, Modal, Tabs, Empty, Table, EditableSection, EditableField } from '@/shared/ui';
 import type { TableColumn } from '@/shared/ui';
 import type { Feedback } from '@/entities/feedback';
@@ -15,7 +15,7 @@ import type { QuoteWithSource } from '@/entities/quote';
 import type { UseCase } from '@/entities/use-case';
 import type { LoaderFunctionArgs } from 'react-router';
 import { usePersonaQuery, useDeletePersona, useUpdatePersona } from '@/entities/persona';
-import { useUseCasesByTeamQuery } from '@/entities/use-case';
+import { useUseCasesByTeamQuery, UseCaseCard } from '@/entities/use-case';
 import { loadPersonaDetail } from './loader';
 import type { PersonaDetailLoaderData } from './loader';
 import { useFeedbacksPaginatedQuery, useIntakeSourceDetailsQuery } from '@/features/intake-analysis';
@@ -389,7 +389,7 @@ function PersonaDetailContent() {
             </EditableSection>
 
             {/* Tabbed Section: Goals/Pain Points, Suggestions, Problems */}
-            <Card>
+            <Card shadow={false}>
               <Tabs
                 type="line"
                 activeKey={activeTab}
@@ -530,7 +530,7 @@ function PersonaDetailContent() {
 
           {/* Sidebar - Use Cases */}
           <div className="space-y-6">
-            <Card>
+            <Card shadow={false}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <FiLink className="text-[var(--primary)]" />
@@ -546,29 +546,27 @@ function PersonaDetailContent() {
               </div>
 
               {linkedUseCases.length === 0 ? (
-                <p className="text-[var(--text-muted)] text-sm">
+                <p className="text-[var(--text-muted)] text-xs">
                   No use cases linked to this persona.
                 </p>
               ) : (
-                <ul className="space-y-2">
+                <CardStack layout="grid" gap="sm" minCardWidth="300px">
                   {linkedUseCases.map((useCase: UseCase) => (
-                    <li
+                    <UseCaseCard
                       key={useCase.id}
-                      className="flex items-center justify-between p-2 rounded bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
-                    >
-                      <span className="text-sm text-[var(--text)] truncate">
-                        {useCase.name}
-                      </span>
-                      <Button
-                        variant="text"
-                        size="small"
-                        onClick={() => handleUnlinkUseCase(useCase.id)}
-                      >
-                        Unlink
-                      </Button>
-                    </li>
+                      useCase={useCase}
+                      action={
+                        <Button
+                          variant="text"
+                          size="small"
+                          onClick={() => handleUnlinkUseCase(useCase.id)}
+                        >
+                          Unlink
+                        </Button>
+                      }
+                    />
                   ))}
-                </ul>
+                </CardStack>
               )}
             </Card>
           </div>
