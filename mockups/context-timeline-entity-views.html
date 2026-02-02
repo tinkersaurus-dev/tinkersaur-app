@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Timeline - Different Entity Views</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-brand: oklch(.22 0.05 262);
+      --bg-brand-hover: oklch(38.024% 0.15934 261.641);
+      --text-brand: oklch(0.9952 0.0235 106.82);
+      --bg-dark: oklch(16% 0 0);
+      --bg: oklch(21.34% 0 0);
+      --bg-light: oklch(23.93% 0 0);
+      --bg-elevated: oklch(26% 0 0);
+      --text: oklch(97.34% 0.00453 215.503);
+      --text-muted: oklch(70% 0.00671 209.546);
+      --text-disabled: oklch(.55 0.01 213);
+      --primary: oklch(0.76 0.1 213);
+      --primary-muted: oklch(0.76 0.1 213 / 0.15);
+      --border: oklch(0.4 0.01 213);
+      --border-muted: oklch(0.3 0.01 213);
+      --tag-blue: oklch(0.5044 0.2095 260.97);
+      --tag-green: oklch(0.6154 0.1912 139.42);
+      --tag-orange: oklch(0.6396 0.1596 53.28);
+      --tag-red: oklch(0.5434 0.2132 25.86);
+      --tag-purple: oklch(59.516% 0.24402 307.905);
+      --tag-bg-blue: oklch(0.3 0.05 260);
+      --tag-bg-green: oklch(0.3 0.05 139);
+      --tag-bg-orange: oklch(0.3 0.05 53);
+      --tag-bg-red: oklch(0.3 0.05 25);
+      --tag-bg-purple: oklch(0.3 0.05 307);
+      --radius-sm: 2px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .page-header {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .page-header h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+    .page-header p { color: var(--text-muted); font-size: 14px; }
+
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      padding: 32px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1400px) { .mockup-grid { grid-template-columns: 1fr; } }
+
+    .mockup-container {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .mockup-title {
+      background: var(--bg-light);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mockup-title h2 { font-size: 16px; font-weight: 600; }
+
+    .entity-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .entity-badge.use-case { background: var(--tag-bg-blue); color: var(--tag-blue); }
+    .entity-badge.persona { background: var(--tag-bg-orange); color: var(--tag-orange); }
+    .entity-badge.epic { background: var(--tag-bg-purple); color: var(--tag-purple); }
+    .entity-badge.feedback { background: var(--tag-bg-red); color: var(--tag-red); }
+
+    .mockup-description {
+      padding: 16px 20px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-muted);
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .mockup-frame {
+      height: 550px;
+      display: flex;
+      background: var(--bg-dark);
+    }
+
+    .app-layout { display: flex; width: 100%; height: 100%; }
+
+    .left-sidebar {
+      width: 48px;
+      background: var(--bg-brand);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 12px;
+      gap: 8px;
+    }
+
+    .sidebar-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      color: var(--text-brand);
+    }
+
+    .sidebar-icon.active { background: var(--bg-brand-hover); }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .content-header {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .content-header h3 { font-size: 14px; font-weight: 500; }
+    .content-header .entity-type { color: var(--text-muted); font-weight: 400; }
+
+    .content-body {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    .content-placeholder {
+      background: var(--bg-light);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .icon-sm { width: 14px; height: 14px; }
+
+    /* Timeline Sidebar */
+    .timeline-sidebar {
+      width: 280px;
+      background: var(--bg-light);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .timeline-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .timeline-header h4 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    .timeline-content {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .section-header {
+      padding: 8px 16px;
+      background: var(--bg);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-disabled);
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .ancestor-list {
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .ancestor-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .ancestor-item:hover { color: var(--text); }
+
+    .ancestor-connector { color: var(--text-disabled); padding-left: 6px; }
+
+    .item-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      font-size: 9px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .item-icon.team { background: var(--tag-bg-blue); color: var(--tag-blue); }
+    .item-icon.solution { background: var(--tag-bg-purple); color: var(--tag-purple); }
+    .item-icon.usecase { background: var(--tag-bg-blue); color: var(--tag-blue); }
+    .item-icon.version { background: var(--tag-bg-green); color: var(--tag-green); }
+    .item-icon.epic { background: var(--tag-bg-purple); color: var(--tag-purple); }
+    .item-icon.story { background: var(--tag-bg-green); color: var(--tag-green); }
+    .item-icon.persona { background: var(--tag-bg-orange); color: var(--tag-orange); }
+    .item-icon.feedback { background: var(--tag-bg-red); color: var(--tag-red); }
+    .item-icon.requirement { background: var(--tag-bg-blue); color: var(--tag-blue); }
+
+    .current-item-container {
+      padding: 16px;
+      background: linear-gradient(180deg, var(--primary-muted) 0%, transparent 100%);
+    }
+
+    .current-item {
+      background: var(--bg);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      position: relative;
+    }
+
+    .current-item::before {
+      content: '◀ VIEWING';
+      position: absolute;
+      right: 10px;
+      top: -9px;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      background: var(--bg-light);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    .current-item-type {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .current-item-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .current-item-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .status-badge.active { background: var(--tag-bg-green); color: var(--tag-green); }
+    .status-badge.in-progress { background: var(--tag-bg-blue); color: var(--tag-blue); }
+
+    .link-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-muted);
+      cursor: pointer;
+    }
+
+    .link-item:hover { background: var(--bg-elevated); }
+
+    .link-item-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .link-item-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    .link-item-count {
+      font-size: 10px;
+      color: var(--text-disabled);
+      background: var(--bg);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .link-item-preview {
+      font-size: 10px;
+      color: var(--text-disabled);
+      padding-left: 26px;
+      margin-top: 4px;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-muted); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <h1>Context Timeline - How It Adapts to Different Entities</h1>
+    <p>The same timeline design showing context for Use Case, Persona, Epic, and Feedback views.</p>
+  </header>
+
+  <div class="mockup-grid">
+
+    <!-- Viewing a Use Case -->
+    <div class="mockup-container">
+      <div class="mockup-title">
+        <h2>Viewing a Use Case</h2>
+        <span class="entity-badge use-case">Use Case</span>
+      </div>
+      <div class="mockup-description">
+        Shows: Team → Solution → USE CASE, with children (Versions, Requirements) and linked entities (Personas, Feedback) below.
+      </div>
+      <div class="mockup-frame">
+        <div class="app-layout">
+          <div class="left-sidebar">
+            <div class="sidebar-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="sidebar-icon active"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></div>
+          </div>
+          <div class="main-content">
+            <div class="content-header">
+              <h3><span class="entity-type">Use Case — </span>User Authentication</h3>
+            </div>
+            <div class="content-body">
+              <div class="content-placeholder">[ Use Case Content ]</div>
+            </div>
+          </div>
+          <div class="timeline-sidebar">
+            <div class="timeline-header"><h4>Context</h4></div>
+            <div class="timeline-content">
+              <div class="section-header">Hierarchy</div>
+              <div class="ancestor-list">
+                <div class="ancestor-item">
+                  <span class="item-icon team">T</span>
+                  Team Alpha
+                </div>
+                <div class="ancestor-item">
+                  <span class="ancestor-connector">└</span>
+                  <span class="item-icon solution">S</span>
+                  Mobile App Solution
+                </div>
+              </div>
+
+              <div class="current-item-container">
+                <div class="current-item">
+                  <div class="current-item-type" style="color:var(--tag-blue);">Use Case</div>
+                  <div class="current-item-title">User Authentication</div>
+                  <div class="current-item-meta">
+                    <span class="status-badge active">● Active</span>
+                    <span>High Priority</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-header">Children</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon version">V</span>
+                  <span class="link-item-title">Versions</span>
+                  <span class="link-item-count">3</span>
+                </div>
+                <div class="link-item-preview">v1.0, v2.0 (OAuth), v3.0 (SSO)</div>
+              </div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon requirement">R</span>
+                  <span class="link-item-title">Requirements</span>
+                  <span class="link-item-count">12</span>
+                </div>
+                <div class="link-item-preview">Password rules, 2FA support...</div>
+              </div>
+
+              <div class="section-header">Linked</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon persona">P</span>
+                  <span class="link-item-title">Personas</span>
+                  <span class="link-item-count">4</span>
+                </div>
+                <div class="link-item-preview">Admin, End User, Dev, Guest</div>
+              </div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon feedback">F</span>
+                  <span class="link-item-title">Feedback</span>
+                  <span class="link-item-count">8</span>
+                </div>
+                <div class="link-item-preview">"Login too slow", "Need SSO"...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Viewing a Persona -->
+    <div class="mockup-container">
+      <div class="mockup-title">
+        <h2>Viewing a Persona</h2>
+        <span class="entity-badge persona">Persona</span>
+      </div>
+      <div class="mockup-description">
+        Shows: Team → PERSONA, with linked entities (Use Cases, Feedback, Intake Sources) below. Personas are at the root level.
+      </div>
+      <div class="mockup-frame">
+        <div class="app-layout">
+          <div class="left-sidebar">
+            <div class="sidebar-icon active"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="sidebar-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></div>
+          </div>
+          <div class="main-content">
+            <div class="content-header">
+              <h3><span class="entity-type">Persona — </span>John the Developer</h3>
+            </div>
+            <div class="content-body">
+              <div class="content-placeholder">[ Persona Content ]</div>
+            </div>
+          </div>
+          <div class="timeline-sidebar">
+            <div class="timeline-header"><h4>Context</h4></div>
+            <div class="timeline-content">
+              <div class="section-header">Hierarchy</div>
+              <div class="ancestor-list">
+                <div class="ancestor-item">
+                  <span class="item-icon team">T</span>
+                  Team Alpha
+                </div>
+              </div>
+
+              <div class="current-item-container">
+                <div class="current-item">
+                  <div class="current-item-type" style="color:var(--tag-orange);">Persona</div>
+                  <div class="current-item-title">John the Developer</div>
+                  <div class="current-item-meta">
+                    <span>Senior Engineer</span>
+                    <span>•</span>
+                    <span>3 Goals</span>
+                    <span>•</span>
+                    <span>5 Pain Points</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-header">Linked Use Cases</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon usecase">UC</span>
+                  <span class="link-item-title">Use Cases</span>
+                  <span class="link-item-count">6</span>
+                </div>
+                <div class="link-item-preview">Auth, Checkout, Profile...</div>
+              </div>
+
+              <div class="section-header">Linked Feedback</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon feedback">F</span>
+                  <span class="link-item-title">Feedback from John</span>
+                  <span class="link-item-count">4</span>
+                </div>
+                <div class="link-item-preview">"API docs unclear", "Need CLI"...</div>
+              </div>
+
+              <div class="section-header">Source</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon" style="background:var(--tag-bg-purple);color:var(--tag-purple);">I</span>
+                  <span class="link-item-title">Intake Sources</span>
+                  <span class="link-item-count">2</span>
+                </div>
+                <div class="link-item-preview">User Interview (Jan 15), Survey</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Viewing an Epic -->
+    <div class="mockup-container">
+      <div class="mockup-title">
+        <h2>Viewing an Epic</h2>
+        <span class="entity-badge epic">Epic</span>
+      </div>
+      <div class="mockup-description">
+        Shows: Team → Solution → Use Case Version → EPIC, with children (Stories) and context from the parent Use Case.
+      </div>
+      <div class="mockup-frame">
+        <div class="app-layout">
+          <div class="left-sidebar">
+            <div class="sidebar-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="sidebar-icon active"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></div>
+          </div>
+          <div class="main-content">
+            <div class="content-header">
+              <h3><span class="entity-type">Epic — </span>Payment Processing</h3>
+            </div>
+            <div class="content-body">
+              <div class="content-placeholder">[ Epic Content ]</div>
+            </div>
+          </div>
+          <div class="timeline-sidebar">
+            <div class="timeline-header"><h4>Context</h4></div>
+            <div class="timeline-content">
+              <div class="section-header">Hierarchy</div>
+              <div class="ancestor-list">
+                <div class="ancestor-item">
+                  <span class="item-icon team">T</span>
+                  Team Alpha
+                </div>
+                <div class="ancestor-item">
+                  <span class="ancestor-connector">└</span>
+                  <span class="item-icon solution">S</span>
+                  Mobile App Solution
+                </div>
+                <div class="ancestor-item">
+                  <span class="ancestor-connector" style="padding-left:18px;">└</span>
+                  <span class="item-icon usecase">UC</span>
+                  Checkout Use Case
+                </div>
+                <div class="ancestor-item">
+                  <span class="ancestor-connector" style="padding-left:30px;">└</span>
+                  <span class="item-icon version">V</span>
+                  v2.1 - Checkout Flow
+                </div>
+              </div>
+
+              <div class="current-item-container">
+                <div class="current-item">
+                  <div class="current-item-type" style="color:var(--tag-purple);">Epic</div>
+                  <div class="current-item-title">Payment Processing</div>
+                  <div class="current-item-meta">
+                    <span class="status-badge in-progress">● In Progress</span>
+                    <span>4 Stories</span>
+                    <span>•</span>
+                    <span>18 pts total</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-header">Stories in this Epic</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon story">ST</span>
+                  <span class="link-item-title">Add Apple Pay Support</span>
+                </div>
+                <div class="link-item-preview">In Progress • 5 pts</div>
+              </div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon story">ST</span>
+                  <span class="link-item-title">Google Pay Integration</span>
+                </div>
+                <div class="link-item-preview">To Do • 5 pts</div>
+              </div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon story">ST</span>
+                  <span class="link-item-title">Payment Error Handling</span>
+                </div>
+                <div class="link-item-preview">Done • 3 pts</div>
+              </div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon story">ST</span>
+                  <span class="link-item-title">Receipt Generation</span>
+                </div>
+                <div class="link-item-preview">To Do • 5 pts</div>
+              </div>
+
+              <div class="section-header">From Use Case</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon persona">P</span>
+                  <span class="link-item-title">Personas</span>
+                  <span class="link-item-count">3</span>
+                </div>
+              </div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon requirement">R</span>
+                  <span class="link-item-title">Requirements</span>
+                  <span class="link-item-count">8</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Viewing Feedback -->
+    <div class="mockup-container">
+      <div class="mockup-title">
+        <h2>Viewing Feedback</h2>
+        <span class="entity-badge feedback">Feedback</span>
+      </div>
+      <div class="mockup-description">
+        Shows: Team → Solution (optional) → FEEDBACK, with linked entities (Personas, Use Cases) and source information.
+      </div>
+      <div class="mockup-frame">
+        <div class="app-layout">
+          <div class="left-sidebar">
+            <div class="sidebar-icon active"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="sidebar-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></div>
+          </div>
+          <div class="main-content">
+            <div class="content-header">
+              <h3><span class="entity-type">Feedback — </span>"Login process too slow"</h3>
+            </div>
+            <div class="content-body">
+              <div class="content-placeholder">[ Feedback Content ]</div>
+            </div>
+          </div>
+          <div class="timeline-sidebar">
+            <div class="timeline-header"><h4>Context</h4></div>
+            <div class="timeline-content">
+              <div class="section-header">Hierarchy</div>
+              <div class="ancestor-list">
+                <div class="ancestor-item">
+                  <span class="item-icon team">T</span>
+                  Team Alpha
+                </div>
+                <div class="ancestor-item">
+                  <span class="ancestor-connector">└</span>
+                  <span class="item-icon solution">S</span>
+                  Mobile App Solution
+                </div>
+              </div>
+
+              <div class="current-item-container">
+                <div class="current-item">
+                  <div class="current-item-type" style="color:var(--tag-red);">Feedback</div>
+                  <div class="current-item-title">"Login process too slow"</div>
+                  <div class="current-item-meta">
+                    <span style="padding:2px 8px;background:var(--tag-bg-red);color:var(--tag-red);border-radius:10px;font-size:10px;">Problem</span>
+                    <span>Weight: High</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-header">Linked Personas</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon persona">P</span>
+                  <span class="link-item-title">John the Developer</span>
+                </div>
+                <div class="link-item-preview">Source of this feedback</div>
+              </div>
+
+              <div class="section-header">Linked Use Cases</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon usecase">UC</span>
+                  <span class="link-item-title">User Authentication</span>
+                </div>
+                <div class="link-item-preview">Related use case</div>
+              </div>
+
+              <div class="section-header">Source</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon" style="background:var(--tag-bg-purple);color:var(--tag-purple);">I</span>
+                  <span class="link-item-title">User Interview</span>
+                </div>
+                <div class="link-item-preview">Jan 15, 2025 with John</div>
+              </div>
+
+              <div class="section-header">Supporting Quotes</div>
+              <div class="link-item">
+                <div class="link-item-header">
+                  <span class="item-icon" style="background:var(--bg-elevated);color:var(--text-muted);">❝</span>
+                  <span class="link-item-title">Quotes</span>
+                  <span class="link-item-count">2</span>
+                </div>
+                <div class="link-item-preview">"I wait 10+ seconds..."</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

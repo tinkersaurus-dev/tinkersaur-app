@@ -89,3 +89,6 @@ export { Tooltip } from './Tooltip';
 
 export { CardStack } from './CardStack';
 export type { CardStackProps } from './CardStack';
+
+export { Drawer } from './Drawer';
+export type { DrawerProps } from './Drawer';

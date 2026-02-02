@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Timeline - Centered Layout Variants</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-brand: oklch(.22 0.05 262);
+      --bg-brand-hover: oklch(38.024% 0.15934 261.641);
+      --text-brand: oklch(0.9952 0.0235 106.82);
+      --bg-dark: oklch(16% 0 0);
+      --bg: oklch(21.34% 0 0);
+      --bg-light: oklch(23.93% 0 0);
+      --bg-elevated: oklch(26% 0 0);
+      --text: oklch(97.34% 0.00453 215.503);
+      --text-muted: oklch(70% 0.00671 209.546);
+      --text-disabled: oklch(.55 0.01 213);
+      --primary: oklch(0.76 0.1 213);
+      --primary-muted: oklch(0.76 0.1 213 / 0.15);
+      --secondary: oklch(0.76 0.1 33);
+      --border: oklch(0.4 0.01 213);
+      --border-muted: oklch(0.3 0.01 213);
+      --highlight: oklch(0.4 0.1 33);
+      --tag-blue: oklch(0.5044 0.2095 260.97);
+      --tag-green: oklch(0.6154 0.1912 139.42);
+      --tag-orange: oklch(0.6396 0.1596 53.28);
+      --tag-red: oklch(0.5434 0.2132 25.86);
+      --tag-purple: oklch(59.516% 0.24402 307.905);
+      --tag-bg-blue: oklch(0.3 0.05 260);
+      --tag-bg-green: oklch(0.3 0.05 139);
+      --tag-bg-orange: oklch(0.3 0.05 53);
+      --tag-bg-red: oklch(0.3 0.05 25);
+      --tag-bg-purple: oklch(0.3 0.05 307);
+      --radius-sm: 2px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-hover: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .page-header {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .page-header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      padding: 32px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1400px) {
+      .mockup-grid { grid-template-columns: 1fr; }
+    }
+
+    .mockup-container {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .mockup-title {
+      background: var(--bg-light);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mockup-title h2 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .mockup-title .badge {
+      background: var(--primary-muted);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .mockup-description {
+      padding: 16px 20px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-muted);
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .mockup-frame {
+      height: 650px;
+      display: flex;
+      background: var(--bg-dark);
+    }
+
+    .app-layout {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .left-sidebar {
+      width: 48px;
+      background: var(--bg-brand);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 12px;
+      gap: 8px;
+    }
+
+    .sidebar-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      color: var(--text-brand);
+      cursor: pointer;
+    }
+
+    .sidebar-icon:hover { background: var(--bg-brand-hover); }
+    .sidebar-icon.active { background: var(--bg-brand-hover); }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .content-header {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .content-header h3 {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .content-header .entity-type {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .content-body {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    .content-placeholder {
+      background: var(--bg-light);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    .icon-sm { width: 14px; height: 14px; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-muted); border-radius: 3px; }
+
+    /* ==================== */
+    /* CENTERED TIMELINE STYLES */
+    /* ==================== */
+
+    .timeline-sidebar {
+      width: 280px;
+      background: var(--bg-light);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .timeline-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .timeline-header h4 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--text);
+    }
+
+    .timeline-content {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Centered Layout Section Headers */
+    .section-header {
+      padding: 8px 16px;
+      background: var(--bg);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-disabled);
+      border-bottom: 1px solid var(--border-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-header .chevron {
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* Ancestor items (compact) */
+    .ancestor-list {
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .ancestor-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .ancestor-item:hover {
+      color: var(--text);
+    }
+
+    .ancestor-connector {
+      color: var(--text-disabled);
+      padding-left: 6px;
+    }
+
+    .ancestor-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      font-size: 9px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .ancestor-icon.team { background: var(--tag-bg-blue); color: var(--tag-blue); }
+    .ancestor-icon.solution { background: var(--tag-bg-purple); color: var(--tag-purple); }
+    .ancestor-icon.version { background: var(--tag-bg-green); color: var(--tag-green); }
+    .ancestor-icon.epic { background: var(--tag-bg-purple); color: var(--tag-purple); }
+
+    /* Current Item (prominent) */
+    .current-item-container {
+      padding: 16px;
+      background: linear-gradient(180deg, var(--primary-muted) 0%, transparent 100%);
+    }
+
+    .current-item {
+      background: var(--bg);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      position: relative;
+    }
+
+    .current-item::before {
+      content: '◀ YOU ARE HERE';
+      position: absolute;
+      right: 12px;
+      top: -10px;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      background: var(--bg-light);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    .current-item-type {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--tag-green);
+      margin-bottom: 4px;
+    }
+
+    .current-item-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .current-item-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .current-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .status-badge.in-progress {
+      background: var(--tag-bg-blue);
+      color: var(--tag-blue);
+    }
+
+    /* Descendants and Links */
+    .descendants-section {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .link-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-muted);
+      cursor: pointer;
+    }
+
+    .link-item:hover {
+      background: var(--bg-elevated);
+    }
+
+    .link-item-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .link-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .link-icon.usecase { background: var(--tag-bg-blue); color: var(--tag-blue); }
+    .link-icon.persona { background: var(--tag-bg-orange); color: var(--tag-orange); }
+    .link-icon.requirement { background: var(--tag-bg-blue); color: var(--tag-blue); }
+    .link-icon.feedback { background: var(--tag-bg-red); color: var(--tag-red); }
+
+    .link-item-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    .link-item-count {
+      font-size: 10px;
+      color: var(--text-disabled);
+      background: var(--bg);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .link-item-preview {
+      font-size: 10px;
+      color: var(--text-disabled);
+      padding-left: 28px;
+    }
+
+    /* Compact Inline Variant */
+    .compact-sidebar {
+      width: 260px;
+    }
+
+    .compact-ancestors {
+      padding: 8px 12px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .compact-breadcrumb {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .compact-breadcrumb span {
+      white-space: nowrap;
+    }
+
+    .compact-breadcrumb .sep {
+      color: var(--text-disabled);
+    }
+
+    .compact-current {
+      padding: 12px;
+      background: linear-gradient(90deg, var(--primary-muted), transparent);
+      border-left: 3px solid var(--primary);
+    }
+
+    .compact-current-type {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--tag-green);
+    }
+
+    .compact-current-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 4px 0 8px;
+    }
+
+    .compact-meta-row {
+      display: flex;
+      gap: 8px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Card Stack Variant */
+    .card-stack-sidebar {
+      width: 300px;
+    }
+
+    .card-stack-content {
+      padding: 12px;
+    }
+
+    .stacked-card {
+      background: var(--bg);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      overflow: hidden;
+      transition: all var(--transition-fast);
+    }
+
+    .stacked-card:hover {
+      border-color: var(--border);
+    }
+
+    .stacked-card.current {
+      border: 2px solid var(--primary);
+      background: linear-gradient(135deg, var(--primary-muted) 0%, var(--bg) 50%);
+    }
+
+    .stacked-card-header {
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .stacked-card-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .stacked-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .stacked-card-type {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-disabled);
+    }
+
+    .stacked-card-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stacked-card.current .stacked-card-title {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .stacked-card-expand {
+      color: var(--text-disabled);
+      font-size: 12px;
+    }
+
+    .stacked-card-body {
+      padding: 0 12px 12px;
+      display: none;
+    }
+
+    .stacked-card.expanded .stacked-card-body {
+      display: block;
+    }
+
+    .stacked-card.current .stacked-card-body {
+      display: block;
+    }
+
+    .stacked-card-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .stacked-card-links {
+      border-top: 1px solid var(--border-muted);
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    .stacked-card-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--text-disabled);
+      padding: 3px 0;
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <h1>Context Timeline - "Centered on Current" Variants</h1>
+    <p>Different ways to show the current entity prominently with ancestors above and descendants/links below.</p>
+  </header>
+
+  <div class="mockup-grid">
+
+    <!-- Variant A: Sections with Headers -->
+    <div class="mockup-container">
+      <div class="mockup-title">
+        <h2>A. Sectioned Layout</h2>
+        <span class="badge">Clear Separation</span>
+      </div>
+      <div class="mockup-description">
+        Ancestors collapsed at top, current item prominent in middle, descendants and links below with section headers.
+      </div>
+      <div class="mockup-frame">
+        <div class="app-layout">
+          <div class="left-sidebar">
+            <div class="sidebar-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="sidebar-icon active"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></div>
+          </div>
+          <div class="main-content">
+            <div class="content-header">
+              <button class="back-btn"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+              <h3><span class="entity-type">Story — </span>Add Apple Pay Support</h3>
+            </div>
+            <div class="content-body">
+              <div class="content-placeholder">[ User Story Content ]</div>
+            </div>
+          </div>
+          <div class="timeline-sidebar">
+            <div class="timeline-header">
+              <h4>Context</h4>
+              <button class="icon-btn"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="timeline-content">
+              <div class="section-header">
+                Ancestors
+                <span class="chevron">▲</span>
+              </div>
+              <div class="ancestor-list">
+                <div class="ancestor-item">
+                  <span class="ancestor-icon team">T</span>
+                  Team Alpha
+                </div>
+                <div class="ancestor-item">
+                  <span class="ancestor-connector">└</span>
+                  <span class="ancestor-icon solution">S</span>
+                  Mobile App Solution
+                </div>
+                <div class="ancestor-item">
+                  <span class="ancestor-connector" style="padding-left:18px;">└</span>
+                  <span class="ancestor-icon version">V</span>
+                  v2.1 - Checkout Flow
+                </div>
+                <div class="ancestor-item">
+                  <span class="ancestor-connector" style="padding-left:30px;">└</span>
+                  <span class="ancestor-icon epic">E</span>
+                  Payment Processing
+                </div>
+              </div>
+
+              <div class="current-item-container">
+                <div class="current-item">
+                  <div class="current-item-type">User Story</div>
+                  <div class="current-item-title">Add Apple Pay Support</div>
+                  <div class="current-item-meta">
+                    <span class="status-badge in-progress">● In Progress</span>
+                    <span class="current-meta-item">5 Points</span>
+                    <span class="current-meta-item">Sprint 24</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-header">
+                Descendants & Links
+                <span class="chevron">▼</span>
+              </div>
+              <div class="descendants-section">
+                <div class="link-item">
+                  <div class="link-item-header">
+                    <span class="link-icon usecase">UC</span>
+                    <span class="link-item-title">Checkout Use Case</span>
+                  </div>
+                  <div class="link-item-preview">Parent use case for this version</div>
+                </div>
+                <div class="link-item">
+                  <div class="link-item-header">
+                    <span class="link-icon persona">P</span>
+                    <span class="link-item-title">Personas</span>
+                    <span class="link-item-count">3</span>
+                  </div>
+                  <div class="link-item-preview">John, Sarah, Mike</div>
+                </div>
+                <div class="link-item">
+                  <div class="link-item-header">
+                    <span class="link-icon requirement">R</span>
+                    <span class="link-item-title">Requirements</span>
+                    <span class="link-item-count">8</span>
+                  </div>
+                  <div class="link-item-preview">Token support, 3DS auth...</div>
+                </div>
+                <div class="link-item">
+                  <div class="link-item-header">
+                    <span class="link-icon feedback">F</span>
+                    <span class="link-item-title">Feedback</span>
+                    <span class="link-item-count">2</span>
+                  </div>
+                  <div class="link-item-preview">"Need faster checkout"...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant B: Compact Inline -->
+    <div class="mockup-container">
+      <div class="mockup-title">
+        <h2>B. Compact Inline</h2>
+        <span class="badge">Space Efficient</span>
+      </div>
+      <div class="mockup-description">
+        Ancestors as a breadcrumb trail, current item with accent border, links as a simple list.
+      </div>
+      <div class="mockup-frame">
+        <div class="app-layout">
+          <div class="left-sidebar">
+            <div class="sidebar-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="sidebar-icon active"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></div>
+          </div>
+          <div class="main-content">
+            <div class="content-header">
+              <button class="back-btn"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+              <h3><span class="entity-type">Story — </span>Add Apple Pay Support</h3>
+            </div>
+            <div class="content-body">
+              <div class="content-placeholder">[ User Story Content ]</div>
+            </div>
+          </div>
+          <div class="timeline-sidebar compact-sidebar">
+            <div class="timeline-header">
+              <h4>Context</h4>
+              <button class="icon-btn"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="timeline-content">
+              <div class="compact-ancestors">
+                <div class="compact-breadcrumb">
+                  <span>Team Alpha</span>
+                  <span class="sep">›</span>
+                  <span>Mobile App</span>
+                  <span class="sep">›</span>
+                  <span>v2.1</span>
+                  <span class="sep">›</span>
+                  <span>Payment Epic</span>
+                </div>
+              </div>
+
+              <div class="compact-current">
+                <div class="compact-current-type">User Story</div>
+                <div class="compact-current-title">Add Apple Pay Support</div>
+                <div class="compact-meta-row">
+                  <span class="status-badge in-progress">● In Progress</span>
+                  <span>5 pts</span>
+                  <span>Sprint 24</span>
+                </div>
+              </div>
+
+              <div class="descendants-section">
+                <div class="link-item">
+                  <div class="link-item-header">
+                    <span class="link-icon usecase">UC</span>
+                    <span class="link-item-title">Checkout Use Case</span>
+                  </div>
+                </div>
+                <div class="link-item">
+                  <div class="link-item-header">
+                    <span class="link-icon persona">P</span>
+                    <span class="link-item-title">Personas</span>
+                    <span class="link-item-count">3</span>
+                  </div>
+                  <div class="link-item-preview">John, Sarah, Mike</div>
+                </div>
+                <div class="link-item">
+                  <div class="link-item-header">
+                    <span class="link-icon requirement">R</span>
+                    <span class="link-item-title">Requirements</span>
+                    <span class="link-item-count">8</span>
+                  </div>
+                  <div class="link-item-preview">Token support, 3DS auth...</div>
+                </div>
+                <div class="link-item">
+                  <div class="link-item-header">
+                    <span class="link-icon feedback">F</span>
+                    <span class="link-item-title">Feedback</span>
+                    <span class="link-item-count">2</span>
+                  </div>
+                  <div class="link-item-preview">"Need faster checkout"...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant C: Card Stack -->
+    <div class="mockup-container">
+      <div class="mockup-title">
+        <h2>C. Card Stack</h2>
+        <span class="badge">Visual Hierarchy</span>
+      </div>
+      <div class="mockup-description">
+        All entities as cards - ancestors collapsed, current expanded with prominent styling, links nested inside.
+      </div>
+      <div class="mockup-frame">
+        <div class="app-layout">
+          <div class="left-sidebar">
+            <div class="sidebar-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="sidebar-icon active"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></div>
+          </div>
+          <div class="main-content">
+            <div class="content-header">
+              <button class="back-btn"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+              <h3><span class="entity-type">Story — </span>Add Apple Pay Support</h3>
+            </div>
+            <div class="content-body">
+              <div class="content-placeholder">[ User Story Content ]</div>
+            </div>
+          </div>
+          <div class="timeline-sidebar card-stack-sidebar">
+            <div class="timeline-header">
+              <h4>Context</h4>
+              <button class="icon-btn"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="timeline-content" style="padding:12px;">
+              <!-- Ancestor Cards (collapsed) -->
+              <div class="stacked-card">
+                <div class="stacked-card-header">
+                  <span class="stacked-card-icon" style="background:var(--tag-bg-blue);color:var(--tag-blue);">T</span>
+                  <div class="stacked-card-info">
+                    <div class="stacked-card-type">Team</div>
+                    <div class="stacked-card-title">Team Alpha</div>
+                  </div>
+                  <span class="stacked-card-expand">›</span>
+                </div>
+              </div>
+
+              <div class="stacked-card">
+                <div class="stacked-card-header">
+                  <span class="stacked-card-icon" style="background:var(--tag-bg-purple);color:var(--tag-purple);">S</span>
+                  <div class="stacked-card-info">
+                    <div class="stacked-card-type">Solution</div>
+                    <div class="stacked-card-title">Mobile App Solution</div>
+                  </div>
+                  <span class="stacked-card-expand">›</span>
+                </div>
+              </div>
+
+              <div class="stacked-card">
+                <div class="stacked-card-header">
+                  <span class="stacked-card-icon" style="background:var(--tag-bg-green);color:var(--tag-green);">V</span>
+                  <div class="stacked-card-info">
+                    <div class="stacked-card-type">Version</div>
+                    <div class="stacked-card-title">v2.1 - Checkout Flow</div>
+                  </div>
+                  <span class="stacked-card-expand">›</span>
+                </div>
+              </div>
+
+              <div class="stacked-card">
+                <div class="stacked-card-header">
+                  <span class="stacked-card-icon" style="background:var(--tag-bg-purple);color:var(--tag-purple);">E</span>
+                  <div class="stacked-card-info">
+                    <div class="stacked-card-type">Epic</div>
+                    <div class="stacked-card-title">Payment Processing</div>
+                  </div>
+                  <span class="stacked-card-expand">›</span>
+                </div>
+              </div>
+
+              <!-- Current Card (expanded) -->
+              <div class="stacked-card current">
+                <div class="stacked-card-header">
+                  <span class="stacked-card-icon" style="background:var(--tag-bg-green);color:var(--tag-green);">ST</span>
+                  <div class="stacked-card-info">
+                    <div class="stacked-card-type">User Story</div>
+                    <div class="stacked-card-title">Add Apple Pay Support</div>
+                  </div>
+                </div>
+                <div class="stacked-card-body">
+                  <div class="stacked-card-meta">
+                    <span class="status-badge in-progress">● In Progress</span>
+                    <span>5 Points</span>
+                    <span>Sprint 24</span>
+                  </div>
+                  <div class="stacked-card-links">
+                    <div class="stacked-card-link">
+                      <span class="link-icon persona" style="width:16px;height:16px;font-size:8px;">P</span>
+                      3 Personas: John, Sarah, Mike
+                    </div>
+                    <div class="stacked-card-link">
+                      <span class="link-icon requirement" style="width:16px;height:16px;font-size:8px;">R</span>
+                      8 Requirements
+                    </div>
+                    <div class="stacked-card-link">
+                      <span class="link-icon feedback" style="width:16px;height:16px;font-size:8px;">F</span>
+                      2 Feedback items
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Descendant Card -->
+              <div class="stacked-card">
+                <div class="stacked-card-header">
+                  <span class="stacked-card-icon" style="background:var(--tag-bg-blue);color:var(--tag-blue);">UC</span>
+                  <div class="stacked-card-info">
+                    <div class="stacked-card-type">Use Case</div>
+                    <div class="stacked-card-title">Checkout Use Case</div>
+                  </div>
+                  <span class="stacked-card-expand">›</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant D: Focus Mode -->
+    <div class="mockup-container">
+      <div class="mockup-title">
+        <h2>D. Focus Mode</h2>
+        <span class="badge">Minimal</span>
+      </div>
+      <div class="mockup-description">
+        Only shows current entity details with a mini breadcrumb and expandable sections for context.
+      </div>
+      <div class="mockup-frame">
+        <div class="app-layout">
+          <div class="left-sidebar">
+            <div class="sidebar-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+            <div class="sidebar-icon active"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></div>
+          </div>
+          <div class="main-content">
+            <div class="content-header">
+              <button class="back-btn"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+              <h3><span class="entity-type">Story — </span>Add Apple Pay Support</h3>
+            </div>
+            <div class="content-body">
+              <div class="content-placeholder">[ User Story Content ]</div>
+            </div>
+          </div>
+          <div class="timeline-sidebar" style="width:240px;">
+            <div class="timeline-header">
+              <h4>Focus</h4>
+              <button class="icon-btn"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="timeline-content">
+              <!-- Mini breadcrumb -->
+              <div style="padding:8px 12px; font-size:10px; color:var(--text-disabled); border-bottom:1px solid var(--border-muted);">
+                <span style="cursor:pointer;">Team</span> › <span style="cursor:pointer;">Solution</span> › <span style="cursor:pointer;">v2.1</span> › <span style="cursor:pointer;">Epic</span>
+              </div>
+
+              <!-- Current Entity - Large Focus -->
+              <div style="padding:20px 16px; text-align:center; border-bottom:1px solid var(--border-muted);">
+                <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:var(--radius-md); background:var(--tag-bg-green); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:600; color:var(--tag-green);">
+                  ST
+                </div>
+                <div style="font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--tag-green); margin-bottom:4px;">
+                  User Story
+                </div>
+                <div style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:8px;">
+                  Add Apple Pay Support
+                </div>
+                <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+                  <span class="status-badge in-progress">● In Progress</span>
+                  <span style="font-size:10px; color:var(--text-muted); padding:2px 8px; background:var(--bg); border-radius:10px;">5 pts</span>
+                </div>
+              </div>
+
+              <!-- Quick Links -->
+              <div style="padding:12px;">
+                <div style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-disabled); margin-bottom:8px;">
+                  Quick Links
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                  <div style="padding:8px; background:var(--bg); border-radius:var(--radius-sm); text-align:center; cursor:pointer;">
+                    <div style="font-size:14px; margin-bottom:2px;">👤</div>
+                    <div style="font-size:10px; color:var(--text-muted);">3 Personas</div>
+                  </div>
+                  <div style="padding:8px; background:var(--bg); border-radius:var(--radius-sm); text-align:center; cursor:pointer;">
+                    <div style="font-size:14px; margin-bottom:2px;">📋</div>
+                    <div style="font-size:10px; color:var(--text-muted);">8 Reqs</div>
+                  </div>
+                  <div style="padding:8px; background:var(--bg); border-radius:var(--radius-sm); text-align:center; cursor:pointer;">
+                    <div style="font-size:14px; margin-bottom:2px;">💬</div>
+                    <div style="font-size:10px; color:var(--text-muted);">2 Feedback</div>
+                  </div>
+                  <div style="padding:8px; background:var(--bg); border-radius:var(--radius-sm); text-align:center; cursor:pointer;">
+                    <div style="font-size:14px; margin-bottom:2px;">📐</div>
+                    <div style="font-size:10px; color:var(--text-muted);">1 Diagram</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Expandable Section -->
+              <div style="border-top:1px solid var(--border-muted);">
+                <div style="padding:10px 12px; font-size:11px; color:var(--text-muted); display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+                  <span>View Full Hierarchy</span>
+                  <span style="color:var(--text-disabled);">▼</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

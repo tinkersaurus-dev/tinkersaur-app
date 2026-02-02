@@ -2,7 +2,7 @@
  * EpicsStoriesPanel - Right panel displaying epics and stories hierarchy
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useReducer } from 'react';
 import {
   FiChevronDown,
   FiChevronRight,
@@ -32,13 +32,49 @@ import {
   useDeleteStory,
   useCreateAcceptanceCriteria,
   useDeleteAcceptanceCriteria,
+  useUpdateStory,
 } from '../api/usePlanningMutations';
 import { EpicEditModal } from './EpicEditModal';
 import { StoryEditModal } from './StoryEditModal';
+import { StoryPointsTag, PointingDrawer, usePointingStore } from '@/features/pointing';
 
 interface EpicsStoriesPanelProps {
   versions: PlanningVersion[];
   onRefetch: () => void;
+}
+
+// Explicit state machine for drawer lifecycle
+type DrawerState =
+  | { status: 'closed' }
+  | { status: 'waitingForSession'; story: Story }
+  | { status: 'sessionActive'; story: Story };
+
+type DrawerAction =
+  | { type: 'OPEN_DRAWER'; story: Story }
+  | { type: 'SESSION_STARTED' }
+  | { type: 'SESSION_REMOVED' }
+  | { type: 'CLOSE_DRAWER' };
+
+function drawerReducer(state: DrawerState, action: DrawerAction): DrawerState {
+  switch (action.type) {
+    case 'OPEN_DRAWER':
+      return { status: 'waitingForSession', story: action.story };
+    case 'SESSION_STARTED':
+      if (state.status === 'waitingForSession') {
+        return { status: 'sessionActive', story: state.story };
+      }
+      return state;
+    case 'SESSION_REMOVED':
+      // Only auto-close if session was active (not if still waiting)
+      if (state.status === 'sessionActive') {
+        return { status: 'closed' };
+      }
+      return state;
+    case 'CLOSE_DRAWER':
+      return { status: 'closed' };
+    default:
+      return state;
+  }
 }
 
 export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProps) {
@@ -51,12 +87,36 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
   const [newStoryTitle, setNewStoryTitle] = useState('');
   const [newACText, setNewACText] = useState('');
 
+  // Drawer state machine for pointing session lifecycle
+  const [drawerState, dispatch] = useReducer(drawerReducer, { status: 'closed' });
+  const pointingStory = drawerState.status !== 'closed' ? drawerState.story : null;
+
+  // Watch pointing store to manage drawer state based on session lifecycle
+  const activeSessions = usePointingStore((state) => state.activeSessions);
+
+  useEffect(() => {
+    if (drawerState.status === 'closed') return;
+
+    const storyId = drawerState.story.id;
+    const hasSession = !!activeSessions[storyId];
+
+    if (drawerState.status === 'waitingForSession' && hasSession) {
+      // Session started - transition to active
+      dispatch({ type: 'SESSION_STARTED' });
+    } else if (drawerState.status === 'sessionActive' && !hasSession) {
+      // Session was removed externally - auto-close and refresh
+      dispatch({ type: 'SESSION_REMOVED' });
+      onRefetch();
+    }
+  }, [drawerState, activeSessions, onRefetch]);
+
   // Mutations
   const deleteEpicMutation = useDeleteEpic();
   const createStoryMutation = useCreateStory();
   const deleteStoryMutation = useDeleteStory();
   const createACMutation = useCreateAcceptanceCriteria();
   const deleteACMutation = useDeleteAcceptanceCriteria();
+  const updateStoryMutation = useUpdateStory();
 
   const getVersionStatusColor = (status: string): 'default' | 'blue' | 'green' | 'orange' | 'red' => {
     switch (status) {
@@ -156,6 +216,25 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
       onRefetch();
     },
     [deleteACMutation, onRefetch]
+  );
+
+  const handleOpenPointingDrawer = useCallback((story: Story) => {
+    dispatch({ type: 'OPEN_DRAWER', story });
+  }, []);
+
+  const handleClosePointingDrawer = useCallback(() => {
+    dispatch({ type: 'CLOSE_DRAWER' });
+  }, []);
+
+  const handlePointsUpdated = useCallback(
+    async (storyId: string, points: number) => {
+      await updateStoryMutation.mutateAsync({
+        storyId,
+        data: { storyPoints: points },
+      });
+      onRefetch();
+    },
+    [updateStoryMutation, onRefetch]
   );
 
   return (
@@ -280,7 +359,11 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
                                           {story.acceptanceCriteria.length} criteria
                                         </Tag>
                                
-                                      <Tag color="blue">{story.storyPoints ?? 0} pts</Tag>
+                                      <StoryPointsTag
+                                        storyId={story.id}
+                                        currentPoints={story.storyPoints}
+                                        onClick={() => handleOpenPointingDrawer(story)}
+                                      />
                                       <Button
                                         variant="text"
                                         size="small"
@@ -483,6 +566,14 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
           }}
         />
       )}
+
+      {/* Pointing Drawer */}
+      <PointingDrawer
+        story={pointingStory}
+        open={!!pointingStory}
+        onClose={handleClosePointingDrawer}
+        onPointsUpdated={handlePointsUpdated}
+      />
     </div>
   );
 }

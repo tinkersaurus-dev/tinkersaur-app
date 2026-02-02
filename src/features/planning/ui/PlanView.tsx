@@ -5,7 +5,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { FiDownload, FiInfo, FiAlertCircle, FiLoader } from 'react-icons/fi';
-import { Button, Card, Empty } from '@/shared/ui';
+import { Button, Card, Empty, HStack } from '@/shared/ui';
 import { useSolutionStore } from '@/app/model/stores/solution';
 import { usePlanningVersionsQuery } from '../model/usePlanningQueries';
 import {
@@ -17,6 +17,12 @@ import { calculateVersionPoints, countVersionStories } from '@/entities/planning
 import { VersionPriorityPanel } from './VersionPriorityPanel';
 import { EpicsStoriesPanel } from './EpicsStoriesPanel';
 import { ExportDialog } from './ExportDialog';
+import {
+  useCollaborationConnection,
+  useCollaborationEvents,
+  useJoinContext,
+  PresenceIndicator,
+} from '@/features/collaboration';
 
 export function PlanView() {
   const selectedSolution = useSolutionStore((state) => state.selectedSolution);
@@ -29,6 +35,11 @@ export function PlanView() {
     error,
     refetch,
   } = usePlanningVersionsQuery(solutionId);
+
+  // Collaboration - connect and handle events
+  useCollaborationConnection();
+  useCollaborationEvents();
+  useJoinContext('solution', solutionId);
 
   // Mutations
   const updatePrioritiesMutation = useUpdatePlanningPriorities();
@@ -185,15 +196,20 @@ export function PlanView() {
                 <h3 className="text-sm font-semibold text-[var(--text)]">
                   Epics & User Stories
                 </h3>
-                <Button
-                  variant="default"
-                  size="small"
-                  icon={<FiDownload />}
-                  onClick={() => setExportDialogOpen(true)}
-                  disabled={totals.stories === 0}
-                >
-                  Export
-                </Button>
+                <HStack gap="md">
+                  {solutionId && (
+                    <PresenceIndicator contextType="solution" contextId={solutionId} />
+                  )}
+                  <Button
+                    variant="default"
+                    size="small"
+                    icon={<FiDownload />}
+                    onClick={() => setExportDialogOpen(true)}
+                    disabled={totals.stories === 0}
+                  >
+                    Export
+                  </Button>
+                </HStack>
               </div>
             </div>
 

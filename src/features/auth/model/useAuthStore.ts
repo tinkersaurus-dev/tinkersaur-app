@@ -10,6 +10,7 @@ import {
 } from '@/shared/api';
 import type { TeamAccess, SelectedTeam } from './types';
 import { useSolutionStore } from '@/app/model/stores/solution';
+import { disconnect as disconnectCollaborationHub } from '@/features/collaboration/api/collaborationHub';
 
 const TEAM_ACCESS_KEY = 'tinkersaur_team_access';
 const SELECTED_TEAM_KEY = 'tinkersaur_selected_team';
@@ -98,6 +99,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
+    // Disconnect SignalR before clearing auth tokens
+    await disconnectCollaborationHub();
     await authApi.logout();
     localStorage.removeItem(USER_INFO_KEY);
     localStorage.removeItem(TEAM_ACCESS_KEY);
