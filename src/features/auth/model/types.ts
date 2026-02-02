@@ -73,3 +73,8 @@ export interface ChangePasswordRequest {
 export interface MessageResponse {
   message: string;
 }
+
+export interface SignalRTokenResponse {
+  signalRToken: string;
+  expiresAt: string;
+}

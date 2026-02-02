@@ -3,6 +3,7 @@
  */
 import * as signalR from '@microsoft/signalr';
 import { getAuthToken } from '@/shared/api/httpClient';
+import { authApi } from '@/features/auth/api/authApi';
 import type { UserPresence, PresenceContext } from '../model/types';
 
 // Get API base URL (follows pattern from httpClient.ts)
@@ -15,6 +16,49 @@ const getHubUrl = (): string => {
 
 // Singleton connection instance
 let connection: signalR.HubConnection | null = null;
+
+// SignalR token cache (short-lived tokens for WebSocket connections)
+let cachedSignalRToken: string | null = null;
+let cachedTokenExpiry: Date | null = null;
+
+/**
+ * Gets a short-lived SignalR token for WebSocket connections.
+ * Tokens are cached and refreshed automatically with a 30-second buffer.
+ */
+async function getSignalRToken(): Promise<string> {
+  // Check if we have a valid cached token (with 30-second buffer)
+  if (cachedSignalRToken && cachedTokenExpiry) {
+    const bufferMs = 30 * 1000;
+    if (cachedTokenExpiry.getTime() - Date.now() > bufferMs) {
+      return cachedSignalRToken;
+    }
+  }
+
+  // Need to ensure we have a valid auth token first
+  const authToken = getAuthToken();
+  if (!authToken) {
+    throw new Error('No auth token available');
+  }
+
+  try {
+    const response = await authApi.getSignalRToken();
+    cachedSignalRToken = response.signalRToken;
+    cachedTokenExpiry = new Date(response.expiresAt);
+    return response.signalRToken;
+  } catch (error) {
+    // Fall back to regular auth token if SignalR token endpoint fails
+    console.warn('Failed to get SignalR token, falling back to auth token:', error);
+    return authToken;
+  }
+}
+
+/**
+ * Clears the cached SignalR token. Should be called on logout.
+ */
+export function clearSignalRTokenCache(): void {
+  cachedSignalRToken = null;
+  cachedTokenExpiry = null;
+}
 
 export function getConnection(): signalR.HubConnection | null {
   return connection;
@@ -50,17 +94,22 @@ export async function connect(): Promise<signalR.HubConnection> {
     return connectionPromise;
   }
 
-  const token = getAuthToken();
-  if (!token) {
+  // Verify we have a valid auth token before attempting connection
+  const authToken = getAuthToken();
+  if (!authToken) {
     throw new Error('No auth token available');
   }
 
   // Reset reconnection state for new connection
   resetReconnectionState();
 
-  // Create connection but don't start yet
+  // Create connection with accessTokenFactory for dynamic token refresh
+  // This allows SignalR to fetch fresh short-lived tokens on initial connection
+  // and during automatic reconnection attempts
   connection = new signalR.HubConnectionBuilder()
-    .withUrl(`${getHubUrl()}/hubs/collaboration?access_token=${token}`)
+    .withUrl(`${getHubUrl()}/hubs/collaboration`, {
+      accessTokenFactory: getSignalRToken,
+    })
     .withAutomaticReconnect({
       nextRetryDelayInMilliseconds: (retryContext) => {
         const attemptNumber = retryContext.previousRetryCount + 1;
@@ -95,6 +144,9 @@ export async function connect(): Promise<signalR.HubConnection> {
 }
 
 export async function disconnect(): Promise<void> {
+  // Clear token cache on disconnect
+  clearSignalRTokenCache();
+
   // Wait for pending connection to complete before disconnecting
   if (connectionPromise) {
     try {

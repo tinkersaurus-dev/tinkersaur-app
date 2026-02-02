@@ -32,7 +32,6 @@ import {
   useDeleteStory,
   useCreateAcceptanceCriteria,
   useDeleteAcceptanceCriteria,
-  useUpdateStory,
 } from '../api/usePlanningMutations';
 import { EpicEditModal } from './EpicEditModal';
 import { StoryEditModal } from './StoryEditModal';
@@ -116,7 +115,6 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
   const deleteStoryMutation = useDeleteStory();
   const createACMutation = useCreateAcceptanceCriteria();
   const deleteACMutation = useDeleteAcceptanceCriteria();
-  const updateStoryMutation = useUpdateStory();
 
   const getVersionStatusColor = (status: string): 'default' | 'blue' | 'green' | 'orange' | 'red' => {
     switch (status) {
@@ -227,14 +225,11 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
   }, []);
 
   const handlePointsUpdated = useCallback(
-    async (storyId: string, points: number) => {
-      await updateStoryMutation.mutateAsync({
-        storyId,
-        data: { storyPoints: points },
-      });
+    (_storyId: string, _points: number) => {
+      // Points are persisted by the backend in CompleteSession
       onRefetch();
     },
-    [updateStoryMutation, onRefetch]
+    [onRefetch]
   );
 
   return (

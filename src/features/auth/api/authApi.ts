@@ -6,6 +6,7 @@ import type {
   ChangePasswordRequest,
   MessageResponse,
   RefreshTokenRequest,
+  SignalRTokenResponse,
 } from '../model/types';
 
 export const authApi = {
@@ -45,5 +46,9 @@ export const authApi = {
       }
     }
     clearAuthToken();
+  },
+
+  getSignalRToken: async (): Promise<SignalRTokenResponse> => {
+    return httpClient.post<SignalRTokenResponse>('/api/auth/signalr-token', {});
   },
 };
