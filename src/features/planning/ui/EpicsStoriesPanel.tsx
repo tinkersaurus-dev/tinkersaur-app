@@ -11,9 +11,10 @@ import {
   FiPlus,
   FiEdit2,
   FiTrash2,
-  FiCheck,
+
   FiLoader,
 } from 'react-icons/fi';
+import { LuDot } from "react-icons/lu";
 import { Button, Tag, HStack } from '@/shared/ui';
 import type {
   PlanningVersion,
@@ -24,12 +25,6 @@ import type {
 } from '@/entities/planning';
 import {
   calculateEpicPoints,
-  EpicStatusLabels,
-  EpicStatusColors,
-  StoryStatusLabels,
-  StoryStatusColors,
-  type EpicStatus,
-  type StoryStatus,
 } from '@/entities/planning';
 import {
   useCreateStory,
@@ -164,7 +159,7 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
   );
 
   return (
-    <>
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="p-4 space-y-3">
           {versions.map((version, versionIdx) => {
@@ -177,11 +172,7 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
                   <div className="w-5 h-5 rounded-full bg-[var(--primary)] flex items-center justify-center text-xs font-bold text-white">
                     {versionIdx + 1}
                   </div>
-                  <span className="text-xs font-mono text-[var(--text-muted)]">
-                    v{version.versionNumber}
-                  </span>
-                  <span className="font-semibold text-[var(--text)]">{version.versionName}</span>
-                  <span className="text-xs text-[var(--text-muted)]">({version.useCaseName})</span>
+                  <span className="text-xs font-medium text-[var(--text)]">{version.useCaseName} - {version.versionName}</span>
                   <Tag color={getVersionStatusColor(version.status)} className="ml-auto">
                     {version.status}
                   </Tag>
@@ -189,7 +180,7 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
 
                 {/* Epics for this version */}
                 {!hasEpics ? (
-                  <div className="ml-7 py-4 text-sm text-[var(--text-muted)] italic">
+                  <div className="ml-7 py-2 text-sm text-[var(--text-muted)] italic">
                     No epics generated yet. Click "Generate" in the left panel.
                   </div>
                 ) : (
@@ -213,10 +204,10 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
                             <FiChevronRight className="text-[var(--text-muted)]" />
                           )}
 
-                          <FiLayers className="text-[var(--primary)]" />
+                          <FiLayers className="text-[var(--primary)] self-start mt-1" />
 
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-[var(--text)] truncate">
+                            <div className="font-medium text-[var(--primary)] truncate">
                               {epic.title}
                             </div>
                             <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
@@ -225,11 +216,8 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
                           </div>
 
                           <HStack gap="sm">
-                            <Tag color={EpicStatusColors[epic.status as EpicStatus] ?? 'default'}>{EpicStatusLabels[epic.status as EpicStatus] ?? epic.status}</Tag>
-                            <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
-                              <span>{epic.stories.length} stories</span>
-                              <span className="font-medium">{epicPoints} pts</span>
-                            </div>
+                            <Tag color="default">{epic.stories.length} {epic.stories.length === 1 ? 'story' : 'stories'}</Tag>
+                            <Tag color="purple">{epicPoints} pts</Tag>
                             <Button
                               variant="text"
                               size="small"
@@ -239,6 +227,7 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
                                 setEditingEpic(epic);
                               }}
                               title="Edit epic"
+                              className="px-1"
                             />
                             <Button
                               variant="text"
@@ -249,14 +238,14 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
                                 handleDeleteEpic(epic.id);
                               }}
                               title="Delete epic"
-                              className="text-red-500 hover:text-red-600"
+                              className="px-1 text-red-500 hover:text-red-600"
                             />
                           </HStack>
                         </div>
 
                         {/* Stories (Expanded) */}
                         {isEpicExpanded && (
-                          <div className="border-t border-[var(--border-muted)]">
+                          <div className="border-t border-[var(--primary)]">
                             {epic.stories.map((story, storyIndex) => {
                               const isStoryExpanded = expandedStoryIds.has(story.id);
 
@@ -264,7 +253,7 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
                                 <div
                                   key={story.id}
                                   className={`
-                                    ${storyIndex < epic.stories.length - 1 ? 'border-b border-[var(--border-muted)]' : ''}
+                                    ${storyIndex < epic.stories.length - 1 ? 'border-b border-[var(--border-muted)] pl-8' : 'pl-8'}
                                   `}
                                 >
                                   {/* Story Header Row */}
@@ -283,53 +272,44 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
                                         size={14}
                                       />
                                     )}
-                                    <div className="w-5 h-5 rounded bg-[var(--bg-tertiary)] flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
-                                      {storyIndex + 1}
-                                    </div>
                                     <FiFileText className="text-[var(--text-muted)] flex-shrink-0" />
-                                    <span className="flex-1 text-[var(--text)]">{story.title}</span>
-                                    {!isStoryExpanded && story.acceptanceCriteria.length > 0 && (
-                                      <span className="text-xs text-[var(--text-muted)]">
-                                        {story.acceptanceCriteria.length} criteria
-                                      </span>
-                                    )}
-                                    <Tag color={StoryStatusColors[story.status as StoryStatus] ?? 'default'}>
-                                      {StoryStatusLabels[story.status as StoryStatus] ?? story.status}
-                                    </Tag>
-                                    {story.storyPoints !== null && (
-                                      <Tag color="blue">{story.storyPoints} pts</Tag>
-                                    )}
-                                    <Button
-                                      variant="text"
-                                      size="small"
-                                      icon={<FiEdit2 />}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setEditingStory(story);
-                                      }}
-                                      title="Edit story"
-                                    />
-                                    <Button
-                                      variant="text"
-                                      size="small"
-                                      icon={<FiTrash2 />}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteStory(story.id);
-                                      }}
-                                      title="Delete story"
-                                      className="text-red-500 hover:text-red-600"
-                                    />
+                                    <span className="flex-1 text-[var(--text)] font-semibold">{story.title}</span>
+                                    <HStack gap="sm">
+                                     
+                                        <Tag color="default">
+                                          {story.acceptanceCriteria.length} criteria
+                                        </Tag>
+                               
+                                      <Tag color="blue">{story.storyPoints ?? 0} pts</Tag>
+                                      <Button
+                                        variant="text"
+                                        size="small"
+                                        icon={<FiEdit2 />}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setEditingStory(story);
+                                        }}
+                                        title="Edit story"
+                                        className="px-1"
+                                      />
+                                      <Button
+                                        variant="text"
+                                        size="small"
+                                        icon={<FiTrash2 />}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteStory(story.id);
+                                        }}
+                                        title="Delete story"
+                                        className="px-1 text-red-500 hover:text-red-600"
+                                      />
+                                    </HStack>
                                   </div>
 
                                   {/* Acceptance Criteria (Expanded) */}
                                   {isStoryExpanded && (
-                                    <div className="pl-16 pr-4 pb-3 bg-[var(--bg)]">
-                                      {story.description && (
-                                        <p className="text-sm text-[var(--text-muted)] mb-2">
-                                          {story.description}
-                                        </p>
-                                      )}
+                                    <div className="pl-24 pr-4 pb-3 bg-[var(--bg)]">
+                                      
                                       <div className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                                         Acceptance Criteria
                                       </div>
@@ -339,11 +319,11 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
                                             key={ac.id}
                                             className="flex items-start gap-2 text-sm text-[var(--text)] group"
                                           >
-                                            <FiCheck
-                                              className="text-green-500 flex-shrink-0 mt-0.5"
+                                            <LuDot
+                                              className="mt-1"
                                               size={14}
                                             />
-                                            <span className="flex-1">{ac.text}</span>
+                                            <span className="flex-1 text-xs">{ac.text}</span>
                                             <button
                                               onClick={() => handleDeleteAC(ac.id)}
                                               className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-600 transition-opacity"
@@ -503,6 +483,6 @@ export function EpicsStoriesPanel({ versions, onRefetch }: EpicsStoriesPanelProp
           }}
         />
       )}
-    </>
+    </div>
   );
 }

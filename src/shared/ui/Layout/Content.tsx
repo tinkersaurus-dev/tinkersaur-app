@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 export interface LayoutContentProps {
   children: ReactNode;
@@ -11,14 +12,15 @@ export function LayoutContent({
   className = '',
   style,
 }: LayoutContentProps) {
-  const classes = [
+  const classes = twMerge(
     'flex-1',
+    'min-h-0',
+    'flex',
+    'flex-col',
     'overflow-auto',
     'bg-[var(--bg)]',
     className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  );
 
   return (
     <main className={classes} style={style}>

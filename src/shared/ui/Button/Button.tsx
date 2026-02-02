@@ -4,6 +4,7 @@
  */
 
 import type { ReactNode, MouseEvent } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 export interface ButtonProps {
   variant?: 'primary' | 'default' | 'text' | 'link' | 'danger';
@@ -56,14 +57,14 @@ export function Button({
   const loadingStyles = 'opacity-60 cursor-wait';
 
   // Combine styles
-  const buttonClassName = [
+  const buttonClassName = twMerge(
     baseStyles,
     sizeStyles[size],
     variantStyles[variant],
     disabled ? disabledStyles : '',
     loading ? loadingStyles : '',
     className,
-  ].filter(Boolean).join(' ');
+  );
 
   const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
     if (disabled || loading) {

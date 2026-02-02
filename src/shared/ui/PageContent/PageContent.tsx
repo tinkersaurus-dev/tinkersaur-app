@@ -10,15 +10,33 @@ interface PageContentProps {
 }
 
 export function PageContent({ children, fillHeight = false }: PageContentProps) {
+  if (fillHeight) {
+    return (
+      <div
+        className="flex-1 min-h-0 flex flex-col overflow-hidden"
+        style={{ padding: 'var(--spacing-page)' }}
+      >
+        <div
+          className="flex-1 min-h-0 flex flex-col"
+          style={{
+            maxWidth: 'var(--content-max-width)',
+            width: '100%',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={fillHeight ? 'flex-1 min-h-0 flex flex-col' : 'flex-1 overflow-y-auto'}
-      style={{
-        padding: 'var(--spacing-page)',
-      }}
+      className="flex-1 overflow-y-auto"
+      style={{ padding: 'var(--spacing-page)' }}
     >
       <div
-        className={fillHeight ? 'flex-1 min-h-0 flex flex-col' : ''}
         style={{
           maxWidth: 'var(--content-max-width)',
           width: '100%',
@@ -26,11 +44,7 @@ export function PageContent({ children, fillHeight = false }: PageContentProps) 
           marginRight: 'auto',
         }}
       >
-        {fillHeight ? (
-          <div className="flex-1 min-h-0">{children}</div>
-        ) : (
-          children
-        )}
+        {children}
       </div>
     </div>
   );

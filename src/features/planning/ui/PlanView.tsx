@@ -149,10 +149,10 @@ export function PlanView() {
 
   return (
     <div className="h-full max-h-full overflow-hidden flex flex-col">
-      <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
+      <div className="grid grid-cols-12 gap-4 flex-1 min-h-0 overflow-hidden">
         {/* Left Panel: Version Prioritization */}
         <div className="col-span-4 flex flex-col min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0" contentClassName="p-0 flex flex-col flex-1 min-h-0">
+          <Card shadow={false} className="flex-1 flex flex-col min-h-0" contentClassName="p-0 flex flex-col flex-1 min-h-0">
             {/* Header */}
             <div className="px-4 py-3 border-b border-[var(--border-muted)] bg-[var(--bg)] flex-shrink-0">
               <div className="flex items-center gap-1.5">
@@ -178,7 +178,7 @@ export function PlanView() {
 
         {/* Right Panel: Epics & Stories */}
         <div className="col-span-8 flex flex-col min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0" contentClassName="p-0 flex flex-col flex-1 min-h-0">
+          <Card shadow={false} className="flex-1 flex flex-col min-h-0" contentClassName="p-0 flex flex-col flex-1 min-h-0">
             {/* Header */}
             <div className="px-4 py-3 border-b border-[var(--border-muted)] bg-[var(--bg)] flex-shrink-0">
               <div className="flex items-center justify-between">
