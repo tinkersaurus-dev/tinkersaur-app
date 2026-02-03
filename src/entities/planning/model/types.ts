@@ -7,7 +7,10 @@ import { z } from 'zod';
 
 // Status enums
 export const EpicStatus = {
-  ToDo: 'ToDo',
+  Drafted: 'Drafted',
+  Refined: 'Refined',
+  Ready: 'Ready',
+  Blocked: 'Blocked',
   Doing: 'Doing',
   Done: 'Done',
   Archived: 'Archived',
@@ -16,23 +19,32 @@ export const EpicStatus = {
 export type EpicStatus = (typeof EpicStatus)[keyof typeof EpicStatus];
 
 export const EpicStatusLabels: Record<EpicStatus, string> = {
-  [EpicStatus.ToDo]: 'To Do',
+  [EpicStatus.Drafted]: 'Drafted',
+  [EpicStatus.Refined]: 'Refined',
+  [EpicStatus.Ready]: 'Ready',
+  [EpicStatus.Blocked]: 'Blocked',
   [EpicStatus.Doing]: 'Doing',
   [EpicStatus.Done]: 'Done',
   [EpicStatus.Archived]: 'Archived',
 };
 
-export type StatusColor = 'default' | 'blue' | 'green' | 'orange';
+export type StatusColor = 'default' | 'blue' | 'green' | 'orange' | 'red' | 'purple';
 
 export const EpicStatusColors: Record<EpicStatus, StatusColor> = {
-  [EpicStatus.ToDo]: 'default',
-  [EpicStatus.Doing]: 'blue',
+  [EpicStatus.Drafted]: 'default',
+  [EpicStatus.Refined]: 'blue',
+  [EpicStatus.Ready]: 'green',
+  [EpicStatus.Blocked]: 'red',
+  [EpicStatus.Doing]: 'purple',
   [EpicStatus.Done]: 'green',
   [EpicStatus.Archived]: 'orange',
 };
 
 export const StoryStatus = {
-  ToDo: 'ToDo',
+  Drafted: 'Drafted',
+  Refined: 'Refined',
+  Ready: 'Ready',
+  Blocked: 'Blocked',
   Doing: 'Doing',
   Done: 'Done',
   Archived: 'Archived',
@@ -41,15 +53,21 @@ export const StoryStatus = {
 export type StoryStatus = (typeof StoryStatus)[keyof typeof StoryStatus];
 
 export const StoryStatusLabels: Record<StoryStatus, string> = {
-  [StoryStatus.ToDo]: 'To Do',
+  [StoryStatus.Drafted]: 'Drafted',
+  [StoryStatus.Refined]: 'Refined',
+  [StoryStatus.Ready]: 'Ready',
+  [StoryStatus.Blocked]: 'Blocked',
   [StoryStatus.Doing]: 'Doing',
   [StoryStatus.Done]: 'Done',
   [StoryStatus.Archived]: 'Archived',
 };
 
 export const StoryStatusColors: Record<StoryStatus, StatusColor> = {
-  [StoryStatus.ToDo]: 'default',
-  [StoryStatus.Doing]: 'blue',
+  [StoryStatus.Drafted]: 'default',
+  [StoryStatus.Refined]: 'blue',
+  [StoryStatus.Ready]: 'green',
+  [StoryStatus.Blocked]: 'red',
+  [StoryStatus.Doing]: 'purple',
   [StoryStatus.Done]: 'green',
   [StoryStatus.Archived]: 'orange',
 };

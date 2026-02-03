@@ -20,6 +20,7 @@ import {
   FiClipboard,
   FiTrendingUp,
   FiEye,
+  FiFileText,
 } from 'react-icons/fi';
 import { SOURCE_TYPES } from '@/entities/source-type';
 
@@ -62,6 +63,10 @@ export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
       label: 'Scope',
       icon: <FiCompass />,
       path: '/solutions/scope',
+      children: [
+        { key: 'use-cases', label: 'Use Cases', path: '/solutions/scope', icon: <FiTarget /> },
+        { key: 'specification', label: 'Specification', path: '/solutions/scope/specification', icon: <FiFileText /> },
+      ],
     },
     {
       key: 'plan',

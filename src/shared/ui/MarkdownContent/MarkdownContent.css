@@ -270,3 +270,71 @@
 .markdown-content--story-card li {
   margin-bottom: 0.2em;
 }
+
+/* =============================================================================
+   Specification Variant (smaller text for specification viewer)
+   ============================================================================= */
+
+.markdown-content--specification {
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.markdown-content--specification h1 {
+  font-size: 1.3em;
+  margin-bottom: 0.4em;
+  margin-top: 0;
+}
+
+.markdown-content--specification h2 {
+  font-size: 1.15em;
+  margin-top: 0.8em;
+  margin-bottom: 0.3em;
+  padding-bottom: 0.2em;
+}
+
+.markdown-content--specification h3 {
+  font-size: 1.05em;
+  margin-top: 0.6em;
+  margin-bottom: 0.25em;
+}
+
+.markdown-content--specification h4 {
+  font-size: 1em;
+  margin-top: 0.5em;
+  margin-bottom: 0.2em;
+}
+
+.markdown-content--specification p {
+  margin-bottom: 0.5em;
+  line-height: 1.5;
+}
+
+.markdown-content--specification ul,
+.markdown-content--specification ol {
+  padding-left: 1.25em;
+  margin-bottom: 0.5em;
+}
+
+.markdown-content--specification li {
+  margin-bottom: 0.2em;
+}
+
+.markdown-content--specification pre {
+  padding: 0.75em;
+  margin: 0.6em 0;
+}
+
+.markdown-content--specification blockquote {
+  padding: 0.4em 0.6em;
+  margin-bottom: 0.5em;
+}
+
+.markdown-content--specification table {
+  margin: 0.6em 0;
+}
+
+.markdown-content--specification th,
+.markdown-content--specification td {
+  padding: 0.3em 0.5em;
+}

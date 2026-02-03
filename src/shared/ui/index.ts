@@ -19,6 +19,9 @@ export type { CardProps } from './Card';
 export { Tag } from './Tag';
 export type { TagProps, TagColor } from './Tag';
 
+export { Spinner } from './Spinner';
+export type { SpinnerProps } from './Spinner';
+
 export { Empty, PRESENTED_IMAGE_SIMPLE } from './Empty';
 export type { EmptyProps } from './Empty';
 

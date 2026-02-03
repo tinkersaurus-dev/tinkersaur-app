@@ -30,6 +30,9 @@ export default [
     route("solutions/strategy/overview/:solutionId", "../pages/solutions/strategy/overview/[solutionId]/page.tsx"),
     route("solutions/strategy/market-research", "../pages/solutions/strategy/market-research/page.tsx"),
     route("solutions/scope", "../pages/solutions/scope/page.tsx"),
+    // Specification routes must come before :solutionId to avoid "specification" being matched as a solutionId
+    route("solutions/scope/specification", "../pages/solutions/scope/specification/page.tsx"),
+    route("solutions/scope/specification/:solutionId", "../pages/solutions/scope/specification/[solutionId]/page.tsx"),
     route("solutions/scope/:solutionId", "../pages/solutions/scope/[solutionId]/page.tsx"),
     route("solutions/scope/:solutionId/use-cases/:useCaseId", "../pages/solutions/scope/[solutionId]/use-cases/[useCaseId]/page.tsx"),
     route("solutions/plan", "../pages/solutions/plan/page.tsx"),
