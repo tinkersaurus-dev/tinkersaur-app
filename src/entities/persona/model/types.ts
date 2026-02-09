@@ -99,6 +99,7 @@ export const MergePersonasRequestSchema = z.object({
   sourcePersonaIds: z.array(z.string().uuid()),
   mergedPersona: MergedPersonaDataSchema.optional(), // Optional for simple merge mode
   additionalIntakeSourceIds: z.array(z.string().uuid()).optional(),
+  quotes: z.array(z.string()).optional(), // Quotes from intake persona to link to target
 });
 
 export type MergePersonasRequest = z.infer<typeof MergePersonasRequestSchema>;

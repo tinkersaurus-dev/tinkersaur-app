@@ -95,3 +95,6 @@ export type { CardStackProps } from './CardStack';
 
 export { Drawer } from './Drawer';
 export type { DrawerProps } from './Drawer';
+
+export { InlineError } from './InlineError';
+export type { InlineErrorProps } from './InlineError';

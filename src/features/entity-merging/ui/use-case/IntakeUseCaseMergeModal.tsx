@@ -29,6 +29,7 @@ export interface PendingUseCaseMerge {
   targetUseCaseId: string;
   sourceUseCaseIds: string[];
   mergedUseCase: MergedUseCaseData;
+  quotes?: string[];  // Quotes from intake use case to link to target
 }
 
 interface IntakeUseCaseMergeModalProps {
@@ -123,6 +124,7 @@ export function IntakeUseCaseMergeModal({
       targetUseCaseId,
       sourceUseCaseIds,
       mergedUseCase: llmResult,
+      quotes: intakeUseCase.quotes,  // Pass intake use case's quotes for linking to target
     });
     onClose();
   };

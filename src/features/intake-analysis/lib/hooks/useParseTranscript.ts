@@ -3,6 +3,11 @@ import { parseTranscript as parseTranscriptApi, ParseTranscriptAPIError } from '
 import type { SourceTypeKey } from '@/entities/source-type';
 import type { IntakeResult } from '@/entities/intake-result';
 
+export interface ParseError {
+  message: string;
+  statusCode?: number;
+}
+
 interface UseParseTranscriptReturn {
   parseTranscript: (
     sourceType: SourceTypeKey,
@@ -11,13 +16,13 @@ interface UseParseTranscriptReturn {
     teamId: string
   ) => Promise<IntakeResult | null>;
   isLoading: boolean;
-  error: string | null;
+  error: ParseError | null;
   clearError: () => void;
 }
 
 export function useParseTranscript(): UseParseTranscriptReturn {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ParseError | null>(null);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -38,12 +43,14 @@ export function useParseTranscript(): UseParseTranscriptReturn {
         return result;
       } catch (err) {
         let errorMessage = 'Network error occurred';
+        let statusCode: number | undefined;
         if (err instanceof ParseTranscriptAPIError) {
           errorMessage = err.message;
+          statusCode = err.statusCode;
         } else if (err instanceof Error) {
           errorMessage = err.message;
         }
-        setError(errorMessage);
+        setError({ message: errorMessage, statusCode });
         return null;
       } finally {
         setIsLoading(false);

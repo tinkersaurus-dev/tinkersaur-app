@@ -80,6 +80,7 @@ export const MergeUseCasesRequestSchema = z.object({
   sourceUseCaseIds: z.array(z.string().uuid()).min(1),
   mergedUseCase: MergedUseCaseDataSchema.optional(),
   additionalIntakeSourceIds: z.array(z.string().uuid()).optional(),
+  quotes: z.array(z.string()).optional(), // Quotes from intake use case to link to target
 });
 
 export type MergeUseCasesRequest = z.infer<typeof MergeUseCasesRequestSchema>;

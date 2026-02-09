@@ -10,7 +10,7 @@
 
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
-import { FiAlertCircle, FiChevronDown, FiChevronRight, FiCheck } from 'react-icons/fi';
+import { FiChevronDown, FiChevronRight, FiCheck } from 'react-icons/fi';
 import { PageHeader, PageContent } from '@/shared/ui';
 import { Card } from '@/shared/ui/Card';
 import { useAuthStore } from '@/features/auth';
@@ -162,20 +162,7 @@ export default function IntakePage() {
       <PageHeader title="Intake" />
       <PageContent>
         <div className="max-w-5xl desktop:max-w-none mx-auto space-y-4 desktop:space-y-0 desktop:grid desktop:grid-cols-2 desktop:gap-6 desktop:items-start">
-          {/* Error display */}
-          {error && (
-            <Card className="border-[var(--danger)] bg-red-50 dark:bg-red-900/20">
-              <div className="flex items-start gap-3">
-                <FiAlertCircle className="w-5 h-5 text-[var(--danger)] flex-shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-medium text-[var(--danger)]">
-                    Analysis Error
-                  </h3>
-                  <p className="text-sm text-[var(--danger)] mt-1">{error}</p>
-                </div>
-              </div>
-            </Card>
-          )}
+          
 
           {/* Step 1: Input Transcript */}
           <Card className="overflow-hidden !p-0" contentClassName='p-2'>
@@ -196,6 +183,8 @@ export default function IntakePage() {
                   onSubmit={handleSubmit}
                   sourceType={sourceType}
                   initialValues={formValues ?? undefined}
+                  error={error}
+                  onClearError={clearError}
                 />
               </div>
             )}
@@ -226,6 +215,7 @@ export default function IntakePage() {
               </div>
             )}
           </Card>
+          
         </div>
       </PageContent>
     </>

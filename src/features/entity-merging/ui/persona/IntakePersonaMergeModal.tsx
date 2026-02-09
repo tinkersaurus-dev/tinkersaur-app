@@ -72,6 +72,7 @@ export function IntakePersonaMergeModal({
       targetPersonaId: existingPersonaId,
       sourcePersonaIds: [],  // No source personas - intake data is merged via LLM
       mergedPersona: llmResult,
+      quotes: intakePersona.quotes,  // Pass intake persona's quotes for linking to target
     });
     onClose();
   };

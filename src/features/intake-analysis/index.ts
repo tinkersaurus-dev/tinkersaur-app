@@ -33,6 +33,7 @@ export {
 
 // Lib - Hooks and types
 export { useParseTranscript } from './lib/hooks/useParseTranscript';
+export type { ParseError } from './lib/hooks/useParseTranscript';
 export { useSaveIntakeResult } from './lib/hooks/useSaveIntakeResult';
 export type {
   PendingMerge,

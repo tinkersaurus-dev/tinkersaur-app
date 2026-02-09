@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { GiComb } from "react-icons/gi";
 import { Button } from '@/shared/ui/Button';
+import { HStack } from '@/shared/ui/Stack';
 import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
 import { DatePicker } from '@/shared/ui/DatePicker';
+import { InlineError } from '@/shared/ui/InlineError';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 import { useAuthStore } from '@/features/auth';
 import { useSolutionsQuery } from '@/entities/solution';
+import type { ParseError } from '@/features/intake-analysis';
 
 export interface IntakeFormValues {
   sourceType: SourceTypeKey;
@@ -25,6 +28,8 @@ interface IntakeFormProps {
   ) => void;
   sourceType: SourceTypeKey;
   initialValues?: IntakeFormValues;
+  error?: ParseError | null;
+  onClearError?: () => void;
 }
 
 const MIN_CONTENT_LENGTH = 50;
@@ -35,7 +40,7 @@ const sourceTypeOptions = Object.values(SOURCE_TYPES).map((sourceType) => ({
   label: sourceType.label,
 }));
 
-export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType, initialValues }: IntakeFormProps) {
+export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType, initialValues, error, onClearError }: IntakeFormProps) {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const { data: solutions = [], isLoading: isSolutionsLoading } = useSolutionsQuery(selectedTeam?.teamId);
 
@@ -196,7 +201,15 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType,
         </div>
 
         {/* Submit button */}
-        <div className="flex justify-end pt-2">
+        <HStack justify="end" align="center" className="pt-2">
+          {error ? (
+            <InlineError
+              message={error.statusCode === 500 ? 'Server error. Please try again later.' : error.message}
+              onDismiss={onClearError}
+            />
+          ) : (
+            <div />
+          )}
           <Button
             type="submit"
             variant="primary"
@@ -205,7 +218,7 @@ export function IntakeForm({ isLoading, onSubmit, sourceType: initialSourceType,
           >
             {isLoading ? 'Combing through the details...' : ''}
           </Button>
-        </div>
+        </HStack>
     </form>
   );
 }

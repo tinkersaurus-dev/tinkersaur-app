@@ -15,6 +15,7 @@ export interface PendingMerge {
   targetPersonaId: string;  // The existing persona being merged INTO
   sourcePersonaIds: string[];  // Usually empty for intake merge (no source personas)
   mergedPersona: MergedPersonaData;
+  quotes?: string[];  // Quotes from intake persona to link to target
 }
 
 export interface PendingUseCaseMerge {
@@ -22,6 +23,7 @@ export interface PendingUseCaseMerge {
   targetUseCaseId: string;
   sourceUseCaseIds: string[];
   mergedUseCase: MergedUseCaseData;
+  quotes?: string[];  // Quotes from intake use case to link to target
 }
 
 export interface PendingFeedbackMerge {
@@ -99,6 +101,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
             sourcePersonaIds: pendingMerge.sourcePersonaIds,
             mergedPersona: pendingMerge.mergedPersona,
             additionalIntakeSourceIds: [intakeSource.id],
+            quotes: pendingMerge.quotes,
           });
           mergedPersonaIdMap.set(pendingMerge.intakePersonaIndex, mergedPersona.id);
         }
@@ -114,6 +117,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
             sourceUseCaseIds: pendingMerge.sourceUseCaseIds,
             mergedUseCase: pendingMerge.mergedUseCase,
             additionalIntakeSourceIds: [intakeSource.id],
+            quotes: pendingMerge.quotes,
           });
           mergedUseCaseIdMap.set(pendingMerge.intakeUseCaseIndex, mergedUseCase.id);
         }

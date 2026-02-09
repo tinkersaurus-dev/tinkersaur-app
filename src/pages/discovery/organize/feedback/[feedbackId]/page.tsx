@@ -71,9 +71,22 @@ function FeedbackDetailContent() {
   const [basicInfoForm, setBasicInfoForm] = useState({ content: '' });
   const [basicInfoErrors, setBasicInfoErrors] = useState<Record<string, string>>({});
 
-  // Get linked persona and use case IDs from the feedback
-  const linkedPersonaIds = useMemo(() => new Set(feedback?.personaIds ?? []), [feedback?.personaIds]);
-  const linkedUseCaseIds = useMemo(() => new Set(feedback?.useCaseIds ?? []), [feedback?.useCaseIds]);
+  // Get linked persona and use case IDs from the feedback and its children
+  const linkedPersonaIds = useMemo(() => {
+    const ids = [...(feedback?.personaIds ?? [])];
+    feedback?.children?.forEach((child) => {
+      child.personaIds.forEach((id) => ids.push(id));
+    });
+    return new Set(ids);
+  }, [feedback?.personaIds, feedback?.children]);
+
+  const linkedUseCaseIds = useMemo(() => {
+    const ids = [...(feedback?.useCaseIds ?? [])];
+    feedback?.children?.forEach((child) => {
+      child.useCaseIds.forEach((id) => ids.push(id));
+    });
+    return new Set(ids);
+  }, [feedback?.useCaseIds, feedback?.children]);
 
   // Get linked personas and use cases for displaying
   const linkedPersonas = useMemo(() => {
