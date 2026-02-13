@@ -103,6 +103,34 @@ export interface AgentError {
   error: string;
 }
 
+// Inline Similarity Match (for feedback, useCases, outcomes)
+export interface InlineSimilarityMatch {
+  extractionId: string;
+  entityId: string;
+  entityType: ExtractionType;
+  similarity: number;
+  result: unknown; // SimilarFeedbackResult | SimilarUseCaseResult | SimilarOutcomeResult
+}
+
+// Pending merge types for inline entities
+export interface FeedbackPendingMerge {
+  extractionId: string;
+  parentFeedbackId: string;
+}
+
+export interface OutcomePendingMerge {
+  extractionId: string;
+  parentOutcomeId: string;
+}
+
+export interface UseCasePendingMerge {
+  extractionId: string;
+  targetUseCaseId: string;
+  sourceUseCaseIds: string[];
+  mergedUseCase: { name: string; description: string };
+  quotes?: string[];
+}
+
 // Persona Merge Types
 export interface PersonaPendingMerge {
   extractionId: string;

@@ -91,6 +91,26 @@ const PROMPT_REGISTRY: Record<SourceTypeKey, PromptConfig> = {
       return lines.join('\n');
     },
   },
+  'requirements-document': {
+    systemPrompt: MEETING_TRANSCRIPT_SYSTEM_PROMPT,
+    contentLabel: 'Requirements Document',
+    metadataFormatter: (metadata) => {
+      const lines: string[] = [];
+      if (metadata.documentName) lines.push(`Document: ${metadata.documentName}`);
+      if (metadata.date) lines.push(`Date: ${metadata.date}`);
+      return lines.join('\n');
+    },
+  },
+  'product-brief': {
+    systemPrompt: MEETING_TRANSCRIPT_SYSTEM_PROMPT,
+    contentLabel: 'Product Brief',
+    metadataFormatter: (metadata) => {
+      const lines: string[] = [];
+      if (metadata.documentName) lines.push(`Document: ${metadata.documentName}`);
+      if (metadata.date) lines.push(`Date: ${metadata.date}`);
+      return lines.join('\n');
+    },
+  },
 };
 
 /**

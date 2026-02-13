@@ -14,7 +14,6 @@ export default [
     // Discovery routes
     route("discovery", "../pages/discovery/page.tsx"),
     route("discovery/intake", "../pages/discovery/intake/page.tsx"),
-    route("discovery/agent-intake", "../pages/discovery/agent-intake/page.tsx"),
     route("discovery/analyze", "../pages/discovery/analyze/page.tsx"),
     route("discovery/organize", "../pages/discovery/organize/page.tsx"),
     route("discovery/organize/personas", "../pages/discovery/organize/personas/page.tsx"),

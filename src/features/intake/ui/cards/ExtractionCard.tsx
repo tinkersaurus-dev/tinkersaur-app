@@ -7,6 +7,8 @@ interface ExtractionCardProps {
   extraction: Extraction;
   isActive: boolean;
   isNew?: boolean;
+  isMerged?: boolean;
+  mergedContent?: { name?: string; description?: string };
   onClick: () => void;
   onAccept: () => void;
   onReject: () => void;
@@ -30,7 +32,7 @@ const typeColors = {
 };
 
 export const ExtractionCard = forwardRef<HTMLDivElement, ExtractionCardProps>(
-  ({ extraction, isActive, isNew = false, onClick, onAccept, onReject, onAnimationComplete }, ref) => {
+  ({ extraction, isActive, isNew = false, isMerged = false, mergedContent, onClick, onAccept, onReject, onAnimationComplete }, ref) => {
     const [isAnimating, setIsAnimating] = useState(isNew);
     const Icon = typeIcons[extraction.type];
     const colorClass = typeColors[extraction.type];
@@ -61,10 +63,12 @@ export const ExtractionCard = forwardRef<HTMLDivElement, ExtractionCardProps>(
         }
         case 'useCases': {
           const entity = extraction.entity as UseCaseEntity;
+          const name = mergedContent?.name ?? entity.name;
+          const description = mergedContent?.description ?? entity.description;
           return (
             <>
-              <h4 className="text-sm font-bold">Use Case: {entity.name}</h4>
-              <p className="text-sm mt-1 line-clamp-2">{entity.description}</p>
+              <h4 className="text-sm font-bold">Use Case: {name}</h4>
+              <p className="text-sm mt-1 line-clamp-2">{description}</p>
             </>
           );
         }
@@ -108,7 +112,7 @@ export const ExtractionCard = forwardRef<HTMLDivElement, ExtractionCardProps>(
         onClick={onClick}
         className={`extraction-card p-3 border-1 border-l-6 cursor-pointer transition-all max-w-4xl ${colorClass} ${
           isActive ? 'ring-2 ring-[var(--primary)] shadow-md' : 'hover:shadow-sm'
-        } ${extraction.status === 'accepted' ? 'opacity-60' : ''} ${
+        } ${extraction.status === 'accepted' || isMerged ? 'opacity-60' : ''} ${
           isAnimating ? 'animate-slide-in-right' : ''
         }`}
       >

@@ -3,6 +3,8 @@ import type {
   CreateOutcomeDto,
   FindSimilarOutcomesRequest,
   SimilarOutcomeResult,
+  MergeOutcomeRequest,
+  MergeOutcomeResponse,
 } from '../model/types';
 import type { OutcomeListParams } from '@/shared/api';
 import {
@@ -15,6 +17,7 @@ import {
 type OutcomeApiExtensions = {
   listByTeam(teamId: string): Promise<Outcome[]>;
   findSimilar(request: FindSimilarOutcomesRequest): Promise<SimilarOutcomeResult[]>;
+  merge(request: MergeOutcomeRequest): Promise<MergeOutcomeResponse>;
 };
 
 /**
@@ -46,6 +49,17 @@ export const outcomeApi = createPaginatedEntityApi<
           ...result,
           outcome: deserializeDates(result.outcome),
         }));
+      },
+
+      async merge(request: MergeOutcomeRequest): Promise<MergeOutcomeResponse> {
+        const result = await httpClient.post<MergeOutcomeResponse>(
+          '/api/outcomes/merge',
+          request
+        );
+        return {
+          ...result,
+          parent: deserializeDates(result.parent),
+        };
       },
     };
   },

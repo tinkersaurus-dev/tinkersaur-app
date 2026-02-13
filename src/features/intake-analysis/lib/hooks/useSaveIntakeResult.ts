@@ -34,6 +34,12 @@ export interface PendingFeedbackMerge {
   intakeFeedback: ExtractedFeedback;
 }
 
+export interface PendingOutcomeMerge {
+  intakeOutcomeIndex: number;
+  parentOutcomeId: string;
+  intakeOutcome: ExtractedOutcome;
+}
+
 interface SaveIntakeResultParams {
   personas: ExtractedPersona[];
   useCases: ExtractedUseCase[];
@@ -54,6 +60,7 @@ interface SaveIntakeResultParams {
   pendingMerges: PendingMerge[];
   pendingUseCaseMerges: PendingUseCaseMerge[];
   pendingFeedbackMerges: PendingFeedbackMerge[];
+  pendingOutcomeMerges: PendingOutcomeMerge[];
 }
 
 interface UseSaveIntakeResultReturn {
@@ -87,6 +94,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
       pendingMerges,
       pendingUseCaseMerges,
       pendingFeedbackMerges,
+      pendingOutcomeMerges,
     }: SaveIntakeResultParams): Promise<boolean> => {
       setIsSaving(true);
       setError(null);
@@ -320,6 +328,29 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
             return outcomeApi.create(dto);
           })
         );
+
+        // Step 5.5: Execute pending outcome merges (create outcome with links, then merge as child)
+        for (const pendingMerge of pendingOutcomeMerges) {
+          const out = pendingMerge.intakeOutcome;
+          const solutionId = outcomeSolutionIds.get(pendingMerge.intakeOutcomeIndex) ?? null;
+
+          // Create the outcome first
+          const createdOutcome = await outcomeApi.create({
+            teamId,
+            solutionId,
+            intakeSourceId: intakeSource.id,
+            description: out.description,
+            target: out.target,
+            quotes: out.quotes,
+          });
+
+          // Merge as child of existing outcome
+          await outcomeApi.merge({
+            teamId,
+            parentOutcomeId: pendingMerge.parentOutcomeId,
+            childOutcomeIds: [createdOutcome.id],
+          });
+        }
 
         // Step 6: Create all requirements (standalone - no UseCaseId)
         if (requirements && requirements.length > 0) {

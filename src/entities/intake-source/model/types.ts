@@ -52,7 +52,7 @@ export function metadataToIntakeSource(
   return {
     teamId,
     sourceType,
-    meetingName: metadata.meetingName || undefined,
+    meetingName: metadata.meetingName || metadata.documentName || undefined,
     date: metadata.date || metadata.ticketDate || metadata.responseDate || undefined,
     ticketId: metadata.ticketId || undefined,
     surveyName: metadata.surveyName || undefined,

@@ -17,6 +17,8 @@ export type {
   UpdateOutcomeDto,
   FindSimilarOutcomesRequest,
   SimilarOutcomeResult,
+  MergeOutcomeRequest,
+  MergeOutcomeResponse,
 } from './model/types';
 
 export { outcomeApi } from './api/outcomeApi';

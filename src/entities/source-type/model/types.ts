@@ -13,6 +13,8 @@ export const SourceTypeKeySchema = z.enum([
   'stakeholder-interview',
   'support-ticket',
   'survey-response',
+  'requirements-document',
+  'product-brief',
 ]);
 
 export type SourceTypeKey = z.infer<typeof SourceTypeKeySchema>;
@@ -139,6 +141,48 @@ export const SOURCE_TYPES: Record<SourceTypeKey, SourceTypeDefinition> = {
       {
         name: 'responseDate',
         label: 'Response Date',
+        type: 'date',
+        required: false,
+      },
+    ],
+  },
+  'requirements-document': {
+    key: 'requirements-document',
+    label: 'Requirements Document',
+    description: 'A requirements document such as a PRD, BRD, or specification',
+    icon: 'FiFileText',
+    metadataFields: [
+      {
+        name: 'documentName',
+        label: 'Document Name',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., Q1 2025 PRD - Search Improvements',
+      },
+      {
+        name: 'date',
+        label: 'Date',
+        type: 'date',
+        required: false,
+      },
+    ],
+  },
+  'product-brief': {
+    key: 'product-brief',
+    label: 'Product Brief',
+    description: 'A product brief, one-pager, or feature proposal',
+    icon: 'FiFileText',
+    metadataFields: [
+      {
+        name: 'documentName',
+        label: 'Document Name',
+        type: 'text',
+        required: false,
+        placeholder: 'e.g., Mobile App Redesign Brief',
+      },
+      {
+        name: 'date',
+        label: 'Date',
         type: 'date',
         required: false,
       },

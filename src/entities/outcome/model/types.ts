@@ -63,3 +63,15 @@ export interface SimilarOutcomeResult {
   similarity: number;
   matchType: 'description' | 'description+target';
 }
+
+// Merge types
+export interface MergeOutcomeRequest {
+  teamId: string;
+  parentOutcomeId: string;
+  childOutcomeIds: string[];
+}
+
+export interface MergeOutcomeResponse {
+  parent: Outcome;
+  mergedCount: number;
+}

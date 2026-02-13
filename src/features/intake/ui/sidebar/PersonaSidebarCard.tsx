@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FiUser, FiTarget, FiAlertCircle, FiCheck, FiX, FiGitMerge } from 'react-icons/fi';
-import { useAgentIntakeStore } from '../../model/useAgentIntakeStore';
+import { useIntakeStore } from '../../model/useIntakeStore';
 import type { Extraction, PersonaEntity, PersonaPendingMerge } from '../../model/types';
 import type { SimilarPersonaResult } from '@/entities/persona';
 import type { PendingMerge } from '@/features/intake-analysis';
@@ -23,10 +23,10 @@ export function PersonaSidebarCard({
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
 
-  const acceptExtraction = useAgentIntakeStore((state) => state.acceptExtraction);
-  const rejectExtraction = useAgentIntakeStore((state) => state.rejectExtraction);
-  const addPendingPersonaMerge = useAgentIntakeStore((state) => state.addPendingPersonaMerge);
-  const clearPersonaMatches = useAgentIntakeStore((state) => state.clearPersonaMatches);
+  const acceptExtraction = useIntakeStore((state) => state.acceptExtraction);
+  const rejectExtraction = useIntakeStore((state) => state.rejectExtraction);
+  const addPendingPersonaMerge = useIntakeStore((state) => state.addPendingPersonaMerge);
+  const clearPersonaMatches = useIntakeStore((state) => state.clearPersonaMatches);
 
   const entity = extraction.entity as PersonaEntity;
   const isMerged = !!pendingMerge;

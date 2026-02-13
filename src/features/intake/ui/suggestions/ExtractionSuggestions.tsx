@@ -1,5 +1,5 @@
 import { FiUsers, FiClipboard, FiMessageSquare, FiTarget, FiFileText } from 'react-icons/fi';
-import { useAgentIntakeStore } from '../../model/useAgentIntakeStore';
+import { useIntakeStore } from '../../model/useIntakeStore';
 import { useAgentLoop } from '../../lib/useAgentLoop';
 import type { ExtractionType } from '../../model/types';
 import { Button, HStack } from '@/shared/ui';
@@ -17,10 +17,10 @@ const EXTRACTION_TYPES: Array<{
 ];
 
 export function ExtractionSuggestions() {
-  const documentType = useAgentIntakeStore((state) => state.documentType);
-  const suggestedExtractions = useAgentIntakeStore((state) => state.suggestedExtractions);
-  const selectedExtractions = useAgentIntakeStore((state) => state.selectedExtractions);
-  const toggleExtractionType = useAgentIntakeStore((state) => state.toggleExtractionType);
+  const documentType = useIntakeStore((state) => state.documentType);
+  const suggestedExtractions = useIntakeStore((state) => state.suggestedExtractions);
+  const selectedExtractions = useIntakeStore((state) => state.selectedExtractions);
+  const toggleExtractionType = useIntakeStore((state) => state.toggleExtractionType);
   const { startExtraction } = useAgentLoop();
 
   const handleStartExtraction = () => {

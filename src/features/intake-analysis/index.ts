@@ -1,8 +1,7 @@
 /**
  * Intake Analysis Feature
  *
- * This feature handles the intake analysis workflow, including:
- * - Parsing transcripts to extract personas, use cases, feedback, and outcomes
+ * This feature handles intake analysis utilities, including:
  * - Finding similar existing entities
  * - Saving intake results with merge support
  *
@@ -32,13 +31,12 @@ export {
 } from './api/mutations';
 
 // Lib - Hooks and types
-export { useParseTranscript } from './lib/hooks/useParseTranscript';
-export type { ParseError } from './lib/hooks/useParseTranscript';
 export { useSaveIntakeResult } from './lib/hooks/useSaveIntakeResult';
 export type {
   PendingMerge,
   PendingUseCaseMerge,
   PendingFeedbackMerge,
+  PendingOutcomeMerge,
 } from './lib/hooks/useSaveIntakeResult';
 export { useFeedbacksQuery } from './lib/hooks/useFeedbacksQuery';
 export { useOutcomesQuery } from './lib/hooks/useOutcomesQuery';
@@ -58,14 +56,6 @@ export {
 } from './model/constants/feedbackTypeConfig';
 
 // UI - Components
-export { QuoteHighlight, QuotesList } from './ui/QuoteHighlight';
-export { SimilarityComparisonDrawer } from './ui/SimilarityComparisonDrawer';
-export { PersonaResultCard } from './ui/PersonaResultCard';
-export { UseCaseResultCard } from './ui/UseCaseResultCard';
-export { FeedbackResultCard } from './ui/FeedbackResultCard';
-export { OutcomeResultCard } from './ui/OutcomeResultCard';
-export { IntakeResults } from './ui/IntakeResults';
-export { FeedbackChildrenExpander } from './ui/FeedbackChildrenExpander';
 export { DashboardListSection } from './ui/DashboardListSection';
 export {
   PersonaRow,

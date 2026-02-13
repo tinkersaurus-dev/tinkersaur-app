@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { useAgentIntakeStore } from '../model/useAgentIntakeStore';
+import { useIntakeStore } from '../model/useIntakeStore';
 import * as agentHub from '../api/agentHub';
 import { InlineDocumentWithCards } from './editor/InlineDocumentWithCards';
 import { ExtractionSuggestions } from './suggestions/ExtractionSuggestions';
@@ -16,14 +16,20 @@ import type { ExtractedRequirement } from '@/entities/requirement';
 import type { SourceTypeKey } from '@/entities/source-type';
 import type { PersonaEntity, UseCaseEntity, FeedbackEntity, OutcomeEntity, RequirementEntity } from '../model/types';
 
-export function AgentIntakePage() {
+export function IntakePage() {
   const navigate = useNavigate();
-  const phase = useAgentIntakeStore((state) => state.phase);
-  const error = useAgentIntakeStore((state) => state.error);
-  const reset = useAgentIntakeStore((state) => state.reset);
-  const extractions = useAgentIntakeStore((state) => state.extractions);
-  const documentType = useAgentIntakeStore((state) => state.documentType);
-  const pendingPersonaMerges = useAgentIntakeStore((state) => state.pendingPersonaMerges);
+  const phase = useIntakeStore((state) => state.phase);
+  const error = useIntakeStore((state) => state.error);
+  const reset = useIntakeStore((state) => state.reset);
+  const extractions = useIntakeStore((state) => state.extractions);
+  const documentType = useIntakeStore((state) => state.documentType);
+  const pendingPersonaMerges = useIntakeStore((state) => state.pendingPersonaMerges);
+  const pendingFeedbackMerges = useIntakeStore((state) => state.pendingFeedbackMerges);
+  const pendingUseCaseMerges = useIntakeStore((state) => state.pendingUseCaseMerges);
+  const pendingOutcomeMerges = useIntakeStore((state) => state.pendingOutcomeMerges);
+  const selectedSolutionId = useIntakeStore((state) => state.selectedSolutionId);
+  const selectedSourceType = useIntakeStore((state) => state.selectedSourceType);
+  const sourceMetadata = useIntakeStore((state) => state.sourceMetadata);
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const { saveIntakeResult, isSaving } = useSaveIntakeResult();
 
@@ -65,22 +71,29 @@ export function AgentIntakePage() {
         };
       });
 
-    // Convert to ExtractedUseCase format
+    // Collect IDs of merged extractions (these will be saved via merge, not normal creation)
+    const mergedFeedbackIds = new Set(pendingFeedbackMerges.keys());
+    const mergedUseCaseIds = new Set(pendingUseCaseMerges.keys());
+    const mergedOutcomeIds = new Set(pendingOutcomeMerges.keys());
+
+    // Convert to ExtractedUseCase format (exclude merged)
     const useCases: ExtractedUseCase[] = acceptedExtractions
-      .filter((e) => e.type === 'useCases')
+      .filter((e) => e.type === 'useCases' && !mergedUseCaseIds.has(e.id))
       .map((e) => {
         const entity = e.entity as UseCaseEntity;
+        // If this extraction has a pending use case merge, use merged content
+        const ucMerge = pendingUseCaseMerges.get(e.id);
         return {
-          name: entity.name,
-          description: entity.description,
+          name: ucMerge?.mergedUseCase.name ?? entity.name,
+          description: ucMerge?.mergedUseCase.description ?? entity.description,
           quotes: entity.quotes ?? [],
           linkedPersonaIndexes: [],
         };
       });
 
-    // Convert to ExtractedFeedback format
+    // Convert to ExtractedFeedback format (exclude merged)
     const feedback: ExtractedFeedback[] = acceptedExtractions
-      .filter((e) => e.type === 'feedback')
+      .filter((e) => e.type === 'feedback' && !mergedFeedbackIds.has(e.id))
       .map((e) => {
         const entity = e.entity as FeedbackEntity;
         return {
@@ -92,9 +105,9 @@ export function AgentIntakePage() {
         };
       });
 
-    // Convert to ExtractedOutcome format
+    // Convert to ExtractedOutcome format (exclude merged)
     const outcomes: ExtractedOutcome[] = acceptedExtractions
-      .filter((e) => e.type === 'outcomes')
+      .filter((e) => e.type === 'outcomes' && !mergedOutcomeIds.has(e.id))
       .map((e) => {
         const entity = e.entity as OutcomeEntity;
         return {
@@ -123,7 +136,7 @@ export function AgentIntakePage() {
     const outcomeIndexMap = new Map(outcomes.map((_, i) => [i, i]));
     const requirementIndexMap = new Map(requirements.map((_, i) => [i, i]));
 
-    // Convert pending persona merges from agent-intake format
+    // Convert pending persona merges from intake format
     const pendingMerges = Array.from(pendingPersonaMerges.values()).map((merge) => ({
       intakePersonaIndex: acceptedExtractions
         .filter((e) => e.type === 'personas')
@@ -134,8 +147,60 @@ export function AgentIntakePage() {
       quotes: merge.quotes,
     }));
 
-    // Use document type as source type, fallback to meeting-transcript
-    const sourceType: SourceTypeKey = (documentType as SourceTypeKey) ?? 'meeting-transcript';
+    // Convert pending use case merges from intake format
+    const convertedUseCaseMerges = Array.from(pendingUseCaseMerges.values()).map((merge) => ({
+      intakeUseCaseIndex: 0, // Not used for index-based lookup in intake flow
+      targetUseCaseId: merge.targetUseCaseId,
+      sourceUseCaseIds: merge.sourceUseCaseIds,
+      mergedUseCase: merge.mergedUseCase,
+      quotes: merge.quotes,
+    }));
+
+    // Convert pending feedback merges from intake format
+    const convertedFeedbackMerges = Array.from(pendingFeedbackMerges.values()).map((merge) => {
+      const extraction = extractions.get(merge.extractionId);
+      const entity = extraction?.entity as FeedbackEntity;
+      return {
+        intakeFeedbackIndex: 0, // Not used for index-based lookup in intake flow
+        parentFeedbackId: merge.parentFeedbackId,
+        intakeFeedback: {
+          type: entity.type,
+          content: entity.content,
+          quotes: entity.quotes ?? [],
+          linkedPersonaIndexes: [],
+          linkedUseCaseIndexes: [],
+        },
+      };
+    });
+
+    // Convert pending outcome merges from intake format
+    const convertedOutcomeMerges = Array.from(pendingOutcomeMerges.values()).map((merge) => {
+      const extraction = extractions.get(merge.extractionId);
+      const entity = extraction?.entity as OutcomeEntity;
+      return {
+        intakeOutcomeIndex: 0, // Not used for index-based lookup in intake flow
+        parentOutcomeId: merge.parentOutcomeId,
+        intakeOutcome: {
+          description: entity.description,
+          target: entity.target,
+          quotes: entity.quotes ?? [],
+        },
+      };
+    });
+
+    // Use user-selected source type, fallback to detected document type, then meeting-transcript
+    const sourceType: SourceTypeKey = selectedSourceType ?? (documentType as SourceTypeKey) ?? 'meeting-transcript';
+
+    // Build solution maps from global selection
+    const useCaseSolutionIds = new Map<number, string | null>(
+      useCases.map((_, i) => [i, selectedSolutionId])
+    );
+    const feedbackSolutionIds = new Map<number, string | null>(
+      feedback.map((_, i) => [i, selectedSolutionId])
+    );
+    const outcomeSolutionIds = new Map<number, string | null>(
+      outcomes.map((_, i) => [i, selectedSolutionId])
+    );
 
     const success = await saveIntakeResult({
       personas,
@@ -150,13 +215,14 @@ export function AgentIntakePage() {
       requirementIndexMap,
       teamId: selectedTeam.teamId,
       sourceType,
-      metadata: {},
-      useCaseSolutionIds: new Map(),
-      feedbackSolutionIds: new Map(),
-      outcomeSolutionIds: new Map(),
+      metadata: sourceMetadata,
+      useCaseSolutionIds,
+      feedbackSolutionIds,
+      outcomeSolutionIds,
       pendingMerges,
-      pendingUseCaseMerges: [],
-      pendingFeedbackMerges: [],
+      pendingUseCaseMerges: convertedUseCaseMerges,
+      pendingFeedbackMerges: convertedFeedbackMerges,
+      pendingOutcomeMerges: convertedOutcomeMerges,
     });
 
     if (success) {
@@ -170,7 +236,13 @@ export function AgentIntakePage() {
     selectedTeam,
     extractions,
     documentType,
+    selectedSolutionId,
+    selectedSourceType,
+    sourceMetadata,
     pendingPersonaMerges,
+    pendingFeedbackMerges,
+    pendingUseCaseMerges,
+    pendingOutcomeMerges,
     saveIntakeResult,
     reset,
     navigate,

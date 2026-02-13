@@ -16,25 +16,10 @@ import {
   FiTool,
   FiTarget,
   FiMessageSquare,
-  FiLifeBuoy,
-  FiClipboard,
   FiTrendingUp,
   FiEye,
   FiFileText,
 } from 'react-icons/fi';
-import { SOURCE_TYPES } from '@/entities/source-type';
-
-// Maps icon name strings (from SOURCE_TYPES) to React Icon components
-const ICON_MAP: Record<string, React.ReactNode> = {
-  FiMessageSquare: <FiMessageSquare />,
-  FiUsers: <FiUsers />,
-  FiLifeBuoy: <FiLifeBuoy />,
-  FiClipboard: <FiClipboard />,
-};
-
-function getIconElement(iconName: string): React.ReactNode {
-  return ICON_MAP[iconName] || <FiInbox />;
-}
 
 export type ModuleType = 'discovery' | 'solutions' | 'design' | 'delivery';
 
@@ -89,12 +74,6 @@ export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
       label: 'Intake',
       icon: <FiInbox />,
       path: '/discovery/intake',
-      children: Object.values(SOURCE_TYPES).map((sourceType) => ({
-        key: sourceType.key,
-        label: sourceType.label,
-        path: `/discovery/intake?sourceType=${sourceType.key}`,
-        icon: getIconElement(sourceType.icon),
-      })),
     },
     {
       key: 'organize',

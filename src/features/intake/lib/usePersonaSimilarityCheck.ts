@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { useAgentIntakeStore, useExtractionsByType } from '../model/useAgentIntakeStore';
+import { useIntakeStore, useExtractionsByType } from '../model/useIntakeStore';
 import { useAuthStore } from '@/features/auth';
 import { personaApi } from '@/entities/persona';
 import type { PersonaEntity, Extraction } from '../model/types';
@@ -11,10 +11,10 @@ import type { PersonaEntity, Extraction } from '../model/types';
 export function usePersonaSimilarityCheck() {
   const teamId = useAuthStore((state) => state.selectedTeam?.teamId);
   const personaExtractions = useExtractionsByType('personas');
-  const personaMatches = useAgentIntakeStore((state) => state.personaMatches);
-  const checkingPersonas = useAgentIntakeStore((state) => state.checkingPersonas);
-  const setPersonaMatches = useAgentIntakeStore((state) => state.setPersonaMatches);
-  const setCheckingPersona = useAgentIntakeStore((state) => state.setCheckingPersona);
+  const personaMatches = useIntakeStore((state) => state.personaMatches);
+  const checkingPersonas = useIntakeStore((state) => state.checkingPersonas);
+  const setPersonaMatches = useIntakeStore((state) => state.setPersonaMatches);
+  const setCheckingPersona = useIntakeStore((state) => state.setCheckingPersona);
 
   // Track which extractions we've already started checking to avoid duplicate calls
   const checkedRef = useRef<Set<string>>(new Set());

@@ -1,7 +1,8 @@
 import React, { useCallback, useRef, useMemo, Fragment } from 'react';
 import { renderWithHighlights, type Highlight } from '@/shared/ui/HighlightableDocument/renderWithHighlights';
-import { useAgentIntakeStore } from '../../model/useAgentIntakeStore';
+import { useIntakeStore } from '../../model/useIntakeStore';
 import { useAgentLoop } from '../../lib/useAgentLoop';
+import { useInlineSimilarityCheck } from '../../lib/useInlineSimilarityCheck';
 import { computeCardAssignments, groupAssignmentsByParagraph } from '../../lib/computeCardAssignments';
 import { InlineCardGroup } from './InlineCardGroup';
 import '@/shared/ui/HighlightableDocument/HighlightableDocument.css';
@@ -20,14 +21,17 @@ export function InlineDocumentWithCards({ className = '' }: InlineDocumentWithCa
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Store state
-  const phase = useAgentIntakeStore((state) => state.phase);
-  const documentContent = useAgentIntakeStore((state) => state.documentContent);
-  const highlights = useAgentIntakeStore((state) => state.highlights);
-  const extractions = useAgentIntakeStore((state) => state.extractions);
-  const activeHighlightId = useAgentIntakeStore((state) => state.activeHighlightId);
-  const setActiveExtraction = useAgentIntakeStore((state) => state.setActiveExtraction);
+  const phase = useIntakeStore((state) => state.phase);
+  const documentContent = useIntakeStore((state) => state.documentContent);
+  const highlights = useIntakeStore((state) => state.highlights);
+  const extractions = useIntakeStore((state) => state.extractions);
+  const activeHighlightId = useIntakeStore((state) => state.activeHighlightId);
+  const setActiveExtraction = useIntakeStore((state) => state.setActiveExtraction);
 
   const { detectType } = useAgentLoop();
+
+  // Check for similar existing entities after extraction completes
+  useInlineSimilarityCheck();
 
   // Convert store highlights to array format
   const highlightArray: Highlight[] = useMemo(() => {

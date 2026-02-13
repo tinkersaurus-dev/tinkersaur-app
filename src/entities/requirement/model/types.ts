@@ -61,7 +61,7 @@ export const UpdateRequirementSchema = RequirementSchema.partial().required({ id
 
 export type UpdateRequirementDto = z.infer<typeof UpdateRequirementSchema>;
 
-// Extracted requirement from intake (used in agent intake flow)
+// Extracted requirement from intake
 export interface ExtractedRequirement {
   text: string;
   type: RequirementType;

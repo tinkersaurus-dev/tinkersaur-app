@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useAgentIntakeStore } from '../model/useAgentIntakeStore';
+import { useIntakeStore } from '../model/useIntakeStore';
 import * as agentHub from '../api/agentHub';
 import type {
   AgentToolCall,
@@ -12,7 +12,7 @@ import type {
 } from '../model/types';
 
 export function useAgentLoop() {
-  const store = useAgentIntakeStore();
+  const store = useIntakeStore();
   const contentBufferRef = useRef('');
 
   const handleSessionStarted = useCallback(
@@ -114,7 +114,7 @@ export function useAgentLoop() {
   // Start extraction analysis
   const startExtraction = useCallback(async () => {
     const { documentContent, documentType, selectedExtractions } =
-      useAgentIntakeStore.getState();
+      useIntakeStore.getState();
 
     if (!documentContent || selectedExtractions.length === 0) {
       return;
@@ -162,7 +162,7 @@ export function useAgentLoop() {
   }, [store]);
 
   // Set up event handlers - only register, don't manage connection lifecycle
-  // Connection is managed by AgentIntakePage
+  // Connection is managed by IntakePage
   useEffect(() => {
     agentHub.onSessionStarted(handleSessionStarted);
     agentHub.onToolCall(handleToolCall);
