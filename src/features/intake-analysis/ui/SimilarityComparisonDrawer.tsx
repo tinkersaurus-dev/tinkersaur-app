@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { FiAlertCircle } from 'react-icons/fi';
 import { LuX } from 'react-icons/lu';
-import { Card, Tag } from '@tinkersaur/ui';
+import { Card, Tag } from '@/shared/ui';
 
 interface SimilarityComparisonDrawerProps<TMatch> {
   // State

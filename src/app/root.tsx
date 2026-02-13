@@ -9,8 +9,7 @@ import {
 import { Toaster } from "sonner";
 
 import type { Route } from "./+types/root";
-import { ThemeProvider, useTheme } from "@tinkersaur/ui";
-import { QueryProvider } from "@/app/providers/QueryProvider";
+import { ThemeProvider, useTheme, QueryProvider } from "@/app/providers";
 import { AuthGuard, useAuthStore } from "@/features/auth";
 import { ChangePasswordModal } from "@/app/ui/auth/ChangePasswordModal";
 import "@tinkersaur/ui/styles";

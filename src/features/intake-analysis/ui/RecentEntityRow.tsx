@@ -4,7 +4,7 @@ import type { UseCase } from '@/entities/use-case';
 import type { Feedback } from '@/entities/feedback';
 import type { Outcome } from '@/entities/outcome';
 import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
-import { Tag } from '@tinkersaur/ui';
+import { Tag } from '@/shared/ui';
 import { formatRelativeTime } from '@/shared/lib/utils';
 import { FEEDBACK_TAG_COLORS } from '../model/constants/feedbackTypeConfig';
 

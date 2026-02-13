@@ -1,7 +1,6 @@
 import { useState, memo, useMemo } from 'react';
 import { FiTarget, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
-import { Card, Tag } from '@tinkersaur/ui';
-import { Select } from '@/shared/ui';
+import { Card, Tag, Select } from '@/shared/ui';
 import type { ExtractedOutcome, SimilarOutcomeResult } from '@/entities/outcome';
 import type { Solution } from '@/entities/solution';
 import { QuotesList } from './QuoteHighlight';

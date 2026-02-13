@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router';
 import { FaUser, FaSun, FaMoon } from 'react-icons/fa';
 import { Dropdown, Avatar, HStack } from '@/shared/ui';
 import type { DropdownMenuItem } from '@/shared/ui';
-import { useTheme } from '@tinkersaur/ui';
+import { useTheme } from '@/app/providers';
 import { useAuthStore } from '@/features/auth';
 
 interface SidebarFooterProps {
