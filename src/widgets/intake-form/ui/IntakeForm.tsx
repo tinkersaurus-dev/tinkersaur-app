@@ -1,11 +1,6 @@
 import { useState } from 'react';
 import { GiComb } from "react-icons/gi";
-import { Button } from '@/shared/ui/Button';
-import { HStack } from '@/shared/ui/Stack';
-import { Input } from '@/shared/ui/Input';
-import { Select } from '@/shared/ui/Select';
-import { DatePicker } from '@/shared/ui/DatePicker';
-import { InlineError } from '@/shared/ui/InlineError';
+import { Button, HStack, Input, Select, DatePicker, InlineError } from '@/shared/ui';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 import { useAuthStore } from '@/features/auth';
 import { useSolutionsQuery } from '@/entities/solution';

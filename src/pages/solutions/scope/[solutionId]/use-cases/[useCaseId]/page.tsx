@@ -167,6 +167,7 @@ function UseCaseDetailContent() {
         });
       } else {
         await createRequirement.mutateAsync({
+          teamId: useCase!.teamId,
           useCaseId: useCaseId!,
           ...values,
         });
@@ -205,12 +206,14 @@ function UseCaseDetailContent() {
     type: RequirementType;
     status: RequirementStatus;
   }) => {
+    if (!useCase) return;
     await createRequirement.mutateAsync({
+      teamId: useCase.teamId,
       useCaseId: useCaseId!,
       ...data,
     });
     setIsAddModalOpen(false);
-  }, [createRequirement, useCaseId]);
+  }, [createRequirement, useCaseId, useCase]);
 
   const requirementColumns: TableColumn<Requirement>[] = [
     {

@@ -5,9 +5,7 @@
  */
 
 import React from 'react';
-import { Modal } from '@/shared/ui/Modal';
-import { Form, useForm } from '@/shared/ui/Form';
-import { Select } from '@/shared/ui/Select';
+import { Modal, Select, Form, useForm } from '@/shared/ui';
 import { useUseCasesByTeamQuery, type UseCase } from '@/entities/use-case';
 
 export interface LinkUseCaseFormData {

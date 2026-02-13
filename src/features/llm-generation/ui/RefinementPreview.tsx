@@ -2,8 +2,7 @@
  * Side-by-side preview component for comparing original and refined factor content
  */
 
-import { MarkdownContent } from '@/shared/ui/MarkdownContent';
-import { Button } from '@/shared/ui';
+import { MarkdownContent, Button } from '@/shared/ui';
 
 interface RefinementPreviewProps {
   original: string;

@@ -3,12 +3,14 @@ import type { ExtractedPersona } from '@/entities/intake-result';
 import type { ExtractedUseCase } from '@/entities/intake-result';
 import type { ExtractedFeedback } from '@/entities/feedback';
 import type { ExtractedOutcome } from '@/entities/outcome';
+import type { ExtractedRequirement } from '@/entities/requirement';
 import type { SourceTypeKey } from '@/entities/source-type';
 import { metadataToIntakeSource, intakeSourceApi } from '@/entities/intake-source';
 import { personaApi, type CreatePersonaDto, type MergedPersonaData } from '@/entities/persona';
 import { useCaseApi, type CreateUseCaseDto, type MergedUseCaseData } from '@/entities/use-case';
 import { feedbackApi, type CreateFeedbackDto } from '@/entities/feedback';
 import { outcomeApi, type CreateOutcomeDto } from '@/entities/outcome';
+import { requirementApi, type CreateRequirementDto } from '@/entities/requirement';
 
 export interface PendingMerge {
   intakePersonaIndex: number;
@@ -37,10 +39,12 @@ interface SaveIntakeResultParams {
   useCases: ExtractedUseCase[];
   feedback: ExtractedFeedback[];
   outcomes: ExtractedOutcome[];
+  requirements?: ExtractedRequirement[];
   personaIndexMap: Map<number, number>;
   useCaseIndexMap: Map<number, number>;
   feedbackIndexMap: Map<number, number>;
   outcomeIndexMap: Map<number, number>;
+  requirementIndexMap?: Map<number, number>;
   teamId: string;
   sourceType: SourceTypeKey;
   metadata: Record<string, string>;
@@ -68,10 +72,12 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
       useCases,
       feedback,
       outcomes,
+      requirements,
       personaIndexMap,
       useCaseIndexMap,
       feedbackIndexMap,
       outcomeIndexMap,
+      requirementIndexMap: _requirementIndexMap,
       teamId,
       sourceType,
       metadata,
@@ -314,6 +320,23 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
             return outcomeApi.create(dto);
           })
         );
+
+        // Step 6: Create all requirements (standalone - no UseCaseId)
+        if (requirements && requirements.length > 0) {
+          await Promise.all(
+            requirements.map((requirement) => {
+              const dto: CreateRequirementDto = {
+                teamId,
+                intakeSourceId: intakeSource.id,
+                text: requirement.text,
+                type: requirement.type,
+                status: 'Todo',
+                quotes: requirement.quotes,
+              };
+              return requirementApi.create(dto);
+            })
+          );
+        }
 
         return true;
       } catch (err) {

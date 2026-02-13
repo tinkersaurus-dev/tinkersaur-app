@@ -18,6 +18,7 @@ import { useUseCasesByTeamQuery } from '@/entities/use-case';
 import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
 import { FeedbackMergeModal } from '@/features/entity-merging';
+import { GroupFeedbackButton, GroupingPreviewModal } from '@/features/feedback-grouping';
 
 export default function FeedbackListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
@@ -69,6 +70,9 @@ export default function FeedbackListPage() {
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
   const [selectedFeedbacks, setSelectedFeedbacks] = useState<Feedback[]>([]);
   const [clearSelection, setClearSelection] = useState<(() => void) | null>(null);
+
+  // Grouping modal state
+  const [groupingModalOpen, setGroupingModalOpen] = useState(false);
 
   // Map feedback type to tag color
   const getTypeColor = (type: string): TagColor => {
@@ -195,13 +199,16 @@ export default function FeedbackListPage() {
       <PageHeader
         title="Feedback"
         actions={
-          <Button
-            variant="primary"
-            icon={<FiPlus />}
-            onClick={() => {/* TODO: Add modal */}}
-          >
-            Add Feedback
-          </Button>
+          <div className="flex gap-2">
+            <GroupFeedbackButton onClick={() => setGroupingModalOpen(true)} />
+            <Button
+              variant="primary"
+              icon={<FiPlus />}
+              onClick={() => {/* TODO: Add modal */}}
+            >
+              Add Feedback
+            </Button>
+          </div>
         }
       />
 
@@ -244,6 +251,16 @@ export default function FeedbackListPage() {
                 onClose={handleMergeModalClose}
                 selectedFeedbacks={selectedFeedbacks}
                 teamId={teamId}
+              />
+            )}
+
+            {/* Grouping Modal */}
+            {teamId && (
+              <GroupingPreviewModal
+                open={groupingModalOpen}
+                onClose={() => setGroupingModalOpen(false)}
+                teamId={teamId}
+                solutionId={urlState.filters.solutionId || undefined}
               />
             )}
           </>

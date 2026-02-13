@@ -5,8 +5,8 @@ import type {
   CreateUseCaseVersionDto,
   UpdateUseCaseVersionDto,
   VersionComparison,
-} from '@/entities/use-case-version';
-import { useCaseVersionApi } from '@/entities/use-case-version';
+} from '../model/types';
+import { useCaseVersionApi } from '../api/useCaseVersionApi';
 
 interface UseCaseVersionStore {
   // State

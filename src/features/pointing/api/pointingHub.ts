@@ -6,6 +6,29 @@ import * as signalR from '@microsoft/signalr';
 import { getConnection } from '@/features/collaboration/api/collaborationHub';
 import type { PointingSession, Vote, VoteResults, TimeoutOption, FacilitationTransferred } from '../model/types';
 
+// Event handlers storage for re-registration after reconnect (mirrors agentHub.ts pattern)
+type PointingEventHandlers = {
+  sessionStarted: Set<(session: PointingSession) => void>;
+  voteReceived: Set<(storyId: string, vote: Vote) => void>;
+  allVotesIn: Set<(storyId: string) => void>;
+  revoteStarted: Set<(storyId: string) => void>;
+  sessionCompleted: Set<(storyId: string, finalPoints: number) => void>;
+  sessionCancelled: Set<(storyId: string) => void>;
+  sessionTimedOut: Set<(storyId: string, results: VoteResults) => void>;
+  facilitationTransferred: Set<(data: FacilitationTransferred) => void>;
+};
+
+const handlers: PointingEventHandlers = {
+  sessionStarted: new Set(),
+  voteReceived: new Set(),
+  allVotesIn: new Set(),
+  revoteStarted: new Set(),
+  sessionCompleted: new Set(),
+  sessionCancelled: new Set(),
+  sessionTimedOut: new Set(),
+  facilitationTransferred: new Set(),
+};
+
 function ensureConnection(): signalR.HubConnection {
   const connection = getConnection();
   if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
@@ -55,90 +78,99 @@ export async function getVoteResults(storyId: string): Promise<VoteResults | nul
 }
 
 // Event subscription helpers - Pointing events
+// Store handlers and register on current connection (mirrors agentHub.ts pattern)
 export function onPointingSessionStarted(callback: (session: PointingSession) => void): void {
-  const connection = getConnection();
-  if (connection) {
-    connection.on('OnPointingSessionStarted', callback);
-  } else {
-    console.warn('[PointingHub] No connection available for OnPointingSessionStarted handler');
-  }
+  handlers.sessionStarted.add(callback);
+  getConnection()?.on('OnPointingSessionStarted', callback);
 }
 
 export function offPointingSessionStarted(callback: (session: PointingSession) => void): void {
-  const connection = getConnection();
-  connection?.off('OnPointingSessionStarted', callback);
+  handlers.sessionStarted.delete(callback);
+  getConnection()?.off('OnPointingSessionStarted', callback);
 }
 
 export function onVoteReceived(callback: (storyId: string, vote: Vote) => void): void {
-  const connection = getConnection();
-  connection?.on('OnVoteReceived', callback);
+  handlers.voteReceived.add(callback);
+  getConnection()?.on('OnVoteReceived', callback);
 }
 
 export function offVoteReceived(callback: (storyId: string, vote: Vote) => void): void {
-  const connection = getConnection();
-  connection?.off('OnVoteReceived', callback);
+  handlers.voteReceived.delete(callback);
+  getConnection()?.off('OnVoteReceived', callback);
 }
 
 export function onAllVotesIn(callback: (storyId: string) => void): void {
-  const connection = getConnection();
-  connection?.on('OnAllVotesIn', callback);
+  handlers.allVotesIn.add(callback);
+  getConnection()?.on('OnAllVotesIn', callback);
 }
 
 export function offAllVotesIn(callback: (storyId: string) => void): void {
-  const connection = getConnection();
-  connection?.off('OnAllVotesIn', callback);
+  handlers.allVotesIn.delete(callback);
+  getConnection()?.off('OnAllVotesIn', callback);
 }
 
 export function onRevoteStarted(callback: (storyId: string) => void): void {
-  const connection = getConnection();
-  connection?.on('OnRevoteStarted', callback);
+  handlers.revoteStarted.add(callback);
+  getConnection()?.on('OnRevoteStarted', callback);
 }
 
 export function offRevoteStarted(callback: (storyId: string) => void): void {
-  const connection = getConnection();
-  connection?.off('OnRevoteStarted', callback);
+  handlers.revoteStarted.delete(callback);
+  getConnection()?.off('OnRevoteStarted', callback);
 }
 
 export function onPointingSessionCompleted(
   callback: (storyId: string, finalPoints: number) => void
 ): void {
-  const connection = getConnection();
-  connection?.on('OnPointingSessionCompleted', callback);
+  handlers.sessionCompleted.add(callback);
+  getConnection()?.on('OnPointingSessionCompleted', callback);
 }
 
 export function offPointingSessionCompleted(
   callback: (storyId: string, finalPoints: number) => void
 ): void {
-  const connection = getConnection();
-  connection?.off('OnPointingSessionCompleted', callback);
+  handlers.sessionCompleted.delete(callback);
+  getConnection()?.off('OnPointingSessionCompleted', callback);
 }
 
 export function onPointingSessionCancelled(callback: (storyId: string) => void): void {
-  const connection = getConnection();
-  connection?.on('OnPointingSessionCancelled', callback);
+  handlers.sessionCancelled.add(callback);
+  getConnection()?.on('OnPointingSessionCancelled', callback);
 }
 
 export function offPointingSessionCancelled(callback: (storyId: string) => void): void {
-  const connection = getConnection();
-  connection?.off('OnPointingSessionCancelled', callback);
+  handlers.sessionCancelled.delete(callback);
+  getConnection()?.off('OnPointingSessionCancelled', callback);
 }
 
 export function onSessionTimedOut(callback: (storyId: string, results: VoteResults) => void): void {
-  const connection = getConnection();
-  connection?.on('OnSessionTimedOut', callback);
+  handlers.sessionTimedOut.add(callback);
+  getConnection()?.on('OnSessionTimedOut', callback);
 }
 
 export function offSessionTimedOut(callback: (storyId: string, results: VoteResults) => void): void {
-  const connection = getConnection();
-  connection?.off('OnSessionTimedOut', callback);
+  handlers.sessionTimedOut.delete(callback);
+  getConnection()?.off('OnSessionTimedOut', callback);
 }
 
 export function onFacilitationTransferred(callback: (data: FacilitationTransferred) => void): void {
-  const connection = getConnection();
-  connection?.on('OnFacilitationTransferred', callback);
+  handlers.facilitationTransferred.add(callback);
+  getConnection()?.on('OnFacilitationTransferred', callback);
 }
 
 export function offFacilitationTransferred(callback: (data: FacilitationTransferred) => void): void {
-  const connection = getConnection();
-  connection?.off('OnFacilitationTransferred', callback);
+  handlers.facilitationTransferred.delete(callback);
+  getConnection()?.off('OnFacilitationTransferred', callback);
+}
+
+// Re-register all stored handlers on a connection (called after reconnect)
+export function registerAllPointingHandlers(conn: signalR.HubConnection): void {
+  handlers.sessionStarted.forEach((cb) => conn.on('OnPointingSessionStarted', cb));
+  handlers.voteReceived.forEach((cb) => conn.on('OnVoteReceived', cb));
+  handlers.allVotesIn.forEach((cb) => conn.on('OnAllVotesIn', cb));
+  handlers.revoteStarted.forEach((cb) => conn.on('OnRevoteStarted', cb));
+  handlers.sessionCompleted.forEach((cb) => conn.on('OnPointingSessionCompleted', cb));
+  handlers.sessionCancelled.forEach((cb) => conn.on('OnPointingSessionCancelled', cb));
+  handlers.sessionTimedOut.forEach((cb) => conn.on('OnSessionTimedOut', cb));
+  handlers.facilitationTransferred.forEach((cb) => conn.on('OnFacilitationTransferred', cb));
 }

@@ -1,100 +1,61 @@
 /**
  * UI Component Library Exports
  */
-export { Button } from './Button';
-export type { ButtonProps } from './Button';
 
-export { Input } from './Input';
-export type { InputProps, TextAreaProps } from './Input';
+// Re-export migrated components from @tinkersaur/ui
+// Batch 1: Foundation Components
+export { Card, Tag, Spinner, Empty, Avatar, PRESENTED_IMAGE_SIMPLE } from '@tinkersaur/ui';
+export type { CardProps, TagProps, TagColor, SpinnerProps, EmptyProps, AvatarProps } from '@tinkersaur/ui';
 
-export { PasswordInput } from './PasswordInput';
-export type { PasswordInputProps } from './PasswordInput';
+// Batch 2: Form Primitives
+export { Button, Input, PasswordInput, InputNumber, Checkbox, SearchInput } from '@tinkersaur/ui';
+export type { ButtonProps, InputProps, TextAreaProps, PasswordInputProps, InputNumberProps, CheckboxProps, SearchInputProps } from '@tinkersaur/ui';
 
-export { InputNumber } from './InputNumber';
-export type { InputNumberProps } from './InputNumber';
+// Batch 3: Layout Components
+export { Stack, HStack, VStack, Layout } from '@tinkersaur/ui';
+export type { StackProps, HStackProps, VStackProps, LayoutProps, LayoutHeaderProps, LayoutSiderProps, LayoutContentProps } from '@tinkersaur/ui';
 
-export { Card } from './Card';
-export type { CardProps } from './Card';
+// Batch 4: Overlay Components
+export { Tooltip, Dropdown, Modal, Drawer } from '@tinkersaur/ui';
+export type { DropdownProps, DropdownMenuProps, DropdownMenuItem, ModalProps, DrawerProps } from '@tinkersaur/ui';
 
-export { Tag } from './Tag';
-export type { TagProps, TagColor } from './Tag';
+// Batch 5: Selection Components
+export { Select, MultiSelect, DatePicker, Menu } from '@tinkersaur/ui';
+export type { SelectProps, SelectOption, MultiSelectProps, MultiSelectOption, DatePickerProps, MenuProps, MenuItemType } from '@tinkersaur/ui';
 
-export { Spinner } from './Spinner';
-export type { SpinnerProps } from './Spinner';
+// Batch 6: Data Display Components
+export { Tabs, Tree, TreeNode, Table, DEFAULT_PAGINATION_CONFIG } from '@tinkersaur/ui';
+export type {
+  TabsProps,
+  TabItem,
+  DropPosition,
+  TreeNodeData,
+  TableProps,
+  TableColumn,
+  TablePaginationConfig,
+  TableRowConfig,
+  TableHeaderConfig,
+  SortDirection,
+  SortOrder,
+  ServerSortState,
+} from '@tinkersaur/ui';
 
-export { Empty, PRESENTED_IMAGE_SIMPLE } from './Empty';
-export type { EmptyProps } from './Empty';
+// Batch 7: Form System
+export { Form, useForm, useFormContext } from '@tinkersaur/ui';
+export type { FormProps, FormItemProps } from '@tinkersaur/ui';
 
-export { HStack, VStack } from './Stack';
-export type { HStackProps, VStackProps } from './Stack';
+// Batch 8: Content & Feedback
+export { MarkdownContent, InlineError, ErrorBoundary } from '@tinkersaur/ui';
+export type { MarkdownContentProps, InlineErrorProps } from '@tinkersaur/ui';
 
-export { Avatar } from './Avatar';
-export type { AvatarProps } from './Avatar';
+// Batch 9: Composite Components
+export { PageHeader, PageContent, CardStack, EditableSection, EditableField, ListControlPanel, EntityList } from '@tinkersaur/ui';
+export type { PageHeaderProps, PageContentProps, CardStackProps, EditableSectionProps, EditableFieldProps, ListControlPanelProps, FilterConfig, EntityListProps, SelectionState, ListUrlState } from '@tinkersaur/ui';
 
-export { Menu } from './Menu';
-export type { MenuProps, MenuItemType } from './Menu';
+// Hooks (from @tinkersaur/ui)
+export { useListSelection } from '@tinkersaur/ui';
+export type { UseListSelectionOptions, UseListSelectionReturn } from '@tinkersaur/ui';
 
-export { Dropdown } from './Dropdown/Dropdown';
-export type { DropdownProps, DropdownMenuProps, DropdownMenuItem } from './Dropdown/Dropdown';
-
-export { Layout } from './Layout';
-export type { LayoutProps, LayoutHeaderProps, LayoutSiderProps, LayoutContentProps } from './Layout';
-
-export { Table } from './Table';
-export type { TableProps, TableColumn, TablePaginationConfig, TableRowConfig, SortDirection } from './Table';
-
-export { Form, useForm, useFormContext } from './Form';
-export type { FormProps, FormItemProps } from './Form';
-
-export { Select } from './Select';
-export type { SelectProps, SelectOption } from './Select';
-
-export { MultiSelect } from './MultiSelect';
-export type { MultiSelectProps, MultiSelectOption } from './MultiSelect';
-
-export { Modal } from './Modal';
-export type { ModalProps } from './Modal';
-
-export { Tabs } from './Tabs/Tabs';
-export type { TabsProps, TabItem } from './Tabs/Tabs';
-
-export { MarkdownContent } from './MarkdownContent';
-
-export { EditableSection, EditableField } from './EditableSection';
-export type { EditableSectionProps, EditableFieldProps } from './EditableSection';
-
-export { Checkbox } from './Checkbox';
-export type { CheckboxProps } from './Checkbox';
-
-export { SearchInput } from './SearchInput';
-export type { SearchInputProps } from './SearchInput';
-
-export { DatePicker } from './DatePicker';
-export type { DatePickerProps } from './DatePicker';
-
-export { Tree } from './Tree/Tree';
-export type { DropPosition } from './Tree/Tree';
-export { TreeNode } from './Tree/TreeNode';
-export type { TreeNodeData } from './Tree/TreeNode';
-
-export { PageHeader } from './PageHeader';
-
-export { PageContent } from './PageContent';
-
-export { ListControlPanel } from './ListControlPanel';
-
-export { EntityList } from './EntityList';
-export type { EntityListProps, FilterConfig, SelectionState } from './EntityList';
-
-export { ErrorBoundary } from './ErrorBoundary';
-
-export { Tooltip } from './Tooltip';
-
-export { CardStack } from './CardStack';
-export type { CardStackProps } from './CardStack';
-
-export { Drawer } from './Drawer';
-export type { DrawerProps } from './Drawer';
-
-export { InlineError } from './InlineError';
-export type { InlineErrorProps } from './InlineError';
+// App-specific components (not migrated to library)
+export { HighlightableDocument } from './HighlightableDocument';
+export type { HighlightableDocumentProps, HighlightableDocumentRef, Highlight } from './HighlightableDocument';

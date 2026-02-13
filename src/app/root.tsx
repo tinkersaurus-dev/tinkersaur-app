@@ -9,10 +9,11 @@ import {
 import { Toaster } from "sonner";
 
 import type { Route } from "./+types/root";
-import { ThemeProvider, useTheme } from "@/app/providers/ThemeProvider";
+import { ThemeProvider, useTheme } from "@tinkersaur/ui";
 import { QueryProvider } from "@/app/providers/QueryProvider";
 import { AuthGuard, useAuthStore } from "@/features/auth";
 import { ChangePasswordModal } from "@/app/ui/auth/ChangePasswordModal";
+import "@tinkersaur/ui/styles";
 import "@/app/app.css";
 
 export const links: Route.LinksFunction = () => [];

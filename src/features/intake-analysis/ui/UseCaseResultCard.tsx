@@ -1,7 +1,6 @@
 import { useState, memo, useMemo } from 'react';
 import { FiClipboard, FiTrash2, FiAlertCircle, FiGitMerge } from 'react-icons/fi';
-import { Card, Button } from '@/shared/ui';
-import { Select } from '@/shared/ui/Select';
+import { Card, Button, Select } from '@/shared/ui';
 import type { ExtractedUseCase } from '@/entities/intake-result';
 import type { SimilarUseCaseResult } from '@/entities/use-case';
 import type { Solution } from '@/entities/solution';

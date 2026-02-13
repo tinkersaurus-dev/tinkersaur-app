@@ -1,0 +1,127 @@
+.highlightable-document {
+  height: 100%;
+  overflow-y: auto;
+  font-family: inherit;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  outline: none;
+}
+
+.highlightable-document-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 200px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem;
+  border: 3px dotted transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.highlightable-document-placeholder:hover {
+  border-color: orange;
+}
+
+.highlightable-document-placeholder:focus-within,
+.highlightable-document:focus .highlightable-document-placeholder {
+  border-color: blue;
+}
+
+.highlightable-document-content {
+  word-wrap: break-word;
+}
+
+.document-line {
+  margin-bottom: 1.0em;
+}
+
+.document-line:last-child {
+  margin-bottom: 0;
+}
+
+/* Base highlight style */
+.highlight-mark {
+  background-color: oklch(from var(--highlight) l c h / 0.4);
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 2px;
+  padding: 0 2px;
+  margin: 0 -2px;
+}
+
+.highlight-mark:hover {
+  background-color: oklch(from var(--highlight) l c h / 0.6);
+}
+
+.highlight-mark.active {
+  background-color: oklch(from var(--highlight) l c h / 0.5);
+}
+
+/* Type-specific colors - personas (blue) */
+.highlight-mark[data-type="personas"] {
+  background-color: oklch(from var(--tag-blue) l c h / 0.25);
+}
+
+.highlight-mark[data-type="personas"]:hover {
+  background-color: oklch(from var(--tag-blue) l c h / 0.45);
+}
+
+.highlight-mark[data-type="personas"].active {
+  background-color: oklch(from var(--tag-blue) l c h / 0.5);
+}
+
+/* Type-specific colors - useCases (green) */
+.highlight-mark[data-type="useCases"] {
+  background-color: oklch(from var(--tag-green) l c h / 0.25);
+}
+
+.highlight-mark[data-type="useCases"]:hover {
+  background-color: oklch(from var(--tag-green) l c h / 0.45);
+}
+
+.highlight-mark[data-type="useCases"].active {
+  background-color: oklch(from var(--tag-green) l c h / 0.5);
+}
+
+/* Type-specific colors - feedback (purple) */
+.highlight-mark[data-type="feedback"] {
+  background-color: oklch(from var(--tag-purple) l c h / 0.25);
+}
+
+.highlight-mark[data-type="feedback"]:hover {
+  background-color: oklch(from var(--tag-purple) l c h / 0.45);
+}
+
+.highlight-mark[data-type="feedback"].active {
+  background-color: oklch(from var(--tag-purple) l c h / 0.5);
+}
+
+/* Type-specific colors - outcomes (orange) */
+.highlight-mark[data-type="outcomes"] {
+  background-color: oklch(from var(--tag-orange) l c h / 0.25);
+}
+
+.highlight-mark[data-type="outcomes"]:hover {
+  background-color: oklch(from var(--tag-orange) l c h / 0.45);
+}
+
+.highlight-mark[data-type="outcomes"].active {
+  background-color: oklch(from var(--tag-orange) l c h / 0.5);
+}
+
+/* Type-specific colors - requirements (cyan) */
+.highlight-mark[data-type="requirements"] {
+  background-color: oklch(from var(--tag-cyan) l c h / 0.25);
+}
+
+.highlight-mark[data-type="requirements"]:hover {
+  background-color: oklch(from var(--tag-cyan) l c h / 0.45);
+}
+
+.highlight-mark[data-type="requirements"].active {
+  background-color: oklch(from var(--tag-cyan) l c h / 0.5);
+}

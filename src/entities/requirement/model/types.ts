@@ -30,7 +30,9 @@ export const REQUIREMENT_STATUS_CONFIG: Record<RequirementStatus, { label: strin
 // Zod schema for runtime validation
 export const RequirementSchema = z.object({
   id: z.string().uuid(),
-  useCaseId: z.string().uuid(),
+  teamId: z.string().uuid(),
+  useCaseId: z.string().uuid().nullable(),
+  intakeSourceId: z.string().uuid().nullable(),
   text: z.string().min(1, 'Requirement text is required').max(5000),
   type: RequirementTypeSchema,
   status: RequirementStatusSchema,
@@ -42,10 +44,14 @@ export const RequirementSchema = z.object({
 export type Requirement = z.infer<typeof RequirementSchema>;
 
 // Schema for creating a new requirement (without generated fields)
-export const CreateRequirementSchema = RequirementSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const CreateRequirementSchema = z.object({
+  teamId: z.string().uuid(),
+  useCaseId: z.string().uuid().optional(),
+  intakeSourceId: z.string().uuid().optional(),
+  text: z.string().min(1).max(5000),
+  type: RequirementTypeSchema,
+  status: RequirementStatusSchema.optional().default('Todo'),
+  quotes: z.array(z.string()).optional(),
 });
 
 export type CreateRequirementDto = z.infer<typeof CreateRequirementSchema>;
@@ -54,3 +60,10 @@ export type CreateRequirementDto = z.infer<typeof CreateRequirementSchema>;
 export const UpdateRequirementSchema = RequirementSchema.partial().required({ id: true });
 
 export type UpdateRequirementDto = z.infer<typeof UpdateRequirementSchema>;
+
+// Extracted requirement from intake (used in agent intake flow)
+export interface ExtractedRequirement {
+  text: string;
+  type: RequirementType;
+  quotes?: string[];
+}

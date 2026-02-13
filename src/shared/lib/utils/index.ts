@@ -8,4 +8,5 @@ export { formatRelativeTime } from './formatRelativeTime';
 export { getActiveModule } from './getActiveModule';
 export { ok, err } from './result';
 export type { Result } from './result';
-export { cn } from './cn';
+// Re-export from @tinkersaur/ui for backwards compatibility
+export { cn } from '@tinkersaur/ui';

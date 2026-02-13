@@ -8,7 +8,7 @@
 import { useState, useCallback } from 'react';
 import { LuSparkles, LuCopy } from 'react-icons/lu';
 import { MarkdownContent, Tabs } from '@/shared/ui';
-import { Button } from '@/shared/ui/Button';
+import { Button } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import {
   generateUserStories,

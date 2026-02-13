@@ -4,10 +4,7 @@
  */
 
 import React from 'react';
-import { Modal } from '@/shared/ui/Modal';
-import { Form, useForm } from '@/shared/ui/Form';
-import { Input } from '@/shared/ui/Input';
-import { Select } from '@/shared/ui/Select';
+import { Modal, Input, Select, Form, useForm } from '@/shared/ui';
 import type { DiagramType } from '@/entities/diagram';
 
 export interface CreateDiagramFormData {

@@ -4,8 +4,7 @@
 
 import { useState, useCallback } from 'react';
 import { FiEdit2, FiTrash2, FiCheck, FiX, FiCalendar, FiEye, FiEyeOff, FiZap } from 'react-icons/fi';
-import { MarkdownContent } from '@/shared/ui/MarkdownContent';
-import { Input, Button } from '@/shared/ui';
+import { MarkdownContent, Input, Button } from '@/shared/ui';
 import { RefinementPreview } from '@/features/llm-generation';
 import type {
   SolutionFactor,

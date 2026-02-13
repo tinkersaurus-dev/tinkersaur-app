@@ -11,8 +11,7 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import { FiChevronDown, FiChevronRight, FiCheck } from 'react-icons/fi';
-import { PageHeader, PageContent } from '@/shared/ui';
-import { Card } from '@/shared/ui/Card';
+import { PageHeader, PageContent, Card } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import { SourceTypeKeySchema, SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 import type { IntakeResult } from '@/entities/intake-result';

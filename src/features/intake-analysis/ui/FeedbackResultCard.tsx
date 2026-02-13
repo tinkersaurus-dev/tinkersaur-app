@@ -1,9 +1,7 @@
 import { useState, memo, useMemo } from 'react';
 import { FiAlertCircle, FiTrash2, FiGitMerge } from 'react-icons/fi';
-import { Card } from '@/shared/ui/Card';
-import { Tag } from '@/shared/ui/Tag';
-import { Select } from '@/shared/ui/Select';
-import { Button } from '@/shared/ui/Button';
+import { Card, Tag } from '@tinkersaur/ui';
+import { Select, Button } from '@/shared/ui';
 import { FEEDBACK_TYPE_CONFIG, type SimilarFeedbackResult, type ExtractedFeedback } from '@/entities/feedback';
 import type { ExtractedPersona, ExtractedUseCase } from '@/entities/intake-result';
 import type { Solution } from '@/entities/solution';

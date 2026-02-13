@@ -7,7 +7,7 @@
 
 import { useCallback } from 'react';
 import { LuTrash2, LuSplit, LuMerge, LuRefreshCw, LuPencil } from 'react-icons/lu';
-import { Button } from '@/shared/ui/Button';
+import { Button } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import type { UserStory } from '@/features/llm-generation';
 import { UserStoryCard } from '../cards/UserStoryCard';

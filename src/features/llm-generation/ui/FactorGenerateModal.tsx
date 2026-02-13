@@ -5,8 +5,7 @@
 
 import { useEffect, useCallback, useRef, useState, useMemo } from 'react';
 import { FiCheck, FiZap } from 'react-icons/fi';
-import { Modal } from '@/shared/ui/Modal';
-import { MarkdownContent } from '@/shared/ui/MarkdownContent';
+import { Modal, MarkdownContent } from '@/shared/ui';
 import type { SolutionFactorType } from '@/entities/solution-factor';
 import { FACTOR_TYPE_LABELS } from '@/entities/solution-factor';
 import type { GeneratedFactorItem } from '@/features/llm-generation';

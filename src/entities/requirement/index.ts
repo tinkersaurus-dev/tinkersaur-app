@@ -19,6 +19,7 @@ export type {
   Requirement,
   CreateRequirementDto,
   UpdateRequirementDto,
+  ExtractedRequirement,
 } from './model/types';
 
 export { requirementApi } from './api/requirementApi';

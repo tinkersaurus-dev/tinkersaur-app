@@ -23,12 +23,20 @@ export function useCollaborationEvents() {
   const queryClientRef = useRef(queryClient);
   const fetchingResultsRef = useRef<Set<string>>(new Set());
 
-  // Keep refs updated
+  // Keep refs updated - intentionally runs on every render to keep refs in sync
   useEffect(() => {
     presenceStoreRef.current = usePresenceStore.getState();
     pointingStoreRef.current = usePointingStore.getState();
     queryClientRef.current = queryClient;
   });
+
+  // Cleanup fetchingResultsRef on unmount to prevent memory leaks
+  useEffect(() => {
+    const fetchingResults = fetchingResultsRef.current;
+    return () => {
+      fetchingResults.clear();
+    };
+  }, []);
 
   useEffect(() => {
     if (connectionState !== 'connected') return;

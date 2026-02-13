@@ -6,7 +6,7 @@
 
 import { useState, useCallback } from 'react';
 import { FiFolderPlus } from 'react-icons/fi';
-import { Button } from '@/shared/ui/Button';
+import { Button } from '@/shared/ui';
 import { useSidebarState } from '../lib/hooks/useSidebarState';
 import { useSidebarTree } from '../lib/hooks/useSidebarTree';
 import { useSidebarDragDrop } from '../lib/hooks/useSidebarDragDrop';

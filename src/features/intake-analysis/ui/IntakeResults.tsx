@@ -2,10 +2,8 @@ import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { FiUsers, FiClipboard, FiMessageSquare, FiRefreshCw, FiSave, FiTarget } from 'react-icons/fi';
-import { Card } from '@/shared/ui/Card';
-import { Button } from '@/shared/ui/Button';
-import { Tabs } from '@/shared/ui/Tabs/Tabs';
-import { Empty } from '@/shared/ui/Empty';
+import { Card, Empty } from '@tinkersaur/ui';
+import { Button, Tabs } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import type { IntakeResult } from '@/entities/intake-result';
 import type { SourceTypeKey } from '@/entities/source-type';
@@ -315,6 +313,15 @@ export function IntakeResults({ result, onNewAnalysis, defaultSolutionId }: Inta
     });
 
     if (success) {
+      // Clear pending state to prevent unbounded memory growth
+      setPendingMerges([]);
+      setPendingUseCaseMerges([]);
+      setPendingFeedbackMerges([]);
+      setDeletedPersonaIndexes(new Set());
+      setDeletedUseCaseIndexes(new Set());
+      setDeletedFeedbackIndexes(new Set());
+      setDeletedOutcomeIndexes(new Set());
+
       toast.success('Intake results saved successfully');
       navigate('/discovery/organize');
     } else {

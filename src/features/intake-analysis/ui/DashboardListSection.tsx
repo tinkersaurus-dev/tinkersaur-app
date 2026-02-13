@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { Empty } from '@/shared/ui/Empty';
+import { Empty } from '@tinkersaur/ui';
 
 interface DashboardListSectionProps {
   title: string;
