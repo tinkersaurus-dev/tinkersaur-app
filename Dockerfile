@@ -4,7 +4,7 @@ WORKDIR /app
 RUN npm ci
 
 FROM node:20-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
+COPY ./package.json package-lock.json tinkersaur-ui-0.1.0.tgz /app/
 WORKDIR /app
 RUN npm ci --omit=dev
 
