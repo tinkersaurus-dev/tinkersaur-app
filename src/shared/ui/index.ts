@@ -59,3 +59,15 @@ export type { UseListSelectionOptions, UseListSelectionReturn } from '@tinkersau
 // App-specific components (not migrated to library)
 export { HighlightableDocument } from './HighlightableDocument';
 export type { HighlightableDocumentProps, HighlightableDocumentRef, Highlight } from './HighlightableDocument';
+
+export { DashboardListSection } from './DashboardListSection';
+export {
+  PersonaRow,
+  UseCaseRow,
+  FeedbackRow,
+  OutcomeRow,
+  PersonaIcon,
+  UseCaseIcon,
+  FeedbackIcon,
+  OutcomeIcon,
+} from './RecentEntityRow';

@@ -6,7 +6,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { usePersonasQuery, type Persona } from '@/entities/persona';
 import { useUseCasesBySolutionQuery, type UseCase } from '@/entities/use-case';
-import { useFeedbacksPaginatedQuery, useOutcomesPaginatedQuery } from '@/features/intake-analysis';
+import { useFeedbacksPaginatedQuery } from '@/entities/feedback';
+import { useOutcomesPaginatedQuery } from '@/entities/outcome';
 import {
   generateFactors,
   type GenerateFactorsRequest,

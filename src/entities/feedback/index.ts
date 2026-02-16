@@ -11,6 +11,7 @@ export {
   CreateFeedbackSchema,
   UpdateFeedbackSchema,
   FEEDBACK_TYPE_CONFIG,
+  FEEDBACK_TAG_COLORS,
 } from './model/types';
 
 export type {
@@ -27,3 +28,14 @@ export type {
 } from './model/types';
 
 export { feedbackApi } from './api/feedbackApi';
+
+// Query hooks
+export {
+  useFeedbacksQuery,
+  useFeedbackQuery,
+  useFeedbackWithChildrenQuery,
+  useFeedbacksPaginatedQuery,
+} from './api/queries';
+
+// Mutation hooks
+export { useDeleteFeedback, useUpdateFeedback } from './api/mutations';

@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { useFeedbacksPaginatedQuery } from '@/features/intake-analysis';
+import { useFeedbacksPaginatedQuery } from '@/entities/feedback';
 import { queryKeys } from '@/shared/lib/query';
 import { intakeSourceApi } from '@/entities/intake-source';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';

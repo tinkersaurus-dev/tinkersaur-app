@@ -12,12 +12,8 @@ import { Button, Card, Modal, Empty, Tabs, Table, EditableSection, EditableField
 import type { TableColumn } from '@/shared/ui';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 import type { LoaderFunctionArgs } from 'react-router';
-import {
-  useOutcomeQuery,
-  useIntakeSourceDetailsQuery,
-  useDeleteOutcome,
-  useUpdateOutcome,
-} from '@/features/intake-analysis';
+import { useOutcomeQuery, useDeleteOutcome, useUpdateOutcome } from '@/entities/outcome';
+import { useIntakeSourceDetailsQuery } from '@/entities/intake-source';
 import { loadOutcomeDetail } from './loader';
 import type { OutcomeDetailLoaderData } from './loader';
 import { useSolutionsQuery } from '@/entities/solution';

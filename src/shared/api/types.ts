@@ -43,6 +43,7 @@ export interface FeedbackListParams {
   solutionId?: string;
   personaIds?: string[];
   useCaseIds?: string[];
+  tags?: string[];
   sortBy?: string;
   sortOrder?: SortOrder;
 }

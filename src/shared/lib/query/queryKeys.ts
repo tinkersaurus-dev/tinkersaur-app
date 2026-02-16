@@ -69,6 +69,10 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.feedbacks.all, 'detail', id] as const,
     withChildren: (id: string) => [...queryKeys.feedbacks.all, 'withChildren', id] as const,
   },
+  tags: {
+    all: ['tags'] as const,
+    list: (teamId: string) => [...queryKeys.tags.all, 'list', teamId] as const,
+  },
   outcomes: {
     all: ['outcomes'] as const,
     list: (teamId: string) => [...queryKeys.outcomes.all, 'list', teamId] as const,

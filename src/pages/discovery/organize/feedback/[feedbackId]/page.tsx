@@ -14,12 +14,8 @@ import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 import type { Persona } from '@/entities/persona';
 import type { UseCase } from '@/entities/use-case';
-import {
-  useFeedbackWithChildrenQuery,
-  useIntakeSourceDetailsQuery,
-  useDeleteFeedback,
-  useUpdateFeedback,
-} from '@/features/intake-analysis';
+import { useFeedbackWithChildrenQuery, useDeleteFeedback, useUpdateFeedback } from '@/entities/feedback';
+import { useIntakeSourceDetailsQuery } from '@/entities/intake-source';
 import type { LoaderFunctionArgs } from 'react-router';
 import { loadFeedbackDetail } from './loader';
 import type { FeedbackDetailLoaderData } from './loader';

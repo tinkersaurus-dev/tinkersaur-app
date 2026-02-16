@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { QuoteWithSourceSchema } from '@/entities/quote';
+import type { TagColor } from '@tinkersaur/ui';
 
 /**
  * Feedback Entity
@@ -14,6 +15,9 @@ export const FeedbackTypeSchema = z.enum([
   'concern', // Worry or hesitation
   'praise', // Positive feedback
   'question', // Unanswered question or confusion
+  'insight', // Observation about user behavior, workflows, or decision-making
+  'workaround', // Hack or manual process to compensate for missing features
+  'context', // Environmental, competitive, or organizational background
 ]);
 
 export type FeedbackType = z.infer<typeof FeedbackTypeSchema>;
@@ -28,12 +32,28 @@ export const FEEDBACK_TYPE_CONFIG: Record<
   concern: { label: 'Concern', color: 'orange' },
   praise: { label: 'Praise', color: 'green' },
   question: { label: 'Question', color: 'purple' },
+  insight: { label: 'Insight', color: 'cyan' },
+  workaround: { label: 'Workaround', color: 'amber' },
+  context: { label: 'Context', color: 'slate' },
+};
+
+// Tag color mapping for feedback types
+export const FEEDBACK_TAG_COLORS: Record<FeedbackType, TagColor> = {
+  suggestion: 'blue',
+  problem: 'red',
+  concern: 'orange',
+  praise: 'green',
+  question: 'purple',
+  insight: 'cyan',
+  workaround: 'amber',
+  context: 'slate',
 };
 
 // Extracted feedback from transcript (no ID - assigned by API when saved)
 export const ExtractedFeedbackSchema = z.object({
   type: FeedbackTypeSchema,
   content: z.string(), // Clear summary of the feedback
+  tags: z.array(z.string()).default([]), // Category labels from LLM extraction
   quotes: z.array(z.string()), // Exact quotes from transcript
   linkedPersonaIndexes: z.array(z.number()), // Indexes into personas array
   linkedUseCaseIndexes: z.array(z.number()), // Indexes into useCases array
@@ -52,6 +72,7 @@ export const FeedbackSchema = z.object({
   quotes: z.array(QuoteWithSourceSchema),
   personaIds: z.array(z.string().uuid()).default([]),
   useCaseIds: z.array(z.string().uuid()).default([]),
+  tags: z.array(z.string()).default([]),
   parentFeedbackId: z.string().uuid().nullable(),
   weight: z.number().default(0),
   createdAt: z.date(),
@@ -82,6 +103,7 @@ export const CreateFeedbackSchema = FeedbackSchema.omit({
   quotes: z.array(z.string()),
   personaIds: z.array(z.string().uuid()).optional(),
   useCaseIds: z.array(z.string().uuid()).optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export type CreateFeedbackDto = z.infer<typeof CreateFeedbackSchema>;

@@ -10,9 +10,9 @@
  */
 
 import { FiMessageSquare, FiArrowDown } from 'react-icons/fi';
-import { Modal, Button, Card, Tag } from '@/shared/ui';
+import { Modal, Button, Card, Tag, type TagColor } from '@/shared/ui';
 import { FEEDBACK_TYPE_CONFIG, type Feedback, type ExtractedFeedback } from '@/entities/feedback';
-import { FEEDBACK_TAG_COLORS, useFeedbackQuery } from '@/features/intake-analysis';
+import { FEEDBACK_TAG_COLORS, useFeedbackQuery } from '@/entities/feedback';
 
 export interface PendingFeedbackMerge {
   intakeFeedbackIndex: number;
@@ -104,7 +104,7 @@ export function IntakeFeedbackMergeModal({
                 <FiMessageSquare className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Tag color={getTypeColor(existingFeedback.type) as 'blue' | 'red' | 'orange' | 'green' | 'purple' | 'default'}>
+                    <Tag color={getTypeColor(existingFeedback.type) as TagColor}>
                       {getTypeLabel(existingFeedback.type)}
                     </Tag>
                     {(existingFeedback as Feedback & { weight?: number }).weight && (existingFeedback as Feedback & { weight?: number }).weight! > 0 && (
@@ -142,7 +142,7 @@ export function IntakeFeedbackMergeModal({
               <FiMessageSquare className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Tag color={getTypeColor(intakeFeedback.type) as 'blue' | 'red' | 'orange' | 'green' | 'purple' | 'default'}>
+                  <Tag color={getTypeColor(intakeFeedback.type) as TagColor}>
                     {getTypeLabel(intakeFeedback.type)}
                   </Tag>
                 </div>

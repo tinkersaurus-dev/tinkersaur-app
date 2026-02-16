@@ -17,7 +17,7 @@ import { usePersonaQuery } from '@/entities/persona';
 import { TwoStepMergeModal } from '../shared/TwoStepMergeModal';
 import { MergeInstructionsField } from '../shared/MergeInstructionsField';
 import { DeferredExecutionWarning } from '../shared/DeferredExecutionWarning';
-import type { PendingMerge } from '@/features/intake-analysis';
+import type { PendingMerge } from '@/features/intake';
 
 export type PendingPersonaMerge = PendingMerge;
 

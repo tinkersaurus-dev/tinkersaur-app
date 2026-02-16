@@ -13,9 +13,9 @@ import { useAuthStore } from '@/features/auth';
 import { queryKeys } from '@/shared/lib/query';
 import { usePersonasQuery } from '@/entities/persona';
 import { useUseCasesByTeamQuery } from '@/entities/use-case';
+import { useFeedbacksQuery } from '@/entities/feedback';
+import { useOutcomesQuery } from '@/entities/outcome';
 import {
-  useFeedbacksQuery,
-  useOutcomesQuery,
   DashboardListSection,
   PersonaRow,
   UseCaseRow,
@@ -25,7 +25,7 @@ import {
   UseCaseIcon,
   FeedbackIcon,
   OutcomeIcon,
-} from '@/features/intake-analysis';
+} from '@/shared/ui';
 
 const MAX_ITEMS = 10;
 

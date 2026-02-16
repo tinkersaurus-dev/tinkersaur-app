@@ -19,6 +19,7 @@ export const STALE_TIMES = {
   teams: 10 * 60 * 1000,        // 10 min
   users: 10 * 60 * 1000,        // 10 min
   currentUser: 30 * 60 * 1000,  // 30 min - auth data
+  tags: 10 * 60 * 1000,         // 10 min - reference data
   feedbacks: 5 * 60 * 1000,     // 5 min - discovery data
   outcomes: 5 * 60 * 1000,      // 5 min - discovery data
   intakeSources: 10 * 60 * 1000, // 10 min - reference data

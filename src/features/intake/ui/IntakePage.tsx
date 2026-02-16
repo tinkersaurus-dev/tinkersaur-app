@@ -8,7 +8,7 @@ import { ExtractionSuggestions } from './suggestions/ExtractionSuggestions';
 import { PersonaSidebar } from './sidebar';
 import { Button, Spinner, HStack, PageHeader, PageContent } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
-import { useSaveIntakeResult } from '@/features/intake-analysis';
+import { useSaveIntakeResult } from '../lib/useSaveIntakeResult';
 import type { ExtractedPersona, ExtractedUseCase } from '@/entities/intake-result';
 import type { ExtractedFeedback } from '@/entities/feedback';
 import type { ExtractedOutcome } from '@/entities/outcome';
@@ -99,6 +99,7 @@ export function IntakePage() {
         return {
           type: entity.type,
           content: entity.content,
+          tags: entity.tags ?? [],
           quotes: entity.quotes ?? [],
           linkedPersonaIndexes: [],
           linkedUseCaseIndexes: [],
@@ -166,6 +167,7 @@ export function IntakePage() {
         intakeFeedback: {
           type: entity.type,
           content: entity.content,
+          tags: entity.tags ?? [],
           quotes: entity.quotes ?? [],
           linkedPersonaIndexes: [],
           linkedUseCaseIndexes: [],

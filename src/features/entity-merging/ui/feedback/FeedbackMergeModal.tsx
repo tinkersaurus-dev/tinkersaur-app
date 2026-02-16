@@ -6,7 +6,7 @@
  */
 
 import { FiMessageSquare, FiArrowDown } from 'react-icons/fi';
-import { Modal, Button, Card, Tag } from '@/shared/ui';
+import { Modal, Button, Card, Tag, type TagColor } from '@/shared/ui';
 import { FEEDBACK_TYPE_CONFIG, type Feedback } from '@/entities/feedback';
 import { useMergeFeedbacks } from '../../api/hooks/useMergeFeedbacks';
 
@@ -99,7 +99,7 @@ export function FeedbackMergeModal({
                 <FiMessageSquare className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Tag color={getTypeColor(parent.type) as 'blue' | 'red' | 'orange' | 'green' | 'purple' | 'default'}>
+                    <Tag color={getTypeColor(parent.type) as TagColor}>
                       {getTypeLabel(parent.type)}
                     </Tag>
                   </div>
@@ -129,7 +129,7 @@ export function FeedbackMergeModal({
                   <FiMessageSquare className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <Tag color={getTypeColor(feedback.type) as 'blue' | 'red' | 'orange' | 'green' | 'purple' | 'default'}>
+                      <Tag color={getTypeColor(feedback.type) as TagColor}>
                         {getTypeLabel(feedback.type)}
                       </Tag>
                     </div>

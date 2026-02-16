@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react';
-import { useIntakeSourceQuery } from '@/features/intake-analysis';
+import { useIntakeSourceQuery } from '@/entities/intake-source';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 
 /**

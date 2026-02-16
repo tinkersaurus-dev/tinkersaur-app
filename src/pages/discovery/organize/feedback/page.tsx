@@ -11,7 +11,7 @@ import { Button, Tag } from '@/shared/ui';
 import type { TableColumn, FilterConfig, TagColor } from '@/shared/ui';
 import type { Feedback } from '@/entities/feedback';
 import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
-import { useFeedbacksPaginatedQuery } from '@/features/intake-analysis';
+import { useFeedbacksPaginatedQuery } from '@/entities/feedback';
 import { useSolutionsQuery } from '@/entities/solution';
 import { usePersonasQuery } from '@/entities/persona';
 import { useUseCasesByTeamQuery } from '@/entities/use-case';

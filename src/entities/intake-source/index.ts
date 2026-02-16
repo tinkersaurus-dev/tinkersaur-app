@@ -17,3 +17,6 @@ export type {
 } from './model/types';
 
 export { intakeSourceApi } from './api/intakeSourceApi';
+
+// Query hooks
+export { useIntakeSourceQuery, useIntakeSourceDetailsQuery } from './api/queries';

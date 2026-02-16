@@ -7,6 +7,7 @@ export { useIntakeStore, useGroupedExtractions } from './model/useIntakeStore';
 
 // Hooks
 export { useAgentLoop } from './lib/useAgentLoop';
+export { useSaveIntakeResult } from './lib/useSaveIntakeResult';
 
 // UI Components
 export { IntakePage } from './ui/IntakePage';

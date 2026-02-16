@@ -22,3 +22,9 @@ export type {
 } from './model/types';
 
 export { outcomeApi } from './api/outcomeApi';
+
+// Query hooks
+export { useOutcomesQuery, useOutcomeQuery, useOutcomesPaginatedQuery } from './api/queries';
+
+// Mutation hooks
+export { useDeleteOutcome, useUpdateOutcome } from './api/mutations';

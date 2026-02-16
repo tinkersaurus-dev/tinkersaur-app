@@ -10,7 +10,7 @@ import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
 import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Outcome } from '@/entities/outcome';
-import { useOutcomesPaginatedQuery } from '@/features/intake-analysis';
+import { useOutcomesPaginatedQuery } from '@/entities/outcome';
 import { useSolutionsQuery } from '@/entities/solution';
 import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';

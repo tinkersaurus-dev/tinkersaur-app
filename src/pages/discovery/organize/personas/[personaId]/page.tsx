@@ -18,7 +18,8 @@ import { usePersonaQuery, useDeletePersona, useUpdatePersona } from '@/entities/
 import { useUseCasesByTeamQuery, UseCaseCard } from '@/entities/use-case';
 import { loadPersonaDetail } from './loader';
 import type { PersonaDetailLoaderData } from './loader';
-import { useFeedbacksPaginatedQuery, useIntakeSourceDetailsQuery } from '@/features/intake-analysis';
+import { useFeedbacksPaginatedQuery } from '@/entities/feedback';
+import { useIntakeSourceDetailsQuery } from '@/entities/intake-source';
 
 // Feedback row type for table display
 interface FeedbackRow {

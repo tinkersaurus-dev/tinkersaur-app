@@ -1,7 +1,7 @@
 import { forwardRef, useState, useEffect } from 'react';
 import { FiCheck, FiX, FiUsers, FiClipboard, FiMessageSquare, FiTarget, FiFileText } from 'react-icons/fi';
 import type { Extraction, PersonaEntity, UseCaseEntity, FeedbackEntity, OutcomeEntity, RequirementEntity } from '../../model/types';
-import { HStack } from '@/shared/ui';
+import { HStack, Tag } from '@/shared/ui';
 
 interface ExtractionCardProps {
   extraction: Extraction;
@@ -77,6 +77,13 @@ export const ExtractionCard = forwardRef<HTMLDivElement, ExtractionCardProps>(
           return (
             <>
               <p className="text-sm line-clamp-2"><span className="capitalize font-bold">{entity.type}:</span> {entity.content}</p>
+              {entity.tags && entity.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {entity.tags.map((tag) => (
+                    <Tag key={tag} color="default">{tag}</Tag>
+                  ))}
+                </div>
+              )}
             </>
           );
         }
