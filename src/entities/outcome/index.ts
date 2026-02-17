@@ -28,3 +28,6 @@ export { useOutcomesQuery, useOutcomeQuery, useOutcomesPaginatedQuery } from './
 
 // Mutation hooks
 export { useDeleteOutcome, useUpdateOutcome } from './api/mutations';
+
+// Filters
+export { isUnlinkedOutcome, filterUnlinkedOutcomes } from './lib/filters';

@@ -39,3 +39,6 @@ export {
 
 // Mutation hooks
 export { useDeleteFeedback, useUpdateFeedback } from './api/mutations';
+
+// Filters
+export { isUnlinkedFeedback, filterUnlinkedFeedback } from './lib/filters';

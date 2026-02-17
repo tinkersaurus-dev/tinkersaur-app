@@ -44,3 +44,6 @@ export {
 } from './api/mutations';
 
 export { PersonaCard } from './ui/PersonaCard';
+
+// Filters
+export { STALE_THRESHOLD_DAYS, getDaysSinceUpdate, isStalePersona, filterStalePersonas } from './lib/filters';

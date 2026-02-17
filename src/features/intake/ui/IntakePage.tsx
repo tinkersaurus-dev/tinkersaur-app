@@ -71,10 +71,39 @@ export function IntakePage() {
         };
       });
 
+    // Build LLM-index-to-save-index maps for linking resolution.
+    // The LLM assigns 0-based indexes per type in extraction order.
+    // We need to remap because rejected extractions shift save-time indexes.
+    const allPersonaExtractions = Array.from(extractions.values()).filter((e) => e.type === 'personas');
+    const allUseCaseExtractions = Array.from(extractions.values()).filter((e) => e.type === 'useCases');
+
+    // Map from LLM persona index → save-time persona index (only for accepted, non-merged)
+    const llmPersonaToSaveIndex = new Map<number, number>();
+    let savePersonaIdx = 0;
+    allPersonaExtractions.forEach((e, llmIdx) => {
+      if (e.status === 'accepted' && !pendingPersonaMerges.has(e.id)) {
+        llmPersonaToSaveIndex.set(llmIdx, savePersonaIdx++);
+      }
+    });
+
     // Collect IDs of merged extractions (these will be saved via merge, not normal creation)
     const mergedFeedbackIds = new Set(pendingFeedbackMerges.keys());
     const mergedUseCaseIds = new Set(pendingUseCaseMerges.keys());
     const mergedOutcomeIds = new Set(pendingOutcomeMerges.keys());
+
+    // Map from LLM use case index → save-time use case index (only for accepted, non-merged)
+    const llmUseCaseToSaveIndex = new Map<number, number>();
+    let saveUseCaseIdx = 0;
+    allUseCaseExtractions.forEach((e, llmIdx) => {
+      if (e.status === 'accepted' && !mergedUseCaseIds.has(e.id)) {
+        llmUseCaseToSaveIndex.set(llmIdx, saveUseCaseIdx++);
+      }
+    });
+
+    const remapIndexes = (llmIndexes: number[] | undefined, mapping: Map<number, number>): number[] =>
+      (llmIndexes ?? [])
+        .map((llmIdx) => mapping.get(llmIdx))
+        .filter((idx): idx is number => idx !== undefined);
 
     // Convert to ExtractedUseCase format (exclude merged)
     const useCases: ExtractedUseCase[] = acceptedExtractions
@@ -87,7 +116,7 @@ export function IntakePage() {
           name: ucMerge?.mergedUseCase.name ?? entity.name,
           description: ucMerge?.mergedUseCase.description ?? entity.description,
           quotes: entity.quotes ?? [],
-          linkedPersonaIndexes: [],
+          linkedPersonaIndexes: remapIndexes(entity.linkedPersonaIndexes, llmPersonaToSaveIndex),
         };
       });
 
@@ -101,8 +130,8 @@ export function IntakePage() {
           content: entity.content,
           tags: entity.tags ?? [],
           quotes: entity.quotes ?? [],
-          linkedPersonaIndexes: [],
-          linkedUseCaseIndexes: [],
+          linkedPersonaIndexes: remapIndexes(entity.linkedPersonaIndexes, llmPersonaToSaveIndex),
+          linkedUseCaseIndexes: remapIndexes(entity.linkedUseCaseIndexes, llmUseCaseToSaveIndex),
         };
       });
 
@@ -169,8 +198,8 @@ export function IntakePage() {
           content: entity.content,
           tags: entity.tags ?? [],
           quotes: entity.quotes ?? [],
-          linkedPersonaIndexes: [],
-          linkedUseCaseIndexes: [],
+          linkedPersonaIndexes: remapIndexes(entity.linkedPersonaIndexes, llmPersonaToSaveIndex),
+          linkedUseCaseIndexes: remapIndexes(entity.linkedUseCaseIndexes, llmUseCaseToSaveIndex),
         },
       };
     });

@@ -5,12 +5,12 @@
 
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
-import { FiPlus, FiGitMerge } from 'react-icons/fi';
+import { FiPlus, FiGitMerge, FiX } from 'react-icons/fi';
 import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
 import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Persona } from '@/entities/persona';
-import { usePersonasPaginatedQuery } from '@/entities/persona';
+import { usePersonasPaginatedQuery, usePersonasQuery, filterStalePersonas } from '@/entities/persona';
 import { useSolutionsQuery } from '@/entities/solution';
 import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
@@ -22,14 +22,17 @@ export default function PersonasListPage() {
 
   // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
-    filterKeys: ['solutionId'],
+    filterKeys: ['solutionId', 'stale'],
     defaultSortBy: 'createdAt',
     defaultSortOrder: 'desc',
   });
 
-  // Build query params from URL state
+  const staleThreshold = urlState.filters.stale ? parseInt(urlState.filters.stale, 10) : null;
+  const isStaleFilter = staleThreshold !== null && staleThreshold > 0;
+
+  // Build query params from URL state (disabled when using stale filter)
   const queryParams = useMemo(() => {
-    if (!teamId) return null;
+    if (!teamId || isStaleFilter) return null;
     return {
       teamId,
       page: urlState.page,
@@ -39,11 +42,28 @@ export default function PersonasListPage() {
       sortBy: urlState.sortBy || undefined,
       sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, urlState.sortBy, urlState.sortOrder]);
+  }, [teamId, isStaleFilter, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching
   const { data, isLoading } = usePersonasPaginatedQuery(queryParams);
+  const { data: allPersonas = [], isLoading: allPersonasLoading } =
+    usePersonasQuery(isStaleFilter ? teamId : undefined);
   const { data: solutions = [] } = useSolutionsQuery(teamId);
+
+  // Client-side filtering for stale personas
+  const staleData = useMemo(() => {
+    if (!isStaleFilter) return null;
+    const filtered = filterStalePersonas(allPersonas, staleThreshold)
+      .sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
+    const start = (urlState.page - 1) * urlState.pageSize;
+    return {
+      items: filtered.slice(start, start + urlState.pageSize),
+      totalCount: filtered.length,
+    };
+  }, [isStaleFilter, staleThreshold, allPersonas, urlState.page, urlState.pageSize]);
+
+  const displayData = isStaleFilter ? staleData : data;
+  const displayLoading = isStaleFilter ? allPersonasLoading : isLoading;
 
   // Merge modal state
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
@@ -141,10 +161,24 @@ export default function PersonasListPage() {
         {!teamId ? (
           <Empty description="No team selected. Please create an organization and team first." />
         ) : (
-          <EntityList
-            items={data?.items || []}
-            loading={isLoading}
-            totalCount={data?.totalCount || 0}
+          <>
+            {isStaleFilter && (
+              <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-sm bg-amber-500/5 border border-amber-500/20 text-xs text-[var(--text)]">
+                <span>Showing <strong>stale personas</strong> (not updated in {staleThreshold}+ days)</span>
+                <button
+                  type="button"
+                  onClick={() => urlState.setFilter('stale', '')}
+                  className="ml-auto text-[var(--text-muted)] hover:text-[var(--text)] p-0.5 rounded-sm hover:bg-[var(--bg-secondary)] transition-colors"
+                  title="Clear filter"
+                >
+                  <FiX className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+            <EntityList
+              items={displayData?.items || []}
+              loading={displayLoading}
+              totalCount={displayData?.totalCount || 0}
             urlState={urlState}
             columns={columns}
             filters={filters}
@@ -165,7 +199,8 @@ export default function PersonasListPage() {
                 </Button>
               ) : null
             }
-          />
+            />
+          </>
         )}
       </PageContent>
 

@@ -58,6 +58,7 @@ export interface PersonaEntity {
 export interface UseCaseEntity {
   name: string;
   description: string;
+  linkedPersonaIndexes?: number[];
   quotes?: string[];
 }
 
@@ -65,6 +66,8 @@ export interface FeedbackEntity {
   type: 'suggestion' | 'problem' | 'concern' | 'praise' | 'question' | 'insight' | 'workaround' | 'context';
   content: string;
   tags?: string[];
+  linkedPersonaIndexes?: number[];
+  linkedUseCaseIndexes?: number[];
   quotes?: string[];
 }
 

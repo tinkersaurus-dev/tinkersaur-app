@@ -57,3 +57,6 @@ export * from './ui/use-case-detail/types';
 export { useUseCaseContent } from './lib/useUseCaseContent';
 
 export { UseCaseCard } from './ui/UseCaseCard';
+
+// Filters
+export { WEAK_EVIDENCE_THRESHOLD, getEvidenceCount, hasWeakEvidence, filterWeakEvidenceUseCases } from './lib/filters';

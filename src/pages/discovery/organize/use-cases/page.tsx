@@ -5,12 +5,12 @@
 
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
-import { FiPlus, FiGitMerge } from 'react-icons/fi';
+import { FiPlus, FiGitMerge, FiX } from 'react-icons/fi';
 import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
 import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { UseCase } from '@/entities/use-case';
-import { useUseCasesPaginatedQuery } from '@/entities/use-case';
+import { useUseCasesPaginatedQuery, useUseCasesByTeamQuery, filterWeakEvidenceUseCases } from '@/entities/use-case';
 import { useSolutionsQuery } from '@/entities/solution';
 import { usePersonasQuery } from '@/entities/persona';
 import { useListUrlState } from '@/shared/hooks';
@@ -24,10 +24,12 @@ export default function UseCasesListPage() {
 
   // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
-    filterKeys: ['solutionId', 'personaIds'],
+    filterKeys: ['solutionId', 'personaIds', 'weakEvidence'],
     defaultSortBy: 'createdAt',
     defaultSortOrder: 'desc',
   });
+
+  const isWeakEvidenceFilter = urlState.filters.weakEvidence === 'true';
 
   // Parse personaIds from URL (comma-separated) for API query
   const personaIds = useMemo(() => {
@@ -36,9 +38,9 @@ export default function UseCasesListPage() {
     return ids.split(',').filter(Boolean);
   }, [urlState.filters.personaIds]);
 
-  // Build query params from URL state
+  // Build query params from URL state (disabled when using weak evidence filter)
   const queryParams = useMemo(() => {
-    if (!teamId) return null;
+    if (!teamId || isWeakEvidenceFilter) return null;
     return {
       teamId,
       page: urlState.page,
@@ -49,12 +51,28 @@ export default function UseCasesListPage() {
       sortBy: urlState.sortBy || undefined,
       sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds, urlState.sortBy, urlState.sortOrder]);
+  }, [teamId, isWeakEvidenceFilter, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching
   const { data, isLoading } = useUseCasesPaginatedQuery(queryParams);
+  const { data: allUseCases = [], isLoading: allUseCasesLoading } =
+    useUseCasesByTeamQuery(isWeakEvidenceFilter ? teamId : undefined);
   const { data: solutions = [] } = useSolutionsQuery(teamId);
   const { data: personas = [] } = usePersonasQuery(teamId);
+
+  // Client-side filtering for weak evidence use cases
+  const weakEvidenceData = useMemo(() => {
+    if (!isWeakEvidenceFilter) return null;
+    const filtered = filterWeakEvidenceUseCases(allUseCases);
+    const start = (urlState.page - 1) * urlState.pageSize;
+    return {
+      items: filtered.slice(start, start + urlState.pageSize),
+      totalCount: filtered.length,
+    };
+  }, [isWeakEvidenceFilter, allUseCases, urlState.page, urlState.pageSize]);
+
+  const displayData = isWeakEvidenceFilter ? weakEvidenceData : data;
+  const displayLoading = isWeakEvidenceFilter ? allUseCasesLoading : isLoading;
 
   // Modal state
   const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
@@ -166,10 +184,24 @@ export default function UseCasesListPage() {
         {!teamId ? (
           <Empty description="No team selected. Please create an organization and team first." />
         ) : (
-          <EntityList
-            items={data?.items || []}
-            loading={isLoading}
-            totalCount={data?.totalCount || 0}
+          <>
+            {isWeakEvidenceFilter && (
+              <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-sm bg-amber-500/5 border border-amber-500/20 text-xs text-[var(--text)]">
+                <span>Showing use cases with <strong>weak evidence</strong> (fewer than 2 linked personas and feedback)</span>
+                <button
+                  type="button"
+                  onClick={() => urlState.setFilter('weakEvidence', '')}
+                  className="ml-auto text-[var(--text-muted)] hover:text-[var(--text)] p-0.5 rounded-sm hover:bg-[var(--bg-secondary)] transition-colors"
+                  title="Clear filter"
+                >
+                  <FiX className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+            <EntityList
+              items={displayData?.items || []}
+              loading={displayLoading}
+              totalCount={displayData?.totalCount || 0}
             urlState={urlState}
             columns={columns}
             filters={filters}
@@ -192,7 +224,8 @@ export default function UseCasesListPage() {
                 </Button>
               ) : null
             }
-          />
+            />
+          </>
         )}
       </PageContent>
 
