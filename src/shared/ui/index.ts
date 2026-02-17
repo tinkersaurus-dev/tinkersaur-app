@@ -21,7 +21,7 @@ export type { DropdownProps, DropdownMenuProps, DropdownMenuItem, ModalProps, Dr
 
 // Batch 5: Selection Components
 export { Select, MultiSelect, DatePicker, Menu } from '@tinkersaur/ui';
-export type { SelectProps, SelectOption, MultiSelectProps, MultiSelectOption, DatePickerProps, MenuProps, MenuItemType } from '@tinkersaur/ui';
+export type { SelectProps, SelectOption, SelectOptionGroup, MultiSelectProps, MultiSelectOption, DatePickerProps, MenuProps, MenuItemType } from '@tinkersaur/ui';
 
 // Batch 6: Data Display Components
 export { Tabs, Tree, TreeNode, Table, DEFAULT_PAGINATION_CONFIG } from '@tinkersaur/ui';

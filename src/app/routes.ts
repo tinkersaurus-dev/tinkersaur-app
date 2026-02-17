@@ -13,8 +13,11 @@ export default [
 
     // Discovery routes
     route("discovery", "../pages/discovery/page.tsx"),
+    route("discovery/coverage", "../pages/discovery/coverage/page.tsx"),
     route("discovery/intake", "../pages/discovery/intake/page.tsx"),
     route("discovery/analyze", "../pages/discovery/analyze/page.tsx"),
+    route("discovery/analyze/heatmap", "../pages/discovery/analyze/heatmap/page.tsx"),
+    route("discovery/analyze/signal-strength", "../pages/discovery/analyze/signal-strength/page.tsx"),
     route("discovery/organize", "../pages/discovery/organize/page.tsx"),
     route("discovery/organize/personas", "../pages/discovery/organize/personas/page.tsx"),
     route("discovery/organize/personas/:personaId", "../pages/discovery/organize/personas/[personaId]/page.tsx"),

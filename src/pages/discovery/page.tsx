@@ -1,6 +1,6 @@
 /**
  * Discovery Page
- * Redirects to Discovery > Intake
+ * Redirects to Discovery > Coverage
  */
 
 import { useEffect } from 'react';
@@ -10,7 +10,7 @@ export default function DiscoveryPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate('/discovery/intake', { replace: true });
+    navigate('/discovery/coverage', { replace: true });
   }, [navigate]);
 
   return <div />;

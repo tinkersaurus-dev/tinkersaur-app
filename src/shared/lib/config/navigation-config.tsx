@@ -4,6 +4,7 @@
  */
 
 import {
+  FiActivity,
   FiCompass,
   FiPenTool,
   FiCalendar,
@@ -11,6 +12,7 @@ import {
   FiInbox,
   FiBarChart2,
   FiFolder,
+  FiGrid,
   FiList,
   FiPackage,
   FiTool,
@@ -19,6 +21,7 @@ import {
   FiTrendingUp,
   FiEye,
   FiFileText,
+  FiLayers,
 } from 'react-icons/fi';
 
 export type ModuleType = 'discovery' | 'solutions' | 'design' | 'delivery';
@@ -70,6 +73,12 @@ export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
   ],
   discovery: [
     {
+      key: 'coverage',
+      label: 'Coverage',
+      icon: <FiLayers />,
+      path: '/discovery/coverage',
+    },
+    {
       key: 'intake',
       label: 'Intake',
       icon: <FiInbox />,
@@ -92,6 +101,10 @@ export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
       label: 'Analyze',
       icon: <FiBarChart2 />,
       path: '/discovery/analyze',
+      children: [
+        { key: 'heatmap', label: 'Heatmap', path: '/discovery/analyze/heatmap', icon: <FiGrid /> },
+        { key: 'signal-strength', label: 'Signal Strength', path: '/discovery/analyze/signal-strength', icon: <FiActivity /> },
+      ],
     },
   ],
   delivery: [
