@@ -1,17 +1,14 @@
 /**
  * ModuleBar Component
- * Vertical icon bar for navigating between main modules
+ * Horizontal icon bar for navigating between main modules
+ * Shows icons with small labels; active module has bottom underline indicator
  */
 
 import { useLocation, useNavigate } from 'react-router';
 import { MODULE_CONFIG } from '@/shared/lib/config/module-config';
 import { getActiveModule } from '@/shared/lib/utils';
-import { Tooltip } from '@/shared/ui';
 
 interface ModuleBarProps {
-  /**
-   * Called when a module is clicked with the module key, whether it's active, and the default route
-   */
   onModuleClick?: (moduleKey: string, isActive: boolean, defaultRoute: string) => void;
 }
 
@@ -31,29 +28,31 @@ export function ModuleBar({ onModuleClick }: ModuleBarProps) {
   };
 
   return (
-    <div className="h-full w-12 flex flex-col bg-[var(--bg-light)] flex-shrink-0 border-r border-[var(--border-muted)]">
-      {/* Module navigation */}
-      <nav className="flex-1 flex flex-col">
+    <div className="w-full flex-shrink-0 border-b border-[var(--border-muted)] bg-[var(--bg-light)]">
+      <nav className="flex items-stretch">
         {MODULE_CONFIG.map((module) => (
-          <Tooltip key={module.key} content={module.label} placement="right">
-            <button
-              onClick={() => handleModuleClick(module.key, module.defaultRoute)}
-              className={`
-                w-full h-8 flex items-center justify-center cursor-pointer transition-colors relative
-                ${
-                  activeModule === module.key
-                    ? 'text-[var(--primary)] bg-[var(--bg-light)]'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-hover)]'
-                }
-              `}
-            >
-              {/* Active indicator bar */}
-              {activeModule === module.key && (
-                <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-[var(--primary)] rounded-r" />
-              )}
-              {module.icon}
-            </button>
-          </Tooltip>
+          <button
+            key={module.key}
+            onClick={() => handleModuleClick(module.key, module.defaultRoute)}
+            className={`
+              flex-1 flex flex-col items-center justify-center gap-0.5 py-2 cursor-pointer
+              transition-colors relative
+              ${
+                activeModule === module.key
+                  ? 'text-[var(--primary)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-hover)]'
+              }
+            `}
+          >
+            {module.icon}
+            <span className="text-[9px] font-medium leading-tight">
+              {module.label}
+            </span>
+            {/* Active indicator - bottom underline bar */}
+            {activeModule === module.key && (
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[var(--primary)] rounded-t" />
+            )}
+          </button>
         ))}
       </nav>
     </div>

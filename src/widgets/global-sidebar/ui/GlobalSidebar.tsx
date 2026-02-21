@@ -1,6 +1,6 @@
 /**
  * GlobalSidebar Component
- * Main navigation sidebar with integrated module bar
+ * Main navigation sidebar with horizontal module bar above component nav
  * Sections expand automatically based on current route
  */
 
@@ -16,6 +16,7 @@ export function GlobalSidebar() {
   const location = useLocation();
   const {
     isCollapsed,
+    toggleCollapsed,
     isActive,
     isExactActive,
     isExpanded,
@@ -28,75 +29,74 @@ export function GlobalSidebar() {
   const activeModule = getActiveModule(location.pathname);
   const navSections: NavSection[] = activeModule ? MODULE_NAVIGATION[activeModule] : [];
 
+  // Collapsed state: only show expand button
+  if (isCollapsed) {
+    return (
+      <div className="h-full flex flex-col bg-[var(--bg-light)] overflow-hidden">
+        <SidebarHeader isCollapsed={true} onToggleCollapse={toggleCollapsed} />
+      </div>
+    );
+  }
+
+  // Expanded state: full sidebar with horizontal module bar
   return (
     <div className="h-full flex flex-col bg-[var(--bg-light)] overflow-hidden border-r border-[var(--border-muted)]">
-      {/* Header with Logo - full width */}
-      <SidebarHeader isCollapsed={isCollapsed} />
+      {/* Header with Logo + Collapse Button */}
+      <SidebarHeader isCollapsed={false} onToggleCollapse={toggleCollapsed} />
 
-      {/* Middle Section: ModuleBar + Content */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Module Bar - always visible */}
-        <ModuleBar onModuleClick={handleModuleClick} />
+      {/* Horizontal Module Bar */}
+      <ModuleBar onModuleClick={handleModuleClick} />
 
-        {/* Content sections - hidden when collapsed */}
-        {!isCollapsed && (
-          <nav className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
-            {/* Current Module Label */}
-            {activeModule && (
-              <div className="px-2 py-2 text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                {activeModule}
+      {/* Navigation Content */}
+      <nav className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
+        {navSections.map((section) => (
+          <div key={section.key}>
+            {/* Section Header */}
+            <div
+              data-section={section.key}
+              className={`
+                h-8 flex items-center gap-2 px-4 cursor-pointer text-xs font-medium
+                transition-colors whitespace-nowrap
+                ${
+                  isActive(section.path)
+                    ? 'text-[var(--primary)] bg-[var(--bg)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-hover)]'
+                }
+              `}
+              onClick={() => handleSectionClick(section)}
+            >
+              <span className="flex-shrink-0">{section.icon}</span>
+              <span className="flex-1 overflow-hidden">{section.label}</span>
+            </div>
+
+            {/* Subsection Items - only shown when route is active */}
+            {isExpanded(section) && section.children && (
+              <div className="ml-6 pl-2 border-l border-[var(--border-muted)]">
+                {section.children.map((child) => (
+                  <div
+                    key={child.key}
+                    className={`
+                      flex items-center gap-2 px-2 py-1.5 cursor-pointer text-[11px] transition-colors
+                      ${
+                        isExactActive(child.path)
+                          ? 'text-[var(--primary)]'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text)]'
+                      }
+                    `}
+                    onClick={() => navigate(child.path)}
+                  >
+                    {child.icon}
+                    {child.label}
+                  </div>
+                ))}
               </div>
             )}
+          </div>
+        ))}
+      </nav>
 
-            {navSections.map((section) => (
-              <div key={section.key}>
-                {/* Section Header */}
-                <div
-                  data-section={section.key}
-                  className={`
-                    h-8 flex items-center gap-2 px-4 cursor-pointer text-xs font-medium transition-colors whitespace-nowrap
-                    ${
-                      isActive(section.path)
-                        ? 'text-[var(--primary)] bg-[var(--bg)]'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-hover)]'
-                    }
-                  `}
-                  onClick={() => handleSectionClick(section)}
-                >
-                  <span className="flex-shrink-0">{section.icon}</span>
-                  <span className="flex-1 overflow-hidden">{section.label}</span>
-                </div>
-
-                {/* Subsection Items - only shown when route is active */}
-                {isExpanded(section) && section.children && (
-                  <div className="ml-6 pl-2 border-l border-[var(--border-muted)]">
-                    {section.children.map((child) => (
-                      <div
-                        key={child.key}
-                        className={`
-                          flex items-center gap-2 px-2 py-1.5 cursor-pointer text-[11px] transition-colors
-                          ${
-                            isExactActive(child.path)
-                              ? 'text-[var(--primary)]'
-                              : 'text-[var(--text-muted)] hover:text-[var(--text)]'
-                          }
-                        `}
-                        onClick={() => navigate(child.path)}
-                      >
-                        {child.icon}
-                        {child.label}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
-        )}
-      </div>
-
-      {/* Footer with User Avatar - full width */}
-      <SidebarFooter isCollapsed={isCollapsed} />
+      {/* Footer with User Avatar */}
+      <SidebarFooter isCollapsed={false} />
     </div>
   );
 }

@@ -14,7 +14,7 @@ interface SidebarFooterProps {
   isCollapsed: boolean;
 }
 
-export function SidebarFooter({ isCollapsed }: SidebarFooterProps) {
+export function SidebarFooter({ isCollapsed: _isCollapsed }: SidebarFooterProps) {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const userInfo = useAuthStore((state) => state.userInfo);
@@ -66,9 +66,7 @@ export function SidebarFooter({ isCollapsed }: SidebarFooterProps) {
       <Dropdown menu={{ items: menuItems }} placement="topLeft">
         <div className="flex items-center gap-2 cursor-pointer text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
           <Avatar size="small" icon={<FaUser />} />
-          {!isCollapsed && (
-            <span className="text-sm truncate">{userInfo?.name ?? 'Guest'}</span>
-          )}
+          <span className="text-sm truncate">{userInfo?.name ?? 'Guest'}</span>
         </div>
       </Dropdown>
     </div>

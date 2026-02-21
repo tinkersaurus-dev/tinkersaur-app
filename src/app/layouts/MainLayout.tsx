@@ -10,8 +10,8 @@ import { GlobalSidebar } from '@/widgets/global-sidebar';
 import { ContextualSubHeader } from '@/app/ui/ContextualSubHeader';
 import { useSidebarUIStore } from '@/app/model/stores/sidebar-ui';
 
-// Module bar width (always visible inside sidebar)
-const MODULE_BAR_WIDTH = 48;
+// Collapsed sidebar width (just enough for expand icon)
+const SIDEBAR_COLLAPSED_WIDTH = 48;
 
 export default function MainLayout() {
   const { isCollapsed } = useSidebarUIStore();
@@ -22,7 +22,7 @@ export default function MainLayout() {
         {/* Sidebar Panel - contains ModuleBar and content sections */}
         <Layout.Sider
           width="var(--sidebar-width-expanded)"
-          collapsedWidth={MODULE_BAR_WIDTH}
+          collapsedWidth={SIDEBAR_COLLAPSED_WIDTH}
           collapsed={isCollapsed}
         >
           <GlobalSidebar />

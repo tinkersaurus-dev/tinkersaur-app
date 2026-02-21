@@ -37,17 +37,11 @@ export function useGlobalSidebarState({ pathname }: UseGlobalSidebarStateProps) 
   const handleModuleClick = useCallback(
     (moduleKey: string, isActiveModule: boolean, defaultRoute: string) => {
       if (isActiveModule) {
-        // Clicking active module toggles collapse
-        toggleCollapsed();
-      } else {
-        // Clicking different module: expand and navigate
-        if (isCollapsed) {
-          setCollapsed(false);
-        }
-        navigate(defaultRoute);
+        return;
       }
+      navigate(defaultRoute);
     },
-    [isCollapsed, toggleCollapsed, setCollapsed, navigate]
+    [navigate]
   );
 
   const handleSectionClick = useCallback(
@@ -60,6 +54,7 @@ export function useGlobalSidebarState({ pathname }: UseGlobalSidebarStateProps) 
 
   return {
     isCollapsed,
+    setCollapsed,
     toggleCollapsed,
     getResolvedPath,
     isActive,
