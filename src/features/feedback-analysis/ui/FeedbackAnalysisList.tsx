@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { Card, CardStack, Empty } from '@/shared/ui';
 import { type Feedback } from '@/entities/feedback';
 import type { IntakeSource } from '@/entities/intake-source';
-import { TYPE_COLORS } from '../lib/constants';
+import { TYPE_COLORS } from '@/entities/feedback';
 
 interface FeedbackAnalysisListProps {
   feedback: Feedback[];

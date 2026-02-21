@@ -7,7 +7,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { FiEdit2, FiTrash2, FiMessageCircle, FiArchive, FiAlertTriangle, FiArrowLeft, FiPlus } from 'react-icons/fi';
 import { useParams, useLoaderData, useNavigate } from 'react-router';
-import { useSolutionStore } from '@/app/model/stores/solution';
+import { useSolutionStore } from '@/entities/solution';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '@/shared/ui';
 import { Button, Tag, HStack, Table, Form, useForm, Modal, Select, Input, Card, Tabs, MarkdownContent, Checkbox } from '@/shared/ui';

@@ -1,5 +1,5 @@
 import { Card, Empty } from '@/shared/ui';
-import { TYPE_COLORS } from '@/features/feedback-analysis';
+import { TYPE_COLORS } from '@/entities/feedback';
 import type { FeedbackType } from '@/entities/feedback';
 import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
 import type { PainRadarRow } from '../lib/types';

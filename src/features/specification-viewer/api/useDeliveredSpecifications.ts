@@ -5,7 +5,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { useUseCasesBySolutionQuery } from '@/entities/use-case';
-import { useUseCaseVersionStore, UseCaseVersionStatus } from '@/entities/use-case-version';
+import { useUseCaseVersionStore, UseCaseVersionStatus, getLatestVersionByStatus } from '@/entities/use-case-version';
 import type { UseCase } from '@/entities/use-case';
 import type { UseCaseVersion } from '@/entities/use-case-version';
 
@@ -38,16 +38,9 @@ export function useDeliveredSpecifications(solutionId: string | undefined) {
     return useCases
       .map((useCase) => {
         const useCaseVersions = versions[useCase.id] || [];
-        const deliveredVersions = useCaseVersions.filter(
-          (v) => v.status === UseCaseVersionStatus.Delivered
-        );
+        const latestDeliveredVersion = getLatestVersionByStatus(useCaseVersions, UseCaseVersionStatus.Delivered);
 
-        if (deliveredVersions.length === 0) return null;
-
-        // Get latest by versionNumber
-        const latestDeliveredVersion = deliveredVersions.reduce((latest, current) =>
-          current.versionNumber > latest.versionNumber ? current : latest
-        );
+        if (!latestDeliveredVersion) return null;
 
         return { useCase, latestDeliveredVersion };
       })

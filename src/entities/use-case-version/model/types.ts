@@ -193,3 +193,18 @@ export function formatVersionNumber(versionNumber: number): string {
 export function formatVersionDisplay(version: UseCaseVersion): string {
   return `${formatVersionNumber(version.versionNumber)} - ${version.versionName}`;
 }
+
+/**
+ * Find the latest version matching a given status, by highest versionNumber.
+ * Returns null if no versions match.
+ */
+export function getLatestVersionByStatus(
+  versions: UseCaseVersion[],
+  status: UseCaseVersionStatus,
+): UseCaseVersion | null {
+  const matching = versions.filter((v) => v.status === status);
+  if (matching.length === 0) return null;
+  return matching.reduce((latest, current) =>
+    current.versionNumber > latest.versionNumber ? current : latest,
+  );
+}

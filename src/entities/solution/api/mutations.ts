@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { queryKeys } from '@/shared/lib/query';
 import { solutionApi } from './solutionApi';
 import type { CreateSolutionDto } from '../model/types';
-import { useSolutionStore } from '@/app/model/stores/solution';
+import { useSolutionStore } from '../store/useSolutionStore';
 
 /**
  * Mutation hook for creating a solution

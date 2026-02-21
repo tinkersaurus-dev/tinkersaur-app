@@ -5,7 +5,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { useSolutionStore } from '@/app/model/stores/solution';
+import { useSolutionStore } from '@/entities/solution';
 import { FiPenTool } from 'react-icons/fi';
 
 export default function SpecIndex() {

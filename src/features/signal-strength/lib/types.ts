@@ -18,5 +18,4 @@ export interface PainRadarRow {
   opportunityTotal: number;
 }
 
-export const PAIN_TYPES: FeedbackType[] = ['problem', 'concern', 'workaround'];
-export const OPPORTUNITY_TYPES: FeedbackType[] = ['suggestion', 'praise', 'insight', 'question', 'context'];
+export { PAIN_TYPES, OPPORTUNITY_TYPES } from '@/entities/feedback';

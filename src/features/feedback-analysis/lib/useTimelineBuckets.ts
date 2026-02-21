@@ -9,19 +9,9 @@ import {
   format,
   endOfWeek,
 } from 'date-fns';
-import type { Feedback, FeedbackType } from '@/entities/feedback';
+import type { Feedback } from '@/entities/feedback';
+import { ALL_FEEDBACK_TYPES, resolveFeedbackDate } from '@/entities/feedback';
 import type { TimeGranularity } from './useAnalyzeFilterState';
-
-const FEEDBACK_TYPES: FeedbackType[] = [
-  'suggestion',
-  'problem',
-  'concern',
-  'praise',
-  'question',
-  'insight',
-  'workaround',
-  'context',
-];
 
 export interface TimelineBucket {
   key: string;
@@ -90,23 +80,6 @@ function createEmptyBucket(startDate: Date, granularity: TimeGranularity): Timel
   };
 }
 
-/**
- * Resolve the date to use for a feedback item.
- * Prefers intake source date when available, falls back to createdAt.
- */
-function resolveFeedbackDate(
-  item: Feedback,
-  intakeSourceDateMap?: Record<string, string>,
-): Date {
-  if (intakeSourceDateMap && item.intakeSourceId) {
-    const sourceDate = intakeSourceDateMap[item.intakeSourceId];
-    if (sourceDate) {
-      return new Date(sourceDate);
-    }
-  }
-  return new Date(item.createdAt);
-}
-
 export function useTimelineBuckets(
   feedback: Feedback[],
   granularity: TimeGranularity,
@@ -155,4 +128,5 @@ export function useTimelineBuckets(
   }, [feedback, granularity, intakeSourceDateMap]);
 }
 
-export { FEEDBACK_TYPES };
+/** @deprecated Import ALL_FEEDBACK_TYPES from '@/entities/feedback' instead */
+export { ALL_FEEDBACK_TYPES as FEEDBACK_TYPES };

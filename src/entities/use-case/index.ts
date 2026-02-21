@@ -60,3 +60,7 @@ export { UseCaseCard } from './ui/UseCaseCard';
 
 // Filters
 export { WEAK_EVIDENCE_THRESHOLD, getEvidenceCount, hasWeakEvidence, filterWeakEvidenceUseCases } from './lib/filters';
+
+// Evidence utilities
+export { countFeedbackByType } from './lib/evidence';
+export type { FeedbackTypeCounts } from './lib/evidence';

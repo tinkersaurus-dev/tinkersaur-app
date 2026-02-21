@@ -5,14 +5,13 @@
 
 /* eslint-disable react-refresh/only-export-components */
 import { redirect } from 'react-router';
-import { getSelectedSolutionId } from '@/app/model/stores/solution';
+import { getSelectedSolutionId, useSolutionStore } from '@/entities/solution';
 import { PageHeader, PageContent, Spinner } from '@/shared/ui';
 import { Empty, Button } from '@/shared/ui';
 import { FiPlus } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { SolutionSelectorModal } from '@/widgets/solution-selector';
-import { useSolutionStore } from '@/app/model/stores/solution';
 
 export function clientLoader() {
   const solutionId = getSelectedSolutionId();

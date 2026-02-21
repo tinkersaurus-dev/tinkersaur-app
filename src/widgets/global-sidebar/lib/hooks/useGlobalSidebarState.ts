@@ -6,7 +6,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useSidebarUIStore } from '@/app/model/stores/sidebar-ui';
-import { useSolutionStore } from '@/app/model/stores/solution';
+import { useSolutionStore } from '@/entities/solution';
 import type { NavSection } from '@/shared/lib/config/navigation-config';
 
 interface UseGlobalSidebarStateProps {

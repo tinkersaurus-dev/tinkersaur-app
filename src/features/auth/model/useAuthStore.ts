@@ -9,7 +9,7 @@ import {
   setTokenExpiry,
 } from '@/shared/api';
 import type { TeamAccess, SelectedTeam } from './types';
-import { useSolutionStore } from '@/app/model/stores/solution';
+import { useSolutionStore } from '@/entities/solution';
 import { disconnect as disconnectCollaborationHub } from '@/features/collaboration/api/collaborationHub';
 
 const TEAM_ACCESS_KEY = 'tinkersaur_team_access';

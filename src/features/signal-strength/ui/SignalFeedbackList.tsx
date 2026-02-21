@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Card, Empty } from '@/shared/ui';
 import { type Feedback, FEEDBACK_TYPE_CONFIG, FEEDBACK_TAG_COLORS } from '@/entities/feedback';
 import { Tag } from '@/shared/ui';
-import { TYPE_COLORS } from '@/features/feedback-analysis';
+import { TYPE_COLORS } from '@/entities/feedback';
 
 interface SignalFeedbackListProps {
   feedback: Feedback[];

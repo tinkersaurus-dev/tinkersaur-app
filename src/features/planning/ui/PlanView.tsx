@@ -6,7 +6,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { FiDownload, FiInfo, FiAlertCircle, FiLoader } from 'react-icons/fi';
 import { Button, Card, Empty, HStack } from '@/shared/ui';
-import { useSolutionStore } from '@/app/model/stores/solution';
+import { useSolutionStore } from '@/entities/solution';
 import { usePlanningVersionsQuery } from '../model/usePlanningQueries';
 import {
   useUpdatePlanningPriorities,

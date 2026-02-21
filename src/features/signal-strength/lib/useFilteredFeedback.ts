@@ -1,18 +1,9 @@
 import { useMemo } from 'react';
 import type { Feedback, FeedbackType } from '@/entities/feedback';
+import { emptyTypeCounts, getPainTotal, getOpportunityTotal, groupFeedbackByParent } from '@/entities/feedback';
 import type { Persona } from '@/entities/persona';
 import type { UseCase } from '@/entities/use-case';
 import type { PainRadarRow } from './types';
-import { PAIN_TYPES, OPPORTUNITY_TYPES } from './types';
-
-const ALL_TYPES: FeedbackType[] = [
-  'suggestion', 'problem', 'concern', 'praise',
-  'question', 'insight', 'workaround', 'context',
-];
-
-function emptyTypeCounts(): Record<FeedbackType, number> {
-  return Object.fromEntries(ALL_TYPES.map((t) => [t, 0])) as Record<FeedbackType, number>;
-}
 
 interface FilteredFeedbackResult {
   /** Parent + unparented feedback for the right-column list */
@@ -45,27 +36,7 @@ export function useFilteredFeedback(
     const personaMap = new Map(personas.map((p) => [p.id, p]));
     const useCaseMap = new Map(useCases.map((uc) => [uc.id, uc]));
 
-    // Separate feedback into parents, children, and unparented
-    const childrenByParent = new Map<string, Feedback[]>();
-    const parentFeedback: Feedback[] = [];
-    const unparentedFeedback: Feedback[] = [];
-
-    for (const fb of allFeedback) {
-      if (fb.parentFeedbackId) {
-        const children = childrenByParent.get(fb.parentFeedbackId) ?? [];
-        children.push(fb);
-        childrenByParent.set(fb.parentFeedbackId, children);
-      }
-    }
-
-    for (const fb of allFeedback) {
-      if (fb.parentFeedbackId) continue; // skip children
-      if (childrenByParent.has(fb.id)) {
-        parentFeedback.push(fb);
-      } else {
-        unparentedFeedback.push(fb);
-      }
-    }
+    const { parents: parentFeedback, unparented: unparentedFeedback, childrenByParentId } = groupFeedbackByParent(allFeedback);
 
     // Determine which feedback to include
     let filteredParents: Feedback[];
@@ -81,7 +52,7 @@ export function useFilteredFeedback(
       // Parents where at least one child has the tag, or parent itself has the tag
       const matchingParents = parentFeedback.filter((parent) => {
         if (hasTag(parent)) return true;
-        const children = childrenByParent.get(parent.id) ?? [];
+        const children = childrenByParentId.get(parent.id) ?? [];
         return children.some(hasTag);
       });
 
@@ -111,8 +82,8 @@ export function useFilteredFeedback(
       const persona = personaMap.get(personaId);
       if (!persona) continue;
 
-      const painTotal = PAIN_TYPES.reduce((sum, t) => sum + typeCounts[t], 0);
-      const opportunityTotal = OPPORTUNITY_TYPES.reduce((sum, t) => sum + typeCounts[t], 0);
+      const painTotal = getPainTotal(typeCounts);
+      const opportunityTotal = getOpportunityTotal(typeCounts);
 
       personaRadarData.push({
         id: personaId,
@@ -146,8 +117,8 @@ export function useFilteredFeedback(
       const useCase = useCaseMap.get(useCaseId);
       if (!useCase) continue;
 
-      const painTotal = PAIN_TYPES.reduce((sum, t) => sum + typeCounts[t], 0);
-      const opportunityTotal = OPPORTUNITY_TYPES.reduce((sum, t) => sum + typeCounts[t], 0);
+      const painTotal = getPainTotal(typeCounts);
+      const opportunityTotal = getOpportunityTotal(typeCounts);
 
       useCaseRadarData.push({
         id: useCaseId,

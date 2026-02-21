@@ -33,3 +33,6 @@ export {
 } from './api/mutations';
 
 export { SolutionCard } from './ui/SolutionCard';
+
+// Store
+export { useSolutionStore, getSelectedSolutionId } from './store/useSolutionStore';

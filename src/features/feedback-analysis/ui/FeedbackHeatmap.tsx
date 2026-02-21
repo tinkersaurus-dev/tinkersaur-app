@@ -1,10 +1,8 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { scaleBand } from 'd3-scale';
 import { Empty } from '@/shared/ui';
-import { FEEDBACK_TYPE_CONFIG, type FeedbackType } from '@/entities/feedback';
+import { FEEDBACK_TYPE_CONFIG, ALL_FEEDBACK_TYPES, TYPE_COLORS, type FeedbackType } from '@/entities/feedback';
 import type { TimelineBucket } from '../lib/useTimelineBuckets';
-import { FEEDBACK_TYPES } from '../lib/useTimelineBuckets';
-import { TYPE_COLORS } from '../lib/constants';
 
 const MARGIN = { top: 16, right: 16, bottom: 48, left: 80 };
 const CELL_GAP = 2;
@@ -48,7 +46,7 @@ export function FeedbackHeatmap({
 
   // Determine which types to show (all if none selected)
   const visibleTypes = useMemo(
-    () => (selectedTypes.length > 0 ? selectedTypes : FEEDBACK_TYPES),
+    () => (selectedTypes.length > 0 ? selectedTypes : ALL_FEEDBACK_TYPES),
     [selectedTypes],
   );
 

@@ -14,11 +14,10 @@ import type { TableColumn } from '@/shared/ui';
 import type { UseCase } from '@/entities/use-case';
 import type { SolutionType } from '@/entities/solution';
 import type { LoaderFunctionArgs } from 'react-router';
-import { useSolutionQuery, useUpdateSolution, useDeleteSolution } from '@/entities/solution';
+import { useSolutionQuery, useUpdateSolution, useDeleteSolution, useSolutionStore } from '@/entities/solution';
 import { useUseCasesBySolutionQuery, useCreateUseCase, useUpdateUseCase, useDeleteUseCase } from '@/entities/use-case';
 import { loadSolutionDetail } from './loader';
 import type { SolutionDetailLoaderData } from './loader';
-import { useSolutionStore } from '@/app/model/stores/solution';
 
 const solutionTypeOptions = [
   { value: 'product', label: 'Product' },

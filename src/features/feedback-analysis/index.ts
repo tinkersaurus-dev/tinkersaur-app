@@ -12,7 +12,8 @@ export { useAnalyzeFilterState } from './lib/useAnalyzeFilterState';
 export type { TimeGranularity } from './lib/useAnalyzeFilterState';
 export { useTimelineBuckets } from './lib/useTimelineBuckets';
 export type { TimelineBucket } from './lib/useTimelineBuckets';
-export { TYPE_COLORS } from './lib/constants';
+/** @deprecated Import TYPE_COLORS from '@/entities/feedback' instead */
+export { TYPE_COLORS } from '@/entities/feedback';
 
 // UI
 export { FeedbackAnalysisList } from './ui/FeedbackAnalysisList';

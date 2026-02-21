@@ -7,8 +7,7 @@
 
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { useSolutionQuery } from '@/entities/solution';
-import { useSolutionStore } from '@/app/model/stores/solution';
+import { useSolutionQuery, useSolutionStore } from '@/entities/solution';
 import { DesignStudioContent } from '@/widgets/studio-content';
 
 export default function StudioPage() {

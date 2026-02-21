@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { FiChevronsRight } from 'react-icons/fi';
-import { useSolutionStore } from '@/app/model/stores/solution';
+import { useSolutionStore } from '@/entities/solution';
 import { SolutionSelectorModal } from './SolutionSelectorModal'
 import type { Solution } from '@/entities/solution';
 import { HStack } from '@/shared/ui';

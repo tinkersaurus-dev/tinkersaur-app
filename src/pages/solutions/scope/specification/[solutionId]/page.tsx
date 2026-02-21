@@ -9,8 +9,7 @@ import { useParams, useNavigate, useLoaderData } from 'react-router';
 import { HydrationBoundary } from '@tanstack/react-query';
 import type { LoaderFunctionArgs } from 'react-router';
 import { PageHeader, PageContent } from '@/shared/ui';
-import { useSolutionQuery } from '@/entities/solution';
-import { useSolutionStore } from '@/app/model/stores/solution';
+import { useSolutionQuery, useSolutionStore } from '@/entities/solution';
 import {
   useDeliveredSpecifications,
   SpecificationList,

@@ -44,6 +44,7 @@ export {
   getValidTransitions,
   formatVersionNumber,
   formatVersionDisplay,
+  getLatestVersionByStatus,
 } from './model/types';
 
 export { useCaseVersionApi } from './api/useCaseVersionApi';

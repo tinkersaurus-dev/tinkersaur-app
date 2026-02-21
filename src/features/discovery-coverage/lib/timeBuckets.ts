@@ -8,7 +8,6 @@ import {
   format,
   endOfWeek,
 } from 'date-fns';
-import type { Feedback } from '@/entities/feedback';
 import type { TimeGranularity } from '@/features/feedback-analysis';
 
 export function getBucketStart(date: Date, granularity: TimeGranularity): Date {
@@ -49,15 +48,4 @@ export function formatBucketLabel(
   }
 }
 
-export function resolveFeedbackDate(
-  item: Feedback,
-  intakeSourceDateMap?: Record<string, string>,
-): Date {
-  if (intakeSourceDateMap && item.intakeSourceId) {
-    const sourceDate = intakeSourceDateMap[item.intakeSourceId];
-    if (sourceDate) {
-      return new Date(sourceDate);
-    }
-  }
-  return new Date(item.createdAt);
-}
+export { resolveFeedbackDate } from '@/entities/feedback';

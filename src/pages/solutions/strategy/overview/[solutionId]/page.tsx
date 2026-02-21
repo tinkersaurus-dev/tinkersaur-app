@@ -6,7 +6,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { PageHeader, PageContent } from '@/shared/ui';
-import { useSolutionQuery } from '@/entities/solution';
+import { useSolutionQuery, useSolutionStore } from '@/entities/solution';
 import {
   useSolutionFactorsQuery,
   useCreateSolutionFactor,
@@ -14,7 +14,6 @@ import {
   useDeleteSolutionFactor,
   useCreateSolutionFactorsBulk,
 } from '@/entities/solution-factor';
-import { useSolutionStore } from '@/app/model/stores/solution';
 import { useGenerateFactors, useRefineFactor, FactorGenerateModal } from '@/features/llm-generation';
 import { FactorsList } from '@/entities/solution-factor';
 import {
