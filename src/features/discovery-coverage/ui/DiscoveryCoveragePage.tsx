@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { PageHeader, PageContent, Card, Spinner, Empty, Select } from '@/shared/ui';
+import { PageHeader, PageContent, Card, Spinner, Empty, Select, Button } from '@/shared/ui';
+import { LuArrowUp, LuArrowDown } from 'react-icons/lu';
 import type { SelectOption, SelectOptionGroup } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import { useFeedbacksQuery } from '@/entities/feedback';
@@ -169,76 +170,49 @@ export function DiscoveryCoveragePage() {
         ) : (
           <div className="flex flex-col gap-8">
             {/* Section 1: Dynamic Heatmap */}
-            <section>
+            <section className='mb-10'>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-semibold text-[var(--text)]">
                   Feedback Coverage
                 </h2>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-[var(--text-muted)]">Rows</span>
+                    <span className="text-sm text-[var(--text-muted)]">Rows</span>
                     <Select
                       value={yDimension}
                       onChange={(v) => setYDimension(v as DimensionKey)}
                       options={yDimensionOptions}
-                      size="small"
+                      size="medium"
+                      className="w-[150px]"
                     />
-                    <button
-                      type="button"
+                    <Button
+                      variant="default"
+                      size="medium"
+                      icon={ySort === 'desc' ? <LuArrowDown size={12} /> : <LuArrowUp size={12} />}
                       onClick={() => setYSort((s) => (s === 'desc' ? 'asc' : 'desc'))}
-                      className="flex items-center justify-center w-6 h-6 rounded-sm border border-[var(--border)] hover:border-[var(--primary)] transition-colors text-[var(--text-muted)] hover:text-[var(--text)]"
-                      title={ySort === 'desc' ? 'Showing highest first' : 'Showing lowest first'}
-                    >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        {ySort === 'desc' ? (
-                          <path d="M6 2v8M3 7l3 3 3-3" />
-                        ) : (
-                          <path d="M6 10V2M3 5l3-3 3 3" />
-                        )}
-                      </svg>
-                    </button>
+                      disabled={TIME_DIMS.includes(yDimension)}
+                      title={TIME_DIMS.includes(yDimension) ? 'Time is always sorted chronologically' : ySort === 'desc' ? 'Showing highest first' : 'Showing lowest first'}
+                      className="px-1 bg-[var(--bg)] border-none hover:bg-[var(--secondary)] hover:text-[var(--primary)]"
+                    />
                   </div>
-                  <span className="text-xs text-[var(--text-muted)]">vs</span>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-[var(--text-muted)]">Columns</span>
+                    <span className="text-sm text-[var(--text-muted)]">Columns</span>
                     <Select
                       value={xDimension}
                       onChange={(v) => setXDimension(v as DimensionKey)}
                       options={xDimensionOptions}
-                      size="small"
+                      size="medium"
+                      className="w-[150px]"
                     />
-                    <button
-                      type="button"
+                    <Button
+                      variant="default"
+                      size="medium"
+                      icon={xSort === 'desc' ? <LuArrowDown size={12} /> : <LuArrowUp size={12} />}
                       onClick={() => setXSort((s) => (s === 'desc' ? 'asc' : 'desc'))}
-                      className="flex items-center justify-center w-6 h-6 rounded-sm border border-[var(--border)] hover:border-[var(--primary)] transition-colors text-[var(--text-muted)] hover:text-[var(--text)]"
-                      title={xSort === 'desc' ? 'Showing highest first' : 'Showing lowest first'}
-                    >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        {xSort === 'desc' ? (
-                          <path d="M6 2v8M3 7l3 3 3-3" />
-                        ) : (
-                          <path d="M6 10V2M3 5l3-3 3 3" />
-                        )}
-                      </svg>
-                    </button>
+                      disabled={TIME_DIMS.includes(xDimension)}
+                      title={TIME_DIMS.includes(xDimension) ? 'Sorted chronologically' : xSort === 'desc' ? 'Showing highest first' : 'Showing lowest first'}
+                      className="px-1 bg-[var(--bg)] border-none hover:bg-[var(--secondary)] hover:text-[var(--primary)]"
+                    />
                   </div>
                 </div>
               </div>
@@ -261,7 +235,7 @@ export function DiscoveryCoveragePage() {
 
             {/* Section 2: Use Case Evidence Coverage */}
             <section>
-              <h2 className="text-sm font-semibold text-[var(--text)] mb-4">
+              <h2 className="text-[11px] font-semibold text-[var(--text)] mb-4">
                 Use Case Evidence Coverage
               </h2>
               <UseCaseEvidenceTable rows={evidenceRows} loading={false} />

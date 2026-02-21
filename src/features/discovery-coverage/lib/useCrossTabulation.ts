@@ -270,7 +270,7 @@ export function useCrossTabulation(
     // Build sort indices for X
     const xIndices = xValues.map((_, i) => i);
     if (isTimeDimension(xDimension)) {
-      if (xSort === 'desc') xIndices.reverse();
+      // Time is always chronological (asc)
     } else {
       xIndices.sort((a, b) =>
         xSort === 'desc'
@@ -282,7 +282,7 @@ export function useCrossTabulation(
     // Build sort indices for Y
     const yIndices = yValues.map((_, i) => i);
     if (isTimeDimension(yDimension)) {
-      if (ySort === 'desc') yIndices.reverse();
+      // Time is always chronological (asc)
     } else {
       yIndices.sort((a, b) =>
         ySort === 'desc'

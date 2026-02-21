@@ -29,7 +29,7 @@ export function UseCaseEvidenceTable({ rows, loading }: UseCaseEvidenceTableProp
         key: 'personaCount',
         title: 'Personas',
         dataIndex: 'personaCount',
-        width: 90,
+        width: 80,
         sorter: (a, b) => a.personaCount - b.personaCount,
         render: (value) => (
           <span className="text-xs tabular-nums">{value as number}</span>
@@ -39,7 +39,7 @@ export function UseCaseEvidenceTable({ rows, loading }: UseCaseEvidenceTableProp
         key: 'problemCount',
         title: 'Problems',
         dataIndex: 'problemCount',
-        width: 90,
+        width: 80,
         sorter: (a, b) => a.problemCount - b.problemCount,
         render: (value) => (
           <span className="text-xs tabular-nums">{value as number}</span>
@@ -49,7 +49,7 @@ export function UseCaseEvidenceTable({ rows, loading }: UseCaseEvidenceTableProp
         key: 'suggestionCount',
         title: 'Suggestions',
         dataIndex: 'suggestionCount',
-        width: 100,
+        width: 80,
         sorter: (a, b) => a.suggestionCount - b.suggestionCount,
         render: (value) => (
           <span className="text-xs tabular-nums">{value as number}</span>
@@ -77,13 +77,13 @@ export function UseCaseEvidenceTable({ rows, loading }: UseCaseEvidenceTableProp
       },
       {
         key: 'evidenceScore',
-        title: 'Evidence',
+        title: 'Evidence Score',
         dataIndex: 'evidenceScore',
-        width: 140,
+        width: 200,
         sorter: (a, b) => a.evidenceScore - b.evidenceScore,
         render: (_, record) => (
-          <div className="flex items-center gap-2">
-            <span className="text-xs tabular-nums">{record.evidenceScore}</span>
+          <div className="flex items-center">
+            <span className="text-xs tabular-nums flex-1 text-center">{record.evidenceScore}</span>
             {record.isWeak && <Tag color="amber">Weak</Tag>}
           </div>
         ),
