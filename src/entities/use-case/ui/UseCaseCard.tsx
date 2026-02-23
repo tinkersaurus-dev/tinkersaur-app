@@ -19,7 +19,9 @@ export function UseCaseCard({ useCase, action }: UseCaseCardProps) {
   const navigate = useNavigate();
 
   const handleDoubleClick = () => {
-    navigate(`/discovery/organize/use-cases/${useCase.id}`);
+    if (useCase.solutionId) {
+      navigate(`/solutions/scope/${useCase.solutionId}/use-cases/${useCase.id}`);
+    }
   };
 
   return (

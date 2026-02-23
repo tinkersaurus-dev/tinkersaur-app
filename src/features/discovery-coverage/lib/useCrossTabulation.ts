@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { startOfDay, addDays } from 'date-fns';
 import type { Feedback } from '@/entities/feedback';
 import type { Persona } from '@/entities/persona';
-import type { UseCase } from '@/entities/use-case';
+import type { UserGoal } from '@/entities/user-goal';
 import type { IntakeSource } from '@/entities/intake-source';
 import { SOURCE_TYPES } from '@/entities/source-type';
 import type { TimeGranularity } from '@/features/feedback-analysis';
@@ -15,7 +15,7 @@ import {
 
 export type DimensionKey =
   | 'personas'
-  | 'useCases'
+  | 'userGoals'
   | 'sourceTypes'
   | 'tags'
   | 'days'
@@ -97,15 +97,15 @@ function resolveDimensionValues(
   dim: DimensionKey,
   feedback: Feedback[],
   personas: Persona[],
-  useCases: UseCase[],
+  userGoals: UserGoal[],
   intakeSourceMap: Record<string, IntakeSource>,
   intakeSourceDateMap: Record<string, string>,
 ): DimensionValue[] {
   switch (dim) {
     case 'personas':
       return personas.map((p) => ({ key: p.id, label: p.name }));
-    case 'useCases':
-      return useCases.map((uc) => ({ key: uc.id, label: uc.name }));
+    case 'userGoals':
+      return userGoals.map((ug) => ({ key: ug.id, label: ug.name }));
     case 'sourceTypes':
       return Object.values(SOURCE_TYPES).map((st) => ({
         key: st.key,
@@ -142,8 +142,8 @@ function getDimensionMatches(
   switch (dim) {
     case 'personas':
       return item.personaIds;
-    case 'useCases':
-      return item.useCaseIds;
+    case 'userGoals':
+      return item.userGoalIds;
     case 'sourceTypes': {
       if (!item.intakeSourceId) return [];
       const source = intakeSourceMap[item.intakeSourceId];
@@ -182,7 +182,7 @@ export function useCrossTabulation(
   yDimension: DimensionKey,
   feedback: Feedback[],
   personas: Persona[],
-  useCases: UseCase[],
+  userGoals: UserGoal[],
   intakeSourceMap: Record<string, IntakeSource>,
   intakeSourceDateMap: Record<string, string>,
   xSort: SortDirection,
@@ -201,7 +201,7 @@ export function useCrossTabulation(
       xDimension,
       feedback,
       personas,
-      useCases,
+      userGoals,
       intakeSourceMap,
       intakeSourceDateMap,
     );
@@ -209,7 +209,7 @@ export function useCrossTabulation(
       yDimension,
       feedback,
       personas,
-      useCases,
+      userGoals,
       intakeSourceMap,
       intakeSourceDateMap,
     );
@@ -337,7 +337,7 @@ export function useCrossTabulation(
     yDimension,
     feedback,
     personas,
-    useCases,
+    userGoals,
     intakeSourceMap,
     intakeSourceDateMap,
     xSort,

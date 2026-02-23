@@ -5,7 +5,7 @@ import type { TagColor } from '@tinkersaur/ui';
 /**
  * Feedback Entity
  * Represents user feedback extracted from intake sources.
- * Feedback can be linked to personas and use cases.
+ * Feedback can be linked to personas and user goals.
  */
 
 // Feedback type categorization
@@ -56,7 +56,7 @@ export const ExtractedFeedbackSchema = z.object({
   tags: z.array(z.string()).default([]), // Category labels from LLM extraction
   quotes: z.array(z.string()), // Exact quotes from transcript
   linkedPersonaIndexes: z.array(z.number()), // Indexes into personas array
-  linkedUseCaseIndexes: z.array(z.number()), // Indexes into useCases array
+  linkedUserGoalIndexes: z.array(z.number()), // Indexes into userGoals array
 });
 
 export type ExtractedFeedback = z.infer<typeof ExtractedFeedbackSchema>;
@@ -72,6 +72,7 @@ export const FeedbackSchema = z.object({
   quotes: z.array(QuoteWithSourceSchema),
   personaIds: z.array(z.string().uuid()).default([]),
   useCaseIds: z.array(z.string().uuid()).default([]),
+  userGoalIds: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string()).default([]),
   parentFeedbackId: z.string().uuid().nullable(),
   weight: z.number().default(0),
@@ -95,6 +96,7 @@ export const CreateFeedbackSchema = FeedbackSchema.omit({
   quotes: true,
   personaIds: true,
   useCaseIds: true,
+  userGoalIds: true,
   parentFeedbackId: true,
   weight: true,
   createdAt: true,
@@ -103,6 +105,7 @@ export const CreateFeedbackSchema = FeedbackSchema.omit({
   quotes: z.array(z.string()),
   personaIds: z.array(z.string().uuid()).optional(),
   useCaseIds: z.array(z.string().uuid()).optional(),
+  userGoalIds: z.array(z.string().uuid()).optional(),
   tags: z.array(z.string()).optional(),
 });
 

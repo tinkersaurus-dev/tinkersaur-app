@@ -90,11 +90,11 @@ export {
 } from './api/merge-personas-api';
 
 export {
-  mergeUseCases,
-  MergeUseCasesAPIError,
-  type UseCaseInput,
-  type MergeUseCasesResponse,
-} from './api/merge-use-cases-api';
+  mergeUserGoals,
+  MergeUserGoalsAPIError,
+  type UserGoalInput,
+  type MergeUserGoalsResponse,
+} from './api/merge-user-goals-api';
 
 // Requirement APIs
 export {

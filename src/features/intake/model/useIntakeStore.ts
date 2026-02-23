@@ -11,7 +11,7 @@ import type {
   PersonaPendingMerge,
   InlineSimilarityMatch,
   FeedbackPendingMerge,
-  UseCasePendingMerge,
+  UserGoalPendingMerge,
   OutcomePendingMerge,
 } from './types';
 
@@ -45,14 +45,14 @@ interface IntakeState {
   checkingPersonas: Set<string>;
   pendingPersonaMerges: Map<string, PersonaPendingMerge>;
 
-  // Inline similarity state (feedback, useCases, outcomes)
+  // Inline similarity state (feedback, userGoals, outcomes)
   inlineSimilarityMatches: Map<string, InlineSimilarityMatch>;
   checkingInlineSimilarity: Set<string>;
   dismissedSimilarities: Set<string>;
 
   // Inline pending merges
   pendingFeedbackMerges: Map<string, FeedbackPendingMerge>;
-  pendingUseCaseMerges: Map<string, UseCasePendingMerge>;
+  pendingUserGoalMerges: Map<string, UserGoalPendingMerge>;
   pendingOutcomeMerges: Map<string, OutcomePendingMerge>;
 
   // Solution & source metadata
@@ -74,6 +74,7 @@ interface IntakeState {
   updateExtraction: (id: string, updates: Partial<Extraction>) => void;
   removeExtraction: (id: string) => void;
   acceptExtraction: (id: string) => void;
+  acceptAllExtractions: () => void;
   rejectExtraction: (id: string) => void;
 
   // Highlight actions
@@ -108,8 +109,8 @@ interface IntakeState {
   // Inline merge actions
   addPendingFeedbackMerge: (extractionId: string, merge: FeedbackPendingMerge) => void;
   removePendingFeedbackMerge: (extractionId: string) => void;
-  addPendingUseCaseMerge: (extractionId: string, merge: UseCasePendingMerge) => void;
-  removePendingUseCaseMerge: (extractionId: string) => void;
+  addPendingUserGoalMerge: (extractionId: string, merge: UserGoalPendingMerge) => void;
+  removePendingUserGoalMerge: (extractionId: string) => void;
   addPendingOutcomeMerge: (extractionId: string, merge: OutcomePendingMerge) => void;
   removePendingOutcomeMerge: (extractionId: string) => void;
 
@@ -140,7 +141,7 @@ const initialState = {
   dismissedSimilarities: new Set<string>(),
   // Inline pending merges
   pendingFeedbackMerges: new Map<string, FeedbackPendingMerge>(),
-  pendingUseCaseMerges: new Map<string, UseCasePendingMerge>(),
+  pendingUserGoalMerges: new Map<string, UserGoalPendingMerge>(),
   pendingOutcomeMerges: new Map<string, OutcomePendingMerge>(),
   // Solution & source metadata
   selectedSolutionId: null,
@@ -227,13 +228,24 @@ export const useIntakeStore = create<IntakeState>((set, _get) => ({
       return { extractions };
     }),
 
+  acceptAllExtractions: () =>
+    set((state) => {
+      const extractions = new Map(state.extractions);
+      for (const [id, extraction] of extractions) {
+        if (extraction.status === 'pending') {
+          extractions.set(id, { ...extraction, status: 'accepted' });
+        }
+      }
+      return { extractions };
+    }),
+
   rejectExtraction: (id) =>
     set((state) => {
       const extractions = new Map(state.extractions);
       const highlights = new Map(state.highlights);
       // Also clean up any pending merges and similarity state
       const pendingFeedbackMerges = new Map(state.pendingFeedbackMerges);
-      const pendingUseCaseMerges = new Map(state.pendingUseCaseMerges);
+      const pendingUserGoalMerges = new Map(state.pendingUserGoalMerges);
       const pendingOutcomeMerges = new Map(state.pendingOutcomeMerges);
       const inlineSimilarityMatches = new Map(state.inlineSimilarityMatches);
       const dismissedSimilarities = new Set(state.dismissedSimilarities);
@@ -245,7 +257,7 @@ export const useIntakeStore = create<IntakeState>((set, _get) => ({
         }
       }
       pendingFeedbackMerges.delete(id);
-      pendingUseCaseMerges.delete(id);
+      pendingUserGoalMerges.delete(id);
       pendingOutcomeMerges.delete(id);
       inlineSimilarityMatches.delete(id);
       dismissedSimilarities.delete(id);
@@ -254,7 +266,7 @@ export const useIntakeStore = create<IntakeState>((set, _get) => ({
         extractions,
         highlights,
         pendingFeedbackMerges,
-        pendingUseCaseMerges,
+        pendingUserGoalMerges,
         pendingOutcomeMerges,
         inlineSimilarityMatches,
         dismissedSimilarities,
@@ -395,18 +407,18 @@ export const useIntakeStore = create<IntakeState>((set, _get) => ({
       return { pendingFeedbackMerges };
     }),
 
-  addPendingUseCaseMerge: (extractionId, merge) =>
+  addPendingUserGoalMerge: (extractionId, merge) =>
     set((state) => {
-      const pendingUseCaseMerges = new Map(state.pendingUseCaseMerges);
-      pendingUseCaseMerges.set(extractionId, merge);
-      return { pendingUseCaseMerges };
+      const pendingUserGoalMerges = new Map(state.pendingUserGoalMerges);
+      pendingUserGoalMerges.set(extractionId, merge);
+      return { pendingUserGoalMerges };
     }),
 
-  removePendingUseCaseMerge: (extractionId) =>
+  removePendingUserGoalMerge: (extractionId) =>
     set((state) => {
-      const pendingUseCaseMerges = new Map(state.pendingUseCaseMerges);
-      pendingUseCaseMerges.delete(extractionId);
-      return { pendingUseCaseMerges };
+      const pendingUserGoalMerges = new Map(state.pendingUserGoalMerges);
+      pendingUserGoalMerges.delete(extractionId);
+      return { pendingUserGoalMerges };
     }),
 
   addPendingOutcomeMerge: (extractionId, merge) =>
@@ -435,7 +447,7 @@ export const useIntakeStore = create<IntakeState>((set, _get) => ({
     checkingInlineSimilarity: new Set(),
     dismissedSimilarities: new Set(),
     pendingFeedbackMerges: new Map(),
-    pendingUseCaseMerges: new Map(),
+    pendingUserGoalMerges: new Map(),
     pendingOutcomeMerges: new Map(),
     selectedSolutionId: null,
     selectedSourceType: null,
@@ -453,7 +465,7 @@ export const useGroupedExtractions = (): Record<ExtractionType, Extraction[]> =>
   const extractions = useIntakeStore((state) => state.extractions);
   const groups: Record<ExtractionType, Extraction[]> = {
     personas: [],
-    useCases: [],
+    userGoals: [],
     feedback: [],
     outcomes: [],
     requirements: [],

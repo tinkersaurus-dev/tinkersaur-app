@@ -1,6 +1,6 @@
 /**
  * Persona Detail Page
- * Displays full persona information with linked use cases
+ * Displays full persona information with linked user goals
  */
 
 import { useState, useMemo } from 'react';
@@ -12,10 +12,10 @@ import { Button, Card, Modal, Tabs, Empty, Table, EditableSection, EditableField
 import type { TableColumn } from '@/shared/ui';
 import type { Feedback } from '@/entities/feedback';
 import type { QuoteWithSource } from '@/entities/quote';
-import type { UseCase } from '@/entities/use-case';
+import type { UserGoal } from '@/entities/user-goal';
 import type { LoaderFunctionArgs } from 'react-router';
 import { usePersonaQuery, useDeletePersona, useUpdatePersona } from '@/entities/persona';
-import { useUseCasesByTeamQuery, UseCaseCard } from '@/entities/use-case';
+import { useUserGoalsByTeamQuery, UserGoalCard } from '@/entities/user-goal';
 import { loadPersonaDetail } from './loader';
 import type { PersonaDetailLoaderData } from './loader';
 import { useFeedbacksPaginatedQuery } from '@/entities/feedback';
@@ -79,8 +79,8 @@ function PersonaDetailContent() {
   const deletePersona = useDeletePersona();
   const updatePersona = useUpdatePersona();
 
-  // Fetch use cases for linking
-  const { data: allUseCases = [] } = useUseCasesByTeamQuery(persona?.teamId);
+  // Fetch user goals for linking
+  const { data: allUserGoals = [] } = useUserGoalsByTeamQuery(persona?.teamId);
 
   // Basic info edit state
   const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
@@ -106,18 +106,18 @@ function PersonaDetailContent() {
     [feedbackData]
   );
 
-  // Get linked use case IDs from the persona
-  const linkedUseCaseIds = useMemo(() => new Set(persona?.useCaseIds ?? []), [persona?.useCaseIds]);
+  // Get linked user goal IDs from the persona
+  const linkedUserGoalIds = useMemo(() => new Set(persona?.userGoalIds ?? []), [persona?.userGoalIds]);
 
-  // Get linked use cases for displaying names
-  const linkedUseCases = useMemo(() => {
-    return allUseCases.filter((uc: UseCase) => linkedUseCaseIds.has(uc.id));
-  }, [allUseCases, linkedUseCaseIds]);
+  // Get linked user goals for displaying names
+  const linkedUserGoals = useMemo(() => {
+    return allUserGoals.filter((ug: UserGoal) => linkedUserGoalIds.has(ug.id));
+  }, [allUserGoals, linkedUserGoalIds]);
 
-  // Available use cases for linking (filter out already linked ones)
-  const availableUseCases = useMemo(() => {
-    return allUseCases.filter((uc: UseCase) => !linkedUseCaseIds.has(uc.id));
-  }, [allUseCases, linkedUseCaseIds]);
+  // Available user goals for linking (filter out already linked ones)
+  const availableUserGoals = useMemo(() => {
+    return allUserGoals.filter((ug: UserGoal) => !linkedUserGoalIds.has(ug.id));
+  }, [allUserGoals, linkedUserGoalIds]);
 
   // Get unique intake source IDs from feedback
   const intakeSourceIds = useMemo(() => {
@@ -294,22 +294,22 @@ function PersonaDetailContent() {
     setIsDeleteModalOpen(false);
   };
 
-  const handleLinkUseCase = async (useCaseId: string) => {
+  const handleLinkUserGoal = async (userGoalId: string) => {
     if (personaId && persona) {
-      const newUseCaseIds = [...(persona.useCaseIds ?? []), useCaseId];
+      const newUserGoalIds = [...(persona.userGoalIds ?? []), userGoalId];
       await updatePersona.mutateAsync({
         id: personaId,
-        updates: { useCaseIds: newUseCaseIds },
+        updates: { userGoalIds: newUserGoalIds },
       });
     }
   };
 
-  const handleUnlinkUseCase = async (useCaseId: string) => {
+  const handleUnlinkUserGoal = async (userGoalId: string) => {
     if (personaId && persona) {
-      const newUseCaseIds = (persona.useCaseIds ?? []).filter((id) => id !== useCaseId);
+      const newUserGoalIds = (persona.userGoalIds ?? []).filter((id) => id !== userGoalId);
       await updatePersona.mutateAsync({
         id: personaId,
-        updates: { useCaseIds: newUseCaseIds },
+        updates: { userGoalIds: newUserGoalIds },
       });
     }
   };
@@ -529,13 +529,13 @@ function PersonaDetailContent() {
             </Card>
           </div>
 
-          {/* Sidebar - Use Cases */}
+          {/* Sidebar - User Goals */}
           <div className="space-y-6">
             <Card shadow={false}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <FiLink className="text-[var(--primary)]" />
-                  <h3 className="text-md font-semibold text-[var(--text)]">Use Cases</h3>
+                  <h3 className="text-md font-semibold text-[var(--text)]">User Goals</h3>
                 </div>
                 <Button
                   variant="default"
@@ -546,21 +546,21 @@ function PersonaDetailContent() {
                 </Button>
               </div>
 
-              {linkedUseCases.length === 0 ? (
+              {linkedUserGoals.length === 0 ? (
                 <p className="text-[var(--text-muted)] text-xs">
-                  No use cases linked to this persona.
+                  No user goals linked to this persona.
                 </p>
               ) : (
                 <CardStack layout="grid" gap="sm" minCardWidth="300px">
-                  {linkedUseCases.map((useCase: UseCase) => (
-                    <UseCaseCard
-                      key={useCase.id}
-                      useCase={useCase}
+                  {linkedUserGoals.map((userGoal: UserGoal) => (
+                    <UserGoalCard
+                      key={userGoal.id}
+                      userGoal={userGoal}
                       action={
                         <Button
                           variant="text"
                           size="small"
-                          onClick={() => handleUnlinkUseCase(useCase.id)}
+                          onClick={() => handleUnlinkUserGoal(userGoal.id)}
                         >
                           Unlink
                         </Button>
@@ -586,33 +586,33 @@ function PersonaDetailContent() {
           Are you sure you want to delete <strong>{persona.name}</strong>?
         </p>
         <p className="text-[var(--text-muted)] text-sm mt-2">
-          This will also remove all links to use cases. This action cannot be undone.
+          This will also remove all links to user goals. This action cannot be undone.
         </p>
       </Modal>
 
-      {/* Link Use Case Modal */}
+      {/* Link User Goal Modal */}
       <Modal
-        title="Link Use Case"
+        title="Link User Goal"
         open={isLinkModalOpen}
         onCancel={() => setIsLinkModalOpen(false)}
         footer={null}
       >
-        {availableUseCases.length === 0 ? (
+        {availableUserGoals.length === 0 ? (
           <p className="text-[var(--text-muted)]">
-            No available use cases to link. All use cases are already linked.
+            No available user goals to link. All user goals are already linked.
           </p>
         ) : (
           <ul className="space-y-2 max-h-64 overflow-y-auto">
-            {availableUseCases.map((useCase: UseCase) => (
+            {availableUserGoals.map((userGoal: UserGoal) => (
               <li
-                key={useCase.id}
+                key={userGoal.id}
                 className="flex items-center justify-between p-3 rounded border border-[var(--border)] hover:bg-[var(--bg-secondary)]"
               >
                 <div>
-                  <p className="text-sm font-medium text-[var(--text)]">{useCase.name}</p>
-                  {useCase.description && (
+                  <p className="text-sm font-medium text-[var(--text)]">{userGoal.name}</p>
+                  {userGoal.description && (
                     <p className="text-xs text-[var(--text-muted)] truncate max-w-xs">
-                      {useCase.description}
+                      {userGoal.description}
                     </p>
                   )}
                 </div>
@@ -620,7 +620,7 @@ function PersonaDetailContent() {
                   variant="primary"
                   size="small"
                   onClick={() => {
-                    handleLinkUseCase(useCase.id);
+                    handleLinkUserGoal(userGoal.id);
                   }}
                 >
                   Link

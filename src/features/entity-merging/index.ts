@@ -10,13 +10,13 @@ export { SimilarPersonasPanel } from './ui/SimilarPersonasPanel';
 export { PersonaMergeModal } from './ui/persona/PersonaMergeModal';
 export { IntakePersonaMergeModal, type PendingPersonaMerge } from './ui/persona/IntakePersonaMergeModal';
 
-// Use Case Merging
-export { UseCaseMergeModal } from './ui/use-case/UseCaseMergeModal';
-export { IntakeUseCaseMergeModal, type PendingUseCaseMerge } from './ui/use-case/IntakeUseCaseMergeModal';
-
 // Feedback Merging
 export { FeedbackMergeModal } from './ui/feedback/FeedbackMergeModal';
 export { IntakeFeedbackMergeModal, type PendingFeedbackMerge } from './ui/feedback/IntakeFeedbackMergeModal';
+
+// User Goal Merging
+export { UserGoalMergeModal } from './ui/user-goal/UserGoalMergeModal';
+export { IntakeUserGoalMergeModal, type PendingUserGoalMerge } from './ui/user-goal/IntakeUserGoalMergeModal';
 
 // Hooks
 export { useUnmergeFeedback } from './api/hooks/useUnmergeFeedback';

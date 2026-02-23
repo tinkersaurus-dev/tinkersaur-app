@@ -2,7 +2,7 @@ import { FiX, FiGitMerge, FiMessageSquare, FiClipboard, FiTarget } from 'react-i
 import { HStack } from '@/shared/ui';
 import type { InlineSimilarityMatch } from '../../model/types';
 import type { SimilarFeedbackResult } from '@/entities/feedback';
-import type { SimilarUseCaseResult } from '@/entities/use-case';
+import type { SimilarUserGoalResult } from '@/entities/user-goal';
 import type { SimilarOutcomeResult } from '@/entities/outcome';
 
 interface SimilarEntityCardProps {
@@ -15,7 +15,7 @@ interface SimilarEntityCardProps {
 
 const typeIcons: Record<string, typeof FiMessageSquare> = {
   feedback: FiMessageSquare,
-  useCases: FiClipboard,
+  userGoals: FiClipboard,
   outcomes: FiTarget,
 };
 
@@ -42,12 +42,12 @@ export function SimilarEntityCard({
           </p>
         );
       }
-      case 'useCases': {
-        const r = match.result as SimilarUseCaseResult;
+      case 'userGoals': {
+        const r = match.result as SimilarUserGoalResult;
         return (
           <>
-            <h4 className="text-sm font-bold">Use Case: {r.useCase.name}</h4>
-            <p className="text-sm mt-1 line-clamp-2">{r.useCase.description}</p>
+            <h4 className="text-sm font-bold">User Goal: {r.userGoal.name}</h4>
+            <p className="text-sm mt-1 line-clamp-2">{r.userGoal.description}</p>
           </>
         );
       }

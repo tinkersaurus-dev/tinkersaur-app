@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { Feedback, FeedbackType } from '@/entities/feedback';
 import { emptyTypeCounts, getPainTotal, getOpportunityTotal, groupFeedbackByParent } from '@/entities/feedback';
 import type { Persona } from '@/entities/persona';
-import type { UseCase } from '@/entities/use-case';
+import type { UserGoal } from '@/entities/user-goal';
 import type { PainRadarRow } from './types';
 
 interface FilteredFeedbackResult {
@@ -10,8 +10,8 @@ interface FilteredFeedbackResult {
   filteredParents: Feedback[];
   /** Radar data for personas */
   personaRadarData: PainRadarRow[];
-  /** Radar data for use cases */
-  useCaseRadarData: PainRadarRow[];
+  /** Radar data for user goals */
+  userGoalRadarData: PainRadarRow[];
   /** Max count across all radar rows (for normalizing bar widths) */
   maxRadarCount: number;
 }
@@ -28,13 +28,13 @@ interface FilteredFeedbackResult {
 export function useFilteredFeedback(
   allFeedback: Feedback[],
   personas: Persona[],
-  useCases: UseCase[],
+  userGoals: UserGoal[],
   selectedTag: string | null,
 ): FilteredFeedbackResult {
   return useMemo(() => {
     // Build lookup maps
     const personaMap = new Map(personas.map((p) => [p.id, p]));
-    const useCaseMap = new Map(useCases.map((uc) => [uc.id, uc]));
+    const userGoalMap = new Map(userGoals.map((ug) => [ug.id, ug]));
 
     const { parents: parentFeedback, unparented: unparentedFeedback, childrenByParentId } = groupFeedbackByParent(allFeedback);
 
@@ -100,50 +100,50 @@ export function useFilteredFeedback(
       (a, b) => (b.painTotal + b.opportunityTotal) - (a.painTotal + a.opportunityTotal),
     );
 
-    // Build use case radar data
-    const useCaseCounts = new Map<string, Record<FeedbackType, number>>();
+    // Build user goal radar data
+    const userGoalCounts = new Map<string, Record<FeedbackType, number>>();
 
     for (const fb of radarFeedback) {
-      for (const useCaseId of fb.useCaseIds) {
-        if (!useCaseCounts.has(useCaseId)) {
-          useCaseCounts.set(useCaseId, emptyTypeCounts());
+      for (const userGoalId of fb.userGoalIds) {
+        if (!userGoalCounts.has(userGoalId)) {
+          userGoalCounts.set(userGoalId, emptyTypeCounts());
         }
-        useCaseCounts.get(useCaseId)![fb.type] += 1;
+        userGoalCounts.get(userGoalId)![fb.type] += 1;
       }
     }
 
-    const useCaseRadarData: PainRadarRow[] = [];
-    for (const [useCaseId, typeCounts] of useCaseCounts) {
-      const useCase = useCaseMap.get(useCaseId);
-      if (!useCase) continue;
+    const userGoalRadarData: PainRadarRow[] = [];
+    for (const [userGoalId, typeCounts] of userGoalCounts) {
+      const userGoal = userGoalMap.get(userGoalId);
+      if (!userGoal) continue;
 
       const painTotal = getPainTotal(typeCounts);
       const opportunityTotal = getOpportunityTotal(typeCounts);
 
-      useCaseRadarData.push({
-        id: useCaseId,
-        name: useCase.name,
+      userGoalRadarData.push({
+        id: userGoalId,
+        name: userGoal.name,
         typeCounts,
         painTotal,
         opportunityTotal,
       });
     }
 
-    useCaseRadarData.sort(
+    userGoalRadarData.sort(
       (a, b) => (b.painTotal + b.opportunityTotal) - (a.painTotal + a.opportunityTotal),
     );
 
     // Compute max count across all rows (for normalizing bar widths)
     let maxRadarCount = 1;
-    for (const row of [...personaRadarData, ...useCaseRadarData]) {
+    for (const row of [...personaRadarData, ...userGoalRadarData]) {
       maxRadarCount = Math.max(maxRadarCount, row.painTotal, row.opportunityTotal);
     }
 
     return {
       filteredParents,
       personaRadarData,
-      useCaseRadarData,
+      userGoalRadarData,
       maxRadarCount,
     };
-  }, [allFeedback, personas, useCases, selectedTag]);
+  }, [allFeedback, personas, userGoals, selectedTag]);
 }

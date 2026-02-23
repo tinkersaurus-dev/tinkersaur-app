@@ -22,14 +22,14 @@ export function DashboardBanner({
   return (
     <div className="flex items-center gap-3 px-4 py-3 rounded-sm border border-amber-500/20 bg-amber-500/5 border-l-4 border-l-amber-500">
       <FiAlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-      <span className="flex-1 text-xs text-[var(--text)] leading-snug">
+      <span className="flex-1 text-base text-[var(--text)] leading-snug">
         {before}
         <strong>{count}</strong>
         {after}
       </span>
       <Link
         to={actionLink}
-        className="text-xs font-medium text-amber-500 hover:text-amber-400 whitespace-nowrap flex-shrink-0 transition-colors"
+        className="text-base font-medium text-amber-500 hover:text-amber-400 whitespace-nowrap flex-shrink-0 transition-colors"
       >
         Review now &rarr;
       </Link>

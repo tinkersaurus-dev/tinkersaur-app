@@ -21,11 +21,11 @@ export function AttentionCard({
   actionLink,
 }: AttentionCardProps) {
   return (
-    <Card contentClassName="p-4 flex flex-col h-full">
+    <Card shadow={false} contentClassName="p-4 flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         <span className="flex-shrink-0">{icon}</span>
-        <span className="text-xs font-semibold text-[var(--text)] flex-1">
+        <span className="text-sm font-semibold text-[var(--text)] flex-1">
           {title}
         </span>
         <Tag color="orange" className="flex-shrink-0">
@@ -38,15 +38,15 @@ export function AttentionCard({
         {items.map((item) => (
           <div
             key={item.id}
-            className="px-2.5 py-2 rounded-sm bg-amber-500/[0.03] border-l-2 border-l-amber-500/25 text-xs"
+            className="px-2.5 py-2 rounded-sm bg-amber-500/[0.03] border-l-2 border-l-amber-500/25 text-sm"
           >
             <div className="text-[var(--text-muted)] truncate leading-snug">
               {item.title}
             </div>
             {(item.subtitle || item.tags) && (
-              <div className="flex items-center gap-1.5 mt-1 text-[10px] text-[var(--text-disabled)]">
+              <div className="flex items-center gap-1.5 mt-1 text-sm text-[var(--text-disabled)]">
                 {item.tags?.map((tag) => (
-                  <Tag key={tag.label} color={tag.color} className="text-[9px]">
+                  <Tag key={tag.label} color={tag.color} className="text-xs">
                     {tag.label}
                   </Tag>
                 ))}

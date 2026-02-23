@@ -12,6 +12,8 @@ export const ExtractedOutcomeSchema = z.object({
   description: z.string(), // What outcome is desired
   target: z.string(), // The explicit metric target
   quotes: z.array(z.string()), // Supporting quotes from transcript
+  linkedPersonaIndexes: z.array(z.number()).default([]), // Indexes into personas array
+  linkedUserGoalIndexes: z.array(z.number()).default([]), // Indexes into userGoals array
 });
 
 export type ExtractedOutcome = z.infer<typeof ExtractedOutcomeSchema>;
@@ -25,6 +27,8 @@ export const OutcomeSchema = z.object({
   description: z.string().max(2000),
   target: z.string().max(500),
   quotes: z.array(QuoteWithSourceSchema).default([]),
+  personaIds: z.array(z.string().uuid()).default([]),
+  userGoalIds: z.array(z.string().uuid()).default([]),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -36,10 +40,14 @@ export type Outcome = z.infer<typeof OutcomeSchema>;
 export const CreateOutcomeSchema = OutcomeSchema.omit({
   id: true,
   quotes: true,
+  personaIds: true,
+  userGoalIds: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
   quotes: z.array(z.string()).optional(),
+  personaIds: z.array(z.string().uuid()).optional(),
+  userGoalIds: z.array(z.string().uuid()).optional(),
 });
 
 export type CreateOutcomeDto = z.infer<typeof CreateOutcomeSchema>;

@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { FiEdit2, FiTrash2, FiMessageCircle, FiArchive, FiAlertTriangle, FiArrowLeft, FiPlus } from 'react-icons/fi';
-import { useParams, useLoaderData, useNavigate } from 'react-router';
+import { useParams, useLoaderData, useNavigate, Link } from 'react-router';
 import { useSolutionStore } from '@/entities/solution';
 import { HydrationBoundary } from '@tanstack/react-query';
 import { PageHeader, PageContent } from '@/shared/ui';
@@ -33,6 +33,7 @@ import { SpecificationDiffView } from '@/entities/use-case-version';
 import { DesignStudioContent } from '@/widgets/studio-content';
 import { useDesignWorksForContext } from '@/features/diagram-management';
 import { useUseCaseContent } from '@/entities/use-case';
+import { useUserGoalQuery } from '@/entities/user-goal';
 import { useUseCaseVersionStore } from '@/entities/use-case-version/store/useUseCaseVersionStore';
 import { formatVersionDisplay } from '@/entities/use-case-version';
 
@@ -66,6 +67,7 @@ function UseCaseDetailContent() {
   // TanStack Query hooks
   const { data: solution } = useSolutionQuery(solutionId);
   const { data: useCase } = useUseCaseQuery(useCaseId);
+  const { data: sourceUserGoal } = useUserGoalQuery(useCase?.sourceUserGoalId ?? undefined);
   const { data: requirements = [], isLoading } = useRequirementsQuery(useCaseId);
   const createRequirement = useCreateRequirement();
   const updateRequirement = useUpdateRequirement();
@@ -306,6 +308,17 @@ function UseCaseDetailContent() {
       />
 
       <PageContent>
+        {useCase.sourceUserGoalId && sourceUserGoal && (
+          <div className="mb-4">
+            <Tag color="blue">
+              Promoted from:{' '}
+              <Link to={`/discovery/organize/user-goals/${useCase.sourceUserGoalId}`}>
+                {sourceUserGoal.name}
+              </Link>
+            </Tag>
+          </div>
+        )}
+
         {/* Top-level tabs: Overview and Definition */}
         <Tabs
           type="line"

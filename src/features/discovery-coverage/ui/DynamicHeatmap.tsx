@@ -19,7 +19,7 @@ interface TooltipData {
   y: number;
 }
 
-const LINKABLE_DIMENSIONS: DimensionKey[] = ['personas', 'useCases', 'tags'];
+const LINKABLE_DIMENSIONS: DimensionKey[] = ['personas', 'userGoals', 'tags'];
 
 interface DynamicHeatmapProps {
   data: CrossTabResult;

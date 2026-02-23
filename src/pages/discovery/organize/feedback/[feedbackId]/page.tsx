@@ -13,14 +13,14 @@ import type { TableColumn } from '@/shared/ui';
 import { FEEDBACK_TYPE_CONFIG } from '@/entities/feedback';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 import type { Persona } from '@/entities/persona';
-import type { UseCase } from '@/entities/use-case';
+import type { UserGoal } from '@/entities/user-goal';
 import { useFeedbackWithChildrenQuery, useDeleteFeedback, useUpdateFeedback } from '@/entities/feedback';
 import { useIntakeSourceDetailsQuery } from '@/entities/intake-source';
 import type { LoaderFunctionArgs } from 'react-router';
 import { loadFeedbackDetail } from './loader';
 import type { FeedbackDetailLoaderData } from './loader';
 import { usePersonasQuery, PersonaCard } from '@/entities/persona';
-import { useUseCasesByTeamQuery, UseCaseCard } from '@/entities/use-case';
+import { useUserGoalsByTeamQuery, UserGoalCard } from '@/entities/user-goal';
 
 // Quote row type for the quotes table
 interface QuoteRow {
@@ -58,9 +58,9 @@ function FeedbackDetailContent() {
   const deleteFeedback = useDeleteFeedback();
   const updateFeedback = useUpdateFeedback();
 
-  // Fetch all personas and use cases for the team
+  // Fetch all personas and user goals for the team
   const { data: allPersonas = [] } = usePersonasQuery(feedback?.teamId);
-  const { data: allUseCases = [] } = useUseCasesByTeamQuery(feedback?.teamId);
+  const { data: allUserGoals = [] } = useUserGoalsByTeamQuery(feedback?.teamId);
 
   // Basic info edit state
   const [isBasicInfoEditing, setIsBasicInfoEditing] = useState(false);
@@ -76,22 +76,22 @@ function FeedbackDetailContent() {
     return new Set(ids);
   }, [feedback?.personaIds, feedback?.children]);
 
-  const linkedUseCaseIds = useMemo(() => {
-    const ids = [...(feedback?.useCaseIds ?? [])];
+  const linkedUserGoalIds = useMemo(() => {
+    const ids = [...(feedback?.userGoalIds ?? [])];
     feedback?.children?.forEach((child) => {
-      child.useCaseIds.forEach((id) => ids.push(id));
+      child.userGoalIds.forEach((id) => ids.push(id));
     });
     return new Set(ids);
-  }, [feedback?.useCaseIds, feedback?.children]);
+  }, [feedback?.userGoalIds, feedback?.children]);
 
-  // Get linked personas and use cases for displaying
+  // Get linked personas and user goals for displaying
   const linkedPersonas = useMemo(() => {
     return allPersonas.filter((p: Persona) => linkedPersonaIds.has(p.id));
   }, [allPersonas, linkedPersonaIds]);
 
-  const linkedUseCases = useMemo(() => {
-    return allUseCases.filter((uc: UseCase) => linkedUseCaseIds.has(uc.id));
-  }, [allUseCases, linkedUseCaseIds]);
+  const linkedUserGoals = useMemo(() => {
+    return allUserGoals.filter((ug: UserGoal) => linkedUserGoalIds.has(ug.id));
+  }, [allUserGoals, linkedUserGoalIds]);
 
   // Get intake source IDs from parent and children for batch loading
   const allIntakeSourceIds = useMemo(() => {
@@ -445,23 +445,23 @@ function FeedbackDetailContent() {
               )}
             </Card>
 
-            {/* Linked Use Cases */}
+            {/* Linked User Goals */}
             <Card shadow={false}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <FiLink className="text-[var(--primary)]" />
-                  <h3 className="text-md font-semibold text-[var(--text)]">Use Cases</h3>
+                  <h3 className="text-md font-semibold text-[var(--text)]">User Goals</h3>
                 </div>
               </div>
 
-              {linkedUseCases.length === 0 ? (
+              {linkedUserGoals.length === 0 ? (
                 <p className="text-[var(--text-muted)] text-xs">
-                  No use cases linked to this feedback.
+                  No user goals linked to this feedback.
                 </p>
               ) : (
                 <CardStack layout="grid" gap="sm" minCardWidth="200px">
-                  {linkedUseCases.map((useCase: UseCase) => (
-                    <UseCaseCard key={useCase.id} useCase={useCase} />
+                  {linkedUserGoals.map((userGoal: UserGoal) => (
+                    <UserGoalCard key={userGoal.id} userGoal={userGoal} />
                   ))}
                 </CardStack>
               )}
@@ -482,7 +482,7 @@ function FeedbackDetailContent() {
           Are you sure you want to delete this feedback?
         </p>
         <p className="text-[var(--text-muted)] text-sm mt-2">
-          This will also remove all links to personas and use cases. This action cannot be undone.
+          This will also remove all links to personas and user goals. This action cannot be undone.
         </p>
       </Modal>
     </>

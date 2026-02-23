@@ -10,7 +10,7 @@ const EXTRACTION_TYPES: Array<{
   icon: React.ComponentType<{ className?: string }>;
 }> = [
   { key: 'personas', label: 'Personas', icon: FiUsers },
-  { key: 'useCases', label: 'Use Cases', icon: FiClipboard },
+  { key: 'userGoals', label: 'User Goals', icon: FiClipboard },
   { key: 'feedback', label: 'Feedback', icon: FiMessageSquare },
   { key: 'outcomes', label: 'Outcomes', icon: FiTarget },
   { key: 'requirements', label: 'Requirements', icon: FiFileText },

@@ -12,7 +12,7 @@ import { PageHeader, PageContent, Button } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import { queryKeys } from '@/shared/lib/query';
 import { usePersonasQuery } from '@/entities/persona';
-import { useUseCasesByTeamQuery } from '@/entities/use-case';
+import { useUserGoalsByTeamQuery } from '@/entities/user-goal';
 import { useFeedbacksQuery } from '@/entities/feedback';
 import { useOutcomesQuery } from '@/entities/outcome';
 import { useDashboardData } from './useDashboardData';
@@ -35,7 +35,7 @@ export default function OrganizePage() {
   useEffect(() => {
     if (teamId) {
       queryClient.invalidateQueries({ queryKey: queryKeys.personas.list(teamId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.useCases.listByTeam(teamId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.userGoals.listByTeam(teamId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.list(teamId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.outcomes.list(teamId) });
     }
@@ -43,17 +43,17 @@ export default function OrganizePage() {
 
   const { data: personas = [], isLoading: personasLoading } =
     usePersonasQuery(teamId);
-  const { data: useCases = [], isLoading: useCasesLoading } =
-    useUseCasesByTeamQuery(teamId);
+  const { data: userGoals = [], isLoading: userGoalsLoading } =
+    useUserGoalsByTeamQuery(teamId);
   const { data: feedbacks = [], isLoading: feedbacksLoading } =
     useFeedbacksQuery(teamId);
   const { data: outcomes = [], isLoading: outcomesLoading } =
     useOutcomesQuery(teamId);
 
   const isLoading =
-    personasLoading || useCasesLoading || feedbacksLoading || outcomesLoading;
+    personasLoading || userGoalsLoading || feedbacksLoading || outcomesLoading;
 
-  const dashboard = useDashboardData({ personas, useCases, feedbacks, outcomes });
+  const dashboard = useDashboardData({ personas, userGoals, feedbacks, outcomes });
 
   return (
     <div className="h-full flex flex-col">

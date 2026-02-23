@@ -91,7 +91,7 @@ export const MODULE_NAVIGATION: Record<ModuleType, NavSection[]> = {
       path: '/discovery/organize',
       children: [
         { key: 'personas', label: 'Personas', path: '/discovery/organize/personas', icon: <FiUsers /> },
-        { key: 'use-cases', label: 'Use Cases', path: '/discovery/organize/use-cases', icon: <FiTarget /> },
+        { key: 'user-goals', label: 'User Goals', path: '/discovery/organize/user-goals', icon: <FiTarget /> },
         { key: 'feedback', label: 'Feedback', path: '/discovery/organize/feedback', icon: <FiMessageSquare /> },
         { key: 'outcomes', label: 'Outcomes', path: '/discovery/organize/outcomes', icon: <FiTrendingUp /> },
       ],

@@ -6,17 +6,17 @@ import type { SelectOption, SelectOptionGroup } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import { useFeedbacksQuery } from '@/entities/feedback';
 import { usePersonasQuery } from '@/entities/persona';
-import { useUseCasesByTeamQuery } from '@/entities/use-case';
+import { useUserGoalsByTeamQuery } from '@/entities/user-goal';
 import { useIntakeSourceDetailsQuery } from '@/entities/intake-source';
 import { useCrossTabulation } from '../lib/useCrossTabulation';
 import type { DimensionKey, SortDirection } from '../lib/useCrossTabulation';
-import { useUseCaseEvidenceRows } from '../lib/useUseCaseEvidenceRows';
+import { useUserGoalEvidenceRows } from '../lib/useUserGoalEvidenceRows';
 import { DynamicHeatmap } from './DynamicHeatmap';
-import { UseCaseEvidenceTable } from './UseCaseEvidenceTable';
+import { UserGoalEvidenceTable } from './UserGoalEvidenceTable';
 
 const DIMENSION_LABELS: Record<DimensionKey, string> = {
   personas: 'Personas',
-  useCases: 'Use Cases',
+  userGoals: 'User Goals',
   sourceTypes: 'Source Types',
   tags: 'Tags',
   days: 'Days',
@@ -31,7 +31,7 @@ const BASE_DIMENSION_OPTIONS: (SelectOption | SelectOptionGroup)[] = [
     label: 'Entities',
     options: [
       { value: 'personas', label: 'Personas' },
-      { value: 'useCases', label: 'Use Cases' },
+      { value: 'userGoals', label: 'User Goals' },
       { value: 'sourceTypes', label: 'Source Types' },
       { value: 'tags', label: 'Tags' },
     ],
@@ -72,7 +72,7 @@ export function DiscoveryCoveragePage() {
   // Data fetching
   const { data: personas = [], isLoading: personasLoading } = usePersonasQuery(teamId);
   const { data: allFeedback = [], isLoading: feedbackLoading } = useFeedbacksQuery(teamId);
-  const { data: useCases = [], isLoading: useCasesLoading } = useUseCasesByTeamQuery(teamId);
+  const { data: userGoals = [], isLoading: userGoalsLoading } = useUserGoalsByTeamQuery(teamId);
 
   // Intake source details for source type resolution and date mapping
   const intakeSourceIds = useMemo(() => {
@@ -115,14 +115,14 @@ export function DiscoveryCoveragePage() {
     yDimension,
     allFeedback,
     personas,
-    useCases,
+    userGoals,
     intakeSourceMap,
     intakeSourceDateMap,
     xSort,
     ySort,
   );
 
-  const evidenceRows = useUseCaseEvidenceRows(useCases, allFeedback);
+  const evidenceRows = useUserGoalEvidenceRows(userGoals, allFeedback);
 
   const handleLabelClick = useCallback(
     (dimension: DimensionKey, key: string) => {
@@ -130,8 +130,8 @@ export function DiscoveryCoveragePage() {
         case 'personas':
           navigate(`/discovery/organize/personas/${key}`);
           break;
-        case 'useCases':
-          navigate(`/discovery/organize/use-cases/${key}`);
+        case 'userGoals':
+          navigate(`/discovery/organize/user-goals/${key}`);
           break;
         case 'tags':
           navigate(`/discovery/analyze/signal-strength?tag=${encodeURIComponent(key)}`);
@@ -141,7 +141,7 @@ export function DiscoveryCoveragePage() {
     [navigate],
   );
 
-  const isLoading = personasLoading || feedbackLoading || useCasesLoading;
+  const isLoading = personasLoading || feedbackLoading || userGoalsLoading;
 
   // Truncation notes
   const truncationNotes: string[] = [];
@@ -233,12 +233,12 @@ export function DiscoveryCoveragePage() {
               </Card>
             </section>
 
-            {/* Section 2: Use Case Evidence Coverage */}
+            {/* Section 2: User Goal Evidence Coverage */}
             <section>
               <h2 className="text-[11px] font-semibold text-[var(--text)] mb-4">
-                Use Case Evidence Coverage
+                User Goal Evidence Coverage
               </h2>
-              <UseCaseEvidenceTable rows={evidenceRows} loading={false} />
+              <UserGoalEvidenceTable rows={evidenceRows} loading={false} />
             </section>
           </div>
         )}

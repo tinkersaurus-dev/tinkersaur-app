@@ -30,10 +30,18 @@ export const queryKeys = {
     similar: <T extends object | null>(request: T) =>
       [...queryKeys.personas.all, 'similar', request] as const,
   },
+  userGoals: {
+    all: ['userGoals'] as const,
+    listByTeam: (teamId: string) =>
+      [...queryKeys.userGoals.all, 'list', 'team', teamId] as const,
+    listPaginated: <T extends object>(params: T) =>
+      [...queryKeys.userGoals.all, 'list', 'paginated', params] as const,
+    detail: (id: string) => [...queryKeys.userGoals.all, 'detail', id] as const,
+  },
   useCases: {
     all: ['useCases'] as const,
-    listByTeam: (teamId: string, unassignedOnly = false) =>
-      [...queryKeys.useCases.all, 'list', 'team', teamId, unassignedOnly] as const,
+    listByTeam: (teamId: string) =>
+      [...queryKeys.useCases.all, 'list', 'team', teamId] as const,
     listBySolution: (solutionId: string) =>
       [...queryKeys.useCases.all, 'list', 'solution', solutionId] as const,
     listPaginated: <T extends object>(params: T) =>

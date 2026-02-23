@@ -1,42 +1,41 @@
 import { useState, useCallback } from 'react';
 import type { ExtractedPersona } from '@/entities/intake-result';
-import type { ExtractedUseCase } from '@/entities/intake-result';
+import type { ExtractedUserGoal } from '@/entities/intake-result';
 import type { ExtractedFeedback } from '@/entities/feedback';
 import type { ExtractedOutcome } from '@/entities/outcome';
 import type { ExtractedRequirement } from '@/entities/requirement';
 import type { SourceTypeKey } from '@/entities/source-type';
 import { metadataToIntakeSource, intakeSourceApi } from '@/entities/intake-source';
 import { personaApi, type CreatePersonaDto } from '@/entities/persona';
-import { useCaseApi, type CreateUseCaseDto } from '@/entities/use-case';
+import { userGoalApi, type CreateUserGoalDto } from '@/entities/user-goal';
 import { feedbackApi, type CreateFeedbackDto } from '@/entities/feedback';
 import { outcomeApi, type CreateOutcomeDto } from '@/entities/outcome';
 import { requirementApi, type CreateRequirementDto } from '@/entities/requirement';
 import type {
   PendingMerge,
-  PendingUseCaseMerge,
+  PendingUserGoalMerge,
   PendingFeedbackMerge,
   PendingOutcomeMerge,
 } from '../model/types';
 
 interface SaveIntakeResultParams {
   personas: ExtractedPersona[];
-  useCases: ExtractedUseCase[];
+  userGoals: ExtractedUserGoal[];
   feedback: ExtractedFeedback[];
   outcomes: ExtractedOutcome[];
   requirements?: ExtractedRequirement[];
   personaIndexMap: Map<number, number>;
-  useCaseIndexMap: Map<number, number>;
+  userGoalIndexMap: Map<number, number>;
   feedbackIndexMap: Map<number, number>;
   outcomeIndexMap: Map<number, number>;
   requirementIndexMap?: Map<number, number>;
   teamId: string;
   sourceType: SourceTypeKey;
   metadata: Record<string, string>;
-  useCaseSolutionIds: Map<number, string | null>;
   feedbackSolutionIds: Map<number, string | null>;
   outcomeSolutionIds: Map<number, string | null>;
   pendingMerges: PendingMerge[];
-  pendingUseCaseMerges: PendingUseCaseMerge[];
+  pendingUserGoalMerges: PendingUserGoalMerge[];
   pendingFeedbackMerges: PendingFeedbackMerge[];
   pendingOutcomeMerges: PendingOutcomeMerge[];
 }
@@ -54,23 +53,22 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
   const saveIntakeResult = useCallback(
     async ({
       personas,
-      useCases,
+      userGoals,
       feedback,
       outcomes,
       requirements,
       personaIndexMap,
-      useCaseIndexMap,
+      userGoalIndexMap,
       feedbackIndexMap,
       outcomeIndexMap,
       requirementIndexMap: _requirementIndexMap,
       teamId,
       sourceType,
       metadata,
-      useCaseSolutionIds,
       feedbackSolutionIds,
       outcomeSolutionIds,
       pendingMerges,
-      pendingUseCaseMerges,
+      pendingUserGoalMerges,
       pendingFeedbackMerges,
       pendingOutcomeMerges,
     }: SaveIntakeResultParams): Promise<boolean> => {
@@ -84,7 +82,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
 
         // Step 0.5: Execute pending persona merges (merges from intake flow that were deferred until save)
         // This merges intake data INTO the existing persona (target), adding this intake source
-        // Build map from original intake persona index → merged persona ID for linking use cases/feedback
+        // Build map from original intake persona index → merged persona ID for linking user goals/feedback
         const mergedPersonaIdMap = new Map<number, string>();
         for (const pendingMerge of pendingMerges) {
           const mergedPersona = await personaApi.merge({
@@ -98,20 +96,20 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           mergedPersonaIdMap.set(pendingMerge.intakePersonaIndex, mergedPersona.id);
         }
 
-        // Step 0.75: Execute pending use case merges (merges from intake flow that were deferred until save)
-        // This merges existing use cases with intake data, adding this intake source to the merged use case
-        // Build map from original intake use case index → merged use case ID for linking feedback
-        const mergedUseCaseIdMap = new Map<number, string>();
-        for (const pendingMerge of pendingUseCaseMerges) {
-          const mergedUseCase = await useCaseApi.merge({
+        // Step 0.75: Execute pending user goal merges (merges from intake flow that were deferred until save)
+        // This merges existing user goals with intake data, adding this intake source to the merged user goal
+        // Build map from original intake user goal index → merged user goal ID for linking feedback
+        const mergedUserGoalIdMap = new Map<number, string>();
+        for (const pendingMerge of pendingUserGoalMerges) {
+          const mergedUserGoal = await userGoalApi.merge({
             teamId,
-            targetUseCaseId: pendingMerge.targetUseCaseId,
-            sourceUseCaseIds: pendingMerge.sourceUseCaseIds,
-            mergedUseCase: pendingMerge.mergedUseCase,
+            targetUserGoalId: pendingMerge.targetUserGoalId,
+            sourceUserGoalIds: pendingMerge.sourceUserGoalIds,
+            mergedUserGoal: pendingMerge.mergedUserGoal,
             additionalIntakeSourceIds: [intakeSource.id],
             quotes: pendingMerge.quotes,
           });
-          mergedUseCaseIdMap.set(pendingMerge.intakeUseCaseIndex, mergedUseCase.id);
+          mergedUserGoalIdMap.set(pendingMerge.intakeUserGoalIndex, mergedUserGoal.id);
         }
 
         // Step 1: Create all personas and build ID map
@@ -151,58 +149,52 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           return personaIdMap.get(filteredPersonaIndex) ?? null;
         };
 
-        // Step 2: Create all use cases with linked persona IDs
+        // Step 2: Create all user goals with linked persona IDs
         // Build reverse map: filtered index -> original index
-        const useCaseFilteredToOriginal = new Map<number, number>();
-        for (const [original, filtered] of useCaseIndexMap.entries()) {
-          useCaseFilteredToOriginal.set(filtered, original);
+        const userGoalFilteredToOriginal = new Map<number, number>();
+        for (const [original, filtered] of userGoalIndexMap.entries()) {
+          userGoalFilteredToOriginal.set(filtered, original);
         }
 
-        const createdUseCases = await Promise.all(
-          useCases.map((useCase, filteredIndex) => {
-            const originalIndex = useCaseFilteredToOriginal.get(filteredIndex);
-            const solutionId = originalIndex !== undefined
-              ? useCaseSolutionIds.get(originalIndex) ?? null
-              : null;
-
+        const createdUserGoals = await Promise.all(
+          userGoals.map((userGoal) => {
             // Resolve linked persona IDs
-            const personaIds = useCase.linkedPersonaIndexes
+            const personaIds = userGoal.linkedPersonaIndexes
               .map(resolvePersonaId)
               .filter((id): id is string => id !== null);
 
-            const dto: CreateUseCaseDto = {
+            const dto: CreateUserGoalDto = {
               teamId,
               intakeSourceId: intakeSource.id,
-              name: useCase.name,
-              description: useCase.description,
-              solutionId: solutionId ?? undefined,
-              quotes: useCase.quotes,
+              name: userGoal.name,
+              description: userGoal.description,
+              quotes: userGoal.quotes,
               personaIds: personaIds.length > 0 ? personaIds : undefined,
             };
-            return useCaseApi.create(dto);
+            return userGoalApi.create(dto);
           })
         );
 
-        // Map from filtered index to created use case ID
-        const useCaseIdMap = new Map<number, string>();
-        createdUseCases.forEach((useCase, filteredIndex) => {
-          useCaseIdMap.set(filteredIndex, useCase.id);
+        // Map from filtered index to created user goal ID
+        const userGoalIdMap = new Map<number, string>();
+        createdUserGoals.forEach((userGoal, filteredIndex) => {
+          userGoalIdMap.set(filteredIndex, userGoal.id);
         });
 
-        // Helper to resolve use case ID from original index
-        const resolveUseCaseId = (originalUseCaseIndex: number): string | null => {
-          // First check if this use case was merged
-          const mergedUseCaseId = mergedUseCaseIdMap.get(originalUseCaseIndex);
-          if (mergedUseCaseId) return mergedUseCaseId;
+        // Helper to resolve user goal ID from original index
+        const resolveUserGoalId = (originalUserGoalIndex: number): string | null => {
+          // First check if this user goal was merged
+          const mergedUserGoalId = mergedUserGoalIdMap.get(originalUserGoalIndex);
+          if (mergedUserGoalId) return mergedUserGoalId;
 
-          // Otherwise, check created use cases
-          const filteredUseCaseIndex = useCaseIndexMap.get(originalUseCaseIndex);
-          if (filteredUseCaseIndex === undefined) return null; // Use case was deleted
+          // Otherwise, check created user goals
+          const filteredUserGoalIndex = userGoalIndexMap.get(originalUserGoalIndex);
+          if (filteredUserGoalIndex === undefined) return null; // User goal was deleted
 
-          return useCaseIdMap.get(filteredUseCaseIndex) ?? null;
+          return userGoalIdMap.get(filteredUserGoalIndex) ?? null;
         };
 
-        // Step 3: Create all feedbacks with linked persona and use case IDs
+        // Step 3: Create all feedbacks with linked persona and user goal IDs
         // Build reverse map: filtered index -> original index
         const feedbackFilteredToOriginal = new Map<number, number>();
         for (const [original, filtered] of feedbackIndexMap.entries()) {
@@ -221,9 +213,9 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               .map(resolvePersonaId)
               .filter((id): id is string => id !== null);
 
-            // Resolve linked use case IDs
-            const useCaseIds = fb.linkedUseCaseIndexes
-              .map(resolveUseCaseId)
+            // Resolve linked user goal IDs
+            const userGoalIds = fb.linkedUserGoalIndexes
+              .map(resolveUserGoalId)
               .filter((id): id is string => id !== null);
 
             const dto: CreateFeedbackDto = {
@@ -234,7 +226,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               content: fb.content,
               quotes: fb.quotes,
               personaIds: personaIds.length > 0 ? personaIds : undefined,
-              useCaseIds: useCaseIds.length > 0 ? useCaseIds : undefined,
+              userGoalIds: userGoalIds.length > 0 ? userGoalIds : undefined,
               tags: fb.tags && fb.tags.length > 0 ? fb.tags : undefined,
             };
             return feedbackApi.create(dto);
@@ -257,9 +249,9 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
             .map(resolvePersonaId)
             .filter((id): id is string => id !== null);
 
-          // Resolve linked use case IDs
-          const useCaseIds = fb.linkedUseCaseIndexes
-            .map(resolveUseCaseId)
+          // Resolve linked user goal IDs
+          const userGoalIds = fb.linkedUserGoalIndexes
+            .map(resolveUserGoalId)
             .filter((id): id is string => id !== null);
 
           // Create the feedback with linked IDs
@@ -271,7 +263,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
             content: fb.content,
             quotes: fb.quotes,
             personaIds: personaIds.length > 0 ? personaIds : undefined,
-            useCaseIds: useCaseIds.length > 0 ? useCaseIds : undefined,
+            userGoalIds: userGoalIds.length > 0 ? userGoalIds : undefined,
             tags: fb.tags && fb.tags.length > 0 ? fb.tags : undefined,
           });
 
@@ -283,7 +275,7 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           });
         }
 
-        // Step 5: Create all outcomes
+        // Step 5: Create all outcomes with linked persona and user goal IDs
         // Build reverse map: filtered index -> original index
         const outcomeFilteredToOriginal = new Map<number, number>();
         for (const [original, filtered] of outcomeIndexMap.entries()) {
@@ -297,6 +289,16 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               ? outcomeSolutionIds.get(originalIndex) ?? null
               : null;
 
+            // Resolve linked persona IDs
+            const personaIds = outcome.linkedPersonaIndexes
+              .map(resolvePersonaId)
+              .filter((id): id is string => id !== null);
+
+            // Resolve linked user goal IDs
+            const userGoalIds = outcome.linkedUserGoalIndexes
+              .map(resolveUserGoalId)
+              .filter((id): id is string => id !== null);
+
             const dto: CreateOutcomeDto = {
               teamId,
               solutionId,
@@ -304,6 +306,8 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
               description: outcome.description,
               target: outcome.target,
               quotes: outcome.quotes,
+              personaIds: personaIds.length > 0 ? personaIds : undefined,
+              userGoalIds: userGoalIds.length > 0 ? userGoalIds : undefined,
             };
             return outcomeApi.create(dto);
           })
@@ -314,7 +318,17 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
           const out = pendingMerge.intakeOutcome;
           const solutionId = outcomeSolutionIds.get(pendingMerge.intakeOutcomeIndex) ?? null;
 
-          // Create the outcome first
+          // Resolve linked persona IDs
+          const personaIds = out.linkedPersonaIndexes
+            .map(resolvePersonaId)
+            .filter((id): id is string => id !== null);
+
+          // Resolve linked user goal IDs
+          const userGoalIds = out.linkedUserGoalIndexes
+            .map(resolveUserGoalId)
+            .filter((id): id is string => id !== null);
+
+          // Create the outcome with linked IDs
           const createdOutcome = await outcomeApi.create({
             teamId,
             solutionId,
@@ -322,6 +336,8 @@ export function useSaveIntakeResult(): UseSaveIntakeResultReturn {
             description: out.description,
             target: out.target,
             quotes: out.quotes,
+            personaIds: personaIds.length > 0 ? personaIds : undefined,
+            userGoalIds: userGoalIds.length > 0 ? userGoalIds : undefined,
           });
 
           // Merge as child of existing outcome

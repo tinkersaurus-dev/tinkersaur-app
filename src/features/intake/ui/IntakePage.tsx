@@ -9,12 +9,12 @@ import { PersonaSidebar } from './sidebar';
 import { Button, Spinner, HStack, PageHeader, PageContent } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import { useSaveIntakeResult } from '../lib/useSaveIntakeResult';
-import type { ExtractedPersona, ExtractedUseCase } from '@/entities/intake-result';
+import type { ExtractedPersona, ExtractedUserGoal } from '@/entities/intake-result';
 import type { ExtractedFeedback } from '@/entities/feedback';
 import type { ExtractedOutcome } from '@/entities/outcome';
 import type { ExtractedRequirement } from '@/entities/requirement';
 import type { SourceTypeKey } from '@/entities/source-type';
-import type { PersonaEntity, UseCaseEntity, FeedbackEntity, OutcomeEntity, RequirementEntity } from '../model/types';
+import type { PersonaEntity, UserGoalEntity, FeedbackEntity, OutcomeEntity, RequirementEntity } from '../model/types';
 
 export function IntakePage() {
   const navigate = useNavigate();
@@ -22,14 +22,7 @@ export function IntakePage() {
   const error = useIntakeStore((state) => state.error);
   const reset = useIntakeStore((state) => state.reset);
   const extractions = useIntakeStore((state) => state.extractions);
-  const documentType = useIntakeStore((state) => state.documentType);
-  const pendingPersonaMerges = useIntakeStore((state) => state.pendingPersonaMerges);
-  const pendingFeedbackMerges = useIntakeStore((state) => state.pendingFeedbackMerges);
-  const pendingUseCaseMerges = useIntakeStore((state) => state.pendingUseCaseMerges);
-  const pendingOutcomeMerges = useIntakeStore((state) => state.pendingOutcomeMerges);
-  const selectedSolutionId = useIntakeStore((state) => state.selectedSolutionId);
-  const selectedSourceType = useIntakeStore((state) => state.selectedSourceType);
-  const sourceMetadata = useIntakeStore((state) => state.sourceMetadata);
+  const acceptAllExtractions = useIntakeStore((state) => state.acceptAllExtractions);
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const { saveIntakeResult, isSaving } = useSaveIntakeResult();
 
@@ -43,15 +36,37 @@ export function IntakePage() {
     return count;
   }, [extractions]);
 
-  // Convert accepted extractions to the format expected by useSaveIntakeResult
+  const pendingCount = useMemo(() => {
+    let count = 0;
+    extractions.forEach((e) => {
+      if (e.status === 'pending') count++;
+    });
+    return count;
+  }, [extractions]);
+
+  // Convert accepted extractions to the format expected by useSaveIntakeResult.
+  // Reads intake store values via getState() for freshness (needed by handleAcceptAllAndSave).
   const handleSave = useCallback(async () => {
     if (!selectedTeam) {
       toast.error('No team selected. Please select a team first.');
       return;
     }
 
+    // Read fresh state from the store to avoid stale closure issues
+    const {
+      extractions: currentExtractions,
+      pendingPersonaMerges,
+      pendingFeedbackMerges,
+      pendingUserGoalMerges,
+      pendingOutcomeMerges,
+      documentType,
+      selectedSolutionId,
+      selectedSourceType,
+      sourceMetadata,
+    } = useIntakeStore.getState();
+
     // Gather accepted extractions by type
-    const acceptedExtractions = Array.from(extractions.values()).filter(
+    const acceptedExtractions = Array.from(currentExtractions.values()).filter(
       (e) => e.status === 'accepted'
     );
 
@@ -74,29 +89,43 @@ export function IntakePage() {
     // Build LLM-index-to-save-index maps for linking resolution.
     // The LLM assigns 0-based indexes per type in extraction order.
     // We need to remap because rejected extractions shift save-time indexes.
-    const allPersonaExtractions = Array.from(extractions.values()).filter((e) => e.type === 'personas');
-    const allUseCaseExtractions = Array.from(extractions.values()).filter((e) => e.type === 'useCases');
+    const allPersonaExtractions = Array.from(currentExtractions.values()).filter((e) => e.type === 'personas');
+    const allUserGoalExtractions = Array.from(currentExtractions.values()).filter((e) => e.type === 'userGoals');
 
-    // Map from LLM persona index → save-time persona index (only for accepted, non-merged)
+    // Map from LLM persona index → save-time persona index (for ALL accepted personas)
     const llmPersonaToSaveIndex = new Map<number, number>();
     let savePersonaIdx = 0;
+    // First pass: non-merged personas (these match the `personas` array positions)
     allPersonaExtractions.forEach((e, llmIdx) => {
       if (e.status === 'accepted' && !pendingPersonaMerges.has(e.id)) {
+        llmPersonaToSaveIndex.set(llmIdx, savePersonaIdx++);
+      }
+    });
+    // Second pass: merged personas (indexes after non-merged, resolved via mergedPersonaIdMap)
+    allPersonaExtractions.forEach((e, llmIdx) => {
+      if (e.status === 'accepted' && pendingPersonaMerges.has(e.id)) {
         llmPersonaToSaveIndex.set(llmIdx, savePersonaIdx++);
       }
     });
 
     // Collect IDs of merged extractions (these will be saved via merge, not normal creation)
     const mergedFeedbackIds = new Set(pendingFeedbackMerges.keys());
-    const mergedUseCaseIds = new Set(pendingUseCaseMerges.keys());
+    const mergedUserGoalIds = new Set(pendingUserGoalMerges.keys());
     const mergedOutcomeIds = new Set(pendingOutcomeMerges.keys());
 
-    // Map from LLM use case index → save-time use case index (only for accepted, non-merged)
-    const llmUseCaseToSaveIndex = new Map<number, number>();
-    let saveUseCaseIdx = 0;
-    allUseCaseExtractions.forEach((e, llmIdx) => {
-      if (e.status === 'accepted' && !mergedUseCaseIds.has(e.id)) {
-        llmUseCaseToSaveIndex.set(llmIdx, saveUseCaseIdx++);
+    // Map from LLM user goal index → save-time user goal index (for ALL accepted user goals)
+    const llmUserGoalToSaveIndex = new Map<number, number>();
+    let saveUserGoalIdx = 0;
+    // First pass: non-merged user goals (these match the `userGoals` array positions)
+    allUserGoalExtractions.forEach((e, llmIdx) => {
+      if (e.status === 'accepted' && !mergedUserGoalIds.has(e.id)) {
+        llmUserGoalToSaveIndex.set(llmIdx, saveUserGoalIdx++);
+      }
+    });
+    // Second pass: merged user goals (indexes after non-merged, resolved via mergedUserGoalIdMap)
+    allUserGoalExtractions.forEach((e, llmIdx) => {
+      if (e.status === 'accepted' && mergedUserGoalIds.has(e.id)) {
+        llmUserGoalToSaveIndex.set(llmIdx, saveUserGoalIdx++);
       }
     });
 
@@ -105,16 +134,16 @@ export function IntakePage() {
         .map((llmIdx) => mapping.get(llmIdx))
         .filter((idx): idx is number => idx !== undefined);
 
-    // Convert to ExtractedUseCase format (exclude merged)
-    const useCases: ExtractedUseCase[] = acceptedExtractions
-      .filter((e) => e.type === 'useCases' && !mergedUseCaseIds.has(e.id))
+    // Convert to ExtractedUserGoal format (exclude merged)
+    const userGoals: ExtractedUserGoal[] = acceptedExtractions
+      .filter((e) => e.type === 'userGoals' && !mergedUserGoalIds.has(e.id))
       .map((e) => {
-        const entity = e.entity as UseCaseEntity;
-        // If this extraction has a pending use case merge, use merged content
-        const ucMerge = pendingUseCaseMerges.get(e.id);
+        const entity = e.entity as UserGoalEntity;
+        // If this extraction has a pending user goal merge, use merged content
+        const ugMerge = pendingUserGoalMerges.get(e.id);
         return {
-          name: ucMerge?.mergedUseCase.name ?? entity.name,
-          description: ucMerge?.mergedUseCase.description ?? entity.description,
+          name: ugMerge?.mergedUserGoal.name ?? entity.name,
+          description: ugMerge?.mergedUserGoal.description ?? entity.description,
           quotes: entity.quotes ?? [],
           linkedPersonaIndexes: remapIndexes(entity.linkedPersonaIndexes, llmPersonaToSaveIndex),
         };
@@ -131,7 +160,7 @@ export function IntakePage() {
           tags: entity.tags ?? [],
           quotes: entity.quotes ?? [],
           linkedPersonaIndexes: remapIndexes(entity.linkedPersonaIndexes, llmPersonaToSaveIndex),
-          linkedUseCaseIndexes: remapIndexes(entity.linkedUseCaseIndexes, llmUseCaseToSaveIndex),
+          linkedUserGoalIndexes: remapIndexes(entity.linkedUserGoalIndexes, llmUserGoalToSaveIndex),
         };
       });
 
@@ -144,6 +173,8 @@ export function IntakePage() {
           description: entity.description,
           target: entity.target,
           quotes: entity.quotes ?? [],
+          linkedPersonaIndexes: remapIndexes(entity.linkedPersonaIndexes, llmPersonaToSaveIndex),
+          linkedUserGoalIndexes: remapIndexes(entity.linkedUserGoalIndexes, llmUserGoalToSaveIndex),
         };
       });
 
@@ -161,34 +192,38 @@ export function IntakePage() {
 
     // Build simple index maps (no deletions in this flow)
     const personaIndexMap = new Map(personas.map((_, i) => [i, i]));
-    const useCaseIndexMap = new Map(useCases.map((_, i) => [i, i]));
+    const userGoalIndexMap = new Map(userGoals.map((_, i) => [i, i]));
     const feedbackIndexMap = new Map(feedback.map((_, i) => [i, i]));
     const outcomeIndexMap = new Map(outcomes.map((_, i) => [i, i]));
     const requirementIndexMap = new Map(requirements.map((_, i) => [i, i]));
 
     // Convert pending persona merges from intake format
-    const pendingMerges = Array.from(pendingPersonaMerges.values()).map((merge) => ({
-      intakePersonaIndex: acceptedExtractions
-        .filter((e) => e.type === 'personas')
-        .findIndex((e) => e.id === merge.extractionId),
-      targetPersonaId: merge.targetPersonaId,
-      sourcePersonaIds: [],
-      mergedPersona: merge.mergedPersona,
-      quotes: merge.quotes,
-    }));
+    const pendingMerges = Array.from(pendingPersonaMerges.values()).map((merge) => {
+      const llmIdx = allPersonaExtractions.findIndex((e) => e.id === merge.extractionId);
+      return {
+        intakePersonaIndex: llmPersonaToSaveIndex.get(llmIdx)!,
+        targetPersonaId: merge.targetPersonaId,
+        sourcePersonaIds: [],
+        mergedPersona: merge.mergedPersona,
+        quotes: merge.quotes,
+      };
+    });
 
-    // Convert pending use case merges from intake format
-    const convertedUseCaseMerges = Array.from(pendingUseCaseMerges.values()).map((merge) => ({
-      intakeUseCaseIndex: 0, // Not used for index-based lookup in intake flow
-      targetUseCaseId: merge.targetUseCaseId,
-      sourceUseCaseIds: merge.sourceUseCaseIds,
-      mergedUseCase: merge.mergedUseCase,
-      quotes: merge.quotes,
-    }));
+    // Convert pending user goal merges from intake format
+    const convertedUserGoalMerges = Array.from(pendingUserGoalMerges.values()).map((merge) => {
+      const llmIdx = allUserGoalExtractions.findIndex((e) => e.id === merge.extractionId);
+      return {
+        intakeUserGoalIndex: llmUserGoalToSaveIndex.get(llmIdx)!,
+        targetUserGoalId: merge.targetUserGoalId,
+        sourceUserGoalIds: merge.sourceUserGoalIds,
+        mergedUserGoal: merge.mergedUserGoal,
+        quotes: merge.quotes,
+      };
+    });
 
     // Convert pending feedback merges from intake format
     const convertedFeedbackMerges = Array.from(pendingFeedbackMerges.values()).map((merge) => {
-      const extraction = extractions.get(merge.extractionId);
+      const extraction = currentExtractions.get(merge.extractionId);
       const entity = extraction?.entity as FeedbackEntity;
       return {
         intakeFeedbackIndex: 0, // Not used for index-based lookup in intake flow
@@ -199,22 +234,24 @@ export function IntakePage() {
           tags: entity.tags ?? [],
           quotes: entity.quotes ?? [],
           linkedPersonaIndexes: remapIndexes(entity.linkedPersonaIndexes, llmPersonaToSaveIndex),
-          linkedUseCaseIndexes: remapIndexes(entity.linkedUseCaseIndexes, llmUseCaseToSaveIndex),
+          linkedUserGoalIndexes: remapIndexes(entity.linkedUserGoalIndexes, llmUserGoalToSaveIndex),
         },
       };
     });
 
     // Convert pending outcome merges from intake format
     const convertedOutcomeMerges = Array.from(pendingOutcomeMerges.values()).map((merge) => {
-      const extraction = extractions.get(merge.extractionId);
+      const extraction = currentExtractions.get(merge.extractionId);
       const entity = extraction?.entity as OutcomeEntity;
       return {
-        intakeOutcomeIndex: 0, // Not used for index-based lookup in intake flow
+        intakeOutcomeIndex: 0,
         parentOutcomeId: merge.parentOutcomeId,
         intakeOutcome: {
           description: entity.description,
           target: entity.target,
           quotes: entity.quotes ?? [],
+          linkedPersonaIndexes: remapIndexes(entity.linkedPersonaIndexes, llmPersonaToSaveIndex),
+          linkedUserGoalIndexes: remapIndexes(entity.linkedUserGoalIndexes, llmUserGoalToSaveIndex),
         },
       };
     });
@@ -223,9 +260,6 @@ export function IntakePage() {
     const sourceType: SourceTypeKey = selectedSourceType ?? (documentType as SourceTypeKey) ?? 'meeting-transcript';
 
     // Build solution maps from global selection
-    const useCaseSolutionIds = new Map<number, string | null>(
-      useCases.map((_, i) => [i, selectedSolutionId])
-    );
     const feedbackSolutionIds = new Map<number, string | null>(
       feedback.map((_, i) => [i, selectedSolutionId])
     );
@@ -235,23 +269,22 @@ export function IntakePage() {
 
     const success = await saveIntakeResult({
       personas,
-      useCases,
+      userGoals,
       feedback,
       outcomes,
       requirements,
       personaIndexMap,
-      useCaseIndexMap,
+      userGoalIndexMap,
       feedbackIndexMap,
       outcomeIndexMap,
       requirementIndexMap,
       teamId: selectedTeam.teamId,
       sourceType,
       metadata: sourceMetadata,
-      useCaseSolutionIds,
       feedbackSolutionIds,
       outcomeSolutionIds,
       pendingMerges,
-      pendingUseCaseMerges: convertedUseCaseMerges,
+      pendingUserGoalMerges: convertedUserGoalMerges,
       pendingFeedbackMerges: convertedFeedbackMerges,
       pendingOutcomeMerges: convertedOutcomeMerges,
     });
@@ -263,21 +296,12 @@ export function IntakePage() {
     } else {
       toast.error('Failed to save intake results. Please try again.');
     }
-  }, [
-    selectedTeam,
-    extractions,
-    documentType,
-    selectedSolutionId,
-    selectedSourceType,
-    sourceMetadata,
-    pendingPersonaMerges,
-    pendingFeedbackMerges,
-    pendingUseCaseMerges,
-    pendingOutcomeMerges,
-    saveIntakeResult,
-    reset,
-    navigate,
-  ]);
+  }, [selectedTeam, saveIntakeResult, reset, navigate]);
+
+  const handleAcceptAllAndSave = useCallback(async () => {
+    acceptAllExtractions();
+    await handleSave();
+  }, [acceptAllExtractions, handleSave]);
 
   // Manage SignalR connection at page level - single connection for all child components
   useEffect(() => {
@@ -361,14 +385,26 @@ export function IntakePage() {
                 <span className="text-sm text-[var(--text-muted)]">
                   Extraction complete. Review and accept items to save.
                 </span>
-                <Button
-                  variant="primary"
-                  onClick={handleSave}
-                  loading={isSaving}
-                  disabled={isSaving || acceptedCount === 0}
-                >
-                  Save Accepted Items
-                </Button>
+                <HStack gap="sm">
+                  {pendingCount > 0 && (
+                    <Button
+                      variant="primary"
+                      onClick={handleAcceptAllAndSave}
+                      loading={isSaving}
+                      disabled={isSaving}
+                    >
+                      Accept All & Save
+                    </Button>
+                  )}
+                  <Button
+                    variant={pendingCount > 0 ? 'default' : 'primary'}
+                    onClick={handleSave}
+                    loading={isSaving}
+                    disabled={isSaving || acceptedCount === 0}
+                  >
+                    Save Accepted Items
+                  </Button>
+                </HStack>
               </HStack>
             </div>
           )}

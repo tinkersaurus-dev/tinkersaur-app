@@ -15,14 +15,14 @@ interface ActivityFeedProps {
 
 const ENTITY_ICONS: Record<EntityType, React.ReactNode> = {
   persona: <PersonaIcon />,
-  useCase: <UseCaseIcon />,
+  userGoal: <UseCaseIcon />,
   feedback: <FeedbackIcon />,
   outcome: <OutcomeIcon />,
 };
 
 const ENTITY_BORDER_COLORS: Record<EntityType, string> = {
   persona: 'border-l-purple-400',
-  useCase: 'border-l-blue-400',
+  userGoal: 'border-l-blue-400',
   feedback: 'border-l-orange-400',
   outcome: 'border-l-green-400',
 };
@@ -36,10 +36,10 @@ const ACTION_CONFIG: Record<ActivityAction, { label: string; color: TagColor }> 
 export function ActivityFeed({ activities }: ActivityFeedProps) {
   return (
     <div>
-      <h2 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
+      <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
         Recent Activity
       </h2>
-      <Card contentClassName="p-0">
+      <Card shadow={false} contentClassName="p-0">
         {activities.length === 0 ? (
           <div className="p-6">
             <Empty description="No recent activity" />
@@ -61,14 +61,14 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
                   </span>
                   <Tag
                     color={actionCfg.color}
-                    className="flex-shrink-0 text-[9px] min-w-[3rem] justify-center"
+                    className="flex-shrink-0 text-xs min-w-[3rem] justify-center"
                   >
                     {actionCfg.label}
                   </Tag>
-                  <span className="flex-1 text-xs text-[var(--text-muted)] truncate">
+                  <span className="flex-1 text-sm text-[var(--text-muted)] truncate">
                     {activity.title}
                   </span>
-                  <span className="text-[10px] text-[var(--text-disabled)] flex-shrink-0 whitespace-nowrap">
+                  <span className="text-sm text-[var(--text-disabled)] flex-shrink-0 whitespace-nowrap">
                     {formatRelativeTime(activity.timestamp)}
                   </span>
                 </div>

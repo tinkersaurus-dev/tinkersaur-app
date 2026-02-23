@@ -1,5 +1,5 @@
 import type { MergedPersonaData } from '@/entities/persona';
-import type { MergedUseCaseData } from '@/entities/use-case';
+import type { MergedUserGoalData } from '@/entities/user-goal';
 import type { ExtractedFeedback } from '@/entities/feedback';
 import type { ExtractedOutcome } from '@/entities/outcome';
 
@@ -27,14 +27,14 @@ export type DocumentType =
   | 'product-brief';
 
 // Extraction Types
-export type ExtractionType = 'personas' | 'useCases' | 'feedback' | 'outcomes' | 'requirements';
+export type ExtractionType = 'personas' | 'userGoals' | 'feedback' | 'outcomes' | 'requirements';
 
 export type ExtractionStatus = 'pending' | 'accepted' | 'rejected';
 
 export interface Extraction {
   id: string;
   type: ExtractionType;
-  entity: PersonaEntity | UseCaseEntity | FeedbackEntity | OutcomeEntity | RequirementEntity;
+  entity: PersonaEntity | UserGoalEntity | FeedbackEntity | OutcomeEntity | RequirementEntity;
   status: ExtractionStatus;
 }
 
@@ -55,7 +55,7 @@ export interface PersonaEntity {
   quotes?: string[];
 }
 
-export interface UseCaseEntity {
+export interface UserGoalEntity {
   name: string;
   description: string;
   linkedPersonaIndexes?: number[];
@@ -67,13 +67,15 @@ export interface FeedbackEntity {
   content: string;
   tags?: string[];
   linkedPersonaIndexes?: number[];
-  linkedUseCaseIndexes?: number[];
+  linkedUserGoalIndexes?: number[];
   quotes?: string[];
 }
 
 export interface OutcomeEntity {
   description: string;
   target: string;
+  linkedPersonaIndexes?: number[];
+  linkedUserGoalIndexes?: number[];
   quotes?: string[];
 }
 
@@ -112,13 +114,13 @@ export interface AgentError {
   error: string;
 }
 
-// Inline Similarity Match (for feedback, useCases, outcomes)
+// Inline Similarity Match (for feedback, userGoals, outcomes)
 export interface InlineSimilarityMatch {
   extractionId: string;
   entityId: string;
   entityType: ExtractionType;
   similarity: number;
-  result: unknown; // SimilarFeedbackResult | SimilarUseCaseResult | SimilarOutcomeResult
+  result: unknown; // SimilarFeedbackResult | SimilarUserGoalResult | SimilarOutcomeResult
 }
 
 // Pending merge types for inline entities
@@ -132,11 +134,11 @@ export interface OutcomePendingMerge {
   parentOutcomeId: string;
 }
 
-export interface UseCasePendingMerge {
+export interface UserGoalPendingMerge {
   extractionId: string;
-  targetUseCaseId: string;
-  sourceUseCaseIds: string[];
-  mergedUseCase: { name: string; description: string };
+  targetUserGoalId: string;
+  sourceUserGoalIds: string[];
+  mergedUserGoal: { name: string; description: string };
   quotes?: string[];
 }
 
@@ -170,12 +172,12 @@ export interface PendingMerge {
   quotes?: string[];  // Quotes from intake persona to link to target
 }
 
-export interface PendingUseCaseMerge {
-  intakeUseCaseIndex: number;
-  targetUseCaseId: string;
-  sourceUseCaseIds: string[];
-  mergedUseCase: MergedUseCaseData;
-  quotes?: string[];  // Quotes from intake use case to link to target
+export interface PendingUserGoalMerge {
+  intakeUserGoalIndex: number;
+  targetUserGoalId: string;
+  sourceUserGoalIds: string[];
+  mergedUserGoal: MergedUserGoalData;
+  quotes?: string[];  // Quotes from intake user goal to link to target
 }
 
 export interface PendingFeedbackMerge {

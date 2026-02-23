@@ -24,6 +24,16 @@ export interface PersonaListParams {
   sortOrder?: SortOrder;
 }
 
+export interface UserGoalListParams {
+  teamId: string;
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  personaIds?: string[];
+  sortBy?: string;
+  sortOrder?: SortOrder;
+}
+
 export interface UseCaseListParams {
   teamId: string;
   page?: number;
@@ -43,6 +53,7 @@ export interface FeedbackListParams {
   solutionId?: string;
   personaIds?: string[];
   useCaseIds?: string[];
+  userGoalIds?: string[];
   tags?: string[];
   sortBy?: string;
   sortOrder?: SortOrder;

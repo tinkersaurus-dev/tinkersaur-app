@@ -75,7 +75,7 @@ export async function parseTranscript(
 
     logger.info('Successfully parsed transcript', {
       personaCount: data.result.personas?.length ?? 0,
-      useCaseCount: data.result.useCases?.length ?? 0,
+      userGoalCount: data.result.userGoals?.length ?? 0,
     });
     return data.result;
   } catch (error) {

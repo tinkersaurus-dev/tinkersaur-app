@@ -6,14 +6,14 @@
 export {
   ExtractedDemographicsSchema,
   ExtractedPersonaSchema,
-  ExtractedUseCaseSchema,
+  ExtractedUserGoalSchema,
   IntakeResultSchema,
 } from './model/types';
 
 export type {
   ExtractedDemographics,
   ExtractedPersona,
-  ExtractedUseCase,
+  ExtractedUserGoal,
   IntakeResult,
   ParseTranscriptResponse,
 } from './model/types';

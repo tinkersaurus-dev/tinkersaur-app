@@ -150,13 +150,13 @@ export function useAgentLoop() {
         store.setSuggestedExtractions(detection.suggested);
       } else {
         // No detection result, fall back to all types
-        store.setSuggestedExtractions(['personas', 'useCases', 'feedback', 'outcomes']);
+        store.setSuggestedExtractions(['personas', 'userGoals', 'feedback', 'outcomes']);
       }
       store.setPhase('suggesting');
     } catch (error) {
       console.error('Failed to detect document type:', error);
       // Fall back to manual selection
-      store.setSuggestedExtractions(['personas', 'useCases', 'feedback', 'outcomes']);
+      store.setSuggestedExtractions(['personas', 'userGoals', 'feedback', 'outcomes']);
       store.setPhase('suggesting');
     }
   }, [store]);

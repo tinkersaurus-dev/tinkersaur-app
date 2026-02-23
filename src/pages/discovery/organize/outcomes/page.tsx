@@ -73,7 +73,7 @@ export default function OutcomesListPage() {
       render: (_, record) => (
         <Link
           to={`/discovery/organize/outcomes/${record.id}`}
-          className="text-[var(--primary)] hover:underline line-clamp-2 text-xs"
+          className="text-[var(--primary)] hover:underline line-clamp-2 text-base"
         >
           {record.description}
         </Link>
@@ -87,7 +87,7 @@ export default function OutcomesListPage() {
       sorter: true,
       sortField: 'target',
       render: (value) => (
-        <span className="line-clamp-2 text-[var(--text-muted)]">
+        <span className="line-clamp-2 text-[var(--text-muted)] text-base">
           {value as string || '—'}
         </span>
       ),
@@ -100,10 +100,10 @@ export default function OutcomesListPage() {
       sorter: true,
       sortField: 'solutionId',
       render: (value) => {
-        if (!value) return <span className="text-[var(--text-muted)]">—</span>;
+        if (!value) return <span className="text-[var(--text-muted)] text-base">—</span>;
         const solution = solutions.find(s => s.id === value);
         return (
-          <span>
+          <span className="text-[var(--text-muted)] text-base">
             {solution?.name || 'Unknown'}
           </span>
         );

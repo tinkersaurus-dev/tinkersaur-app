@@ -10,7 +10,7 @@ import { DASHBOARD_RULES, STAT_CONFIGS } from './rules';
 
 // ── Types ──
 
-export type EntityType = 'persona' | 'useCase' | 'feedback' | 'outcome';
+export type EntityType = 'persona' | 'userGoal' | 'feedback' | 'outcome';
 export type ActivityAction = 'created' | 'updated' | 'merged';
 
 export interface ActivityItem {
@@ -88,13 +88,13 @@ export function useDashboardData(data: EntityData): DashboardData {
       });
     }
 
-    for (const uc of data.useCases) {
+    for (const ug of data.userGoals) {
       activities.push({
-        id: uc.id,
-        entityType: 'useCase',
-        action: getAction(uc.createdAt, uc.updatedAt),
-        title: uc.name,
-        timestamp: new Date(uc.updatedAt),
+        id: ug.id,
+        entityType: 'userGoal',
+        action: getAction(ug.createdAt, ug.updatedAt),
+        title: ug.name,
+        timestamp: new Date(ug.updatedAt),
       });
     }
 

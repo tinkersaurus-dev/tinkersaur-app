@@ -7,7 +7,7 @@
 import { useLocation } from 'react-router';
 import { MODULE_NAVIGATION, type NavSection } from '@/shared/lib/config/navigation-config';
 import { getActiveModule } from '@/shared/lib/utils';
-import { ModuleBar } from '@/widgets/module-bar';
+import { ModuleBar } from './ModuleBar';
 import { useGlobalSidebarState } from '../lib/hooks';
 import { SidebarHeader } from './SidebarHeader';
 import { SidebarFooter } from './SidebarFooter';
@@ -48,14 +48,14 @@ export function GlobalSidebar() {
       <ModuleBar onModuleClick={handleModuleClick} />
 
       {/* Navigation Content */}
-      <nav className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
+      <nav className="py-3 flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
         {navSections.map((section) => (
           <div key={section.key}>
             {/* Section Header */}
             <div
               data-section={section.key}
               className={`
-                h-8 flex items-center gap-2 px-4 cursor-pointer text-xs font-medium
+                h-8 flex items-center gap-2 px-4 cursor-pointer text-sm font-medium
                 transition-colors whitespace-nowrap
                 ${
                   isActive(section.path)
@@ -76,10 +76,10 @@ export function GlobalSidebar() {
                   <div
                     key={child.key}
                     className={`
-                      flex items-center gap-2 px-2 py-1.5 cursor-pointer text-[11px] transition-colors
+                      flex items-center gap-2 px-2 py-1.5 cursor-pointer text-base transition-colors
                       ${
                         isExactActive(child.path)
-                          ? 'text-[var(--primary)]'
+                          ? 'text-[var(--primary)] font-medium'
                           : 'text-[var(--text-muted)] hover:text-[var(--text)]'
                       }
                     `}

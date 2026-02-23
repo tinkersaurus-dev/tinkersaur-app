@@ -3,12 +3,12 @@ import { useIntakeStore } from '../../model/useIntakeStore';
 import { ExtractionCard } from '../cards/ExtractionCard';
 import { SimilarityConnector } from '../cards/SimilarityConnector';
 import { SimilarEntityCard } from '../cards/SimilarEntityCard';
-import { IntakeUseCaseMergeModal } from '@/features/entity-merging';
-import type { PendingUseCaseMerge } from '@/features/entity-merging';
+import { IntakeUserGoalMergeModal } from '@/features/entity-merging';
+import type { PendingUserGoalMerge as EntityMergePendingUserGoalMerge } from '@/features/entity-merging';
 import type {
   Extraction,
   InlineSimilarityMatch,
-  UseCaseEntity,
+  UserGoalEntity,
 } from '../../model/types';
 import type { SimilarFeedbackResult } from '@/entities/feedback';
 import type { SimilarOutcomeResult } from '@/entities/outcome';
@@ -38,17 +38,17 @@ export function InlineCardGroup({ extractionIds, extractions }: InlineCardGroupP
 
   // Pending merge state
   const pendingFeedbackMerges = useIntakeStore((state) => state.pendingFeedbackMerges);
-  const pendingUseCaseMerges = useIntakeStore((state) => state.pendingUseCaseMerges);
+  const pendingUserGoalMerges = useIntakeStore((state) => state.pendingUserGoalMerges);
   const pendingOutcomeMerges = useIntakeStore((state) => state.pendingOutcomeMerges);
   const addPendingFeedbackMerge = useIntakeStore((state) => state.addPendingFeedbackMerge);
-  const addPendingUseCaseMerge = useIntakeStore((state) => state.addPendingUseCaseMerge);
+  const addPendingUserGoalMerge = useIntakeStore((state) => state.addPendingUserGoalMerge);
   const addPendingOutcomeMerge = useIntakeStore((state) => state.addPendingOutcomeMerge);
   const removePendingFeedbackMerge = useIntakeStore((state) => state.removePendingFeedbackMerge);
-  const removePendingUseCaseMerge = useIntakeStore((state) => state.removePendingUseCaseMerge);
+  const removePendingUserGoalMerge = useIntakeStore((state) => state.removePendingUserGoalMerge);
   const removePendingOutcomeMerge = useIntakeStore((state) => state.removePendingOutcomeMerge);
 
-  // Use case merge modal state
-  const [ucMergeModalExtraction, setUcMergeModalExtraction] = useState<{
+  // User goal merge modal state
+  const [ugMergeModalExtraction, setUgMergeModalExtraction] = useState<{
     id: string;
     extraction: Extraction;
     match: InlineSimilarityMatch;
@@ -57,7 +57,7 @@ export function InlineCardGroup({ extractionIds, extractions }: InlineCardGroupP
   const getPendingMerge = (id: string, type: string) => {
     switch (type) {
       case 'feedback': return pendingFeedbackMerges.get(id);
-      case 'useCases': return pendingUseCaseMerges.get(id);
+      case 'userGoals': return pendingUserGoalMerges.get(id);
       case 'outcomes': return pendingOutcomeMerges.get(id);
       default: return undefined;
     }
@@ -66,10 +66,10 @@ export function InlineCardGroup({ extractionIds, extractions }: InlineCardGroupP
   const removePendingMerge = useCallback((id: string, type: string) => {
     switch (type) {
       case 'feedback': removePendingFeedbackMerge(id); break;
-      case 'useCases': removePendingUseCaseMerge(id); break;
+      case 'userGoals': removePendingUserGoalMerge(id); break;
       case 'outcomes': removePendingOutcomeMerge(id); break;
     }
-  }, [removePendingFeedbackMerge, removePendingUseCaseMerge, removePendingOutcomeMerge]);
+  }, [removePendingFeedbackMerge, removePendingUserGoalMerge, removePendingOutcomeMerge]);
 
   const handleMerge = useCallback((id: string, extraction: Extraction, match: InlineSimilarityMatch) => {
     switch (extraction.type) {
@@ -83,9 +83,9 @@ export function InlineCardGroup({ extractionIds, extractions }: InlineCardGroupP
         if (extraction.status === 'pending') acceptExtraction(id);
         break;
       }
-      case 'useCases': {
+      case 'userGoals': {
         // Open the LLM merge modal
-        setUcMergeModalExtraction({ id, extraction, match });
+        setUgMergeModalExtraction({ id, extraction, match });
         break;
       }
       case 'outcomes': {
@@ -101,20 +101,20 @@ export function InlineCardGroup({ extractionIds, extractions }: InlineCardGroupP
     }
   }, [addPendingFeedbackMerge, addPendingOutcomeMerge, acceptExtraction]);
 
-  const handleUseCaseMergeConfirmed = useCallback((pendingMerge: PendingUseCaseMerge) => {
-    if (!ucMergeModalExtraction) return;
-    const { id, extraction } = ucMergeModalExtraction;
-    addPendingUseCaseMerge(id, {
+  const handleUserGoalMergeConfirmed = useCallback((pendingMerge: EntityMergePendingUserGoalMerge) => {
+    if (!ugMergeModalExtraction) return;
+    const { id, extraction } = ugMergeModalExtraction;
+    addPendingUserGoalMerge(id, {
       extractionId: id,
-      targetUseCaseId: pendingMerge.targetUseCaseId,
-      sourceUseCaseIds: pendingMerge.sourceUseCaseIds,
-      mergedUseCase: pendingMerge.mergedUseCase,
+      targetUserGoalId: pendingMerge.targetUserGoalId,
+      sourceUserGoalIds: pendingMerge.sourceUserGoalIds,
+      mergedUserGoal: pendingMerge.mergedUserGoal,
       quotes: pendingMerge.quotes,
     });
     // Auto-accept if still pending
     if (extraction.status === 'pending') acceptExtraction(id);
-    setUcMergeModalExtraction(null);
-  }, [ucMergeModalExtraction, addPendingUseCaseMerge, acceptExtraction]);
+    setUgMergeModalExtraction(null);
+  }, [ugMergeModalExtraction, addPendingUserGoalMerge, acceptExtraction]);
 
   return (
     <>
@@ -130,8 +130,8 @@ export function InlineCardGroup({ extractionIds, extractions }: InlineCardGroupP
           const showSimilar = match && !isDismissed && !pendingMerge;
           const showConnector = isChecking || showSimilar || !!pendingMerge;
 
-          // For use case merges, provide the merged content to the extraction card
-          const ucMerge = extraction.type === 'useCases' ? pendingUseCaseMerges.get(id) : undefined;
+          // For user goal merges, provide the merged content to the extraction card
+          const ugMerge = extraction.type === 'userGoals' ? pendingUserGoalMerges.get(id) : undefined;
 
           return (
             <div key={id} className="flex items-start gap-3">
@@ -142,7 +142,7 @@ export function InlineCardGroup({ extractionIds, extractions }: InlineCardGroupP
                   isActive={id === activeExtractionId}
                   isNew={newExtractionIds.has(id)}
                   isMerged={!!pendingMerge}
-                  mergedContent={ucMerge ? ucMerge.mergedUseCase : undefined}
+                  mergedContent={ugMerge ? ugMerge.mergedUserGoal : undefined}
                   onClick={() => setActiveExtraction(id)}
                   onAccept={() => acceptExtraction(id)}
                   onReject={() => {
@@ -187,20 +187,20 @@ export function InlineCardGroup({ extractionIds, extractions }: InlineCardGroupP
         })}
       </div>
 
-      {/* Use case LLM merge modal */}
-      {ucMergeModalExtraction && (
-        <IntakeUseCaseMergeModal
+      {/* User goal LLM merge modal */}
+      {ugMergeModalExtraction && (
+        <IntakeUserGoalMergeModal
           open={true}
-          onClose={() => setUcMergeModalExtraction(null)}
-          intakeUseCase={{
-            name: (ucMergeModalExtraction.extraction.entity as UseCaseEntity).name,
-            description: (ucMergeModalExtraction.extraction.entity as UseCaseEntity).description,
-            quotes: (ucMergeModalExtraction.extraction.entity as UseCaseEntity).quotes ?? [],
+          onClose={() => setUgMergeModalExtraction(null)}
+          intakeUserGoal={{
+            name: (ugMergeModalExtraction.extraction.entity as UserGoalEntity).name,
+            description: (ugMergeModalExtraction.extraction.entity as UserGoalEntity).description,
+            quotes: (ugMergeModalExtraction.extraction.entity as UserGoalEntity).quotes ?? [],
             linkedPersonaIndexes: [],
           }}
-          intakeUseCaseIndex={0}
-          existingUseCaseIds={[ucMergeModalExtraction.match.entityId]}
-          onMergeConfirmed={handleUseCaseMergeConfirmed}
+          intakeUserGoalIndex={0}
+          existingUserGoalIds={[ugMergeModalExtraction.match.entityId]}
+          onMergeConfirmed={handleUserGoalMergeConfirmed}
         />
       )}
     </>

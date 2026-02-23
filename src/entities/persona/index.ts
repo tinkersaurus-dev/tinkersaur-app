@@ -46,4 +46,14 @@ export {
 export { PersonaCard } from './ui/PersonaCard';
 
 // Filters
-export { STALE_THRESHOLD_DAYS, getDaysSinceUpdate, isStalePersona, filterStalePersonas } from './lib/filters';
+export {
+  STALE_THRESHOLD_DAYS,
+  FRESH_THRESHOLD_DAYS,
+  MODERATE_THRESHOLD_DAYS,
+  getDaysSinceUpdate,
+  getDaysSinceLastIntake,
+  getFreshness,
+  isStalePersona,
+  filterStalePersonas,
+} from './lib/filters';
+export type { Freshness } from './lib/filters';

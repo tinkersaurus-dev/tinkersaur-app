@@ -30,6 +30,7 @@ export type {
   PaginatedResponse,
   SortOrder,
   PersonaListParams,
+  UserGoalListParams,
   UseCaseListParams,
   FeedbackListParams,
   OutcomeListParams,

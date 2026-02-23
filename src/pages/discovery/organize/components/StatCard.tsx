@@ -21,13 +21,13 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <Link to={link} className="block">
-      <Card hoverable contentClassName="p-4">
+      <Card hoverable shadow={false} contentClassName="p-4">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--primary)]/8 flex-shrink-0">
+          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[var(--primary)]/8 flex-shrink-0">
             {icon}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider mb-0.5">
+            <div className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider mb-0.5">
               {label}
             </div>
             {isLoading ? (
@@ -38,11 +38,11 @@ export function StatCard({
                   {total}
                 </div>
                 {weeklyDelta > 0 ? (
-                  <div className="text-[10px] text-green-500 mt-0.5">
+                  <div className="text-sm text-green-500 mt-0.5">
                     +{weeklyDelta} this week
                   </div>
                 ) : (
-                  <div className="text-[10px] text-[var(--text-disabled)] mt-0.5">
+                  <div className="text-sm text-[var(--text-disabled)] mt-0.5">
                     0 this week
                   </div>
                 )}

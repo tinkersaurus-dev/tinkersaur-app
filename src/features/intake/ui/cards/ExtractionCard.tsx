@@ -1,6 +1,6 @@
 import { forwardRef, useState, useEffect } from 'react';
 import { FiCheck, FiX, FiUsers, FiClipboard, FiMessageSquare, FiTarget, FiFileText } from 'react-icons/fi';
-import type { Extraction, PersonaEntity, UseCaseEntity, FeedbackEntity, OutcomeEntity, RequirementEntity } from '../../model/types';
+import type { Extraction, PersonaEntity, UserGoalEntity, FeedbackEntity, OutcomeEntity, RequirementEntity } from '../../model/types';
 import { HStack, Tag } from '@/shared/ui';
 
 interface ExtractionCardProps {
@@ -17,7 +17,7 @@ interface ExtractionCardProps {
 
 const typeIcons = {
   personas: FiUsers,
-  useCases: FiClipboard,
+  userGoals: FiClipboard,
   feedback: FiMessageSquare,
   outcomes: FiTarget,
   requirements: FiFileText,
@@ -25,7 +25,7 @@ const typeIcons = {
 
 const typeColors = {
   personas: 'border-[var(--tag-blue)]',
-  useCases: 'border-[var(--tag-green)]',
+  userGoals: 'border-[var(--tag-green)]',
   feedback: 'border-[var(--tag-purple)]',
   outcomes: 'border-l-[var(--tag-orange)]',
   requirements: 'border-l-[var(--tag-cyan)]',
@@ -61,13 +61,13 @@ export const ExtractionCard = forwardRef<HTMLDivElement, ExtractionCardProps>(
             </>
           );
         }
-        case 'useCases': {
-          const entity = extraction.entity as UseCaseEntity;
+        case 'userGoals': {
+          const entity = extraction.entity as UserGoalEntity;
           const name = mergedContent?.name ?? entity.name;
           const description = mergedContent?.description ?? entity.description;
           return (
             <>
-              <h4 className="text-sm font-bold">Use Case: {name}</h4>
+              <h4 className="text-sm font-bold">User Goal: {name}</h4>
               <p className="text-sm mt-1 line-clamp-2">{description}</p>
             </>
           );

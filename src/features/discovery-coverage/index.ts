@@ -2,7 +2,7 @@
  * Discovery Coverage Feature
  *
  * Dashboard view showing research coverage health:
- * persona feedback activity over time and use case evidence strength.
+ * persona feedback activity over time and user goal evidence strength.
  *
  * @module features/discovery-coverage
  */

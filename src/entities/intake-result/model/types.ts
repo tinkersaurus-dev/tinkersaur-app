@@ -5,7 +5,7 @@ import { ExtractedOutcomeSchema } from '@/entities/outcome';
 /**
  * Intake Result Types
  * Represents the structured output from analyzing intake sources.
- * Contains extracted personas, use cases, feedback, and outcomes.
+ * Contains extracted personas, user goals, feedback, and outcomes.
  */
 
 // Demographics schema (matches Persona entity structure)
@@ -30,22 +30,22 @@ export const ExtractedPersonaSchema = z.object({
 
 export type ExtractedPersona = z.infer<typeof ExtractedPersonaSchema>;
 
-// Extracted use case from transcript (no ID - assigned by API when saved)
-export const ExtractedUseCaseSchema = z.object({
-  name: z.string(), // Short name for the use case
+// Extracted user goal from transcript (no ID - assigned by API when saved)
+export const ExtractedUserGoalSchema = z.object({
+  name: z.string(), // Short name for the user goal
   description: z.string(), // Detailed description of the workflow/task
   quotes: z.array(z.string()), // Supporting quotes from transcript
   linkedPersonaIndexes: z.array(z.number()), // Indexes into personas array
 });
 
-export type ExtractedUseCase = z.infer<typeof ExtractedUseCaseSchema>;
+export type ExtractedUserGoal = z.infer<typeof ExtractedUserGoalSchema>;
 
 // Complete intake result from parsing
 export const IntakeResultSchema = z.object({
   sourceType: z.string(),
   metadata: z.record(z.string(), z.unknown()),
   personas: z.array(ExtractedPersonaSchema),
-  useCases: z.array(ExtractedUseCaseSchema),
+  userGoals: z.array(ExtractedUserGoalSchema),
   feedback: z.array(ExtractedFeedbackSchema),
   outcomes: z.array(ExtractedOutcomeSchema), // Measurable outcomes with targets
   processingTime: z.number(), // Milliseconds for LLM processing

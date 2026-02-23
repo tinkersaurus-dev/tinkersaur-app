@@ -2,14 +2,14 @@ import { useEffect, useCallback, useRef } from 'react';
 import { useIntakeStore } from '../model/useIntakeStore';
 import { useAuthStore } from '@/features/auth';
 import { feedbackApi } from '@/entities/feedback';
-import { useCaseApi } from '@/entities/use-case';
+import { userGoalApi } from '@/entities/user-goal';
 import { outcomeApi } from '@/entities/outcome';
 import type { SimilarFeedbackResult } from '@/entities/feedback';
-import type { SimilarUseCaseResult } from '@/entities/use-case';
+import type { SimilarUserGoalResult } from '@/entities/user-goal';
 import type { SimilarOutcomeResult } from '@/entities/outcome';
-import type { Extraction, FeedbackEntity, UseCaseEntity, OutcomeEntity } from '../model/types';
+import type { Extraction, FeedbackEntity, UserGoalEntity, OutcomeEntity } from '../model/types';
 
-const INLINE_SIMILARITY_TYPES = new Set(['feedback', 'useCases', 'outcomes']);
+const INLINE_SIMILARITY_TYPES = new Set(['feedback', 'userGoals', 'outcomes']);
 
 /**
  * Hook that watches for extraction completion and automatically
@@ -52,9 +52,9 @@ export function useInlineSimilarityCheck() {
             }
             break;
           }
-          case 'useCases': {
-            const entity = extraction.entity as UseCaseEntity;
-            const results = await useCaseApi.findSimilar({
+          case 'userGoals': {
+            const entity = extraction.entity as UserGoalEntity;
+            const results = await userGoalApi.findSimilar({
               teamId,
               name: entity.name,
               description: entity.description,
@@ -62,8 +62,8 @@ export function useInlineSimilarityCheck() {
               limit: 1,
             });
             if (results.length > 0) {
-              const r = results[0] as SimilarUseCaseResult;
-              topResult = { entityId: r.useCase.id, similarity: r.similarity, result: r };
+              const r = results[0] as SimilarUserGoalResult;
+              topResult = { entityId: r.userGoal.id, similarity: r.similarity, result: r };
             }
             break;
           }

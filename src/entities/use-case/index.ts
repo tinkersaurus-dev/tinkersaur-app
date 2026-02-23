@@ -7,18 +7,12 @@ export {
   UseCaseSchema,
   CreateUseCaseSchema,
   UpdateUseCaseSchema,
-  MergedUseCaseDataSchema,
-  MergeUseCasesRequestSchema,
 } from './model/types';
 
 export type {
   UseCase,
   CreateUseCaseDto,
   UpdateUseCaseDto,
-  FindSimilarUseCasesRequest,
-  SimilarUseCaseResult,
-  MergedUseCaseData,
-  MergeUseCasesRequest,
 } from './model/types';
 
 export { useCaseApi } from './api/useCaseApi';
@@ -57,10 +51,3 @@ export * from './ui/use-case-detail/types';
 export { useUseCaseContent } from './lib/useUseCaseContent';
 
 export { UseCaseCard } from './ui/UseCaseCard';
-
-// Filters
-export { WEAK_EVIDENCE_THRESHOLD, getEvidenceCount, hasWeakEvidence, filterWeakEvidenceUseCases } from './lib/filters';
-
-// Evidence utilities
-export { countFeedbackByType } from './lib/evidence';
-export type { FeedbackTypeCounts } from './lib/evidence';

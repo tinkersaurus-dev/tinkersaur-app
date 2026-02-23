@@ -1,7 +1,7 @@
 /**
  * Signal Strength Page
  * Three-column view showing tag-based signal strength,
- * persona/use-case pain radars, and filtered feedback.
+ * persona/user-goal pain radars, and filtered feedback.
  */
 
 import { useMemo } from 'react';
@@ -10,7 +10,7 @@ import { useAuthStore } from '@/features/auth';
 import { useFeedbacksQuery } from '@/entities/feedback';
 import { useTagsQuery } from '@/entities/tag';
 import { usePersonasQuery } from '@/entities/persona';
-import { useUseCasesByTeamQuery } from '@/entities/use-case';
+import { useUserGoalsByTeamQuery } from '@/entities/user-goal';
 import {
   useSignalStrengthData,
   useSignalStrengthFilterState,
@@ -28,7 +28,7 @@ export default function SignalStrengthPage() {
   const { data: allFeedback = [], isLoading: feedbackLoading } = useFeedbacksQuery(teamId);
   const { data: tags = [] } = useTagsQuery(teamId);
   const { data: personas = [] } = usePersonasQuery(teamId);
-  const { data: useCases = [] } = useUseCasesByTeamQuery(teamId);
+  const { data: userGoals = [] } = useUserGoalsByTeamQuery(teamId);
 
   // Signal strength computation
   const tagSignals = useSignalStrengthData(allFeedback, tags);
@@ -51,9 +51,9 @@ export default function SignalStrengthPage() {
   const {
     filteredParents,
     personaRadarData,
-    useCaseRadarData,
+    userGoalRadarData,
     maxRadarCount,
-  } = useFilteredFeedback(allFeedback, personas, useCases, selectedTag);
+  } = useFilteredFeedback(allFeedback, personas, userGoals, selectedTag);
 
   return (
     <>
@@ -108,9 +108,9 @@ export default function SignalStrengthPage() {
                 maxCount={maxRadarCount}
               />
               <PainRadar
-                title="Use Case Pain Radar"
-                badge={`${useCaseRadarData.length} use cases`}
-                data={useCaseRadarData}
+                title="User Goal Pain Radar"
+                badge={`${userGoalRadarData.length} user goals`}
+                data={userGoalRadarData}
                 maxCount={maxRadarCount}
               />
             </div>

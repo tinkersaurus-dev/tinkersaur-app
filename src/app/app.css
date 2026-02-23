@@ -1,31 +1,20 @@
 /**
  * App-specific CSS
- * - Font declarations (local fonts)
  * - Canvas-specific variables (not in UI library)
  *
- * Base theme variables and utilities are imported from @tinkersaur/ui
+ * Font declarations (@font-face) and --font-sans are defined in @tinkersaur/ui.
+ * We re-declare --font-sans here because @import "tailwindcss" generates a
+ * theme layer that would otherwise overwrite the UI library's value.
  */
 
-/* Import Tailwind - generates utility classes based on source code */
 @import "tailwindcss";
 
-/* Inter font-face declarations */
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter/InterVariable.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter/InterVariable-Italic.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: italic;
-}
-
-/* Canvas-specific theme extensions */
+/* Canvas-specific theme extensions + font override */
 @theme {
+  /* Re-assert the UI library's font to override Tailwind's default --font-sans */
+  --font-sans: "Red Hat Text", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
   /* Canvas Elements */
   --canvas-shape-border-default: var(--canvas-shape-border-default);
   --canvas-shape-border-hover: var(--canvas-shape-border-hover);

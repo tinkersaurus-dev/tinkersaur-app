@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 import type { Persona } from '@/entities/persona';
-import type { UseCase } from '@/entities/use-case';
+import type { UserGoal } from '@/entities/user-goal';
 import type { Feedback } from '@/entities/feedback';
 import type { Outcome } from '@/entities/outcome';
 import type { TagColor } from '@tinkersaur/ui';
 import { FEEDBACK_TYPE_CONFIG, FEEDBACK_TAG_COLORS, isUnlinkedFeedback } from '@/entities/feedback';
 import { getDaysSinceUpdate, filterStalePersonas } from '@/entities/persona';
-import { filterWeakEvidenceUseCases } from '@/entities/use-case';
+import { filterWeakEvidenceUserGoals } from '@/entities/user-goal';
 import { filterUnlinkedOutcomes } from '@/entities/outcome';
 import {
   PersonaIcon,
@@ -19,7 +19,7 @@ import {
 
 export interface EntityData {
   personas: Persona[];
-  useCases: UseCase[];
+  userGoals: UserGoal[];
   feedbacks: Feedback[];
   outcomes: Outcome[];
 }
@@ -116,21 +116,21 @@ export const DASHBOARD_RULES: DashboardRule[] = [
     },
   },
   {
-    id: 'weak-evidence-use-cases',
+    id: 'weak-evidence-user-goals',
     title: 'Weak Evidence',
     icon: <UseCaseIcon />,
     severity: 'info',
-    actionLink: '/discovery/organize/use-cases?weakEvidence=true',
+    actionLink: '/discovery/organize/user-goals?weakEvidence=true',
     actionLabel: 'View all',
-    evaluate: ({ useCases }) => {
-      const weak = filterWeakEvidenceUseCases(useCases);
+    evaluate: ({ userGoals }) => {
+      const weak = filterWeakEvidenceUserGoals(userGoals);
       if (weak.length === 0) return null;
       return {
         count: weak.length,
-        items: weak.slice(0, MAX_PREVIEW_ITEMS).map((uc) => ({
-          id: uc.id,
-          title: uc.name,
-          subtitle: `${uc.feedbackIds?.length ?? 0} feedback · ${uc.personaIds?.length ?? 0} personas`,
+        items: weak.slice(0, MAX_PREVIEW_ITEMS).map((ug) => ({
+          id: ug.id,
+          title: ug.name,
+          subtitle: `${ug.feedbackIds?.length ?? 0} feedback · ${ug.personaIds?.length ?? 0} personas`,
         })),
       };
     },
@@ -168,11 +168,11 @@ export const STAT_CONFIGS: StatConfig[] = [
     link: '/discovery/organize/personas',
   },
   {
-    id: 'use-cases',
-    label: 'Use Cases',
+    id: 'user-goals',
+    label: 'User Goals',
     icon: <UseCaseIcon />,
-    getData: (data) => data.useCases,
-    link: '/discovery/organize/use-cases',
+    getData: (data) => data.userGoals,
+    link: '/discovery/organize/user-goals',
   },
   {
     id: 'feedback',

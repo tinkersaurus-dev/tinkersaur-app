@@ -10,10 +10,10 @@ import type { UseCaseListParams } from '@/shared/api';
 /**
  * Query hook for fetching use cases by team
  */
-export function useUseCasesByTeamQuery(teamId: string | undefined, unassignedOnly = false) {
+export function useUseCasesByTeamQuery(teamId: string | undefined) {
   return useQuery({
-    queryKey: queryKeys.useCases.listByTeam(teamId!, unassignedOnly),
-    queryFn: () => useCaseApi.listByTeam(teamId!, unassignedOnly),
+    queryKey: queryKeys.useCases.listByTeam(teamId!),
+    queryFn: () => useCaseApi.listByTeam(teamId!),
     enabled: !!teamId,
     staleTime: STALE_TIMES.useCases,
     refetchOnWindowFocus: 'always',
@@ -54,10 +54,10 @@ export function useUseCaseQuery(useCaseId: string | undefined) {
 /**
  * Prefetch use cases by team for SSR
  */
-export function prefetchUseCasesByTeam(teamId: string, unassignedOnly = false) {
+export function prefetchUseCasesByTeam(teamId: string) {
   return {
-    queryKey: queryKeys.useCases.listByTeam(teamId, unassignedOnly),
-    queryFn: () => useCaseApi.listByTeam(teamId, unassignedOnly),
+    queryKey: queryKeys.useCases.listByTeam(teamId),
+    queryFn: () => useCaseApi.listByTeam(teamId),
     staleTime: STALE_TIMES.useCases,
   };
 }

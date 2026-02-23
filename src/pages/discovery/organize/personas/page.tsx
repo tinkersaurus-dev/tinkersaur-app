@@ -6,11 +6,11 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge, FiX } from 'react-icons/fi';
-import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
+import { PageHeader, PageContent, EntityList, Empty, Tag } from '@/shared/ui';
 import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Persona } from '@/entities/persona';
-import { usePersonasPaginatedQuery, usePersonasQuery, filterStalePersonas } from '@/entities/persona';
+import { usePersonasPaginatedQuery, usePersonasQuery, filterStalePersonas, getDaysSinceLastIntake, getFreshness } from '@/entities/persona';
 import { useSolutionsQuery } from '@/entities/solution';
 import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
@@ -82,7 +82,7 @@ export default function PersonasListPage() {
       render: (_, record) => (
         <Link
           to={`/discovery/organize/personas/${record.id}`}
-          className="text-[var(--primary)] text-xs hover:underline font-medium"
+          className="text-[var(--primary)] text-base hover:underline font-medium"
         >
           {record.name}
         </Link>
@@ -95,7 +95,7 @@ export default function PersonasListPage() {
       sorter: true,
       sortField: 'role',
       render: (value) => (
-        <span className="text-[var(--text-muted)]">{value as string || '—'}</span>
+        <span className="text-[var(--text-muted)] text-base">{value as string || '—'}</span>
       ),
     },
     {
@@ -105,10 +105,38 @@ export default function PersonasListPage() {
       sorter: true,
       sortField: 'description',
       render: (value) => (
-        <span className="line-clamp-2 text-[var(--text-muted)]">
+        <span className="line-clamp-2 text-[var(--text-muted)] text-base">
           {value as string || '—'}
         </span>
       ),
+    },
+    {
+      key: 'lastIntakeDays',
+      title: 'Last Intake',
+      width: 110,
+      sorter: true,
+      sortField: 'lastintakeat',
+      render: (_, record) => {
+        const days = getDaysSinceLastIntake(record);
+        return (
+          <span className="text-[var(--text-muted)] text-base tabular-nums">
+            {days !== null ? `${days}d ago` : '—'}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'freshness',
+      title: 'Freshness',
+      width: 110,
+      sorter: true,
+      sortField: 'lastintakeat',
+      render: (_, record) => {
+        const freshness = getFreshness(record);
+        if (!freshness) return <span className="text-[var(--text-muted)] text-base">—</span>;
+        const color = freshness === 'Fresh' ? 'green' : freshness === 'Moderate' ? 'amber' : 'red';
+        return <Tag color={color}>{freshness}</Tag>;
+      },
     },
     {
       key: 'createdAt',
@@ -118,7 +146,7 @@ export default function PersonasListPage() {
       sorter: true,
       sortField: 'createdAt',
       render: (value) => (
-        <span className="text-[var(--text-muted)]">
+        <span className="text-[var(--text-muted)] text-base">
           {new Date(value as Date).toLocaleDateString()}
         </span>
       ),
@@ -163,7 +191,7 @@ export default function PersonasListPage() {
         ) : (
           <>
             {isStaleFilter && (
-              <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-sm bg-amber-500/5 border border-amber-500/20 text-xs text-[var(--text)]">
+              <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-sm bg-amber-500/5 border border-amber-500/20 text-base text-[var(--text)]">
                 <span>Showing <strong>stale personas</strong> (not updated in {staleThreshold}+ days)</span>
                 <button
                   type="button"

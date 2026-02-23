@@ -14,7 +14,7 @@ import { FEEDBACK_TYPE_CONFIG, isUnlinkedFeedback } from '@/entities/feedback';
 import { useFeedbacksPaginatedQuery, useFeedbacksQuery } from '@/entities/feedback';
 import { useSolutionsQuery } from '@/entities/solution';
 import { usePersonasQuery } from '@/entities/persona';
-import { useUseCasesByTeamQuery } from '@/entities/use-case';
+import { useUserGoalsByTeamQuery } from '@/entities/user-goal';
 import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/features/auth';
 import { FeedbackMergeModal } from '@/features/entity-merging';
@@ -26,7 +26,7 @@ export default function FeedbackListPage() {
 
   // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
-    filterKeys: ['solutionId', 'personaIds', 'useCaseIds', 'unlinked'],
+    filterKeys: ['solutionId', 'personaIds', 'userGoalIds', 'unlinked'],
     defaultSortBy: 'weight',
     defaultSortOrder: 'desc',
   });
@@ -40,11 +40,11 @@ export default function FeedbackListPage() {
     return ids.split(',').filter(Boolean);
   }, [urlState.filters.personaIds]);
 
-  const useCaseIds = useMemo(() => {
-    const ids = urlState.filters.useCaseIds;
+  const userGoalIds = useMemo(() => {
+    const ids = urlState.filters.userGoalIds;
     if (!ids) return undefined;
     return ids.split(',').filter(Boolean);
-  }, [urlState.filters.useCaseIds]);
+  }, [urlState.filters.userGoalIds]);
 
   // Build query params from URL state (disabled when using unlinked filter)
   const queryParams = useMemo(() => {
@@ -56,11 +56,11 @@ export default function FeedbackListPage() {
       search: urlState.search || undefined,
       solutionId: urlState.filters.solutionId || undefined,
       personaIds,
-      useCaseIds,
+      userGoalIds,
       sortBy: urlState.sortBy || undefined,
       sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, isUnlinkedFilter, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds, useCaseIds, urlState.sortBy, urlState.sortOrder]);
+  }, [teamId, isUnlinkedFilter, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds, userGoalIds, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching — use non-paginated query when unlinked filter is active
   const { data, isLoading } = useFeedbacksPaginatedQuery(queryParams);
@@ -82,7 +82,7 @@ export default function FeedbackListPage() {
   const displayLoading = isUnlinkedFilter ? allFeedbacksLoading : isLoading;
   const { data: solutions = [] } = useSolutionsQuery(teamId);
   const { data: personas = [] } = usePersonasQuery(teamId);
-  const { data: useCases = [] } = useUseCasesByTeamQuery(teamId);
+  const { data: userGoals = [] } = useUserGoalsByTeamQuery(teamId);
 
   // Merge modal state
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
@@ -126,7 +126,7 @@ export default function FeedbackListPage() {
       render: (_, record) => (
         <Link
           to={`/discovery/organize/feedback/${record.id}`}
-          className="text-[var(--primary)] hover:underline line-clamp-2 text-xs"
+          className="text-[var(--primary)] hover:underline line-clamp-2 text-base"
         >
           {record.content}
         </Link>
@@ -143,7 +143,7 @@ export default function FeedbackListPage() {
         const weight = value as number;
         if (!weight || weight === 0) return null;
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--primary)]/10 text-[var(--primary)]">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-base font-medium bg-[var(--primary)]/10 text-[var(--primary)]">
             +{weight}
           </span>
         );
@@ -157,10 +157,10 @@ export default function FeedbackListPage() {
       sorter: true,
       sortField: 'solutionId',
       render: (value) => {
-        if (!value) return <span className="text-[var(--text-muted)]">—</span>;
+        if (!value) return <span className="text-[var(--text-muted)] text-base">—</span>;
         const solution = solutions.find(s => s.id === value);
         return (
-          <span>
+          <span className="text-[var(--text-muted)] text-base">
             {solution?.name || 'Unknown'}
           </span>
         );
@@ -174,7 +174,7 @@ export default function FeedbackListPage() {
       sorter: true,
       sortField: 'createdAt',
       render: (value) => (
-        <span className="text-[var(--text-muted)]">
+        <span className="text-[var(--text-muted)] text-base">
           {new Date(value as Date).toLocaleDateString()}
         </span>
       ),
@@ -198,13 +198,13 @@ export default function FeedbackListPage() {
       showSearch: true,
     },
     {
-      key: 'useCaseIds',
-      label: 'Use Cases',
+      key: 'userGoalIds',
+      label: 'User Goals',
       type: 'multiselect',
-      options: useCases.map((uc) => ({ value: uc.id, label: uc.name })),
+      options: userGoals.map((ug) => ({ value: ug.id, label: ug.name })),
       showSearch: true,
     },
-  ], [solutions, personas, useCases]);
+  ], [solutions, personas, userGoals]);
 
   // Handle merge modal close
   const handleMergeModalClose = () => {
@@ -255,7 +255,7 @@ export default function FeedbackListPage() {
               urlState={urlState}
               columns={columns}
               filters={filters}
-              multiSelectFilterKeys={['personaIds', 'useCaseIds']}
+              multiSelectFilterKeys={['personaIds', 'userGoalIds']}
               searchPlaceholder="Search feedback..."
               emptyDescription="No feedback found. Adjust your filters or add new feedback."
               actions={(selection) =>
