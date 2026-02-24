@@ -10,7 +10,7 @@ import {
   endOfWeek,
 } from 'date-fns';
 import type { Feedback } from '@/entities/feedback';
-import { ALL_FEEDBACK_TYPES, resolveFeedbackDate } from '@/entities/feedback';
+import { resolveFeedbackDate } from '@/entities/feedback';
 import type { TimeGranularity } from './useAnalyzeFilterState';
 
 export interface TimelineBucket {
@@ -127,6 +127,3 @@ export function useTimelineBuckets(
     return Array.from(bucketMap.values());
   }, [feedback, granularity, intakeSourceDateMap]);
 }
-
-/** @deprecated Import ALL_FEEDBACK_TYPES from '@/entities/feedback' instead */
-export { ALL_FEEDBACK_TYPES as FEEDBACK_TYPES };

@@ -20,11 +20,9 @@ export { useCaseApi } from './api/useCaseApi';
 export {
   useUseCasesByTeamQuery,
   useUseCasesBySolutionQuery,
-  useUseCasesQuery,
   useUseCaseQuery,
   prefetchUseCasesByTeam,
   prefetchUseCasesBySolution,
-  prefetchUseCases,
   prefetchUseCase,
   useUseCasesPaginatedQuery,
   useUseCaseDetailsQuery,
@@ -42,7 +40,6 @@ export { UseCaseFeedbackTab } from './ui/use-case-detail/UseCaseFeedbackTab';
 export { UseCaseBasicInfo } from './ui/use-case-detail/UseCaseBasicInfo';
 export { UseCaseSupportingQuotes } from './ui/use-case-detail/UseCaseSupportingQuotes';
 export { AddRequirementModal } from './ui/use-case-detail/AddRequirementModal';
-export { UseCasePlanTabMockup } from './ui/use-case-detail/UseCasePlanTab.mockup';
 export { UseCasePersonasSidebar } from './ui/use-case-detail/UseCasePersonasSidebar';
 export { UseCaseVersionsTab } from './ui/use-case-detail/UseCaseVersionsTab';
 export { useUseCaseFeedback } from './ui/use-case-detail/useUseCaseFeedback';

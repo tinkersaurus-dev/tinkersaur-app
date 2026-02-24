@@ -20,6 +20,7 @@ export function useCollaborationConnection() {
   const connectingRef = useRef(false);
   const connectedRef = useRef(false);
   const mountedRef = useRef(true);
+  const handlersRegisteredRef = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -54,33 +55,39 @@ export function useCollaborationConnection() {
         connectingRef.current = false;
         setConnectionState('connected', connection.connectionId ?? null);
 
-        // Set up reconnection handlers
-        collaborationHub.onReconnecting(() => {
-          if (mountedRef.current) {
-            setConnectionState('reconnecting');
-          }
-        });
+        // Set up reconnection handlers (guard against duplicate registration
+        // since SignalR's onreconnecting/onreconnected/onclose append callbacks)
+        if (!handlersRegisteredRef.current) {
+          handlersRegisteredRef.current = true;
 
-        collaborationHub.onReconnected((connectionId) => {
-          if (mountedRef.current) {
-            setConnectionState('connected', connectionId ?? null);
-          }
-        });
-
-        collaborationHub.onClose((error) => {
-          connectedRef.current = false;
-          if (mountedRef.current) {
-            setConnectionState('disconnected');
-
-            // Check if this was due to exhausted reconnection attempts
-            if (isReconnectionExhausted()) {
-              setPermanentlyDisconnected(true);
-              toast.error('Connection lost. Please refresh the page to reconnect.');
-            } else if (error) {
-              setConnectionError(error.message);
+          collaborationHub.onReconnecting(() => {
+            if (mountedRef.current) {
+              setConnectionState('reconnecting');
             }
-          }
-        });
+          });
+
+          collaborationHub.onReconnected((connectionId) => {
+            if (mountedRef.current) {
+              setConnectionState('connected', connectionId ?? null);
+            }
+          });
+
+          collaborationHub.onClose((error) => {
+            connectedRef.current = false;
+            handlersRegisteredRef.current = false;
+            if (mountedRef.current) {
+              setConnectionState('disconnected');
+
+              // Check if this was due to exhausted reconnection attempts
+              if (isReconnectionExhausted()) {
+                setPermanentlyDisconnected(true);
+                toast.error('Connection lost. Please refresh the page to reconnect.');
+              } else if (error) {
+                setConnectionError(error.message);
+              }
+            }
+          });
+        }
       } catch (error) {
         connectingRef.current = false;
         if (mountedRef.current) {
@@ -104,6 +111,7 @@ export function useCollaborationConnection() {
     if (!isAuthenticated && connectedRef.current) {
       connectedRef.current = false;
       connectingRef.current = false;
+      handlersRegisteredRef.current = false;
       collaborationHub.disconnect();
     }
   }, [isAuthenticated]);

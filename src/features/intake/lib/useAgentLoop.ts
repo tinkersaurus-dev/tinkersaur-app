@@ -12,14 +12,21 @@ import type {
 } from '../model/types';
 
 export function useAgentLoop() {
-  const store = useIntakeStore();
+  const startSession = useIntakeStore((s) => s.startSession);
+  const setPhase = useIntakeStore((s) => s.setPhase);
+  const setDocumentType = useIntakeStore((s) => s.setDocumentType);
+  const setSuggestedExtractions = useIntakeStore((s) => s.setSuggestedExtractions);
+  const addExtraction = useIntakeStore((s) => s.addExtraction);
+  const addHighlight = useIntakeStore((s) => s.addHighlight);
+  const setError = useIntakeStore((s) => s.setError);
+  const setDocumentContent = useIntakeStore((s) => s.setDocumentContent);
   const contentBufferRef = useRef('');
 
   const handleSessionStarted = useCallback(
     (session: AgentSessionStarted) => {
-      store.startSession(session.sessionId);
+      startSession(session.sessionId);
     },
-    [store]
+    [startSession]
   );
 
   const handleToolCall = useCallback(
@@ -33,8 +40,8 @@ export function useAgentLoop() {
             suggested: ExtractionType[];
             confidence: number;
           };
-          store.setDocumentType(args.type);
-          store.setSuggestedExtractions(args.suggested);
+          setDocumentType(args.type);
+          setSuggestedExtractions(args.suggested);
           break;
         }
 
@@ -52,14 +59,14 @@ export function useAgentLoop() {
             status: 'pending',
           };
 
-          store.addExtraction(extraction);
+          addExtraction(extraction);
 
           // Store the first quote for highlighting (position found at render time)
           // Skip highlighting for personas since they appear in the sidebar
           if (args.type !== 'personas') {
             const quotes = (args.entity.quotes as string[]) ?? [];
             if (quotes.length > 0 && quotes[0]) {
-              store.addHighlight({
+              addHighlight({
                 id: crypto.randomUUID(),
                 extractionId,
                 quote: quotes[0],
@@ -74,7 +81,7 @@ export function useAgentLoop() {
 
         case 'show_suggestions': {
           const args = toolCall.arguments as { types: ExtractionType[] };
-          store.setSuggestedExtractions(args.types);
+          setSuggestedExtractions(args.types);
           break;
         }
 
@@ -82,7 +89,7 @@ export function useAgentLoop() {
           console.warn('Unknown tool call:', toolCall.name);
       }
     },
-    [store]
+    [setDocumentType, setSuggestedExtractions, addExtraction, addHighlight]
   );
 
   const handleDelta = useCallback((content: string) => {
@@ -91,24 +98,24 @@ export function useAgentLoop() {
 
   const handleComplete = useCallback(
     (_session: AgentSessionComplete) => {
-      store.setPhase('complete');
+      setPhase('complete');
     },
-    [store]
+    [setPhase]
   );
 
   const handleError = useCallback(
     (error: AgentError) => {
-      store.setError(error.error);
-      store.setPhase('idle');
+      setError(error.error);
+      setPhase('idle');
     },
-    [store]
+    [setError, setPhase]
   );
 
   const handleCancelled = useCallback(
     (_sessionId: string) => {
-      store.setPhase('idle');
+      setPhase('idle');
     },
-    [store]
+    [setPhase]
   );
 
   // Start extraction analysis
@@ -120,8 +127,8 @@ export function useAgentLoop() {
       return;
     }
 
-    store.setPhase('extracting');
-    store.setError(null);
+    setPhase('extracting');
+    setError(null);
     contentBufferRef.current = '';
 
     try {
@@ -132,34 +139,34 @@ export function useAgentLoop() {
       });
     } catch (error) {
       console.error('Failed to start extraction:', error);
-      store.setError(error instanceof Error ? error.message : 'Failed to start extraction');
-      store.setPhase('suggesting'); // Go back to suggestions so user can retry
+      setError(error instanceof Error ? error.message : 'Failed to start extraction');
+      setPhase('suggesting'); // Go back to suggestions so user can retry
     }
-  }, [store]);
+  }, [setPhase, setError]);
 
   // Detect document type (first step after paste)
   const detectType = useCallback(async (content: string) => {
-    store.setDocumentContent(content);
-    store.setPhase('detecting');
-    store.setError(null);
+    setDocumentContent(content);
+    setPhase('detecting');
+    setError(null);
 
     try {
       const detection = await agentHub.detectDocumentType(content);
       if (detection) {
-        store.setDocumentType(detection.type);
-        store.setSuggestedExtractions(detection.suggested);
+        setDocumentType(detection.type);
+        setSuggestedExtractions(detection.suggested);
       } else {
         // No detection result, fall back to all types
-        store.setSuggestedExtractions(['personas', 'userGoals', 'feedback', 'outcomes']);
+        setSuggestedExtractions(['personas', 'userGoals', 'feedback', 'outcomes']);
       }
-      store.setPhase('suggesting');
+      setPhase('suggesting');
     } catch (error) {
       console.error('Failed to detect document type:', error);
       // Fall back to manual selection
-      store.setSuggestedExtractions(['personas', 'userGoals', 'feedback', 'outcomes']);
-      store.setPhase('suggesting');
+      setSuggestedExtractions(['personas', 'userGoals', 'feedback', 'outcomes']);
+      setPhase('suggesting');
     }
-  }, [store]);
+  }, [setDocumentContent, setPhase, setError, setDocumentType, setSuggestedExtractions]);
 
   // Set up event handlers - only register, don't manage connection lifecycle
   // Connection is managed by IntakePage

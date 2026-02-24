@@ -162,15 +162,3 @@ export function offFacilitationTransferred(callback: (data: FacilitationTransfer
   handlers.facilitationTransferred.delete(callback);
   getConnection()?.off('OnFacilitationTransferred', callback);
 }
-
-// Re-register all stored handlers on a connection (called after reconnect)
-export function registerAllPointingHandlers(conn: signalR.HubConnection): void {
-  handlers.sessionStarted.forEach((cb) => conn.on('OnPointingSessionStarted', cb));
-  handlers.voteReceived.forEach((cb) => conn.on('OnVoteReceived', cb));
-  handlers.allVotesIn.forEach((cb) => conn.on('OnAllVotesIn', cb));
-  handlers.revoteStarted.forEach((cb) => conn.on('OnRevoteStarted', cb));
-  handlers.sessionCompleted.forEach((cb) => conn.on('OnPointingSessionCompleted', cb));
-  handlers.sessionCancelled.forEach((cb) => conn.on('OnPointingSessionCancelled', cb));
-  handlers.sessionTimedOut.forEach((cb) => conn.on('OnSessionTimedOut', cb));
-  handlers.facilitationTransferred.forEach((cb) => conn.on('OnFacilitationTransferred', cb));
-}

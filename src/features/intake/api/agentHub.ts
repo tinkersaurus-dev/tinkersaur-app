@@ -143,6 +143,10 @@ export async function disconnect(): Promise<void> {
     await connection.stop();
     connection = null;
   }
+
+  // Clear all handler Sets to prevent stale callbacks from persisting
+  // across disconnect/reconnect cycles (e.g., page navigation before useEffect cleanup)
+  Object.values(handlers).forEach((set) => set.clear());
 }
 
 // Hub method invocations

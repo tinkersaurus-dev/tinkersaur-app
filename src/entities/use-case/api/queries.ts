@@ -34,11 +34,6 @@ export function useUseCasesBySolutionQuery(solutionId: string | undefined) {
 }
 
 /**
- * @deprecated Use useUseCasesBySolutionQuery instead
- */
-export const useUseCasesQuery = useUseCasesBySolutionQuery;
-
-/**
  * Query hook for fetching a single use case
  */
 export function useUseCaseQuery(useCaseId: string | undefined) {
@@ -72,11 +67,6 @@ export function prefetchUseCasesBySolution(solutionId: string) {
     staleTime: STALE_TIMES.useCases,
   };
 }
-
-/**
- * @deprecated Use prefetchUseCasesBySolution instead
- */
-export const prefetchUseCases = prefetchUseCasesBySolution;
 
 /**
  * Prefetch a single use case for SSR

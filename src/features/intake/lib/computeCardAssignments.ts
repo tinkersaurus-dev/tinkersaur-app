@@ -79,6 +79,24 @@ function findNormalizedMatch(content: string, quote: string): number | null {
 }
 
 /**
+ * Split a quote on ellipsis markers ("..." or "\u2026").
+ * Returns segments that should each be matched independently.
+ */
+function splitOnEllipsis(quote: string): string[] {
+  const segments = quote.split(/\s*(?:\.{3}|\u2026)\s*/).filter(s => s.length > 0);
+  return segments.length > 0 ? segments : [quote];
+}
+
+/**
+ * Find a quote in content, handling "..." ellipsis snipping.
+ * For quotes with "...", matches the first segment and returns its position.
+ */
+function findQuoteMatch(content: string, quote: string): number | null {
+  const segments = splitOnEllipsis(quote);
+  return findNormalizedMatch(content, segments[0]);
+}
+
+/**
  * Calculate paragraph boundaries from content.
  * Each paragraph is separated by '\n'.
  */
@@ -169,7 +187,7 @@ export function computeCardAssignments({
     let earliestPosition = Infinity;
 
     for (const highlight of extractionHighlights) {
-      const position = findNormalizedMatch(content, highlight.quote);
+      const position = findQuoteMatch(content, highlight.quote);
       if (position !== null && position < earliestPosition) {
         earliestPosition = position;
       }

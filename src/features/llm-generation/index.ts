@@ -78,11 +78,6 @@ export {
 
 // Discovery APIs
 export {
-  parseTranscript,
-  ParseTranscriptAPIError,
-} from './api/parse-transcript-api';
-
-export {
   mergePersonas,
   MergePersonasAPIError,
   type PersonaInput,

@@ -85,11 +85,49 @@ function findNormalizedMatch(
 }
 
 /**
+ * Split a quote on ellipsis markers ("..." or "\u2026").
+ * Returns segments that should each be matched independently.
+ */
+function splitOnEllipsis(quote: string): string[] {
+  const segments = quote.split(/\s*(?:\.{3}|\u2026)\s*/).filter(s => s.length > 0);
+  return segments.length > 0 ? segments : [quote];
+}
+
+/**
+ * Find all segment positions for a quote that may contain "..." ellipsis.
+ * Returns an array of {start, end} positions, one per segment.
+ */
+function findQuoteSegmentPositions(
+  content: string,
+  quote: string
+): Array<{ start: number; end: number }> | null {
+  const segments = splitOnEllipsis(quote);
+
+  if (segments.length === 1) {
+    const match = findNormalizedMatch(content, segments[0], 0);
+    return match ? [match] : null;
+  }
+
+  const positions: Array<{ start: number; end: number }> = [];
+  let searchFrom = 0;
+
+  for (const segment of segments) {
+    const match = findNormalizedMatch(content, segment, searchFrom);
+    if (!match) return null;
+    positions.push(match);
+    searchFrom = match.end;
+  }
+
+  return positions;
+}
+
+/**
  * Find all highlight positions in the content.
  * Returns sorted, non-overlapping positions (first match wins for duplicates).
  * Uses normalized matching to handle LLM modifications:
  * - Case differences (capitalizing quote starts)
  * - Quote mark variations (" vs ' vs curly quotes)
+ * - Ellipsis snipping ("..." between verbatim segments)
  */
 function findHighlightPositions(
   content: string,
@@ -99,13 +137,15 @@ function findHighlightPositions(
   const failures: Array<{ type: string; quote: string }> = [];
 
   for (const highlight of highlights) {
-    const match = findNormalizedMatch(content, highlight.quote, 0);
-    if (match) {
-      positions.push({
-        highlight,
-        start: match.start,
-        end: match.end,
-      });
+    const segmentPositions = findQuoteSegmentPositions(content, highlight.quote);
+    if (segmentPositions) {
+      for (const pos of segmentPositions) {
+        positions.push({
+          highlight,
+          start: pos.start,
+          end: pos.end,
+        });
+      }
     } else {
       // Log each failure with full quote
       console.warn(`[Highlight FAIL] ${highlight.type}:`, highlight.quote);

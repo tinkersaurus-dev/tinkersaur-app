@@ -104,7 +104,7 @@ export const HighlightableDocument = forwardRef<HighlightableDocumentRef, Highli
     marks.forEach((mark) => {
       const ids = mark.dataset.highlightId?.split(',') ?? [];
       ids.forEach((id) => {
-        if (id) {
+        if (id && !highlightRefs.current.has(id)) {
           highlightRefs.current.set(id, mark);
         }
       });
