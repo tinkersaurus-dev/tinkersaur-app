@@ -11,7 +11,7 @@
 import { useMemo } from 'react';
 import { useStore } from 'zustand';
 import { createViewportTransform, type ViewportTransform } from '../utils/viewport';
-import type { CanvasInstanceStore } from '@/app/model/stores/canvas/createCanvasInstanceStore';
+import type { CanvasInstanceStore } from '@/shared/model/stores/canvas/createCanvasInstanceStore';
 
 /**
  * Extract viewport state and create ViewportTransform object

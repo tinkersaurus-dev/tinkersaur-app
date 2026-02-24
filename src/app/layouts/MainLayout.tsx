@@ -8,7 +8,7 @@ import { Outlet } from 'react-router';
 import { Layout } from '@/shared/ui';
 import { GlobalSidebar } from '@/widgets/global-sidebar';
 import { ContextualSubHeader } from '@/widgets/contextual-sub-header';
-import { useSidebarUIStore } from '@/app/model/stores/sidebar-ui';
+import { useSidebarUIStore } from '@/widgets/global-sidebar';
 
 // Collapsed sidebar width (just enough for expand icon)
 const SIDEBAR_COLLAPSED_WIDTH = 48;

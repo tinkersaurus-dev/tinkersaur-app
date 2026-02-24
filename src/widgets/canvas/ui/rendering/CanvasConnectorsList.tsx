@@ -7,7 +7,7 @@ import type { ConnectorRenderContext } from '@/features/diagram-rendering/shared
 import {
   useOverlayVisibilityStore,
   isOverlayElementVisible,
-} from '@/app/model/stores/overlay/overlayVisibilityStore';
+} from '@/features/diagram-management';
 
 interface CanvasConnectorsListProps {
   connectors: Connector[];

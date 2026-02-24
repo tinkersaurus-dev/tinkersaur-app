@@ -1,6 +1,26 @@
-import { canvasInstanceRegistry } from './canvasInstanceRegistry';
-import type { CanvasInstanceStore } from './createCanvasInstanceStore';
+import { canvasInstanceRegistry } from '@/shared/model/stores/canvas/canvasInstanceRegistry';
+import type { CanvasInstanceStore } from '@/shared/model/stores/canvas/createCanvasInstanceStore';
+import { defaultBpmnConnectorType } from './bpmn/connectors';
+import { defaultClassConnectorType } from './class/connectors';
+import { defaultSequenceConnectorType } from './sequence/connectors';
 import type { DiagramType } from '@/entities/diagram';
+
+/**
+ * Resolves a diagram type to its default connector type string.
+ */
+function getDefaultConnectorType(diagramType?: DiagramType): string {
+  if (!diagramType) return 'line';
+  switch (diagramType) {
+    case 'bpmn':
+      return defaultBpmnConnectorType;
+    case 'class':
+      return defaultClassConnectorType;
+    case 'sequence':
+      return defaultSequenceConnectorType;
+    default:
+      return 'line';
+  }
+}
 
 /**
  * Use Canvas Instance Hook
@@ -31,6 +51,6 @@ import type { DiagramType } from '@/entities/diagram';
  * ```
  */
 export function useCanvasInstance(diagramId: string, diagramType?: DiagramType): CanvasInstanceStore {
-  // Get or create the store for this diagram from the registry
-  return canvasInstanceRegistry.getStore(diagramId, diagramType);
+  const initialConnectorType = getDefaultConnectorType(diagramType);
+  return canvasInstanceRegistry.getStore(diagramId, initialConnectorType);
 }

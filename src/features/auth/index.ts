@@ -2,6 +2,8 @@ export { authApi } from './api/authApi';
 export { useAuthStore } from './model/useAuthStore';
 export { AuthGuard } from './ui/AuthGuard';
 export { useCanEdit } from './lib/useCanEdit';
+export { PASSWORD_REQUIREMENTS, isPasswordValid } from './lib/passwordValidation';
+export type { PasswordRequirement } from './lib/passwordValidation';
 export type {
   TeamRole,
   TeamAccess,

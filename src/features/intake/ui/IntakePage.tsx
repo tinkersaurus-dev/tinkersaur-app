@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { useIntakeStore } from '../model/useIntakeStore';
 import * as agentHub from '../api/agentHub';
+import { useAgentLoop } from '../lib/useAgentLoop';
 import { InlineDocumentWithCards } from './editor/InlineDocumentWithCards';
 import { ExtractionSuggestions } from './suggestions/ExtractionSuggestions';
 import { PersonaSidebar } from './sidebar';
@@ -25,6 +26,7 @@ export function IntakePage() {
   const acceptAllExtractions = useIntakeStore((state) => state.acceptAllExtractions);
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const { saveIntakeResult, isSaving } = useSaveIntakeResult();
+  const { startExtraction, detectType } = useAgentLoop();
 
   // Calculate extraction counts for header
   const totalExtractions = extractions.size;
@@ -340,7 +342,7 @@ export function IntakePage() {
             <HStack justify="between" align="center">
               <div>
                 {phase === 'suggesting' ? (
-                  <ExtractionSuggestions />
+                  <ExtractionSuggestions onStartExtraction={startExtraction} />
                 ) : phase === 'detecting' ? (
                   <HStack gap="xs" align="center">
                     <Spinner />
@@ -371,7 +373,7 @@ export function IntakePage() {
           <div className="flex-1 min-h-0 flex">
             {/* Document editor - takes remaining space */}
             <div className="flex-1 overflow-auto bg-[var(--bg)] border border-[var(--border)] rounded-sm">
-              <InlineDocumentWithCards className="p-4 min-h-[400px]" />
+              <InlineDocumentWithCards className="p-4 min-h-[400px]" onDetectType={detectType} />
             </div>
 
             {/* Persona sidebar - fixed width, appears when personas exist */}

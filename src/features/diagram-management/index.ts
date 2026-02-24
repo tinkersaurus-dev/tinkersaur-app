@@ -31,6 +31,10 @@ export { useCanvasReferenceDrop } from './lib/useCanvasReferenceDrop';
 // Diagram sync
 export { useMermaidSync } from './lib/useMermaidSync';
 
+// Stores
+export { useMermaidViewerStore } from './model/stores/mermaidViewerStore';
+export { useOverlayVisibilityStore, isOverlayElementVisible } from './model/stores/overlayVisibilityStore';
+
 // UI components
 export { CreateDiagramModal, LinkUseCaseModal } from './ui';
 export type { CreateDiagramFormData, CreateDiagramModalProps, LinkUseCaseFormData, LinkUseCaseModalProps } from './ui';

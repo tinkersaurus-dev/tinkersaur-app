@@ -1,16 +1,6 @@
 import { useState } from 'react';
-import { authApi } from '@/features/auth';
-import { useAuthStore } from '@/features/auth';
+import { authApi, useAuthStore, PASSWORD_REQUIREMENTS, isPasswordValid } from '@/features/auth';
 import { Button, Modal, PasswordInput } from '@/shared/ui';
-
-// Password requirements
-const PASSWORD_REQUIREMENTS = [
-  { test: (p: string) => p.length >= 8, label: 'At least 8 characters' },
-  { test: (p: string) => /[A-Z]/.test(p), label: 'One uppercase letter' },
-  { test: (p: string) => /[a-z]/.test(p), label: 'One lowercase letter' },
-  { test: (p: string) => /[0-9]/.test(p), label: 'One number' },
-  { test: (p: string) => /[^a-zA-Z0-9]/.test(p), label: 'One special character' },
-];
 
 interface ChangePasswordModalProps {
   open: boolean;
@@ -28,7 +18,7 @@ export function ChangePasswordModal({ open, onClose, forced = false }: ChangePas
 
   const clearMustChangePassword = useAuthStore((state) => state.clearMustChangePassword);
 
-  const isPasswordValid = PASSWORD_REQUIREMENTS.every(req => req.test(newPassword));
+  const passwordValid = isPasswordValid(newPassword);
   const doPasswordsMatch = newPassword === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,7 +30,7 @@ export function ChangePasswordModal({ open, onClose, forced = false }: ChangePas
       return;
     }
 
-    if (!isPasswordValid) {
+    if (!passwordValid) {
       setError('New password does not meet requirements');
       return;
     }
@@ -138,7 +128,7 @@ export function ChangePasswordModal({ open, onClose, forced = false }: ChangePas
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Enter new password"
-              error={!!newPassword && !isPasswordValid}
+              error={!!newPassword && !passwordValid}
             />
           </div>
 
@@ -193,7 +183,7 @@ export function ChangePasswordModal({ open, onClose, forced = false }: ChangePas
             <Button
               type="submit"
               variant="primary"
-              disabled={loading || !isPasswordValid || !doPasswordsMatch || !currentPassword}
+              disabled={loading || !passwordValid || !doPasswordsMatch || !currentPassword}
               className="flex-1"
             >
               {loading ? 'Changing...' : 'Change Password'}

@@ -31,8 +31,6 @@ export function useAgentLoop() {
 
   const handleToolCall = useCallback(
     (toolCall: AgentToolCall) => {
-
-
       switch (toolCall.name) {
         case 'detect_document_type': {
           const args = toolCall.arguments as {

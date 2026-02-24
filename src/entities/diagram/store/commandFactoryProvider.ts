@@ -1,5 +1,5 @@
 import { CommandFactory, type CommandFactoryDependencies } from '@/features/canvas-commands/model/CommandFactory';
-import { canvasInstanceRegistry } from '@/app/model/stores/canvas/canvasInstanceRegistry';
+import { canvasInstanceRegistry } from '@/shared/model/stores/canvas/canvasInstanceRegistry';
 import type { Connector } from '@/entities/connector';
 import type { DiagramStoreState } from './types';
 

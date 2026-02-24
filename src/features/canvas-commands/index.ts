@@ -12,6 +12,9 @@ export type { Command, CommandScope, CommandHistoryOptions } from './model/comma
 export { CommandHistory } from './model/CommandHistory';
 export { CommandManager, commandManager } from './model/CommandManager';
 
+// Command store (UI state for undo/redo)
+export { useCommandStore } from './model/useCommandStore';
+
 // Canvas commands - Shapes
 export { AddShapeCommand } from './commands/shapes/AddShapeCommand';
 export { DeleteShapeCommand } from './commands/shapes/DeleteShapeCommand';

@@ -131,22 +131,33 @@ export async function disconnect(): Promise<void> {
   cachedSignalRToken = null;
   cachedTokenExpiry = null;
 
-  if (connectionPromise) {
+  // Snapshot references to avoid racing with concurrent connect().
+  // disconnect() is async but called without await from React cleanup,
+  // so a new connect() can run while we're awaiting stop().
+  const connToStop = connection;
+  const promiseToAwait = connectionPromise;
+
+  // Clear module refs synchronously so any new connect() starts fresh
+  connection = null;
+  connectionPromise = null;
+
+  if (promiseToAwait) {
     try {
-      await connectionPromise;
+      await promiseToAwait;
     } catch {
       // Ignore connection errors during disconnect
     }
   }
 
-  if (connection) {
-    await connection.stop();
-    connection = null;
+  if (connToStop) {
+    await connToStop.stop();
   }
 
-  // Clear all handler Sets to prevent stale callbacks from persisting
-  // across disconnect/reconnect cycles (e.g., page navigation before useEffect cleanup)
-  Object.values(handlers).forEach((set) => set.clear());
+  // Only clear handler Sets if no new connection was created during our async work.
+  // If connect() ran while we were awaiting, handlers have been re-added and must not be cleared.
+  if (connection === null) {
+    Object.values(handlers).forEach((set) => set.clear());
+  }
 }
 
 // Hub method invocations

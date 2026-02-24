@@ -1,7 +1,6 @@
 import React, { useCallback, useRef, useMemo, Fragment } from 'react';
 import { renderWithHighlights, type Highlight } from '@/shared/ui/HighlightableDocument/renderWithHighlights';
 import { useIntakeStore } from '../../model/useIntakeStore';
-import { useAgentLoop } from '../../lib/useAgentLoop';
 import { useInlineSimilarityCheck } from '../../lib/useInlineSimilarityCheck';
 import { computeCardAssignments, groupAssignmentsByParagraph } from '../../lib/computeCardAssignments';
 import { InlineCardGroup } from './InlineCardGroup';
@@ -9,6 +8,7 @@ import '@/shared/ui/HighlightableDocument/HighlightableDocument.css';
 
 interface InlineDocumentWithCardsProps {
   className?: string;
+  onDetectType: (content: string) => void;
 }
 
 const MIN_PASTE_LENGTH = 50;
@@ -17,7 +17,7 @@ const MIN_PASTE_LENGTH = 50;
  * Renders the document with entity cards inserted inline after paragraphs.
  * Replaces the two-column layout (IntakeEditor + ExtractionSidebar).
  */
-export function InlineDocumentWithCards({ className = '' }: InlineDocumentWithCardsProps) {
+export function InlineDocumentWithCards({ className = '', onDetectType }: InlineDocumentWithCardsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Store state
@@ -27,8 +27,6 @@ export function InlineDocumentWithCards({ className = '' }: InlineDocumentWithCa
   const extractions = useIntakeStore((state) => state.extractions);
   const activeHighlightId = useIntakeStore((state) => state.activeHighlightId);
   const setActiveExtraction = useIntakeStore((state) => state.setActiveExtraction);
-
-  const { detectType } = useAgentLoop();
 
   // Check for similar existing entities after extraction completes
   useInlineSimilarityCheck();
@@ -59,11 +57,11 @@ export function InlineDocumentWithCards({ className = '' }: InlineDocumentWithCa
       const text = e.clipboardData?.getData('text/plain');
       if (text && text.length >= MIN_PASTE_LENGTH && phase === 'idle') {
         setTimeout(() => {
-          detectType(text);
+          onDetectType(text);
         }, 100);
       }
     },
-    [phase, detectType]
+    [phase, onDetectType]
   );
 
   // Handle highlight click

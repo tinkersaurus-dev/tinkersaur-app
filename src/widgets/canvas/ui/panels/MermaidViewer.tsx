@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { LuCopy, LuCheck } from 'react-icons/lu';
 import { FloatingPanel } from '@/shared/ui/FloatingPanel';
 import { Button } from '@/shared/ui';
-import { useMermaidViewerStore } from '@/app/model/stores/mermaid/mermaidViewerStore';
+import { useMermaidViewerStore } from '@/features/diagram-management';
 
 /**
  * MermaidViewer - Displays generated Mermaid syntax in a floating panel

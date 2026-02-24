@@ -15,13 +15,13 @@ import { usePersonasQuery } from '@/entities/persona';
 import { useUserGoalsByTeamQuery } from '@/entities/user-goal';
 import { useFeedbacksQuery } from '@/entities/feedback';
 import { useOutcomesQuery } from '@/entities/outcome';
-import { useDashboardData } from './useDashboardData';
 import {
+  useDashboardData,
   DashboardBanner,
   QuickStatsStrip,
   AttentionGrid,
   ActivityFeed,
-} from './components';
+} from '@/features/organize-dashboard';
 
 export default function OrganizePage() {
   const navigate = useNavigate();

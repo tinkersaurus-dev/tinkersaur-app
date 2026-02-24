@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useCommandStore } from '@/app/model/stores';
+import { useCommandStore } from '@/features/canvas-commands';
 
 interface UseKeyboardShortcutsOptions {
   /**

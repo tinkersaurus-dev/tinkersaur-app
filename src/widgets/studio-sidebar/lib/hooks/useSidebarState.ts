@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import { useDesignStudioUIStore } from '@/app/model/stores/design-studio-ui';
+import { useDesignStudioUIStore } from '@/widgets/studio-content';
 import { useDesignWorkStore } from '@/entities/design-work/store/useDesignWorkStore';
 import { useReferenceStore } from '@/entities/reference/store/useReferenceStore';
 import { useDesignStudioCRUD, useFolderReferenceDrop, useRequirementReferenceDrop } from '@/features/diagram-management';

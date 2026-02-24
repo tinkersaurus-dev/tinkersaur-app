@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
-import type { CommandScope } from '@/features/canvas-commands/model/command.types';
+import { commandManager } from './CommandManager';
+import type { CommandScope } from './command.types';
 
 /**
  * Command store state interface

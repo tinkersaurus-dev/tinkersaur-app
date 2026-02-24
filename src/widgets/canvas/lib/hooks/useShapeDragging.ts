@@ -7,7 +7,7 @@ import {
   findContainerAtPosition,
   getAllDescendantIds,
 } from '../utils/containment-utils';
-import { throttle } from '../utils/throttle';
+import { throttle } from '@/shared/lib/utils';
 
 interface UseShapeDraggingProps {
   viewportTransform: ViewportTransform;

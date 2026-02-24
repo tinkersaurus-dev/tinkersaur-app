@@ -56,6 +56,10 @@ export type { PageHeaderProps, PageContentProps, CardStackProps, EditableSection
 export { useListSelection } from '@tinkersaur/ui';
 export type { UseListSelectionOptions, UseListSelectionReturn } from '@tinkersaur/ui';
 
+// Theme (from @tinkersaur/ui)
+export { ThemeProvider, useTheme } from '@tinkersaur/ui';
+export type { Theme } from '@tinkersaur/ui';
+
 // App-specific components (not migrated to library)
 export { HighlightableDocument } from './HighlightableDocument';
 export type { HighlightableDocumentProps, HighlightableDocumentRef, Highlight } from './HighlightableDocument';

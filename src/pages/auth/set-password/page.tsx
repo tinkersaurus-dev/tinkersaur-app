@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router';
-import { authApi } from '@/features/auth';
+import { authApi, PASSWORD_REQUIREMENTS, isPasswordValid } from '@/features/auth';
 import { Button, PasswordInput } from '@/shared/ui';
 
 export function meta() {
@@ -9,15 +9,6 @@ export function meta() {
     { name: 'description', content: 'Set your Tinkersaur password' },
   ];
 }
-
-// Password requirements
-const PASSWORD_REQUIREMENTS = [
-  { test: (p: string) => p.length >= 8, label: 'At least 8 characters' },
-  { test: (p: string) => /[A-Z]/.test(p), label: 'One uppercase letter' },
-  { test: (p: string) => /[a-z]/.test(p), label: 'One lowercase letter' },
-  { test: (p: string) => /[0-9]/.test(p), label: 'One number' },
-  { test: (p: string) => /[^a-zA-Z0-9]/.test(p), label: 'One special character' },
-];
 
 export default function SetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -39,14 +30,14 @@ export default function SetPasswordPage() {
     }
   }, [email, token]);
 
-  const isPasswordValid = PASSWORD_REQUIREMENTS.every(req => req.test(password));
+  const passwordValid = isPasswordValid(password);
   const doPasswordsMatch = password === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!isPasswordValid) {
+    if (!passwordValid) {
       setError('Password does not meet requirements');
       return;
     }
@@ -124,7 +115,7 @@ export default function SetPasswordPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              error={!!error && !isPasswordValid}
+              error={!!error && !passwordValid}
               disabled={!email || !token}
             />
           </div>
@@ -171,7 +162,7 @@ export default function SetPasswordPage() {
             type="submit"
             variant="primary"
             className="w-full"
-            disabled={loading || !email || !token || !isPasswordValid || !doPasswordsMatch}
+            disabled={loading || !email || !token || !passwordValid || !doPasswordsMatch}
           >
             {loading ? 'Setting Password...' : 'Set Password'}
           </Button>

@@ -1,6 +1,6 @@
 import type { Shape } from '@/entities/shape';
 import type { Connector } from '@/entities/connector';
-import { canvasInstanceRegistry } from '@/app/model/stores/canvas/canvasInstanceRegistry';
+import { canvasInstanceRegistry } from '@/shared/model/stores/canvas/canvasInstanceRegistry';
 
 /**
  * Sync a shape operation to the canvas instance local state.

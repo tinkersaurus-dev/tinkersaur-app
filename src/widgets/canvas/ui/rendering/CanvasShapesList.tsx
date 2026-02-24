@@ -9,7 +9,7 @@ import type { ResizeHandle } from '../../lib/utils/resize';
 import {
   useOverlayVisibilityStore,
   isOverlayElementVisible,
-} from '@/app/model/stores/overlay/overlayVisibilityStore';
+} from '@/features/diagram-management';
 
 interface CanvasShapesListProps {
   shapes: Shape[];

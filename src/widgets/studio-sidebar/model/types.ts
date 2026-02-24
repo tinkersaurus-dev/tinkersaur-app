@@ -9,7 +9,7 @@ import type { DiagramType } from '@/entities/diagram';
 import type { Interface, CreateInterfaceDto } from '@/entities/interface';
 import type { Document, CreateDocumentDto } from '@/entities/document';
 import type { Reference } from '@/entities/reference';
-import type { DesignTab } from '@/app/model/stores/design-studio-ui';
+import type { DesignTab } from '@/widgets/studio-content';
 
 // Union type for design content types
 export type DesignContentType = 'diagram' | 'interface' | 'document';

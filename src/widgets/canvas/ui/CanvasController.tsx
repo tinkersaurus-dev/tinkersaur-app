@@ -2,7 +2,7 @@ import { useRef, useEffect, useMemo, useCallback } from 'react';
 import { useKeyboardShortcuts } from '../lib/hooks/useKeyboardShortcuts';
 import { useCanvasViewport } from '../lib/hooks/useCanvasViewport';
 import { useMermaidSync } from '@/features/diagram-management';
-import { useMermaidViewerStore } from '@/app/model/stores/mermaid/mermaidViewerStore';
+import { useMermaidViewerStore } from '@/features/diagram-management';
 import { useContextMenuManager } from '../lib/hooks/useContextMenuManager';
 import { useCanvasPasteHandler } from '../model/hooks/useCanvasPasteHandler';
 import { useCanvasState } from '../model/hooks/useCanvasState';

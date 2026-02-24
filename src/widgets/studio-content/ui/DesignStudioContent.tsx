@@ -6,8 +6,8 @@
 
 import { useEffect } from 'react';
 import { Layout, Tabs } from '@/shared/ui';
-import { useDesignStudioUIStore } from '@/app/model/stores';
-import { canvasInstanceRegistry } from '@/app/model/stores/canvas/canvasInstanceRegistry';
+import { useDesignStudioUIStore } from '../model/stores/design-studio-ui';
+import { canvasInstanceRegistry } from '@/shared/model/stores/canvas/canvasInstanceRegistry';
 import { useDesignWorksForContext } from '@/features/diagram-management';
 import { StudioSidebar } from '@/widgets/studio-sidebar';
 import { DiagramView } from '@/features/diagram-management/ui/views/DiagramView';

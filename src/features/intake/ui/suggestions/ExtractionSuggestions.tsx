@@ -1,6 +1,5 @@
 import { FiUsers, FiClipboard, FiMessageSquare, FiTarget, FiFileText } from 'react-icons/fi';
 import { useIntakeStore } from '../../model/useIntakeStore';
-import { useAgentLoop } from '../../lib/useAgentLoop';
 import type { ExtractionType } from '../../model/types';
 import { Button, HStack } from '@/shared/ui';
 
@@ -16,16 +15,15 @@ const EXTRACTION_TYPES: Array<{
   { key: 'requirements', label: 'Requirements', icon: FiFileText },
 ];
 
-export function ExtractionSuggestions() {
+interface ExtractionSuggestionsProps {
+  onStartExtraction: () => void;
+}
+
+export function ExtractionSuggestions({ onStartExtraction }: ExtractionSuggestionsProps) {
   const documentType = useIntakeStore((state) => state.documentType);
   const suggestedExtractions = useIntakeStore((state) => state.suggestedExtractions);
   const selectedExtractions = useIntakeStore((state) => state.selectedExtractions);
   const toggleExtractionType = useIntakeStore((state) => state.toggleExtractionType);
-  const { startExtraction } = useAgentLoop();
-
-  const handleStartExtraction = () => {
-    startExtraction();
-  };
 
   // Format document type for display
   const formatDocumentType = (type: string | null): string => {
@@ -77,7 +75,7 @@ export function ExtractionSuggestions() {
       <Button
         variant="primary"
         size="small"
-        onClick={handleStartExtraction}
+        onClick={onStartExtraction}
         disabled={selectedExtractions.length === 0}
         className="ml-auto"
       >

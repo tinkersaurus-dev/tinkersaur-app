@@ -6,8 +6,8 @@
 
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { canvasInstanceRegistry } from './canvas/canvasInstanceRegistry';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { canvasInstanceRegistry } from '@/shared/model/stores/canvas/canvasInstanceRegistry';
+import { commandManager } from '@/features/canvas-commands';
 
 /**
  * Folder UI state model
