@@ -23,7 +23,8 @@ export const queryKeys = {
   },
   personas: {
     all: ['personas'] as const,
-    list: (teamId: string) => [...queryKeys.personas.all, 'list', teamId] as const,
+    list: (teamId: string, solutionId?: string) =>
+      [...queryKeys.personas.all, 'list', teamId, ...(solutionId ? [solutionId] : [])] as const,
     listPaginated: <T extends object>(params: T) =>
       [...queryKeys.personas.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.personas.all, 'detail', id] as const,
@@ -32,8 +33,8 @@ export const queryKeys = {
   },
   userGoals: {
     all: ['userGoals'] as const,
-    listByTeam: (teamId: string) =>
-      [...queryKeys.userGoals.all, 'list', 'team', teamId] as const,
+    listByTeam: (teamId: string, solutionId?: string) =>
+      [...queryKeys.userGoals.all, 'list', 'team', teamId, ...(solutionId ? [solutionId] : [])] as const,
     listPaginated: <T extends object>(params: T) =>
       [...queryKeys.userGoals.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.userGoals.all, 'detail', id] as const,
@@ -71,7 +72,8 @@ export const queryKeys = {
   // Discovery
   feedbacks: {
     all: ['feedbacks'] as const,
-    list: (teamId: string) => [...queryKeys.feedbacks.all, 'list', teamId] as const,
+    list: (teamId: string, solutionId?: string) =>
+      [...queryKeys.feedbacks.all, 'list', teamId, ...(solutionId ? [solutionId] : [])] as const,
     listPaginated: <T extends object>(params: T) =>
       [...queryKeys.feedbacks.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.feedbacks.all, 'detail', id] as const,
@@ -83,7 +85,8 @@ export const queryKeys = {
   },
   outcomes: {
     all: ['outcomes'] as const,
-    list: (teamId: string) => [...queryKeys.outcomes.all, 'list', teamId] as const,
+    list: (teamId: string, solutionId?: string) =>
+      [...queryKeys.outcomes.all, 'list', teamId, ...(solutionId ? [solutionId] : [])] as const,
     listPaginated: <T extends object>(params: T) =>
       [...queryKeys.outcomes.all, 'list', 'paginated', params] as const,
     detail: (id: string) => [...queryKeys.outcomes.all, 'detail', id] as const,

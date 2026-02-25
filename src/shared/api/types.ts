@@ -29,6 +29,7 @@ export interface UserGoalListParams {
   page?: number;
   pageSize?: number;
   search?: string;
+  solutionId?: string;
   personaIds?: string[];
   sortBy?: string;
   sortOrder?: SortOrder;

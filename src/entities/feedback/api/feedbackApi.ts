@@ -17,7 +17,7 @@ import {
 } from '@/shared/api';
 
 type FeedbackApiExtensions = {
-  listByTeam(teamId: string): Promise<Feedback[]>;
+  listByTeam(teamId: string, solutionId?: string): Promise<Feedback[]>;
   findSimilar(request: FindSimilarFeedbackRequest): Promise<SimilarFeedbackResult[]>;
   merge(request: MergeFeedbackRequest): Promise<MergeFeedbackResponse>;
   unmerge(feedbackId: string): Promise<Feedback>;
@@ -40,8 +40,12 @@ export const feedbackApi = createPaginatedEntityApi<
     const typedApi = baseApi as PaginatedEntityApi<Feedback, CreateFeedbackDto, FeedbackListParams>;
 
     return {
-      listByTeam(teamId: string): Promise<Feedback[]> {
-        return typedApi.list(teamId);
+      async listByTeam(teamId: string, solutionId?: string): Promise<Feedback[]> {
+        if (!solutionId) return typedApi.list(teamId);
+        const data = await httpClient.get<Feedback[]>(
+          `/api/feedbacks?teamId=${teamId}&solutionId=${solutionId}`
+        );
+        return deserializeDatesArray(data);
       },
 
       async findSimilar(request: FindSimilarFeedbackRequest): Promise<SimilarFeedbackResult[]> {

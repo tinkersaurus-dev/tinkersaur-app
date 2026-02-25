@@ -12,6 +12,7 @@ import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { UserGoal } from '@/entities/user-goal';
 import { useUserGoalsPaginatedQuery, useUserGoalsByTeamQuery, filterWeakEvidenceUserGoals, getEvidenceCount, getEvidenceStrength, getDaysSinceLastIntake, getFreshness } from '@/entities/user-goal';
 import { usePersonasQuery } from '@/entities/persona';
+import { useSolutionStore, useSolutionsQuery } from '@/entities/solution';
 import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/shared/auth';
 import { UserGoalMergeModal } from '@/features/entity-merging';
@@ -34,10 +35,13 @@ export default function UserGoalsListPage() {
 
   // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
-    filterKeys: ['personaIds', 'weakEvidence'],
+    filterKeys: ['solutionId', 'personaIds', 'weakEvidence'],
     defaultSortBy: 'lastintakeat',
     defaultSortOrder: 'asc',
   });
+
+  const contextSolutionId = useSolutionStore((s) => s.selectedSolution?.solutionId);
+  const effectiveSolutionId = contextSolutionId || urlState.filters.solutionId || undefined;
 
   const isWeakEvidenceFilter = urlState.filters.weakEvidence === 'true';
 
@@ -56,17 +60,19 @@ export default function UserGoalsListPage() {
       page: urlState.page,
       pageSize: urlState.pageSize,
       search: urlState.search || undefined,
+      solutionId: effectiveSolutionId,
       personaIds,
       sortBy: urlState.sortBy || undefined,
       sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, isWeakEvidenceFilter, urlState.page, urlState.pageSize, urlState.search, personaIds, urlState.sortBy, urlState.sortOrder]);
+  }, [teamId, isWeakEvidenceFilter, urlState.page, urlState.pageSize, urlState.search, effectiveSolutionId, personaIds, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching
   const { data, isLoading } = useUserGoalsPaginatedQuery(queryParams);
   const { data: allUserGoals = [], isLoading: allUserGoalsLoading } =
     useUserGoalsByTeamQuery(isWeakEvidenceFilter ? teamId : undefined);
   const { data: personas = [] } = usePersonasQuery(teamId);
+  const { data: solutions = [] } = useSolutionsQuery(teamId);
 
   // Client-side filtering for weak evidence user goals
   const weakEvidenceData = useMemo(() => {
@@ -221,6 +227,13 @@ export default function UserGoalsListPage() {
 
   // Filter configuration
   const filters: FilterConfig[] = useMemo(() => [
+    ...(!contextSolutionId ? [{
+      key: 'solutionId',
+      label: 'Solutions',
+      type: 'select' as const,
+      options: solutions.map((s) => ({ value: s.id, label: s.name })),
+      showSearch: true,
+    }] : []),
     {
       key: 'personaIds',
       label: 'Personas',
@@ -228,7 +241,7 @@ export default function UserGoalsListPage() {
       options: personas.map((p) => ({ value: p.id, label: p.name })),
       showSearch: true,
     },
-  ], [personas]);
+  ], [contextSolutionId, solutions, personas]);
 
   // Handle merge modal close
   const handleMergeModalClose = () => {

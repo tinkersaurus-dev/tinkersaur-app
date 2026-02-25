@@ -10,10 +10,10 @@ import type { UserGoalListParams } from '@/shared/api';
 /**
  * Query hook for fetching user goals by team
  */
-export function useUserGoalsByTeamQuery(teamId: string | undefined) {
+export function useUserGoalsByTeamQuery(teamId: string | undefined, solutionId?: string) {
   return useQuery({
-    queryKey: queryKeys.userGoals.listByTeam(teamId!),
-    queryFn: () => userGoalApi.listByTeam(teamId!),
+    queryKey: queryKeys.userGoals.listByTeam(teamId!, solutionId),
+    queryFn: () => userGoalApi.listByTeam(teamId!, solutionId),
     enabled: !!teamId,
     staleTime: STALE_TIMES.userGoals,
     refetchOnWindowFocus: 'always',

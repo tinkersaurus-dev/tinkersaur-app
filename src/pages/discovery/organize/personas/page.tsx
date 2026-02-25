@@ -11,7 +11,7 @@ import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Persona } from '@/entities/persona';
 import { usePersonasPaginatedQuery, usePersonasQuery, filterStalePersonas, getDaysSinceLastIntake, getFreshness } from '@/entities/persona';
-import { useSolutionsQuery } from '@/entities/solution';
+import { useSolutionStore, useSolutionsQuery } from '@/entities/solution';
 import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/shared/auth';
 import { PersonaMergeModal } from '@/features/entity-merging';
@@ -33,6 +33,9 @@ export default function PersonasListPage() {
     defaultSortOrder: 'asc',
   });
 
+  const contextSolutionId = useSolutionStore((s) => s.selectedSolution?.solutionId);
+  const effectiveSolutionId = contextSolutionId || urlState.filters.solutionId || undefined;
+
   const staleThreshold = urlState.filters.stale ? parseInt(urlState.filters.stale, 10) : null;
   const isStaleFilter = staleThreshold !== null && staleThreshold > 0;
 
@@ -44,11 +47,11 @@ export default function PersonasListPage() {
       page: urlState.page,
       pageSize: urlState.pageSize,
       search: urlState.search || undefined,
-      solutionId: urlState.filters.solutionId || undefined,
+      solutionId: effectiveSolutionId,
       sortBy: urlState.sortBy || undefined,
       sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, isStaleFilter, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, urlState.sortBy, urlState.sortOrder]);
+  }, [teamId, isStaleFilter, urlState.page, urlState.pageSize, urlState.search, effectiveSolutionId, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching
   const { data, isLoading } = usePersonasPaginatedQuery(queryParams);
@@ -192,14 +195,14 @@ export default function PersonasListPage() {
 
   // Filter configuration
   const filters: FilterConfig[] = useMemo(() => [
-    {
+    ...(!contextSolutionId ? [{
       key: 'solutionId',
       label: 'Solutions',
-      type: 'select',
+      type: 'select' as const,
       options: solutions.map((s) => ({ value: s.id, label: s.name })),
       showSearch: true,
-    },
-  ], [solutions]);
+    }] : []),
+  ], [contextSolutionId, solutions]);
 
   // Handle merge modal close
   const handleMergeModalClose = () => {

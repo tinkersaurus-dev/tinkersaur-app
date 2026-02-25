@@ -11,6 +11,7 @@ import { FiPlus } from 'react-icons/fi';
 import { PageHeader, PageContent, Button } from '@/shared/ui';
 import { useAuthStore } from '@/shared/auth';
 import { queryKeys } from '@/shared/lib/query';
+import { useSolutionStore } from '@/entities/solution';
 import { usePersonasQuery } from '@/entities/persona';
 import { useUserGoalsByTeamQuery } from '@/entities/user-goal';
 import { useFeedbacksQuery } from '@/entities/feedback';
@@ -28,27 +29,28 @@ export default function OrganizePage() {
   const queryClient = useQueryClient();
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
+  const contextSolutionId = useSolutionStore((s) => s.selectedSolution?.solutionId);
 
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Refresh all dashboard data when the page is opened
   useEffect(() => {
     if (teamId) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.personas.list(teamId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.userGoals.listByTeam(teamId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.list(teamId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.outcomes.list(teamId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.personas.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.userGoals.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.outcomes.all });
     }
   }, [queryClient, teamId]);
 
   const { data: personas = [], isLoading: personasLoading } =
-    usePersonasQuery(teamId);
+    usePersonasQuery(teamId, contextSolutionId);
   const { data: userGoals = [], isLoading: userGoalsLoading } =
-    useUserGoalsByTeamQuery(teamId);
+    useUserGoalsByTeamQuery(teamId, contextSolutionId);
   const { data: feedbacks = [], isLoading: feedbacksLoading } =
-    useFeedbacksQuery(teamId);
+    useFeedbacksQuery(teamId, contextSolutionId);
   const { data: outcomes = [], isLoading: outcomesLoading } =
-    useOutcomesQuery(teamId);
+    useOutcomesQuery(teamId, contextSolutionId);
 
   const isLoading =
     personasLoading || userGoalsLoading || feedbacksLoading || outcomesLoading;

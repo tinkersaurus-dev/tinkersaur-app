@@ -4,6 +4,7 @@ import { PageHeader, PageContent, Card, Spinner, Empty, Select, Button } from '@
 import { LuArrowUp, LuArrowDown } from 'react-icons/lu';
 import type { SelectOption, SelectOptionGroup } from '@/shared/ui';
 import { useAuthStore } from '@/shared/auth';
+import { useSolutionStore } from '@/entities/solution';
 import { useFeedbacksQuery } from '@/entities/feedback';
 import { usePersonasQuery } from '@/entities/persona';
 import { useUserGoalsByTeamQuery } from '@/entities/user-goal';
@@ -68,11 +69,12 @@ export function DiscoveryCoveragePage() {
   const navigate = useNavigate();
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
+  const contextSolutionId = useSolutionStore((s) => s.selectedSolution?.solutionId);
 
   // Data fetching
-  const { data: personas = [], isLoading: personasLoading } = usePersonasQuery(teamId);
-  const { data: allFeedback = [], isLoading: feedbackLoading } = useFeedbacksQuery(teamId);
-  const { data: userGoals = [], isLoading: userGoalsLoading } = useUserGoalsByTeamQuery(teamId);
+  const { data: personas = [], isLoading: personasLoading } = usePersonasQuery(teamId, contextSolutionId);
+  const { data: allFeedback = [], isLoading: feedbackLoading } = useFeedbacksQuery(teamId, contextSolutionId);
+  const { data: userGoals = [], isLoading: userGoalsLoading } = useUserGoalsByTeamQuery(teamId, contextSolutionId);
 
   // Intake source details for source type resolution and date mapping
   const intakeSourceIds = useMemo(() => {

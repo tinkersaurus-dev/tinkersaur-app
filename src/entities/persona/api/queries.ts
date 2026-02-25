@@ -10,10 +10,10 @@ import type { PersonaListParams } from '@/shared/api';
 /**
  * Query hook for fetching personas by team
  */
-export function usePersonasQuery(teamId: string | undefined) {
+export function usePersonasQuery(teamId: string | undefined, solutionId?: string) {
   return useQuery({
-    queryKey: queryKeys.personas.list(teamId!),
-    queryFn: () => personaApi.list(teamId!),
+    queryKey: queryKeys.personas.list(teamId!, solutionId),
+    queryFn: () => personaApi.listByTeam(teamId!, solutionId),
     enabled: !!teamId,
     staleTime: STALE_TIMES.personas,
     refetchOnWindowFocus: 'always',

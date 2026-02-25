@@ -17,6 +17,7 @@ export const UserGoalSchema = z.object({
   description: z.string().max(2000),
   quotes: z.array(QuoteWithSourceSchema),
   personaIds: z.array(z.string().uuid()).default([]),
+  solutionId: z.string().uuid().nullable().optional(),
   feedbackIds: z.array(z.string().uuid()).default([]),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -35,6 +36,7 @@ export type UserGoal = z.infer<typeof UserGoalSchema>;
 export const CreateUserGoalSchema = z.object({
   teamId: z.string().uuid(),
   intakeSourceId: z.string().uuid().optional(),
+  solutionId: z.string().uuid().optional(),
   name: z.string().min(1, 'User goal name is required').max(200),
   description: z.string().max(2000).optional().default(''),
   quotes: z.array(z.string()).optional(),
@@ -47,6 +49,7 @@ export type CreateUserGoalDto = z.infer<typeof CreateUserGoalSchema>;
 export const UpdateUserGoalSchema = z.object({
   id: z.string().uuid(),
   intakeSourceId: z.string().uuid().nullable().optional(),
+  solutionId: z.string().uuid().nullable().optional(),
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).optional(),
   quotes: z.array(z.string()).optional(),

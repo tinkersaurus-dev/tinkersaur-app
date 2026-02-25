@@ -7,6 +7,7 @@
 import { useMemo } from 'react';
 import { PageHeader, PageContent, Card, Spinner, Empty } from '@/shared/ui';
 import { useAuthStore } from '@/shared/auth';
+import { useSolutionStore } from '@/entities/solution';
 import { useFeedbacksQuery, useFeedbackWithChildrenQuery } from '@/entities/feedback';
 import { useSolutionsQuery } from '@/entities/solution';
 import { useTagsQuery } from '@/entities/tag';
@@ -22,9 +23,10 @@ import { FeedbackAnalysisList } from '@/features/feedback-analysis/ui/FeedbackAn
 export default function HeatmapPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
+  const contextSolutionId = useSolutionStore((s) => s.selectedSolution?.solutionId);
 
   // Data fetching
-  const { data: allFeedback = [], isLoading: feedbackLoading } = useFeedbacksQuery(teamId);
+  const { data: allFeedback = [], isLoading: feedbackLoading } = useFeedbacksQuery(teamId, contextSolutionId);
   const { data: solutions = [] } = useSolutionsQuery(teamId);
   const { data: tags = [] } = useTagsQuery(teamId);
 

@@ -7,6 +7,7 @@
 import { useMemo } from 'react';
 import { PageHeader, PageContent, Spinner, Empty } from '@/shared/ui';
 import { useAuthStore } from '@/shared/auth';
+import { useSolutionStore } from '@/entities/solution';
 import { useFeedbacksQuery } from '@/entities/feedback';
 import { useTagsQuery } from '@/entities/tag';
 import { usePersonasQuery } from '@/entities/persona';
@@ -23,12 +24,13 @@ import {
 export default function SignalStrengthPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const teamId = selectedTeam?.teamId;
+  const contextSolutionId = useSolutionStore((s) => s.selectedSolution?.solutionId);
 
   // Data fetching
-  const { data: allFeedback = [], isLoading: feedbackLoading } = useFeedbacksQuery(teamId);
+  const { data: allFeedback = [], isLoading: feedbackLoading } = useFeedbacksQuery(teamId, contextSolutionId);
   const { data: tags = [] } = useTagsQuery(teamId);
-  const { data: personas = [] } = usePersonasQuery(teamId);
-  const { data: userGoals = [] } = useUserGoalsByTeamQuery(teamId);
+  const { data: personas = [] } = usePersonasQuery(teamId, contextSolutionId);
+  const { data: userGoals = [] } = useUserGoalsByTeamQuery(teamId, contextSolutionId);
 
   // Signal strength computation
   const tagSignals = useSignalStrengthData(allFeedback, tags);

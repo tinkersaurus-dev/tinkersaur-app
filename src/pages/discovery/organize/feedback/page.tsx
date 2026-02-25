@@ -12,7 +12,7 @@ import type { TableColumn, FilterConfig, TagColor } from '@/shared/ui';
 import type { Feedback } from '@/entities/feedback';
 import { FEEDBACK_TYPE_CONFIG, isUnlinkedFeedback } from '@/entities/feedback';
 import { useFeedbacksPaginatedQuery, useFeedbacksQuery } from '@/entities/feedback';
-import { useSolutionsQuery } from '@/entities/solution';
+import { useSolutionStore, useSolutionsQuery } from '@/entities/solution';
 import { usePersonasQuery } from '@/entities/persona';
 import { useUserGoalsByTeamQuery } from '@/entities/user-goal';
 import { useListUrlState } from '@/shared/hooks';
@@ -30,6 +30,9 @@ export default function FeedbackListPage() {
     defaultSortBy: 'weight',
     defaultSortOrder: 'desc',
   });
+
+  const contextSolutionId = useSolutionStore((s) => s.selectedSolution?.solutionId);
+  const effectiveSolutionId = contextSolutionId || urlState.filters.solutionId || undefined;
 
   const isUnlinkedFilter = urlState.filters.unlinked === 'true';
 
@@ -54,13 +57,13 @@ export default function FeedbackListPage() {
       page: urlState.page,
       pageSize: urlState.pageSize,
       search: urlState.search || undefined,
-      solutionId: urlState.filters.solutionId || undefined,
+      solutionId: effectiveSolutionId,
       personaIds,
       userGoalIds,
       sortBy: urlState.sortBy || undefined,
       sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, isUnlinkedFilter, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, personaIds, userGoalIds, urlState.sortBy, urlState.sortOrder]);
+  }, [teamId, isUnlinkedFilter, urlState.page, urlState.pageSize, urlState.search, effectiveSolutionId, personaIds, userGoalIds, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching — use non-paginated query when unlinked filter is active
   const { data, isLoading } = useFeedbacksPaginatedQuery(queryParams);
@@ -183,13 +186,13 @@ export default function FeedbackListPage() {
 
   // Filter configuration
   const filters: FilterConfig[] = useMemo(() => [
-    {
+    ...(!contextSolutionId ? [{
       key: 'solutionId',
       label: 'Solutions',
-      type: 'select',
+      type: 'select' as const,
       options: solutions.map((s) => ({ value: s.id, label: s.name })),
       showSearch: true,
-    },
+    }] : []),
     {
       key: 'personaIds',
       label: 'Personas',
@@ -204,7 +207,7 @@ export default function FeedbackListPage() {
       options: userGoals.map((ug) => ({ value: ug.id, label: ug.name })),
       showSearch: true,
     },
-  ], [solutions, personas, userGoals]);
+  ], [contextSolutionId, solutions, personas, userGoals]);
 
   // Handle merge modal close
   const handleMergeModalClose = () => {
@@ -291,7 +294,7 @@ export default function FeedbackListPage() {
                 open={groupingModalOpen}
                 onClose={() => setGroupingModalOpen(false)}
                 teamId={teamId}
-                solutionId={urlState.filters.solutionId || undefined}
+                solutionId={effectiveSolutionId}
               />
             )}
           </>

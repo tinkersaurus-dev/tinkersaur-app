@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { FiChevronsRight } from 'react-icons/fi';
+import { FiChevronsRight, FiX } from 'react-icons/fi';
 import { useSolutionStore } from '@/entities/solution';
 import { SolutionSelectorModal } from './SolutionSelectorModal'
 import type { Solution } from '@/entities/solution';
@@ -14,7 +14,7 @@ import { HStack } from '@/shared/ui';
 
 export function InlineSolutionSelector() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { selectedSolution, selectSolution } = useSolutionStore();
+  const { selectedSolution, selectSolution, clearSolution } = useSolutionStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -42,6 +42,15 @@ export function InlineSolutionSelector() {
           </span>
           <FiChevronsRight className="w-4 h-4 text-[var(--text-muted)]" />
         </button>
+        {selectedSolution && (
+          <button
+            onClick={(e) => { e.stopPropagation(); clearSolution(); }}
+            className="flex items-center justify-center hover:bg-[var(--bg-hover)] rounded p-0.5 transition-colors cursor-pointer"
+            title="Clear solution"
+          >
+            <FiX className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+          </button>
+        )}
       </HStack>
 
       <SolutionSelectorModal

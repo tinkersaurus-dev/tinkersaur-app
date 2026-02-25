@@ -11,7 +11,7 @@ import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Outcome } from '@/entities/outcome';
 import { useOutcomesPaginatedQuery, useOutcomesQuery, filterUnlinkedOutcomes } from '@/entities/outcome';
-import { useSolutionsQuery } from '@/entities/solution';
+import { useSolutionStore, useSolutionsQuery } from '@/entities/solution';
 import { useListUrlState } from '@/shared/hooks';
 import { useAuthStore } from '@/shared/auth';
 
@@ -26,6 +26,9 @@ export default function OutcomesListPage() {
     defaultSortOrder: 'desc',
   });
 
+  const contextSolutionId = useSolutionStore((s) => s.selectedSolution?.solutionId);
+  const effectiveSolutionId = contextSolutionId || urlState.filters.solutionId || undefined;
+
   const isUnlinkedFilter = urlState.filters.unlinked === 'true';
 
   // Build query params from URL state (disabled when using unlinked filter)
@@ -36,11 +39,11 @@ export default function OutcomesListPage() {
       page: urlState.page,
       pageSize: urlState.pageSize,
       search: urlState.search || undefined,
-      solutionId: urlState.filters.solutionId || undefined,
+      solutionId: effectiveSolutionId,
       sortBy: urlState.sortBy || undefined,
       sortOrder: urlState.sortOrder || undefined,
     };
-  }, [teamId, isUnlinkedFilter, urlState.page, urlState.pageSize, urlState.search, urlState.filters.solutionId, urlState.sortBy, urlState.sortOrder]);
+  }, [teamId, isUnlinkedFilter, urlState.page, urlState.pageSize, urlState.search, effectiveSolutionId, urlState.sortBy, urlState.sortOrder]);
 
   // Data fetching
   const { data, isLoading } = useOutcomesPaginatedQuery(queryParams);
@@ -126,14 +129,14 @@ export default function OutcomesListPage() {
 
   // Filter configuration
   const filters: FilterConfig[] = useMemo(() => [
-    {
+    ...(!contextSolutionId ? [{
       key: 'solutionId',
       label: 'Solutions',
-      type: 'select',
+      type: 'select' as const,
       options: solutions.map((s) => ({ value: s.id, label: s.name })),
       showSearch: true,
-    },
-  ], [solutions]);
+    }] : []),
+  ], [contextSolutionId, solutions]);
 
   return (
     <>

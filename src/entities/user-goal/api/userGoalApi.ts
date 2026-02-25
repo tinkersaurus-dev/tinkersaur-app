@@ -18,7 +18,7 @@ import {
 import type { UseCase } from '@/entities/use-case';
 
 type UserGoalApiExtensions = {
-  listByTeam(teamId: string): Promise<UserGoal[]>;
+  listByTeam(teamId: string, solutionId?: string): Promise<UserGoal[]>;
   findSimilar(request: FindSimilarUserGoalsRequest): Promise<SimilarUserGoalResult[]>;
   merge(request: MergeUserGoalsRequest): Promise<UserGoal>;
   promote(request: PromoteUserGoalRequest): Promise<UseCase>;
@@ -37,8 +37,9 @@ export const userGoalApi = createPaginatedEntityApi<
   endpoint: '/api/user-goals',
   parentParam: 'teamId',
   extensions: () => ({
-    async listByTeam(teamId: string): Promise<UserGoal[]> {
-      const url = `/api/user-goals?teamId=${teamId}`;
+    async listByTeam(teamId: string, solutionId?: string): Promise<UserGoal[]> {
+      let url = `/api/user-goals?teamId=${teamId}`;
+      if (solutionId) url += `&solutionId=${solutionId}`;
       const data = await httpClient.get<UserGoal[]>(url);
       return deserializeDatesArray(data);
     },

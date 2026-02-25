@@ -8,10 +8,10 @@ import type { FeedbackListParams } from '@/shared/api';
 /**
  * Query hook for fetching feedbacks by team
  */
-export function useFeedbacksQuery(teamId: string | undefined) {
+export function useFeedbacksQuery(teamId: string | undefined, solutionId?: string) {
   return useQuery({
-    queryKey: queryKeys.feedbacks.list(teamId!),
-    queryFn: () => feedbackApi.list(teamId!),
+    queryKey: queryKeys.feedbacks.list(teamId!, solutionId),
+    queryFn: () => feedbackApi.listByTeam(teamId!, solutionId),
     enabled: !!teamId,
     staleTime: STALE_TIMES.feedbacks,
     refetchOnWindowFocus: 'always',

@@ -10,9 +10,11 @@ import {
   createPaginatedEntityApi,
   httpClient,
   deserializeDates,
+  deserializeDatesArray,
 } from '@/shared/api';
 
 type PersonaApiExtensions = {
+  listByTeam(teamId: string, solutionId?: string): Promise<Persona[]>;
   findSimilar(request: FindSimilarPersonasRequest): Promise<SimilarPersonaResult[]>;
   merge(request: MergePersonasRequest): Promise<Persona>;
 };
@@ -30,6 +32,13 @@ export const personaApi = createPaginatedEntityApi<
   endpoint: '/api/personas',
   parentParam: 'teamId',
   extensions: () => ({
+    async listByTeam(teamId: string, solutionId?: string): Promise<Persona[]> {
+      let url = `/api/personas?teamId=${teamId}`;
+      if (solutionId) url += `&solutionId=${solutionId}`;
+      const data = await httpClient.get<Persona[]>(url);
+      return deserializeDatesArray(data);
+    },
+
     async findSimilar(request: FindSimilarPersonasRequest): Promise<SimilarPersonaResult[]> {
       const data = await httpClient.post<SimilarPersonaResult[]>(
         '/api/personas/similar',

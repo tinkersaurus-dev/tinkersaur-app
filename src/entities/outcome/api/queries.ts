@@ -7,10 +7,10 @@ import type { OutcomeListParams } from '@/shared/api';
 /**
  * Query hook for fetching outcomes by team
  */
-export function useOutcomesQuery(teamId: string | undefined) {
+export function useOutcomesQuery(teamId: string | undefined, solutionId?: string) {
   return useQuery({
-    queryKey: queryKeys.outcomes.list(teamId!),
-    queryFn: () => outcomeApi.list(teamId!),
+    queryKey: queryKeys.outcomes.list(teamId!, solutionId),
+    queryFn: () => outcomeApi.listByTeam(teamId!, solutionId),
     enabled: !!teamId,
     staleTime: STALE_TIMES.outcomes,
     refetchOnWindowFocus: 'always',
