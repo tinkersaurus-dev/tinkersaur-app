@@ -11,11 +11,11 @@
  */
 
 import { useState, useCallback } from 'react';
-import { generateSuggestions } from '@/features/llm-generation';
+import { generateSuggestions } from '@/shared/api';
 import { useMermaidViewerStore } from '../model/stores/mermaidViewerStore';
 import { useOverlayVisibilityStore } from '../model/stores/overlayVisibilityStore';
 import { useDiagramCRUD } from '../api/useDiagramCRUD';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import type { Shape, CreateShapeDTO, SuggestionCommentShapeData } from '@/entities/shape';
 import type { CreateConnectorDTO } from '@/entities/connector';
 import {

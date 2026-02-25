@@ -1,15 +1,14 @@
 /**
- * Mermaid import/export functionality for Design Studio diagrams
+ * Mermaid import/export registration for Design Studio diagrams
  *
- * This module provides exporters for converting diagrams to Mermaid syntax,
- * and importers for parsing Mermaid syntax back to diagrams.
- * Each diagram type has its own exporter and importer implementation.
+ * This module registers diagram-specific mermaid importers and exporters.
+ * Types and registry functions are now in @/shared/lib/mermaid.
  */
 
 import {
   registerMermaidExporter,
   registerMermaidImporter,
-} from './registry';
+} from '@/shared/lib/mermaid';
 import { createBpmnMermaidExporter } from '../../bpmn/mermaid/exporter';
 import { createClassMermaidExporter } from '../../class/mermaid/exporter';
 import { createSequenceMermaidExporter } from '../../sequence/mermaid/exporter';
@@ -34,20 +33,3 @@ registerMermaidImporter('class', createClassMermaidImporter);
 registerMermaidImporter('sequence', createSequenceMermaidImporter);
 registerMermaidImporter('architecture', createArchitectureMermaidImporter);
 registerMermaidImporter('entity-relationship', createEntityRelationshipMermaidImporter);
-
-// Re-export public API
-export {
-  getMermaidExporter,
-  hasMermaidExporter,
-  getMermaidImporter,
-} from './registry';
-export type {
-  MermaidExporter,
-  MermaidExportOptions,
-  MermaidExportResult,
-} from './exporter';
-export type {
-  MermaidImporter,
-  MermaidImportOptions,
-  MermaidImportResult,
-} from './importer';

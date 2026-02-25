@@ -32,10 +32,3 @@ export {
   useExportPlanning,
 } from './api/usePlanningMutations';
 
-// UI components
-export { PlanView } from './ui/PlanView';
-export { VersionPriorityPanel } from './ui/VersionPriorityPanel';
-export { EpicsStoriesPanel } from './ui/EpicsStoriesPanel';
-export { EpicEditModal } from './ui/EpicEditModal';
-export { StoryEditModal } from './ui/StoryEditModal';
-export { ExportDialog } from './ui/ExportDialog';

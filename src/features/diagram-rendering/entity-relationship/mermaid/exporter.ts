@@ -4,9 +4,9 @@ import type { Connector } from '@/entities/connector';
 import type {
   MermaidExportOptions,
   MermaidExportResult,
-} from '../../shared/mermaid/exporter';
+} from '@/shared/lib/mermaid';
 import { isEntityShapeData } from '@/entities/shape';
-import { BaseMermaidExporter } from '../../shared/mermaid/exporter';
+import { BaseMermaidExporter } from '@/shared/lib/mermaid';
 
 /**
  * Mermaid exporter for Entity Relationship diagrams

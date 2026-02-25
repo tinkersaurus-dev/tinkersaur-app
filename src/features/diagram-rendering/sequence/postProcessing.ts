@@ -8,7 +8,7 @@
  */
 
 import { canvasInstanceRegistry } from '@/shared/model/stores/canvas/canvasInstanceRegistry';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
 
 /**

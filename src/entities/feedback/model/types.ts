@@ -2,6 +2,9 @@ import { z } from 'zod';
 import { QuoteWithSourceSchema } from '@/entities/quote';
 import type { TagColor } from '@tinkersaur/ui';
 
+// Time granularity for feedback timeline analysis
+export type TimeGranularity = 'day' | 'week' | 'month';
+
 /**
  * Feedback Entity
  * Represents user feedback extracted from intake sources.

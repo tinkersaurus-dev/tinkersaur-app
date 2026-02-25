@@ -7,7 +7,7 @@ export * from './tools';
 export * from './connectors';
 
 // Utils
-export * from './utils';
+export { calculateClassHeight, calculateEnumerationHeight } from '@/shared/lib/utils/shapeHeightUtils';
 
 // Hooks
 export * from './hooks';

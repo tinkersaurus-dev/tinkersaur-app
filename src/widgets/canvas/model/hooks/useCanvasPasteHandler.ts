@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import type { DiagramType } from '@/entities/diagram';
 import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import { toast } from '@/shared/lib/utils';
 import { CreatePreviewFromPasteCommand } from '@/features/canvas-commands/commands/preview-import/CreatePreviewFromPasteCommand';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';

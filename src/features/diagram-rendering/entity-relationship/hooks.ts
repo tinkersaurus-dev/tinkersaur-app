@@ -9,12 +9,12 @@
 
 import { useCallback } from 'react';
 import { getEntityShapeData, type Shape, type EntityShapeData, type EntityAttributeData } from '@/entities/shape';
-import type { Command } from '@/features/canvas-commands/model/command.types';
+import type { Command } from '@/shared/model/commands';
 import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
-import { AddEntityAttributeCommand } from './commands/AddEntityAttributeCommand';
-import { DeleteEntityAttributeCommand } from './commands/DeleteEntityAttributeCommand';
-import { UpdateEntityAttributeCommand } from './commands/UpdateEntityAttributeCommand';
-import { calculateEntityHeight } from './utils';
+import { AddEntityAttributeCommand } from '@/features/canvas-commands/commands/entity-relationship/AddEntityAttributeCommand';
+import { DeleteEntityAttributeCommand } from '@/features/canvas-commands/commands/entity-relationship/DeleteEntityAttributeCommand';
+import { UpdateEntityAttributeCommand } from '@/features/canvas-commands/commands/entity-relationship/UpdateEntityAttributeCommand';
+import { calculateEntityHeight } from '@/shared/lib/utils/shapeHeightUtils';
 
 interface UseEntityShapeEditingProps {
   diagramId: string;

@@ -6,16 +6,27 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge, FiX } from 'react-icons/fi';
-import { PageHeader, PageContent, EntityList, Empty, Tag } from '@/shared/ui';
+import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
 import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { UserGoal } from '@/entities/user-goal';
-import { useUserGoalsPaginatedQuery, useUserGoalsByTeamQuery, filterWeakEvidenceUserGoals, getEvidenceCount, getEvidenceStrength } from '@/entities/user-goal';
+import { useUserGoalsPaginatedQuery, useUserGoalsByTeamQuery, filterWeakEvidenceUserGoals, getEvidenceCount, getEvidenceStrength, getDaysSinceLastIntake, getFreshness } from '@/entities/user-goal';
 import { usePersonasQuery } from '@/entities/persona';
 import { useListUrlState } from '@/shared/hooks';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { UserGoalMergeModal } from '@/features/entity-merging';
 import { CreateUserGoalModal } from '@/features/user-goal-management';
+
+function getFreshnessColor(record: UserGoal): string | null {
+  const freshness = getFreshness(record);
+  if (!freshness) return null;
+  return freshness === 'Fresh' ? 'var(--tag-green)' : freshness === 'Moderate' ? 'var(--tag-amber)' : 'var(--tag-red)';
+}
+
+function getEvidenceColor(record: UserGoal): string {
+  const strength = getEvidenceStrength(record);
+  return strength === 'Strong' ? 'var(--tag-green)' : strength === 'Evident' ? 'var(--tag-blue)' : 'var(--tag-amber)';
+}
 
 export default function UserGoalsListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
@@ -24,8 +35,8 @@ export default function UserGoalsListPage() {
   // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
     filterKeys: ['personaIds', 'weakEvidence'],
-    defaultSortBy: 'createdAt',
-    defaultSortOrder: 'desc',
+    defaultSortBy: 'lastintakeat',
+    defaultSortOrder: 'asc',
   });
 
   const isWeakEvidenceFilter = urlState.filters.weakEvidence === 'true';
@@ -107,59 +118,55 @@ export default function UserGoalsListPage() {
       ),
     },
     {
-      key: 'personaCount',
-      title: 'Personas',
-      dataIndex: 'personaCount',
-      width: 100,
+      key: 'lastIntakeDays',
+      title: 'Last Intake',
+      width: 110,
       sorter: true,
-      sortField: 'personacount',
-      render: (value) => (
-        <span className="text-[var(--text-muted)] text-base tabular-nums">{value as number}</span>
-      ),
+      sortField: 'lastintakeat',
+      onCell: (record: UserGoal) => {
+        const color = getFreshnessColor(record);
+        const days = getDaysSinceLastIntake(record);
+        if (!color || days === null) return {};
+        const bgAlpha = 0.2 * (1 / (days / 4 + 1));
+        return {
+          style: {
+            backgroundColor: `oklch(from ${color} l c h / ${bgAlpha})`,
+          },
+        };
+      },
+      render: (_, record) => {
+        const days = getDaysSinceLastIntake(record);
+        const color = getFreshnessColor(record);
+        if (days === null || !color) return <span className="text-[var(--text-muted)] text-base">—</span>;
+        return (
+          <span className="text-base font-semibold tabular-nums" style={{ color }}>
+            {`${days}d ago`}
+          </span>
+        );
+      },
     },
     {
-      key: 'problemCount',
-      title: 'Problems',
-      dataIndex: 'problemCount',
-      width: 100,
+      key: 'freshness',
+      title: 'Freshness',
+      width: 110,
       sorter: true,
-      sortField: 'problemcount',
-      render: (value) => (
-        <span className="text-[var(--text-muted)] text-base tabular-nums">{value as number}</span>
-      ),
-    },
-    {
-      key: 'suggestionCount',
-      title: 'Suggestions',
-      dataIndex: 'suggestionCount',
-      width: 100,
-      sorter: true,
-      sortField: 'suggestioncount',
-      render: (value) => (
-        <span className="text-[var(--text-muted)] text-base tabular-nums">{value as number}</span>
-      ),
-    },
-    {
-      key: 'otherFeedbackCount',
-      title: 'Other',
-      dataIndex: 'otherFeedbackCount',
-      width: 100,
-      sorter: true,
-      sortField: 'otherfeedbackcount',
-      render: (value) => (
-        <span className="text-[var(--text-muted)] text-base tabular-nums">{value as number}</span>
-      ),
-    },
-    {
-      key: 'sourceCount',
-      title: 'Sources',
-      dataIndex: 'sourceCount',
-      width: 100,
-      sorter: true,
-      sortField: 'sourcecount',
-      render: (value) => (
-        <span className="text-[var(--text-muted)] text-base tabular-nums">{value as number}</span>
-      ),
+      sortField: 'lastintakeat',
+      onCell: (record: UserGoal) => {
+        const color = getFreshnessColor(record);
+        const days = getDaysSinceLastIntake(record);
+        if (!color || days === null) return {};
+        const bgAlpha = 0.2 * (1 / (days / 4 + 1));
+        return {
+          style: {
+            backgroundColor: `oklch(from ${color} l c h / ${bgAlpha})`,
+          },
+        };
+      },
+      render: (_, record) => {
+        const color = getFreshnessColor(record);
+        if (!color) return <span className="text-[var(--text-muted)] text-base">—</span>;
+        return <span className="text-base font-semibold" style={{ color }}>{getFreshness(record)}</span>;
+      },
     },
     {
       key: 'evidenceScore',
@@ -167,11 +174,26 @@ export default function UserGoalsListPage() {
       width: 100,
       sorter: true,
       sortField: 'evidencecount',
-      render: (_, record) => (
-        <span className="text-[var(--text-muted)] text-base tabular-nums">
-          {getEvidenceCount(record)}
-        </span>
-      ),
+      onCell: (record: UserGoal) => {
+        const count = getEvidenceCount(record);
+        if (count <= 0) return {};
+        const color = getEvidenceColor(record);
+        const bgAlpha = 0.2 * (count / (count + 4));
+        return {
+          style: {
+            backgroundColor: `oklch(from ${color} l c h / ${bgAlpha})`,
+          },
+        };
+      },
+      render: (_, record) => {
+        const count = getEvidenceCount(record);
+        const color = getEvidenceColor(record);
+        return (
+          <span className="text-base font-semibold tabular-nums" style={{ color }}>
+            {count > 0 ? count : '—'}
+          </span>
+        );
+      },
     },
     {
       key: 'evidenceStrength',
@@ -179,24 +201,21 @@ export default function UserGoalsListPage() {
       width: 100,
       sorter: true,
       sortField: 'evidencecount',
-      render: (_, record) => {
-        const strength = getEvidenceStrength(record);
-        const color = strength === 'Strong' ? 'green' : strength === 'Evident' ? 'blue' : 'amber';
-        return <Tag color={color}>{strength}</Tag>;
+      onCell: (record: UserGoal) => {
+        const count = getEvidenceCount(record);
+        if (count <= 0) return {};
+        const color = getEvidenceColor(record);
+        const bgAlpha = 0.2 * (count / (count + 4));
+        return {
+          style: {
+            backgroundColor: `oklch(from ${color} l c h / ${bgAlpha})`,
+          },
+        };
       },
-    },
-    {
-      key: 'createdAt',
-      title: 'Created',
-      dataIndex: 'createdAt',
-      width: 120,
-      sorter: true,
-      sortField: 'createdAt',
-      render: (value) => (
-        <span className="text-[var(--text-muted)] text-base">
-          {new Date(value as Date).toLocaleDateString()}
-        </span>
-      ),
+      render: (_, record) => {
+        const color = getEvidenceColor(record);
+        return <span className="text-base font-semibold" style={{ color }}>{getEvidenceStrength(record)}</span>;
+      },
     },
   ], []);
 

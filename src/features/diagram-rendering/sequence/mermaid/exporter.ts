@@ -4,8 +4,8 @@ import type { Connector } from '@/entities/connector';
 import type {
   MermaidExportOptions,
   MermaidExportResult,
-} from '../../shared/mermaid/exporter';
-import { BaseMermaidExporter } from '../../shared/mermaid/exporter';
+} from '@/shared/lib/mermaid';
+import { BaseMermaidExporter } from '@/shared/lib/mermaid';
 import { isSequenceLifelineData } from '@/entities/shape';
 import { FIRST_CONNECTION_POINT_Y, CONNECTION_POINT_SPACING } from '../constants';
 

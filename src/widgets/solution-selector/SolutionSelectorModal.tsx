@@ -7,7 +7,7 @@ import { useState, useCallback } from 'react';
 import { Modal } from '@/shared/ui';
 import type { Solution } from '@/entities/solution';
 import { useSolutionsQuery } from '@/entities/solution';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { SolutionSelectorView } from './SolutionSelectorView';
 import { CreateSolutionView } from './CreateSolutionView';
 

@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router';
 import { FaUser, FaSun, FaMoon } from 'react-icons/fa';
 import { Dropdown, Avatar, HStack, useTheme } from '@/shared/ui';
 import type { DropdownMenuItem } from '@/shared/ui';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 
 interface SidebarFooterProps {
   isCollapsed: boolean;

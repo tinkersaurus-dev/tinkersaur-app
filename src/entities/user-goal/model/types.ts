@@ -25,6 +25,7 @@ export const UserGoalSchema = z.object({
   suggestionCount: z.number().default(0),
   otherFeedbackCount: z.number().default(0),
   sourceCount: z.number().default(0),
+  lastIntakeAt: z.date().nullable().default(null),
 });
 
 // TypeScript type derived from schema

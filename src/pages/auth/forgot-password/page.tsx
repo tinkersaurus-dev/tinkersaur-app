@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { authApi } from '@/features/auth';
+import { authApi } from '@/shared/auth';
 import { Button, Input } from '@/shared/ui';
 
 export function meta() {

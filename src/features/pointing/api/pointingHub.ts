@@ -3,7 +3,7 @@
  * Uses the shared collaboration hub connection
  */
 import * as signalR from '@microsoft/signalr';
-import { getConnection } from '@/features/collaboration/api/collaborationHub';
+import { getConnection } from '@/shared/signalr';
 import type { PointingSession, Vote, VoteResults, TimeoutOption, FacilitationTransferred } from '../model/types';
 
 // Event handlers storage for re-registration after reconnect (mirrors agentHub.ts pattern)

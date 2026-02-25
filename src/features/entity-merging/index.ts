@@ -8,15 +8,19 @@ export { SimilarPersonasPanel } from './ui/SimilarPersonasPanel';
 
 // Persona Merging
 export { PersonaMergeModal } from './ui/persona/PersonaMergeModal';
-export { IntakePersonaMergeModal, type PendingPersonaMerge } from './ui/persona/IntakePersonaMergeModal';
 
 // Feedback Merging
 export { FeedbackMergeModal } from './ui/feedback/FeedbackMergeModal';
-export { IntakeFeedbackMergeModal, type PendingFeedbackMerge } from './ui/feedback/IntakeFeedbackMergeModal';
 
 // User Goal Merging
 export { UserGoalMergeModal } from './ui/user-goal/UserGoalMergeModal';
-export { IntakeUserGoalMergeModal, type PendingUserGoalMerge } from './ui/user-goal/IntakeUserGoalMergeModal';
+
+// Shared merge primitives (used by intake feature for intake-specific merge modals)
+export { TwoStepMergeModal } from './ui/shared/TwoStepMergeModal';
+export { MergeInstructionsField } from './ui/shared/MergeInstructionsField';
+export { DeferredExecutionWarning } from './ui/shared/DeferredExecutionWarning';
 
 // Hooks
 export { useUnmergeFeedback } from './api/hooks/useUnmergeFeedback';
+export { useMergePersonasLLM } from './api/hooks/useMergePersonasLLM';
+export { useMergeUserGoalsLLM } from './api/hooks/useMergeUserGoalsLLM';

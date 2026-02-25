@@ -15,6 +15,7 @@ export {
 } from './model/types';
 
 export type {
+  TimeGranularity,
   FeedbackType,
   ExtractedFeedback,
   Feedback,

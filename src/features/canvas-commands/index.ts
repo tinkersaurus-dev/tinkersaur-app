@@ -5,15 +5,15 @@
  * based on the Command Pattern for canvas operations.
  */
 
-// Core types and interfaces
-export type { Command, CommandScope, CommandHistoryOptions } from './model/command.types';
+// Core types and interfaces (re-exported from shared)
+export type { Command, CommandScope, CommandHistoryOptions } from '@/shared/model/commands';
 
-// Command management
-export { CommandHistory } from './model/CommandHistory';
-export { CommandManager, commandManager } from './model/CommandManager';
+// Command management (re-exported from shared)
+export { CommandHistory } from '@/shared/model/commands';
+export { CommandManager, commandManager } from '@/shared/model/commands';
 
-// Command store (UI state for undo/redo)
-export { useCommandStore } from './model/useCommandStore';
+// Command store (re-exported from shared)
+export { useCommandStore } from '@/shared/model/commands';
 
 // Canvas commands - Shapes
 export { AddShapeCommand } from './commands/shapes/AddShapeCommand';
@@ -23,3 +23,13 @@ export { UpdateShapeLabelCommand } from './commands/shapes/UpdateShapeLabelComma
 
 // Canvas commands - Connectors
 export { UpdateConnectorLabelCommand } from './commands/connectors/UpdateConnectorLabelCommand';
+
+// Canvas commands - Sequence
+export { UpdateLifelineActivationsCommand } from './commands/sequence/UpdateLifelineActivationsCommand';
+export { UpdateLifelineHeightsCommand } from './commands/sequence/UpdateLifelineHeightsCommand';
+export { RefreshSequenceActivationsCommand } from './commands/sequence/RefreshSequenceActivationsCommand';
+
+// Canvas commands - Entity Relationship
+export { AddEntityAttributeCommand } from './commands/entity-relationship/AddEntityAttributeCommand';
+export { DeleteEntityAttributeCommand } from './commands/entity-relationship/DeleteEntityAttributeCommand';
+export { UpdateEntityAttributeCommand } from './commands/entity-relationship/UpdateEntityAttributeCommand';

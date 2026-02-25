@@ -2,7 +2,7 @@ import { FiX } from 'react-icons/fi';
 import { Button, Select, MultiSelect } from '@/shared/ui';
 import type { SelectOption, MultiSelectOption } from '@/shared/ui';
 import { FEEDBACK_TYPE_CONFIG, type FeedbackType } from '@/entities/feedback';
-import type { TimeGranularity } from '../lib/useAnalyzeFilterState';
+import type { TimeGranularity } from '@/entities/feedback';
 
 const TYPE_OPTIONS: MultiSelectOption[] = (
   Object.entries(FEEDBACK_TYPE_CONFIG) as [FeedbackType, { label: string; color: string }][]

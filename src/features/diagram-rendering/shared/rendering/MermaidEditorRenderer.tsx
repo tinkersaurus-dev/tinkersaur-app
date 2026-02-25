@@ -15,7 +15,7 @@ import type { DiagramType } from '@/entities/diagram';
 import { ShapeWrapper } from './ShapeWrapper';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/widgets/canvas/ui/contexts/CanvasDiagramContext';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import { UpdatePreviewCommand } from '@/features/canvas-commands/commands/preview-import/UpdatePreviewCommand';
 import { toast } from 'sonner';
 import { applySequenceDiagramPostProcessing } from '@/features/diagram-rendering/sequence/postProcessing';

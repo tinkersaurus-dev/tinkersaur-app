@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useIntakeStore } from '../model/useIntakeStore';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { feedbackApi } from '@/entities/feedback';
 import { userGoalApi } from '@/entities/user-goal';
 import { outcomeApi } from '@/entities/outcome';

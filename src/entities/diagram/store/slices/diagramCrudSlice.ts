@@ -1,6 +1,6 @@
 import type { Diagram, CreateDiagramDto } from '@/entities/diagram';
 import { diagramApi } from '@/entities/diagram';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import { handleStoreError } from '../utils/errorHandler';
 import type { DiagramSlice, DiagramCrudSlice } from '../types';
 

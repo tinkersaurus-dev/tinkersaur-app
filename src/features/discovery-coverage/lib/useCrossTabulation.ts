@@ -5,7 +5,7 @@ import type { Persona } from '@/entities/persona';
 import type { UserGoal } from '@/entities/user-goal';
 import type { IntakeSource } from '@/entities/intake-source';
 import { SOURCE_TYPES } from '@/entities/source-type';
-import type { TimeGranularity } from '@/features/feedback-analysis';
+import type { TimeGranularity } from '@/entities/feedback';
 import {
   getBucketStart,
   addInterval,

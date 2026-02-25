@@ -33,6 +33,7 @@ export const PersonaSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   lastIntakeAt: z.date().nullable().default(null),
+  painScore: z.number().default(0),
 });
 
 // TypeScript type derived from schema
@@ -49,6 +50,7 @@ export const CreatePersonaSchema = PersonaSchema.omit({
   createdAt: true,
   updatedAt: true,
   lastIntakeAt: true,
+  painScore: true,
 }).extend({
   intakeSourceIds: z.array(z.string().uuid()).optional(),
   quotes: z.array(z.string()).optional(),

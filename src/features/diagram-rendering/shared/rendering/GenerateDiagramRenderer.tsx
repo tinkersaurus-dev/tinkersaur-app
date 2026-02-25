@@ -10,6 +10,7 @@ import { FaPlay } from 'react-icons/fa';
 import type { ShapeRendererProps } from './types';
 import { ShapeWrapper } from './ShapeWrapper';
 import { useGeneratorReferences, useGenerateDiagram } from '@/features/diagram-management';
+import { applySequenceDiagramPostProcessing } from '@/features/diagram-rendering/sequence/postProcessing';
 import { ReferencedDiagramsList } from './components/ReferencedDiagramsList';
 import { styles, spinKeyframes } from './GenerateDiagramRenderer.styles';
 
@@ -31,7 +32,7 @@ export const GenerateDiagramRenderer = memo(function GenerateDiagramRenderer({
 
   // Update logic: manage generation workflow
   const { prompt, isLoading, error, handleGenerate, handlePromptChange } =
-    useGenerateDiagram(shape, referencedDiagrams);
+    useGenerateDiagram(shape, referencedDiagrams, applySequenceDiagramPostProcessing);
 
   // Calculate zoom-compensated values
   let borderWidth = 2 / zoom;

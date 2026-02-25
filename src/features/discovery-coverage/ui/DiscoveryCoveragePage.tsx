@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { PageHeader, PageContent, Card, Spinner, Empty, Select, Button } from '@/shared/ui';
 import { LuArrowUp, LuArrowDown } from 'react-icons/lu';
 import type { SelectOption, SelectOptionGroup } from '@/shared/ui';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { useFeedbacksQuery } from '@/entities/feedback';
 import { usePersonasQuery } from '@/entities/persona';
 import { useUserGoalsByTeamQuery } from '@/entities/user-goal';

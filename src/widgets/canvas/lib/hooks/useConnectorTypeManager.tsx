@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import type { JSX } from 'react';
 import { TbArrowRight } from 'react-icons/tb';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
 import type { ArrowType, Connector } from '@/entities/connector';
 import {

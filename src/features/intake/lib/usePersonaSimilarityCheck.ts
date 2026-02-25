@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useIntakeStore, useExtractionsByType } from '../model/useIntakeStore';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { personaApi } from '@/entities/persona';
 import type { PersonaEntity, Extraction } from '../model/types';
 

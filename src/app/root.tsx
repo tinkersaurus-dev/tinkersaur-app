@@ -10,7 +10,9 @@ import { Toaster } from "sonner";
 
 import type { Route } from "./+types/root";
 import { ThemeProvider, useTheme, QueryProvider } from "@/app/providers";
-import { AuthGuard, useAuthStore } from "@/features/auth";
+import { useAuthStore } from "@/shared/auth";
+import { AuthGuard } from "@/features/auth";
+import "@/app/authSideEffects";
 import { ChangePasswordModal } from "@/app/ui/auth/ChangePasswordModal";
 import "@tinkersaur/ui/styles";
 import "@/app/app.css";

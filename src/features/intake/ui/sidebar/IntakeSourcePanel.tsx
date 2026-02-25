@@ -1,7 +1,7 @@
 import { useIntakeStore } from '../../model/useIntakeStore';
 import { SOURCE_TYPES, type SourceTypeKey } from '@/entities/source-type';
 import { useSolutionsQuery } from '@/entities/solution';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { Select, Input, DatePicker } from '@/shared/ui';
 
 const sourceTypeOptions = Object.values(SOURCE_TYPES).map((st) => ({

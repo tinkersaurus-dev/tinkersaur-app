@@ -1,7 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { FeedbackType } from '@/entities/feedback';
-
-export type TimeGranularity = 'day' | 'week' | 'month';
+import type { FeedbackType, TimeGranularity } from '@/entities/feedback';
 
 interface AnalyzeFilterState {
   selectedTypes: FeedbackType[];

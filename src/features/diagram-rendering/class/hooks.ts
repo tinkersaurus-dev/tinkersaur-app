@@ -10,7 +10,7 @@
 
 import { useCallback } from 'react';
 import { getClassShapeData, getEnumerationShapeData, type Shape, type ClassShapeData, type EnumerationShapeData } from '@/entities/shape';
-import type { Command } from '@/features/canvas-commands/model/command.types';
+import type { Command } from '@/shared/model/commands';
 import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
 
 interface UseClassShapeEditingProps {

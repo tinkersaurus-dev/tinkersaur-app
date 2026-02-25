@@ -2,12 +2,8 @@ import type { Command } from '../../model/command.types';
 import type { CreateShapeDTO, UpdateShapeDTO } from '@/entities/shape';
 import type { CreateConnectorDTO } from '@/entities/connector';
 import type { Diagram, DiagramType } from '@/entities/diagram';
-import type { MermaidImportResult } from '@/features/diagram-rendering/shared/mermaid/importer';
-import { BpmnMermaidImporter } from '@/features/diagram-rendering/bpmn/mermaid/importer';
-import { ClassMermaidImporter } from '@/features/diagram-rendering/class/mermaid/importer';
-import { SequenceMermaidImporter} from '@/features/diagram-rendering/sequence/mermaid/importer';
-import { ArchitectureMermaidImporter } from '@/features/diagram-rendering/architecture/mermaid/importer';
-import { EntityRelationshipMermaidImporter } from '@/features/diagram-rendering/entity-relationship/mermaid/importer';
+import { getMermaidImporter } from '@/shared/lib/mermaid';
+import type { MermaidImportResult } from '@/shared/lib/mermaid';
 import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 
 /**
@@ -217,24 +213,9 @@ export class CreatePreviewFromPasteCommand implements Command {
     }
   }
 
-  /**
-   * Get the appropriate mermaid importer for the diagram type
-   */
   private getImporter(diagramType: DiagramType) {
-    switch (diagramType) {
-      case 'bpmn':
-        return new BpmnMermaidImporter();
-      case 'class':
-        return new ClassMermaidImporter();
-      case 'sequence':
-        return new SequenceMermaidImporter();
-      case 'architecture':
-        return new ArchitectureMermaidImporter();
-      case 'entity-relationship':
-        return new EntityRelationshipMermaidImporter();
-      default:
-        return null;
-    }
+    const result = getMermaidImporter(diagramType);
+    return result.ok ? result.value : null;
   }
 
   /**

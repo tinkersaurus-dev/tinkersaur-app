@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { authApi, useAuthStore, PASSWORD_REQUIREMENTS, isPasswordValid } from '@/features/auth';
+import { authApi, useAuthStore } from '@/shared/auth';
+import { PASSWORD_REQUIREMENTS, isPasswordValid } from '@/features/auth';
 import { Button, Modal, PasswordInput } from '@/shared/ui';
 
 interface ChangePasswordModalProps {

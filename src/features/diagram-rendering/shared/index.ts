@@ -19,5 +19,6 @@ export * from './rendering/strokeStyles';
 export * from './rendering/svgMarkers';
 export * from './rendering/labelPositioning';
 
-// Mermaid
-export * from './mermaid';
+// Mermaid registration (side-effect import to register all importers/exporters)
+// Types and registry functions are in @/shared/lib/mermaid
+import './mermaid';

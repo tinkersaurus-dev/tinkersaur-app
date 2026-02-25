@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { useAuthStore } from '../model/useAuthStore';
+import { useAuthStore } from '@/shared/auth';
 
 const PUBLIC_ROUTES = ['/login', '/forgot-password', '/reset-password', '/set-password'];
 

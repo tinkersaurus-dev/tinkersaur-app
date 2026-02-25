@@ -4,7 +4,7 @@
  */
 
 import { PageHeader, PageContent } from '@/shared/ui';
-import { PlanView } from '@/features/planning';
+import { PlanView } from '@/widgets/plan-view';
 
 export default function PlanPage() {
   return (

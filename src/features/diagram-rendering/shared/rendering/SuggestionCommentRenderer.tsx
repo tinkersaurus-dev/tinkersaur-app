@@ -15,10 +15,10 @@ import type { ShapeRendererProps } from './types';
 import { isSuggestionCommentShapeData } from '@/entities/shape';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/widgets/canvas/ui/contexts/CanvasDiagramContext';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import { RejectSuggestionCommand } from '@/features/canvas-commands/commands/suggestions/RejectSuggestionCommand';
 import { ApplySuggestionCommand } from '@/features/canvas-commands/commands/suggestions/ApplySuggestionCommand';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { toast } from 'sonner';
 
 export function SuggestionCommentRenderer({

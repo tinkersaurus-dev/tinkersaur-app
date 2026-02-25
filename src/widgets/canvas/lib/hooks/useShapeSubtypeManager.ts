@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
 import type { Shape } from '@/entities/shape';
 

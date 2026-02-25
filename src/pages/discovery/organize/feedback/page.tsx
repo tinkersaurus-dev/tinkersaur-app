@@ -16,7 +16,7 @@ import { useSolutionsQuery } from '@/entities/solution';
 import { usePersonasQuery } from '@/entities/persona';
 import { useUserGoalsByTeamQuery } from '@/entities/user-goal';
 import { useListUrlState } from '@/shared/hooks';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { FeedbackMergeModal } from '@/features/entity-merging';
 import { GroupFeedbackButton, GroupingPreviewModal } from '@/features/feedback-grouping';
 

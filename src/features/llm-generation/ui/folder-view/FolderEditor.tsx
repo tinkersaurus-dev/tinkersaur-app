@@ -9,7 +9,7 @@ import { useState, useCallback } from 'react';
 import { LuSparkles, LuCopy } from 'react-icons/lu';
 import { MarkdownContent, Tabs } from '@/shared/ui';
 import { Button } from '@/shared/ui';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import {
   generateUserStories,
   generateUserDocsStructured,
@@ -23,7 +23,7 @@ import {
 import { UserStoriesPanel } from './panels/UserStoriesPanel';
 import { UserDocsPanel } from './panels/UserDocsPanel';
 import { TechSpecPanel } from './panels/TechSpecPanel';
-import { useAsyncGeneration } from '@/features/diagram-management';
+import { useAsyncGeneration } from '../../lib/useAsyncGeneration';
 
 /**
  * Convert user stories to markdown for clipboard copy

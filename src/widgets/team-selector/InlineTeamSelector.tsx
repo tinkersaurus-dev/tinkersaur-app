@@ -6,8 +6,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { FiChevronDown, FiCheck, FiEdit2, FiEye } from 'react-icons/fi';
-import { useAuthStore } from '@/features/auth';
-import type { TeamAccess } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
+import type { TeamAccess } from '@/shared/auth';
 import { HStack } from '@/shared/ui';
 
 function SectionLabel({ children }: { children: React.ReactNode }) {

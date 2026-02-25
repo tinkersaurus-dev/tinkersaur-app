@@ -1,6 +1,6 @@
 import type { CreateShapeDTO, Shape } from '@/entities/shape';
 import { diagramApi } from '@/entities/diagram';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import {
   canShapeBeReferenceSource,
   canShapeBeFolderReferenceSource,

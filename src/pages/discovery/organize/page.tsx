@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { FiPlus } from 'react-icons/fi';
 import { PageHeader, PageContent, Button } from '@/shared/ui';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { queryKeys } from '@/shared/lib/query';
 import { usePersonasQuery } from '@/entities/persona';
 import { useUserGoalsByTeamQuery } from '@/entities/user-goal';

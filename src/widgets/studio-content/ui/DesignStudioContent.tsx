@@ -13,7 +13,7 @@ import { StudioSidebar } from '@/widgets/studio-sidebar';
 import { DiagramView } from '@/features/diagram-management/ui/views/DiagramView';
 import { InterfaceView } from '@/features/diagram-management/ui/views/InterfaceView';
 import { DocumentView } from '@/features/diagram-management/ui/views/DocumentView';
-import { FolderView } from '@/features/diagram-management/ui/views/FolderView';
+import { FolderView } from './FolderView';
 import { OverviewTab } from '@/features/diagram-management/ui/overview/OverviewTab';
 
 interface DesignStudioContentProps {

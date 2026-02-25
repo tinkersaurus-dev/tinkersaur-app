@@ -26,3 +26,25 @@ export function filterWeakEvidenceUserGoals(
 ): UserGoal[] {
   return userGoals.filter((ug) => hasWeakEvidence(ug, threshold));
 }
+
+// Freshness helpers (based on last intake: most recent Feedback association)
+
+export const FRESH_THRESHOLD_DAYS = 14;
+export const MODERATE_THRESHOLD_DAYS = 30;
+
+export type Freshness = 'Fresh' | 'Moderate' | 'Stale';
+
+export function getDaysSinceLastIntake(ug: UserGoal): number | null {
+  if (!ug.lastIntakeAt) return null;
+  return Math.floor(
+    (Date.now() - new Date(ug.lastIntakeAt).getTime()) / (1000 * 60 * 60 * 24),
+  );
+}
+
+export function getFreshness(ug: UserGoal): Freshness | null {
+  const days = getDaysSinceLastIntake(ug);
+  if (days === null) return null;
+  if (days < FRESH_THRESHOLD_DAYS) return 'Fresh';
+  if (days <= MODERATE_THRESHOLD_DAYS) return 'Moderate';
+  return 'Stale';
+}

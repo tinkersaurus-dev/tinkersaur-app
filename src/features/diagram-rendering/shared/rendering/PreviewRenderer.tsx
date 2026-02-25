@@ -13,7 +13,7 @@ import { getLLMPreviewShapeData, type LLMPreviewShapeData } from '@/entities/sha
 import { ShapeWrapper } from './ShapeWrapper';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/widgets/canvas/ui/contexts/CanvasDiagramContext';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import { ReplaceWithEditorCommand } from '@/features/canvas-commands/commands/preview-import/ReplaceWithEditorCommand';
 import { ApplyPreviewCommand } from '@/features/canvas-commands/commands/preview-import/ApplyPreviewCommand';
 import { toast } from 'sonner';

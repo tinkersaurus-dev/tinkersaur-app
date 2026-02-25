@@ -7,7 +7,7 @@ import type { ReorderItemDto } from '@/entities/design-work';
 import { diagramApi } from '@/entities/diagram';
 import { interfaceApi } from '@/entities/interface';
 import { documentApi } from '@/entities/document';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 
 // RequirementRef type for design work requirement references
 interface RequirementRef {

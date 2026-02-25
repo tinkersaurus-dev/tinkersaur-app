@@ -7,7 +7,7 @@
  */
 
 import { useCallback } from 'react';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import {
   regenerateUserDocument,
   userDocumentToMarkdown,

@@ -47,7 +47,7 @@ import type { Shape } from '@/entities/shape';
 import type { Connector } from '@/entities/connector';
 import type { DiagramType } from '@/entities/diagram';
 import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
-import type { Command } from '@/features/canvas-commands/model/command.types';
+import type { Command } from '@/shared/model/commands';
 import type { ResizeHandle } from '../../lib/utils/resize';
 import type { ConnectorTool } from '@/features/diagram-rendering/bpmn/connectors';
 import type { CanvasStateStoreActions, CanvasStateCrudOperations } from './useCanvasState';

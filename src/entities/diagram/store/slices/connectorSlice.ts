@@ -1,6 +1,6 @@
 import type { CreateConnectorDTO, Connector } from '@/entities/connector';
 import { diagramApi } from '@/entities/diagram';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import { handleStoreError } from '../utils/errorHandler';
 import { syncConnectorToCanvas, syncConnectorsToCanvas } from '../utils/canvasSync';
 import type { DiagramSlice, ConnectorSlice } from '../types';

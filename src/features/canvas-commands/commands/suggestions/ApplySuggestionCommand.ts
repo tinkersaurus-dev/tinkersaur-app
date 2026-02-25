@@ -4,10 +4,9 @@ import type { Connector, CreateConnectorDTO } from '@/entities/connector';
 import type { Diagram, DiagramType } from '@/entities/diagram';
 import type { SuggestionCommentShapeData } from '@/entities/shape';
 import type { LLMPreviewShapeData } from '@/entities/shape';
-import type { MermaidImportResult, MermaidShapeRef } from '@/features/diagram-rendering/shared/mermaid/importer';
-import { getMermaidExporter } from '@/features/diagram-rendering/shared/mermaid/registry';
-import { getMermaidImporter } from '@/features/diagram-rendering/shared/mermaid/registry';
-import { applySuggestion } from '@/features/llm-generation';
+import type { MermaidImportResult, MermaidShapeRef } from '@/shared/lib/mermaid';
+import { getMermaidExporter, getMermaidImporter } from '@/shared/lib/mermaid';
+import { applySuggestion } from '@/shared/api';
 import { isSuggestionCommentShapeData } from '@/entities/shape';
 
 /**

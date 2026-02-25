@@ -1,6 +1,6 @@
 import type { ClassShapeData, EnumerationShapeData } from '@/entities/shape';
 import type { MemberCommandConfig } from './member-command.types';
-import { calculateClassHeight, calculateEnumerationHeight } from '@/features/diagram-rendering/class/utils';
+import { calculateClassHeight, calculateEnumerationHeight } from '@/shared/lib/utils/shapeHeightUtils';
 
 /**
  * Pre-configured member command configs for common shape types

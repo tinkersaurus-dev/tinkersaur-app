@@ -12,10 +12,10 @@
  */
 
 import { useCallback } from 'react';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { commandManager } from '@/shared/model/commands';
 import { useClassShapeEditing, useEnumerationShapeEditing } from '@/features/diagram-rendering/class/hooks';
 import { useEntityShapeEditing } from '@/features/diagram-rendering/entity-relationship/hooks';
-import type { Command } from '@/features/canvas-commands/model/command.types';
+import type { Command } from '@/shared/model/commands';
 import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
 import type { Shape, EntityAttributeData } from '@/entities/shape';
 

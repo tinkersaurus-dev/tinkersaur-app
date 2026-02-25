@@ -7,8 +7,9 @@ import {
   mergeUserGoals,
   MergeUserGoalsAPIError,
   type UserGoalInput,
-} from '@/features/llm-generation';
-import type { MergedUserGoalData, UserGoal } from '@/entities/user-goal';
+  type MergedUserGoalData,
+  type UserGoal,
+} from '@/entities/user-goal';
 
 export function useMergeUserGoalsLLM() {
   const [isLoading, setIsLoading] = useState(false);

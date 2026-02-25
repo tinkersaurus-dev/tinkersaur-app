@@ -6,7 +6,7 @@
 import { Input, Form, useForm, Select, Button } from '@/shared/ui';
 import type { SolutionType, Solution } from '@/entities/solution';
 import { useCreateSolution, useSolutionStore } from '@/entities/solution';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 
 interface CreateSolutionViewProps {
   onCancel: () => void;

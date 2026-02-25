@@ -10,7 +10,7 @@ import { useQueries } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/widgets/canvas/ui/contexts/CanvasDiagramContext';
-import { useCanvasInstance } from '@/features/diagram-rendering/useCanvasInstance';
+import { canvasInstanceRegistry } from '@/shared/model/stores/canvas/canvasInstanceRegistry';
 import { queryKeys } from '@/shared/lib/query';
 import { STALE_TIMES } from '@/shared/lib/query';
 import { diagramApi } from '@/entities/diagram';
@@ -26,10 +26,10 @@ export interface UseGeneratorReferencesReturn {
 
 export function useGeneratorReferences(shape: Shape): UseGeneratorReferencesReturn {
   // Get diagram info from canvas diagram context
-  const { diagramId, diagram } = useCanvasDiagram();
+  const { diagramId } = useCanvasDiagram();
 
   // Get canvas instance store for local state updates
-  const canvasInstance = useCanvasInstance(diagramId, diagram?.type);
+  const canvasInstance = canvasInstanceRegistry.getStore(diagramId);
   const updateLocalShape = canvasInstance((state) => state.updateLocalShape);
 
   // Get entity store methods for persistence

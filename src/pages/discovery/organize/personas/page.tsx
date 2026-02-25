@@ -6,15 +6,21 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { FiPlus, FiGitMerge, FiX } from 'react-icons/fi';
-import { PageHeader, PageContent, EntityList, Empty, Tag } from '@/shared/ui';
+import { PageHeader, PageContent, EntityList, Empty } from '@/shared/ui';
 import { Button } from '@/shared/ui';
 import type { TableColumn, FilterConfig } from '@/shared/ui';
 import type { Persona } from '@/entities/persona';
 import { usePersonasPaginatedQuery, usePersonasQuery, filterStalePersonas, getDaysSinceLastIntake, getFreshness } from '@/entities/persona';
 import { useSolutionsQuery } from '@/entities/solution';
 import { useListUrlState } from '@/shared/hooks';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { PersonaMergeModal } from '@/features/entity-merging';
+
+function getFreshnessColor(record: Persona): string | null {
+  const freshness = getFreshness(record);
+  if (!freshness) return null;
+  return freshness === 'Fresh' ? 'var(--tag-green)' : freshness === 'Moderate' ? 'var(--tag-amber)' : 'var(--tag-red)';
+}
 
 export default function PersonasListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
@@ -23,8 +29,8 @@ export default function PersonasListPage() {
   // URL state for pagination, filters, and sorting
   const urlState = useListUrlState({
     filterKeys: ['solutionId', 'stale'],
-    defaultSortBy: 'createdAt',
-    defaultSortOrder: 'desc',
+    defaultSortBy: 'lastintakeat',
+    defaultSortOrder: 'asc',
   });
 
   const staleThreshold = urlState.filters.stale ? parseInt(urlState.filters.stale, 10) : null;
@@ -116,11 +122,24 @@ export default function PersonasListPage() {
       width: 110,
       sorter: true,
       sortField: 'lastintakeat',
+      onCell: (record: Persona) => {
+        const color = getFreshnessColor(record);
+        const days = getDaysSinceLastIntake(record);
+        if (!color || days === null) return {};
+        const bgAlpha = 0.2 * (1 / (days / 4 + 1));
+        return {
+          style: {
+            backgroundColor: `oklch(from ${color} l c h / ${bgAlpha})`,
+          },
+        };
+      },
       render: (_, record) => {
         const days = getDaysSinceLastIntake(record);
+        const color = getFreshnessColor(record);
+        if (days === null || !color) return <span className="text-[var(--text-muted)] text-base">—</span>;
         return (
-          <span className="text-[var(--text-muted)] text-base tabular-nums">
-            {days !== null ? `${days}d ago` : '—'}
+          <span className="text-base font-semibold tabular-nums" style={{ color }}>
+            {`${days}d ago`}
           </span>
         );
       },
@@ -131,23 +150,41 @@ export default function PersonasListPage() {
       width: 110,
       sorter: true,
       sortField: 'lastintakeat',
+      onCell: (record: Persona) => {
+        const color = getFreshnessColor(record);
+        const days = getDaysSinceLastIntake(record);
+        if (!color || days === null) return {};
+        const bgAlpha = 0.2 * (1 / (days / 4 + 1));
+        return {
+          style: {
+            backgroundColor: `oklch(from ${color} l c h / ${bgAlpha})`,
+          },
+        };
+      },
       render: (_, record) => {
-        const freshness = getFreshness(record);
-        if (!freshness) return <span className="text-[var(--text-muted)] text-base">—</span>;
-        const color = freshness === 'Fresh' ? 'green' : freshness === 'Moderate' ? 'amber' : 'red';
-        return <Tag color={color}>{freshness}</Tag>;
+        const color = getFreshnessColor(record);
+        if (!color) return <span className="text-[var(--text-muted)] text-base">—</span>;
+        return <span className="text-base font-semibold" style={{ color }}>{getFreshness(record)}</span>;
       },
     },
     {
-      key: 'createdAt',
-      title: 'Created',
-      dataIndex: 'createdAt',
-      width: 120,
+      key: 'painScore',
+      title: 'Pain',
+      width: 80,
       sorter: true,
-      sortField: 'createdAt',
-      render: (value) => (
-        <span className="text-[var(--text-muted)] text-base">
-          {new Date(value as Date).toLocaleDateString()}
+      sortField: 'painscore',
+      onCell: (record: Persona) => {
+        if (record.painScore <= 0) return {};
+        const bgAlpha = 0.05 * record.painScore;
+        return {
+          style: {
+            backgroundColor: `oklch(0.5702 0.0938 338.5 / ${bgAlpha})`,
+          },
+        };
+      },
+      render: (_, record) => (
+        <span className="text-base font-semibold tabular-nums" style={{ color: 'oklch(0.5702 0.0938 338.5)' }}>
+          {record.painScore > 0 ? record.painScore.toFixed(1) : '—'}
         </span>
       ),
     },

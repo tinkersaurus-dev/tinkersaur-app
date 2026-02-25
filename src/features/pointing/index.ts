@@ -16,6 +16,9 @@ export { POINT_VALUES, TIMEOUT_OPTIONS } from './model/types';
 // Store
 export { usePointingStore } from './model/usePointingStore';
 
+// Hooks
+export { usePointingEvents } from './lib/usePointingEvents';
+
 // Hub API
 export * as pointingHub from './api/pointingHub';
 

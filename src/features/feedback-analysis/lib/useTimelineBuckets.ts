@@ -11,7 +11,7 @@ import {
 } from 'date-fns';
 import type { Feedback } from '@/entities/feedback';
 import { resolveFeedbackDate } from '@/entities/feedback';
-import type { TimeGranularity } from './useAnalyzeFilterState';
+import type { TimeGranularity } from '@/entities/feedback';
 
 export interface TimelineBucket {
   key: string;

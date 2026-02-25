@@ -8,7 +8,7 @@ import { InlineDocumentWithCards } from './editor/InlineDocumentWithCards';
 import { ExtractionSuggestions } from './suggestions/ExtractionSuggestions';
 import { PersonaSidebar } from './sidebar';
 import { Button, Spinner, HStack, PageHeader, PageContent } from '@/shared/ui';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { useSaveIntakeResult } from '../lib/useSaveIntakeResult';
 import type { ExtractedPersona, ExtractedUserGoal } from '@/entities/intake-result';
 import type { ExtractedFeedback } from '@/entities/feedback';

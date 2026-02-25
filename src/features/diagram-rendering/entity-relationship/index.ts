@@ -15,12 +15,12 @@ export { EntityAttributeEditor } from './components/EntityAttributeEditor';
 export { useEntityShapeEditing } from './hooks';
 
 // Utils
-export { calculateEntityHeight } from './utils';
+export { calculateEntityHeight } from '@/shared/lib/utils/shapeHeightUtils';
 
 // Commands
-export { AddEntityAttributeCommand } from './commands/AddEntityAttributeCommand';
-export { DeleteEntityAttributeCommand } from './commands/DeleteEntityAttributeCommand';
-export { UpdateEntityAttributeCommand } from './commands/UpdateEntityAttributeCommand';
+export { AddEntityAttributeCommand } from '@/features/canvas-commands/commands/entity-relationship/AddEntityAttributeCommand';
+export { DeleteEntityAttributeCommand } from '@/features/canvas-commands/commands/entity-relationship/DeleteEntityAttributeCommand';
+export { UpdateEntityAttributeCommand } from '@/features/canvas-commands/commands/entity-relationship/UpdateEntityAttributeCommand';
 
 // Mermaid Import/Export
 export { createEntityRelationshipMermaidExporter, EntityRelationshipMermaidExporter } from './mermaid/exporter';

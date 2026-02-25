@@ -8,8 +8,9 @@ import {
   mergePersonas,
   MergePersonasAPIError,
   type PersonaInput,
-} from '@/features/llm-generation';
-import type { MergedPersonaData, Persona } from '@/entities/persona';
+  type MergedPersonaData,
+  type Persona,
+} from '@/entities/persona';
 
 export function useMergePersonasLLM() {
   const [isLoading, setIsLoading] = useState(false);

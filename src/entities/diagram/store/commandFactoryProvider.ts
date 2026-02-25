@@ -1,5 +1,6 @@
 import { CommandFactory, type CommandFactoryDependencies } from '@/features/canvas-commands/model/CommandFactory';
 import { canvasInstanceRegistry } from '@/shared/model/stores/canvas/canvasInstanceRegistry';
+import { calculateAllLifelineActivations } from '@/features/diagram-rendering/sequence/activationCalculator';
 import type { Connector } from '@/entities/connector';
 import type { DiagramStoreState } from './types';
 
@@ -65,6 +66,9 @@ function createCommandFactoryDependencies(
       if (!diagram) return null;
       return diagram.connectors.find((c: Connector) => c.id === connectorId) ?? null;
     },
+
+    // Sequence diagram
+    calculateAllLifelineActivations,
   };
 }
 

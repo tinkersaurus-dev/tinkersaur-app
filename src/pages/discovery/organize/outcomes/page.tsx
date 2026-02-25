@@ -13,7 +13,7 @@ import type { Outcome } from '@/entities/outcome';
 import { useOutcomesPaginatedQuery, useOutcomesQuery, filterUnlinkedOutcomes } from '@/entities/outcome';
 import { useSolutionsQuery } from '@/entities/solution';
 import { useListUrlState } from '@/shared/hooks';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 
 export default function OutcomesListPage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
@@ -83,7 +83,7 @@ export default function OutcomesListPage() {
       key: 'target',
       title: 'Target',
       dataIndex: 'target',
-      width: 200,
+      maxWidth: 300,
       sorter: true,
       sortField: 'target',
       render: (value) => (

@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Drawer, Button, HStack } from '@/shared/ui';
 import { FiPlay, FiClock } from 'react-icons/fi';
 import { usePointingStore } from '../model/usePointingStore';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import * as pointingHub from '../api/pointingHub';
 import { TimeoutSelector } from './TimeoutSelector';
 import { VotingPanel } from './VotingPanel';

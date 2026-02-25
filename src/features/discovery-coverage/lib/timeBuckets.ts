@@ -8,7 +8,7 @@ import {
   format,
   endOfWeek,
 } from 'date-fns';
-import type { TimeGranularity } from '@/features/feedback-analysis';
+import type { TimeGranularity } from '@/entities/feedback';
 
 export function getBucketStart(date: Date, granularity: TimeGranularity): Date {
   switch (granularity) {

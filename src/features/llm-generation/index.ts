@@ -6,28 +6,22 @@
 // Types
 export * from './model/types';
 
-// Diagram APIs
+// Diagram APIs (canonical location: @/shared/api/llm)
 export {
   generateMermaid,
   MermaidGeneratorAPIError,
   type GenerateMermaidRequest,
   type GenerateMermaidResponse,
-} from './api/mermaid-generator-api';
-
-export {
   generateSuggestions,
   SuggestionsGeneratorAPIError,
   type Suggestion,
   type GenerateSuggestionsRequest,
   type GenerateSuggestionsResponse,
-} from './api/suggestions-generator-api';
-
-export {
   applySuggestion,
   ApplySuggestionAPIError,
   type ApplySuggestionRequest,
   type ApplySuggestionResponse,
-} from './api/apply-suggestion-api';
+} from '@/shared/api/llm';
 
 // User Stories APIs
 export {
@@ -76,20 +70,20 @@ export {
   type GenerateOverviewSectionResponse,
 } from './api/overview-generator-api';
 
-// Discovery APIs
+// Discovery APIs (re-exported from entities — canonical locations are @/entities/persona and @/entities/user-goal)
 export {
   mergePersonas,
   MergePersonasAPIError,
   type PersonaInput,
   type MergePersonasResponse,
-} from './api/merge-personas-api';
+} from '@/entities/persona';
 
 export {
   mergeUserGoals,
   MergeUserGoalsAPIError,
   type UserGoalInput,
   type MergeUserGoalsResponse,
-} from './api/merge-user-goals-api';
+} from '@/entities/user-goal';
 
 // Requirement APIs
 export {
@@ -98,6 +92,9 @@ export {
   type GenerateEarsResponse,
   type EarsGenerationResult,
 } from './api/ears-generator-api';
+
+// Async generation utility
+export { useAsyncGeneration, type UseAsyncGenerationReturn } from './lib/useAsyncGeneration';
 
 // UI Components
 export { RefinementPreview } from './ui/RefinementPreview';

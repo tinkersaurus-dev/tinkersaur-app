@@ -12,13 +12,13 @@ import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 import { useCanvasDiagram } from '@/widgets/canvas/ui/contexts/CanvasDiagramContext';
-import { generateMermaid, MermaidGeneratorAPIError } from '@/features/llm-generation';
-import { commandManager } from '@/features/canvas-commands/model/CommandManager';
+import { generateMermaid, MermaidGeneratorAPIError } from '@/shared/api';
+import { commandManager } from '@/shared/model/commands';
 import { ReplaceWithPreviewCommand } from '@/features/canvas-commands/commands/preview-import/ReplaceWithPreviewCommand';
-import { applySequenceDiagramPostProcessing } from '@/features/diagram-rendering/sequence/postProcessing';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import type { LLMGeneratorShapeData, Shape } from '@/entities/shape';
 import type { DiagramType, Diagram } from '@/entities/diagram';
+import type { CommandFactory } from '@/features/canvas-commands/model/CommandFactory';
 
 export interface UseGenerateDiagramReturn {
   prompt: string;
@@ -31,7 +31,8 @@ export interface UseGenerateDiagramReturn {
 
 export function useGenerateDiagram(
   shape: Shape,
-  referencedDiagrams: Diagram[]
+  referencedDiagrams: Diagram[],
+  postProcessor?: (diagramId: string, commandFactory: CommandFactory) => Promise<void>
 ): UseGenerateDiagramReturn {
   // Get diagram info from canvas diagram context
   const { diagramId, diagram } = useCanvasDiagram();
@@ -138,8 +139,8 @@ export function useGenerateDiagram(
 
       await commandManager.execute(command, diagramId);
 
-      // Apply sequence diagram post-processing (lifeline heights and activation boxes)
-      await applySequenceDiagramPostProcessing(diagramId, commandFactory);
+      // Apply post-processing if provided (e.g. sequence diagram lifeline heights)
+      await postProcessor?.(diagramId, commandFactory);
 
       toast.success('Diagram generated successfully!');
     } catch (err) {
@@ -175,6 +176,7 @@ export function useGenerateDiagram(
     addConnectorsBatch,
     _internalUpdateShape,
     commandFactory,
+    postProcessor,
   ]);
 
   return {

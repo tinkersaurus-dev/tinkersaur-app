@@ -3,12 +3,12 @@ import { useIntakeStore } from '../../model/useIntakeStore';
 import { ExtractionCard } from '../cards/ExtractionCard';
 import { SimilarityConnector } from '../cards/SimilarityConnector';
 import { SimilarEntityCard } from '../cards/SimilarEntityCard';
-import { IntakeUserGoalMergeModal } from '@/features/entity-merging';
-import type { PendingUserGoalMerge as EntityMergePendingUserGoalMerge } from '@/features/entity-merging';
+import { IntakeUserGoalMergeModal } from '../merge/IntakeUserGoalMergeModal';
 import type {
   Extraction,
   InlineSimilarityMatch,
   UserGoalEntity,
+  PendingUserGoalMerge,
 } from '../../model/types';
 import type { SimilarFeedbackResult } from '@/entities/feedback';
 import type { SimilarOutcomeResult } from '@/entities/outcome';
@@ -101,7 +101,7 @@ export function InlineCardGroup({ extractionIds, extractions }: InlineCardGroupP
     }
   }, [addPendingFeedbackMerge, addPendingOutcomeMerge, acceptExtraction]);
 
-  const handleUserGoalMergeConfirmed = useCallback((pendingMerge: EntityMergePendingUserGoalMerge) => {
+  const handleUserGoalMergeConfirmed = useCallback((pendingMerge: PendingUserGoalMerge) => {
     if (!ugMergeModalExtraction) return;
     const { id, extraction } = ugMergeModalExtraction;
     addPendingUserGoalMerge(id, {

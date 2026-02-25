@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import type { Shape } from '@/entities/shape';
 import type { Connector } from '@/entities/connector';
 import type { DiagramType } from '@/entities/diagram';
-import { getMermaidExporter } from '@/features/diagram-rendering/shared/mermaid';
+import { getMermaidExporter } from '@/shared/lib/mermaid';
 import { useMermaidViewerStore } from '../model/stores/mermaidViewerStore';
 import { useDiagramStore } from '@/entities/diagram/store/useDiagramStore';
 

@@ -1,6 +1,6 @@
 import type { Result } from '@/shared/lib/utils';
-import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef, MermaidShapeRef } from '../../shared/mermaid/importer';
-import { BaseMermaidImporter } from '../../shared/mermaid/importer';
+import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef, MermaidShapeRef } from '@/shared/lib/mermaid';
+import { BaseMermaidImporter } from '@/shared/lib/mermaid';
 import { layoutArchitectureGraph } from '../layout';
 import { DEFAULT_SHAPE_SUBTYPES } from '@/features/diagram-rendering/config/shape-subtypes';
 

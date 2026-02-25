@@ -35,3 +35,5 @@ export type {
   FeedbackListParams,
   OutcomeListParams,
 } from './types';
+
+export * from './llm';

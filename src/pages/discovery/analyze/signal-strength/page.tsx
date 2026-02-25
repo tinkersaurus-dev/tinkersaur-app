@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import { PageHeader, PageContent, Spinner, Empty } from '@/shared/ui';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { useFeedbacksQuery } from '@/entities/feedback';
 import { useTagsQuery } from '@/entities/tag';
 import { usePersonasQuery } from '@/entities/persona';

@@ -43,6 +43,13 @@ export {
   useDeletePersona,
 } from './api/mutations';
 
+export {
+  mergePersonas,
+  MergePersonasAPIError,
+  type PersonaInput,
+  type MergePersonasResponse,
+} from './api/merge-personas-api';
+
 export { PersonaCard } from './ui/PersonaCard';
 
 // Filters

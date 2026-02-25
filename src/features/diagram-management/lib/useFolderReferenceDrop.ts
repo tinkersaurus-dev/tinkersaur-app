@@ -7,7 +7,7 @@ import { canShapeBeFolderReferenceSource } from '@/entities/reference';
 import {
   generateClassMermaid,
   generateEnumerationMermaid,
-} from '@/features/diagram-rendering/class/mermaid/single-entity-exporter';
+} from '@/shared/lib/mermaid/single-entity-exporter';
 
 /**
  * Hook for handling class/enumeration reference drops onto folders

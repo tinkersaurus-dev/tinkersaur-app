@@ -2,7 +2,7 @@ import React from 'react';
 import { LuFileCode, LuLightbulb, LuLoader } from 'react-icons/lu';
 import { Button } from '@/shared/ui';
 import { useMermaidViewerStore } from '@/features/diagram-management';
-import { hasMermaidExporter } from '@/features/diagram-rendering/shared/mermaid';
+import { hasMermaidExporter } from '@/shared/lib/mermaid';
 import type { DiagramType } from '@/entities/diagram';
 
 export interface CanvasTextToolbarProps {

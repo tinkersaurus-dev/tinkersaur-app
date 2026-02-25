@@ -1,4 +1,4 @@
-import type { Command } from './command.types';
+import type { Command } from '@/shared/model/commands';
 import type { CreateShapeDTO, Shape } from '@/entities/shape';
 import type { CreateConnectorDTO, Connector, UpdateConnectorDTO } from '@/entities/connector';
 import type { Diagram } from '@/entities/diagram';
@@ -28,9 +28,9 @@ import type { ClassShapeData, EnumerationShapeData } from '@/entities/shape';
 import { BatchDeleteShapesCommand } from '../commands/shapes/BatchDeleteShapesCommand';
 import { BatchDeleteConnectorsCommand } from '../commands/connectors/BatchDeleteConnectorsCommand';
 // Sequence diagram commands
-import { UpdateLifelineActivationsCommand } from '@/features/diagram-rendering/sequence/commands/UpdateLifelineActivationsCommand';
-import { RefreshSequenceActivationsCommand } from '@/features/diagram-rendering/sequence/commands/RefreshSequenceActivationsCommand';
-import { UpdateLifelineHeightsCommand } from '@/features/diagram-rendering/sequence/commands/UpdateLifelineHeightsCommand';
+import { UpdateLifelineActivationsCommand } from '../commands/sequence/UpdateLifelineActivationsCommand';
+import { RefreshSequenceActivationsCommand } from '../commands/sequence/RefreshSequenceActivationsCommand';
+import { UpdateLifelineHeightsCommand } from '../commands/sequence/UpdateLifelineHeightsCommand';
 import { ImportMermaidCommand } from '../commands/preview-import/ImportMermaidCommand';
 import type { ActivationBox } from '@/entities/shape';
 import { ResizeShapesCommand, type ShapeBoundsUpdate } from '../commands/shapes/ResizeShapesCommand';
@@ -76,6 +76,9 @@ export interface CommandFactoryDependencies {
   getShape?: (shapeId: string) => Shape | undefined;
   getCurrentShape?: (diagramId: string, shapeId: string) => Shape | null;
   getCurrentConnector?: (diagramId: string, connectorId: string) => Connector | null;
+
+  // Sequence diagram
+  calculateAllLifelineActivations: (shapes: Shape[], connectors: Connector[]) => Map<string, ActivationBox[]>;
 }
 
 export class CommandFactory {
@@ -568,6 +571,7 @@ export class CommandFactory {
       diagramId,
       this.deps.getDiagram,
       this.deps._internalUpdateShape,
+      this.deps.calculateAllLifelineActivations,
       updateLocalShape
     );
   }

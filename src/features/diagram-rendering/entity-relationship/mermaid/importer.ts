@@ -1,7 +1,7 @@
 import type { Result } from '@/shared/lib/utils';
 import type { CreateShapeDTO, EntityShapeData, EntityAttributeData } from '@/entities/shape';
-import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '../../shared/mermaid/importer';
-import { BaseMermaidImporter } from '../../shared/mermaid/importer';
+import type { MermaidImportOptions, MermaidImportResult, MermaidConnectorRef } from '@/shared/lib/mermaid';
+import { BaseMermaidImporter } from '@/shared/lib/mermaid';
 import { CANVAS_CONFIG } from '@/shared/lib/config/canvas-config';
 import type { ArrowType } from '@/entities/connector';
 

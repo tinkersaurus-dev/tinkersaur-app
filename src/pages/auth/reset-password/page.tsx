@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router';
-import { authApi, PASSWORD_REQUIREMENTS, isPasswordValid } from '@/features/auth';
+import { authApi } from '@/shared/auth';
+import { PASSWORD_REQUIREMENTS, isPasswordValid } from '@/features/auth';
 import { Button, PasswordInput } from '@/shared/ui';
 
 export function meta() {

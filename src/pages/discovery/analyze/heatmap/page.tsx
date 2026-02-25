@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import { PageHeader, PageContent, Card, Spinner, Empty } from '@/shared/ui';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { useFeedbacksQuery, useFeedbackWithChildrenQuery } from '@/entities/feedback';
 import { useSolutionsQuery } from '@/entities/solution';
 import { useTagsQuery } from '@/entities/tag';

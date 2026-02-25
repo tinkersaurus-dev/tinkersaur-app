@@ -40,6 +40,13 @@ export {
   usePromoteUserGoal,
 } from './api/mutations';
 
+export {
+  mergeUserGoals,
+  MergeUserGoalsAPIError,
+  type UserGoalInput,
+  type MergeUserGoalsResponse,
+} from './api/merge-user-goals-api';
+
 // Filters
 export {
   WEAK_EVIDENCE_THRESHOLD,
@@ -48,8 +55,10 @@ export {
   getEvidenceStrength,
   hasWeakEvidence,
   filterWeakEvidenceUserGoals,
+  getDaysSinceLastIntake,
+  getFreshness,
 } from './lib/filters';
-export type { EvidenceStrength } from './lib/filters';
+export type { EvidenceStrength, Freshness } from './lib/filters';
 
 // Evidence utilities
 export { countFeedbackByType } from './lib/evidence';

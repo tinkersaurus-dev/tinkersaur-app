@@ -3,7 +3,7 @@
  */
 import * as signalR from '@microsoft/signalr';
 import { getAuthToken } from '@/shared/api/httpClient';
-import { authApi } from '@/features/auth/api/authApi';
+import { authApi } from '@/shared/auth';
 import type {
   AgentToolCall,
   AgentSessionStarted,

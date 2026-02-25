@@ -18,7 +18,6 @@ export { useDocument } from './model/useDocuments';
 export { useFolderContent } from './model/useFolderContent';
 
 // Generation workflows
-export { useAsyncGeneration, type UseAsyncGenerationReturn } from './lib/useAsyncGeneration';
 export { useGenerateDiagram, type UseGenerateDiagramReturn } from './lib/useGenerateDiagram';
 export { useGeneratorReferences, type UseGeneratorReferencesReturn } from './lib/useGeneratorReferences';
 export { useSuggestionsGenerator } from './lib/useSuggestionsGenerator';

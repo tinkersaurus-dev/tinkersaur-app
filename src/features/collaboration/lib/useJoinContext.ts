@@ -1,16 +1,28 @@
 /**
  * Hook to join/leave a collaboration context
  */
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePresenceStore } from '../model/usePresenceStore';
-import { usePointingStore } from '@/features/pointing/model/usePointingStore';
 import * as collaborationHub from '../api/collaborationHub';
 
-export function useJoinContext(contextType: string, contextId: string | null | undefined) {
+interface JoinContextOptions {
+  onLeave?: () => void;
+}
+
+export function useJoinContext(
+  contextType: string,
+  contextId: string | null | undefined,
+  options?: JoinContextOptions
+) {
   const connectionState = usePresenceStore((state) => state.connectionState);
   const addActiveContext = usePresenceStore((state) => state.addActiveContext);
   const removeActiveContext = usePresenceStore((state) => state.removeActiveContext);
-  const clearPointingState = usePointingStore((state) => state.clear);
+
+  // Use a ref so the callback can change without re-triggering the effect
+  const onLeaveRef = useRef(options?.onLeave);
+  useEffect(() => {
+    onLeaveRef.current = options?.onLeave;
+  });
 
   useEffect(() => {
     if (connectionState !== 'connected' || !contextId) {
@@ -33,8 +45,7 @@ export function useJoinContext(contextType: string, contextId: string | null | u
         console.error('[JoinContext] Failed to leave context:', error);
       });
       removeActiveContext(contextType, contextId);
-      // Clear pointing state when leaving context to avoid stale data on return
-      clearPointingState();
+      onLeaveRef.current?.();
     };
-  }, [connectionState, contextType, contextId, addActiveContext, removeActiveContext, clearPointingState]);
+  }, [connectionState, contextType, contextId, addActiveContext, removeActiveContext]);
 }

@@ -3,11 +3,10 @@
  * Handles React StrictMode double-mounting gracefully
  */
 import { useEffect, useRef } from 'react';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/shared/auth';
 import { toast } from '@/shared/lib/utils/toast';
 import { usePresenceStore } from '../model/usePresenceStore';
-import * as collaborationHub from '../api/collaborationHub';
-import { isReconnectionExhausted } from '../api/collaborationHub';
+import * as collaborationConnection from '@/shared/signalr';
 
 export function useCollaborationConnection() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -42,7 +41,7 @@ export function useCollaborationConnection() {
       setPermanentlyDisconnected(false);
 
       try {
-        const connection = await collaborationHub.connect();
+        const connection = await collaborationConnection.connect();
 
         // Check if still mounted after async operation
         if (!mountedRef.current) {
@@ -60,26 +59,26 @@ export function useCollaborationConnection() {
         if (!handlersRegisteredRef.current) {
           handlersRegisteredRef.current = true;
 
-          collaborationHub.onReconnecting(() => {
+          collaborationConnection.onReconnecting(() => {
             if (mountedRef.current) {
               setConnectionState('reconnecting');
             }
           });
 
-          collaborationHub.onReconnected((connectionId) => {
+          collaborationConnection.onReconnected((connectionId) => {
             if (mountedRef.current) {
               setConnectionState('connected', connectionId ?? null);
             }
           });
 
-          collaborationHub.onClose((error) => {
+          collaborationConnection.onClose((error) => {
             connectedRef.current = false;
             handlersRegisteredRef.current = false;
             if (mountedRef.current) {
               setConnectionState('disconnected');
 
               // Check if this was due to exhausted reconnection attempts
-              if (isReconnectionExhausted()) {
+              if (collaborationConnection.isReconnectionExhausted()) {
                 setPermanentlyDisconnected(true);
                 toast.error('Connection lost. Please refresh the page to reconnect.');
               } else if (error) {
@@ -112,7 +111,7 @@ export function useCollaborationConnection() {
       connectedRef.current = false;
       connectingRef.current = false;
       handlersRegisteredRef.current = false;
-      collaborationHub.disconnect();
+      collaborationConnection.disconnect();
     }
   }, [isAuthenticated]);
 }

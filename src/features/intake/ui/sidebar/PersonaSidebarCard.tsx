@@ -4,7 +4,7 @@ import { useIntakeStore } from '../../model/useIntakeStore';
 import type { Extraction, PersonaEntity, PersonaPendingMerge } from '../../model/types';
 import type { SimilarPersonaResult } from '@/entities/persona';
 import type { PendingMerge } from '../../model/types';
-import { IntakePersonaMergeModal } from '@/features/entity-merging';
+import { IntakePersonaMergeModal } from '../merge/IntakePersonaMergeModal';
 import { PersonaMatchCard } from './PersonaMatchCard';
 
 interface PersonaSidebarCardProps {
